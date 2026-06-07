@@ -1,0 +1,9 @@
+cloud/node_modules/
+client/node_modules/
+cloud/.env
+client/.env
+*.png
+*.log
+.DS_Store
+.idea/
+.vscode/

@@ -1,0 +1,14 @@
+{
+  "name": "kairos-client",
+  "version": "1.0.0",
+  "description": "Kairos AI Agent - Local Client",
+  "main": "client.js",
+  "type": "module",
+  "scripts": {
+    "start": "node client.js"
+  },
+  "dependencies": {
+    "axios": "^1.7.2",
+    "dotenv": "^16.4.5"
+  }
+}
