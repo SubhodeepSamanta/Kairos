@@ -97,3 +97,19 @@ export async function cancelAllTasks() {
   }
   pushCancelToClient()
 }
+
+export async function hasPendingTasksForChat(chatId) {
+  if (isConnected()) {
+    const count = await Task.countDocuments({
+      status: { $in: ['pending', 'running'] },
+      'payload.chatId': chatId,
+    });
+    return count > 0;
+  }
+
+  return mockTasks.some(
+    (task) =>
+      (task.status === 'pending' || task.status === 'running') &&
+      task.payload?.chatId === chatId,
+  );
+}

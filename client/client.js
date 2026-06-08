@@ -1,4 +1,6 @@
 import axios from "axios";
+import sharp from "sharp";
+import fs from "fs/promises";
 import { config } from "./config/env.js";
 import * as whatsappService from "./services/appService.js";
 import * as commandService from "./services/commandService.js";
@@ -168,6 +170,64 @@ async function executeTask(task) {
         break;
       }
 
+      case "focusApp": {
+        const res = await focusApp(payload.appName);
+        if (!res.success) {
+          throw new Error(res.error || `Could not focus app: ${payload.appName}`);
+        }
+        result = `Focused app: ${payload.appName}`;
+        break;
+      }
+
+      case "clickElement": {
+        const res = await clickElement(payload.appName, payload.selector);
+        if (!res.success) {
+          throw new Error(res.error || "Could not click requested element.");
+        }
+        result = "Clicked requested element.";
+        break;
+      }
+
+      case "typeInto": {
+        const res = await typeInto(payload.appName, payload.selector, payload.value);
+        if (!res.success) {
+          throw new Error(res.error || "Could not type into requested element.");
+        }
+        result = "Typed text successfully.";
+        break;
+      }
+
+      case "readElement": {
+        const res = await readElement(payload.appName, payload.selector);
+        if (!res.success) {
+          throw new Error(res.error || "Could not read requested element.");
+        }
+        result = res.result || "Element read successfully.";
+        break;
+      }
+
+      case "captureWindow": {
+        const capture = await captureWindow(payload.appName);
+        if (!capture.success) {
+          throw new Error(capture.error || "Could not capture window.");
+        }
+
+        const raw = await fs.readFile(capture.result);
+        const compressed = await sharp(raw)
+          .resize(1280, 720, { fit: "inside", withoutEnlargement: true })
+          .jpeg({ quality: 60 })
+          .toBuffer();
+
+        try {
+          await fs.unlink(capture.result);
+        } catch {
+          // Ignore cleanup failures for temp screenshots.
+        }
+
+        result = compressed.toString("base64");
+        break;
+      }
+
       case "uiAction": {
         const { appName, steps } = payload;
         const stepResults = [];
@@ -217,8 +277,14 @@ async function executeTask(task) {
           break
         }
 
-        result = 'SEARCH_RESULTS|||' + 
-          JSON.stringify(searchResult.data)
+        result = JSON.stringify(
+          {
+            query,
+            results: searchResult.data,
+          },
+          null,
+          2,
+        )
         break
       }
 
@@ -237,7 +303,7 @@ async function executeTask(task) {
           break
         }
 
-        result = `EXTRACT_CONTENT|||${task}|||${extracted.text}`
+        result = extracted.text
         break
       }
 

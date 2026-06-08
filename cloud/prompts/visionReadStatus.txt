@@ -1,1 +1,0 @@
-This is a screenshot of the WhatsApp status story page. Please extract the text written by the user in this status, or summarize what is shown.

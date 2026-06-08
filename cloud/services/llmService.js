@@ -210,6 +210,124 @@ export const tools = [
     },
   },
   {
+    type: "function",
+    function: {
+      name: "focusApp",
+      description: "Brings a desktop application window to the foreground.",
+      parameters: {
+        type: "object",
+        properties: {
+          appName: {
+            type: "string",
+            description: "Process/app name, e.g. 'WhatsApp', 'chrome', 'spotify'.",
+          },
+        },
+        required: ["appName"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "clickElement",
+      description: "Clicks a UI element in an open application window.",
+      parameters: {
+        type: "object",
+        properties: {
+          appName: { type: "string" },
+          selector: {
+            type: "object",
+            description: "Element selector using properties like name, controlType, or automationId.",
+            properties: {
+              name: { type: "string" },
+              controlType: {
+                type: "string",
+                enum: [
+                  "Button",
+                  "Edit",
+                  "ListItem",
+                  "Text",
+                  "List",
+                  "MenuItem",
+                  "CheckBox",
+                  "ComboBox",
+                ],
+              },
+              automationId: { type: "string" },
+            },
+          },
+        },
+        required: ["appName", "selector"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "typeInto",
+      description: "Types text into a UI element in an application.",
+      parameters: {
+        type: "object",
+        properties: {
+          appName: { type: "string" },
+          selector: {
+            type: "object",
+            properties: {
+              name: { type: "string" },
+              controlType: { type: "string" },
+              automationId: { type: "string" },
+            },
+          },
+          value: {
+            type: "string",
+            description: "Text to type.",
+          },
+        },
+        required: ["appName", "selector", "value"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "readElement",
+      description: "Reads text/value from a UI element in an application.",
+      parameters: {
+        type: "object",
+        properties: {
+          appName: { type: "string" },
+          selector: {
+            type: "object",
+            properties: {
+              name: { type: "string" },
+              controlType: { type: "string" },
+              automationId: { type: "string" },
+            },
+          },
+        },
+        required: ["appName", "selector"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "captureWindow",
+      description:
+        "Takes a screenshot of a specific app window or the full screen using '__screen__'. Returns base64 image data.",
+      parameters: {
+        type: "object",
+        properties: {
+          appName: {
+            type: "string",
+            description: "Application window name or '__screen__' for full desktop.",
+          },
+        },
+        required: ["appName"],
+      },
+    },
+  },
+  {
     type: 'function',
     function: {
       name: 'webSearch',
@@ -231,7 +349,7 @@ export const tools = [
 `\n` +
 `Do NOT use for tasks that need browser interaction\n` +
 `like clicking buttons or filling forms — use \n` +
-`uiAction for those.`,
+`focusApp/clickElement/typeInto/readElement for those.`,
       parameters: {
         type: 'object',
         properties: {

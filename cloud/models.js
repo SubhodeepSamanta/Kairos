@@ -10,6 +10,7 @@ const MessageSchema = new mongoose.Schema({
   chatId: { type: Number, required: true },
   role: { type: String, required: true },
   content: { type: String },
+  raw_content: { type: mongoose.Schema.Types.Mixed },
   name: { type: String },
   tool_call_id: { type: String },
   tool_calls: { type: mongoose.Schema.Types.Mixed },
