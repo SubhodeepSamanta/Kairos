@@ -1,0 +1,47 @@
+import TelegramBot from "node-telegram-bot-api";
+
+export function startTelegramBot(
+  token,
+  onMessage
+) {
+  const bot =
+    new TelegramBot(
+      token,
+      {
+        polling: true
+      }
+    );
+
+  bot.on(
+    "message",
+    async (msg) => {
+      const text =
+        msg.text?.trim();
+
+      if (!text) {
+        return;
+      }
+
+      try {
+        const response =
+          await onMessage(
+            text
+          );
+
+        await bot.sendMessage(
+          msg.chat.id,
+          response
+        );
+      }
+
+      catch (error) {
+        await bot.sendMessage(
+          msg.chat.id,
+          `Error: ${error.message}`
+        );
+      }
+    }
+  );
+
+  return bot;
+}
