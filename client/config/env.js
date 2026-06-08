@@ -16,6 +16,6 @@ export const config = {
   CHROME_PROFILES: {
     personal: 'Default',
     work: 'Profile 1',
-    leetcode: 'Profile 2'
+    leetcode: 'Profile 8'
   }
 };

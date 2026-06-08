@@ -1,8 +1,9 @@
 import express from 'express';
 import { config } from './config/env.js';
 import { connectDB } from './services/db.js';
-import { fetchPendingTasks, completeTask } from './services/taskService.js';
+import { fetchPendingTasks, completeTask, getTaskById } from './services/taskService.js';
 import { initBot, handleTaskCompletion, shutdownBot } from './services/botService.js';
+import { analyzeImage } from './services/llmService.js';
 
 const app = express();
 app.use(express.json({ limit: '50mb' }));
@@ -26,6 +27,20 @@ app.get('/client/tasks', verifyClient, async (req, res) => {
   }
 });
 
+app.get('/client/tasks/:id/status', verifyClient, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const task = await getTaskById(id);
+    if (!task) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+    res.json({ status: task.status });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
 app.post('/client/tasks/:id/complete', verifyClient, async (req, res) => {
   const { id } = req.params;
   const { status, result } = req.body;
@@ -34,6 +49,16 @@ app.post('/client/tasks/:id/complete', verifyClient, async (req, res) => {
     const completed = await completeTask(id, status, result);
     res.json({ success: true });
     handleTaskCompletion(completed);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/client/analyze-image', verifyClient, async (req, res) => {
+  const { base64Image, prompt } = req.body;
+  try {
+    const analysis = await analyzeImage(base64Image, prompt);
+    res.json({ analysis });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

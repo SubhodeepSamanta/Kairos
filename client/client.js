@@ -4,6 +4,7 @@ import * as whatsappService from './services/whatsappService.js';
 import * as commandService from './services/commandService.js';
 import * as utilityService from './services/utilityService.js';
 import { openBrowser } from './utils/osHelper.js';
+import { clientState, abortCurrentTask } from './utils/clientState.js';
 
 console.log('Kairos Client is initializing...');
 console.log(`Connecting to Cloud at: ${config.CLOUD_URL}`);
@@ -35,8 +36,26 @@ async function executeTask(task) {
   const { _id, commandType, payload } = task;
   console.log(`Executing task ${_id} (${commandType})...`);
 
+  // Initialize client task state
+  clientState.currentTaskId = _id;
+  clientState.isCancelled = false;
+  clientState.activeProcess = null;
+
   let status = 'completed';
   let result = '';
+
+  // Start a polling loop to check if this task has been cancelled on the server
+  const cancelCheckInterval = setInterval(async () => {
+    try {
+      const response = await axios.get(`${config.CLOUD_URL}/client/tasks/${_id}/status`, { headers });
+      if (response.data?.status === 'failed' || response.data?.status === 'cancelled') {
+        console.log(`Task ${_id} has been cancelled on the cloud. Aborting locally.`);
+        abortCurrentTask();
+      }
+    } catch (err) {
+      // Ignore network errors in status checking
+    }
+  }, 1000);
 
   try {
     switch (commandType) {
@@ -84,6 +103,7 @@ async function executeTask(task) {
 
       case 'readWhatsAppStatus': {
         await whatsappService.searchContact(payload.recipient);
+        await whatsappService.selectContact();
         await new Promise(resolve => setTimeout(resolve, 1500));
 
         const defaultClickX = 380;
@@ -99,6 +119,16 @@ async function executeTask(task) {
         break;
       }
 
+      case 'manageApplication': {
+        result = await commandService.manageApplication(payload.appName, payload.action);
+        break;
+      }
+
+      case 'captureScreen': {
+        result = await utilityService.captureFullScreen();
+        break;
+      }
+
       default:
         throw new Error(`Unknown command type: ${commandType}`);
     }
@@ -106,6 +136,16 @@ async function executeTask(task) {
     console.error(`Task ${_id} execution failed:`, err.message);
     status = 'failed';
     result = err.message;
+  } finally {
+    clearInterval(cancelCheckInterval);
+    clientState.currentTaskId = null;
+    clientState.activeProcess = null;
+  }
+
+  // If the task was cancelled, don't try to report status to the cloud to avoid race condition overwrite
+  if (clientState.isCancelled) {
+    console.log(`Task ${_id} execution stopped due to local cancellation.`);
+    return;
   }
 
   try {

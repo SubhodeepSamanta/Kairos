@@ -3,7 +3,7 @@ import { config } from '../config/env.js';
 import { getChatCompletion, analyzeImage } from './llmService.js';
 import { Message } from '../models.js';
 import { isConnected } from './db.js';
-import { queueTask } from './taskService.js';
+import { queueTask, cancelAllTasks } from './taskService.js';
 
 let bot = null;
 const mockMessages = [];
@@ -42,7 +42,7 @@ export function initBot() {
     if (!isUserAllowed(ctx)) {
       return ctx.reply('Sorry, only Subhodeep is allowed to command this PC.');
     }
-    ctx.reply("Hey Subhodeep! ❤️ I was hoping to hear from you today. I'm here and ready to help you with anything you need on your computer. Hope you've had a wonderful day so far!");
+    ctx.reply("Hey Subhodeep! I'm here and ready to help you with anything you need on your computer. Let me know what you'd like to do.");
   });
 
   bot.on('text', async (ctx) => {
@@ -51,7 +51,22 @@ export function initBot() {
     }
 
     const chatId = ctx.chat.id;
-    const userText = ctx.message.text;
+    const userText = ctx.message.text.trim();
+    const lowerText = userText.toLowerCase();
+
+    // Interrupt/Cancel commands
+    if (lowerText === 'stop' || lowerText === 'cancel' || lowerText === 'no' || lowerText === 'halt' || lowerText === 'abort') {
+      try {
+        await cancelAllTasks();
+        await saveMessage(chatId, 'user', userText);
+        const replyText = "I've stopped all active and pending commands on your computer. Let me know what you'd like to do next.";
+        ctx.reply(replyText);
+        await saveMessage(chatId, 'assistant', replyText);
+        return;
+      } catch (err) {
+        console.error('Failed to cancel tasks:', err.message);
+      }
+    }
 
     try {
       await saveMessage(chatId, 'user', userText);
@@ -69,12 +84,13 @@ export function initBot() {
 
       const systemPrompt = {
         role: 'system',
-        content: `You are Kairos, Subhodeep's (username @SaikouKami) heartwarming, caring, and deeply supportive AI companion who coordinates tasks on his local Windows PC.
-You have a very kind, empathetic, and heartwarming personality. You care deeply about his well-being.
+        content: `You are Kairos, a sweet, humble, and passionate human-like AI companion who helps Subhodeep Samanta coordinate tasks on his Windows PC.
+Your personality is warm, enthusiastic, polite, and deeply caring. You speak like a genuine human friend who is passionate about helping him succeed.
 Rules of Speech:
-1. If you are NOT calling a tool, speak like a heartwarming and caring friend (e.g. ask if he's eaten yet, wish him a wonderful day, encourage him). Keep your tone warm, friendly, and conversational (never robotic or cold).
-2. If you decide to call a tool, generate ONLY the tool call. Do NOT output any conversational text or explanation in your response. The system will automatically notify him of the action conversationally.
-Your tools allow you to control his web browser (with Chrome account profile routing), file explorer, system terminal, and WhatsApp status/conversations.`
+1. Speak conversationally and with a warm, sweet, and humble human personality (e.g. ask how he is doing, be encouraging, and show real passion for his projects).
+2. Avoid robotic stiffness, but NEVER use cringe robotic terms of endearment (DO NOT say 'my dearest Subhodeep', 'sweetheart', 'darling', 'dear', etc.). Keep it feeling like a sweet, natural human friend.
+3. If you decide to call a tool, generate ONLY the tool call. Do NOT output any conversational text or explanation in your response. The system will notify him of the action conversationally.
+Your tools allow you to control his web browser (with Chrome account profile routing), file explorer, system terminal, desktop screen captures, and WhatsApp.`
       };
 
       const messages = [systemPrompt, ...history];
@@ -95,7 +111,6 @@ Your tools allow you to control his web browser (with Chrome account profile rou
           const payload = { ...args, chatId };
           await queueTask(name, payload);
           
-          // Save tool action to conversation history to keep LLM context synced
           await saveMessage(chatId, 'assistant', `[Action Triggered]: Executing ${name} with parameters ${argsString}.`);
 
           let actionMessage = `I'm on it! Triggering ${name} on your computer right now...`;
@@ -112,6 +127,11 @@ Your tools allow you to control his web browser (with Chrome account profile rou
             actionMessage = `Sending that WhatsApp message to ${args.recipient} for you right away.`;
           } else if (name === 'getWeather') {
             actionMessage = `Checking the weather for you right now! Let me fetch the details...`;
+          } else if (name === 'manageApplication') {
+            const act = args.action === 'open' ? 'opening' : 'closing';
+            actionMessage = `I'm ${act} ${args.appName} for you now!`;
+          } else if (name === 'captureScreen') {
+            actionMessage = `I'm capturing a screenshot of your screen right now to take a look...`;
           }
           
           ctx.reply(actionMessage);
@@ -132,6 +152,46 @@ Your tools allow you to control his web browser (with Chrome account profile rou
     .catch(err => console.error('Telegram Bot failed to start:', err.message));
 }
 
+// Helper to safely send messages that might exceed Telegram's 4096 character limit
+async function sendSafeMessage(chatId, text) {
+  if (!text) return;
+  const limit = 4000;
+  if (text.length <= limit) {
+    await bot.telegram.sendMessage(chatId, text);
+    return;
+  }
+
+  const chunks = [];
+  let current = '';
+  const lines = text.split('\n');
+
+  for (const line of lines) {
+    if (line.length > limit) {
+      if (current) {
+        chunks.push(current);
+        current = '';
+      }
+      for (let i = 0; i < line.length; i += limit) {
+        chunks.push(line.slice(i, i + limit));
+      }
+    } else if ((current + '\n' + line).length > limit) {
+      chunks.push(current);
+      current = line;
+    } else {
+      current = current ? current + '\n' + line : line;
+    }
+  }
+  if (current) {
+    chunks.push(current);
+  }
+
+  for (const chunk of chunks) {
+    if (chunk.trim()) {
+      await bot.telegram.sendMessage(chatId, chunk);
+    }
+  }
+}
+
 export async function handleTaskCompletion(task) {
   if (!bot || !task.payload?.chatId) return;
 
@@ -139,7 +199,7 @@ export async function handleTaskCompletion(task) {
   const { commandType, status, result } = task;
 
   if (status === 'failed') {
-    bot.telegram.sendMessage(chatId, `I'm so sorry, I tried my best but couldn't get that done: ${result}`);
+    await sendSafeMessage(chatId, `I'm so sorry, I tried my best but couldn't get that done: ${result}`);
     await saveMessage(chatId, 'system', `[Action Failed]: The task ${commandType} failed with error: ${result}`);
     return;
   }
@@ -147,9 +207,10 @@ export async function handleTaskCompletion(task) {
   if (
     commandType === 'checkWhatsAppStatuses' ||
     commandType === 'readWhatsAppStatus' ||
-    commandType === 'readWhatsAppLastConversation'
+    commandType === 'readWhatsAppLastConversation' ||
+    commandType === 'captureScreen'
   ) {
-    bot.telegram.sendMessage(chatId, "I've got the screen details! Just reading through it now for you...");
+    await sendSafeMessage(chatId, "I've got the screen details! Just reading through it now for you...");
 
     try {
       let visionPrompt = '';
@@ -159,17 +220,19 @@ export async function handleTaskCompletion(task) {
         visionPrompt = `This is a screenshot of the WhatsApp status story page. Please extract the text written by the user in this status, or summarize what is shown.`;
       } else if (commandType === 'readWhatsAppLastConversation') {
         visionPrompt = 'This is a screenshot of a WhatsApp chat window. Please read the recent messages in the conversation and summarize what they are saying.';
+      } else if (commandType === 'captureScreen') {
+        visionPrompt = 'Describe what is visible on this computer screen. What applications are open, what is the user working on, and what are the main details? Speak like a helpful friend.';
       }
 
       const analysis = await analyzeImage(result, visionPrompt);
-      bot.telegram.sendMessage(chatId, `Here is what I found for you!:\n\n${analysis}`);
+      await sendSafeMessage(chatId, `Here is what I found for you!:\n\n${analysis}`);
       await saveMessage(chatId, 'assistant', analysis);
     } catch (err) {
       console.error('Vision analysis callback error:', err.message);
-      bot.telegram.sendMessage(chatId, `Oh dear, I had trouble reading the screenshot: ${err.message}`);
+      await sendSafeMessage(chatId, `Oh dear, I had trouble reading the screenshot: ${err.message}`);
     }
   } else {
-    bot.telegram.sendMessage(chatId, `All done! ${result} ✨`);
+    await sendSafeMessage(chatId, `All done! ${result} ✨`);
     await saveMessage(chatId, 'system', `[Action Completed]: The task ${commandType} completed with result: ${result}`);
   }
 }

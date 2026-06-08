@@ -12,7 +12,7 @@ export const tools = [
         type: 'object',
         properties: {
           url: { type: 'string', description: 'The absolute URL to open (including https://).' },
-          profile: { type: 'string', description: 'Optional profile profile alias or directory name (e.g. "personal", "work", "leetcode") to open this URL in.' }
+          profile: { type: 'string', description: 'The Chrome profile account to open the URL in. Can be an email address (e.g. "subhodeepsamanta2005@gmail.com"), an index number/word (e.g., "first", "second", "third", "1st", "2nd"), or a display name (e.g. "Saikou Kami", "UwU").' }
         },
         required: ['url']
       }
@@ -104,6 +104,32 @@ export const tools = [
   {
     type: 'function',
     function: {
+      name: 'manageApplication',
+      description: 'Opens or closes a specific desktop application on the computer (e.g. whatsapp, spotify, vscode, chrome).',
+      parameters: {
+        type: 'object',
+        properties: {
+          appName: { type: 'string', description: 'The name of the application (e.g. "whatsapp", "spotify", "vscode", "chrome").' },
+          action: { type: 'string', enum: ['open', 'close'], description: 'The action to perform.' }
+        },
+        required: ['appName', 'action']
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'captureScreen',
+      description: 'Takes a screenshot of the user\'s desktop/screen to describe what is currently visible or open.',
+      parameters: {
+        type: 'object',
+        properties: {}
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
       name: 'getWeather',
       description: 'Gets the current weather or temperature. If location is omitted, checks the local city.',
       parameters: {
@@ -139,27 +165,28 @@ async function requestWithRetry(requestFn, retries = 2, delay = 1000) {
   }
 }
 
-async function callOpenRouter(messages) {
+async function executeTextCompletion(provider, messages) {
   const headers = {
-    'Authorization': `Bearer ${config.OPENROUTER_API_KEY}`,
-    'Content-Type': 'application/json',
-    'HTTP-Referer': 'https://github.com/SubhodeepSamanta/Kairos',
-    'X-Title': 'Kairos AI Agent'
+    'Authorization': `Bearer ${provider.key}`,
+    'Content-Type': 'application/json'
   };
+
+  if (provider.name === 'OpenRouter') {
+    headers['HTTP-Referer'] = 'https://github.com/SubhodeepSamanta/Kairos';
+    headers['X-Title'] = 'Kairos AI Agent';
+  }
 
   const payload = {
-    model: config.OPENROUTER_MODEL,
+    model: provider.model,
     messages: messages,
     tools: tools,
-    tool_choice: 'auto'
+    tool_choice: 'auto',
+    max_tokens: 1024
   };
 
-  const response = await requestWithRetry(() => 
-    axios.post('https://openrouter.ai/api/v1/chat/completions', payload, { headers })
-  );
-
+  const response = await requestWithRetry(() => axios.post(provider.endpoint, payload, { headers }));
   const choice = response.data.choices?.[0];
-  if (!choice) throw new Error(`Invalid response payload from OpenRouter`);
+  if (!choice) throw new Error(`Invalid response payload from ${provider.name}`);
 
   return {
     content: choice.message.content || '',
@@ -167,35 +194,43 @@ async function callOpenRouter(messages) {
   };
 }
 
-async function callGroq(messages) {
+async function executeVisionCompletion(provider, base64Image, userPrompt) {
   const headers = {
-    'Authorization': `Bearer ${config.GROQ_API_KEY}`,
+    'Authorization': `Bearer ${provider.key}`,
     'Content-Type': 'application/json'
   };
 
+  if (provider.name === 'OpenRouter') {
+    headers['HTTP-Referer'] = 'https://github.com/SubhodeepSamanta/Kairos';
+    headers['X-Title'] = 'Kairos AI Agent';
+  }
+
+  const messages = [
+    {
+      role: 'user',
+      content: [
+        { type: 'text', text: userPrompt },
+        {
+          type: 'image_url',
+          image_url: {
+            url: `data:image/png;base64,${base64Image}`
+          }
+        }
+      ]
+    }
+  ];
+
   const payload = {
-    model: 'llama-3.3-70b-versatile',
+    model: provider.model,
     messages: messages,
-    tools: tools,
-    tool_choice: 'auto'
+    max_tokens: 1024
   };
 
-  try {
-    const response = await requestWithRetry(() => 
-      axios.post('https://api.groq.com/openai/v1/chat/completions', payload, { headers })
-    );
+  const response = await requestWithRetry(() => axios.post(provider.endpoint, payload, { headers }));
+  const choice = response.data.choices?.[0];
+  if (!choice) throw new Error(`Invalid response payload from ${provider.name}`);
 
-    const choice = response.data.choices?.[0];
-    if (!choice) throw new Error('Invalid Groq response payload');
-
-    return {
-      content: choice.message.content || '',
-      toolCalls: choice.message.tool_calls || null
-    };
-  } catch (err) {
-    console.error('Groq Text Completion Error Payload:', err.response?.data || err.message);
-    throw err;
-  }
+  return choice.message.content || 'No text extracted.';
 }
 
 export async function getChatCompletion(messages) {
@@ -255,7 +290,7 @@ export async function analyzeImage(base64Image, userPrompt) {
       name: 'Groq',
       endpoint: 'https://api.groq.com/openai/v1/chat/completions',
       key: config.GROQ_API_KEY,
-      model: 'llama-3.2-11b-vision-preview'
+      model: 'llama-3.2-11b-vision-instruct'
     });
   }
 

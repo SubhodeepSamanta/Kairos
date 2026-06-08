@@ -63,3 +63,64 @@ function resolveSpecialFolder() {
   }
   return desktopPath;
 }
+
+export async function manageApplication(appName, action) {
+  if (!appName) throw new Error('No application name specified.');
+  if (!action) throw new Error('No action specified.');
+
+  const normalizedApp = appName.toLowerCase().trim();
+  const normalizedAction = action.toLowerCase().trim();
+
+  console.log(`Managing application: ${normalizedApp} (${normalizedAction})`);
+
+  if (normalizedAction === 'open') {
+    if (normalizedApp === 'whatsapp') {
+      await safeSpawn('cmd.exe', ['/c', 'start', 'whatsapp:']);
+      return 'Successfully opened WhatsApp.';
+    } else if (normalizedApp === 'spotify') {
+      await safeSpawn('cmd.exe', ['/c', 'start', 'spotify:']);
+      return 'Successfully opened Spotify.';
+    } else if (normalizedApp === 'chrome') {
+      await safeSpawn('cmd.exe', ['/c', 'start', 'chrome']);
+      return 'Successfully opened Chrome.';
+    } else if (normalizedApp === 'vscode') {
+      await safeSpawn('cmd.exe', ['/c', 'code']);
+      return 'Successfully opened VS Code.';
+    } else {
+      try {
+        await safeSpawn('cmd.exe', ['/c', 'start', normalizedApp]);
+        return `Attempted to open ${appName}.`;
+      } catch (err) {
+        throw new Error(`Failed to open application "${appName}": ${err.message}`);
+      }
+    }
+  } else if (normalizedAction === 'close') {
+    let processPattern = '';
+    if (normalizedApp === 'whatsapp') {
+      processPattern = 'WhatsApp*';
+    } else if (normalizedApp === 'spotify') {
+      processPattern = 'Spotify*';
+    } else if (normalizedApp === 'chrome') {
+      processPattern = 'chrome';
+    } else if (normalizedApp === 'vscode') {
+      processPattern = 'code';
+    } else {
+      processPattern = `${normalizedApp}*`;
+    }
+
+    try {
+      await safeSpawn('powershell.exe', [
+        '-NoProfile',
+        '-NonInteractive',
+        '-Command',
+        `Stop-Process -Name "${processPattern}" -Force -ErrorAction SilentlyContinue`
+      ]);
+      return `Successfully closed ${appName}.`;
+    } catch (err) {
+      throw new Error(`Failed to close application "${appName}": ${err.message}`);
+    }
+  } else {
+    throw new Error(`Unknown action: ${action}`);
+  }
+}
+

@@ -44,16 +44,23 @@ export async function fetchPendingTasks() {
 
 export async function completeTask(id, status, result) {
   if (isConnected()) {
+    const current = await Task.findById(id);
+    if (!current) throw new Error('Task not found');
+    if (current.status === 'failed' || current.status === 'cancelled') {
+      return current;
+    }
     const task = await Task.findByIdAndUpdate(
       id,
       { status, result, updatedAt: new Date() },
       { new: true }
     );
-    if (!task) throw new Error('Task not found');
     return task;
   } else {
     const task = mockTasks.find(t => t._id === id);
     if (!task) throw new Error('Task not found');
+    if (task.status === 'failed' || task.status === 'cancelled') {
+      return task;
+    }
     task.status = status;
     task.result = result;
     task.updatedAt = new Date();
@@ -66,5 +73,22 @@ export async function getTaskById(id) {
     return await Task.findById(id);
   } else {
     return mockTasks.find(t => t._id === id);
+  }
+}
+
+export async function cancelAllTasks() {
+  if (isConnected()) {
+    await Task.updateMany(
+      { status: { $in: ['pending', 'running'] } },
+      { $set: { status: 'failed', result: 'Cancelled by user', updatedAt: new Date() } }
+    );
+  } else {
+    mockTasks.forEach(t => {
+      if (t.status === 'pending' || t.status === 'running') {
+        t.status = 'failed';
+        t.result = 'Cancelled by user';
+        t.updatedAt = new Date();
+      }
+    });
   }
 }
