@@ -1,12 +1,90 @@
 import { Telegraf } from "telegraf";
 import { config } from "../config/env.js";
 import { getChatCompletion, analyzeImage } from "./llmService.js";
-import { Message } from "../models.js";
+import { Message, Task } from "../models.js";
 import { isConnected } from "./db.js";
 import { queueTask, cancelAllTasks } from "./taskService.js";
+import fs from 'fs';
+import path from 'path';
 
 let bot = null;
 const mockMessages = [];
+
+const targetName = (config.ALLOWED_TELEGRAM_USER || "user")
+  .split(" ")
+  .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+  .join(" ");
+const targetFirstName = targetName.split(" ")[0];
+
+function loadPrompt(filename, replacements = {}) {
+  try {
+    const filePath = path.join(process.cwd(), 'prompts', filename);
+    let content = fs.readFileSync(filePath, 'utf8');
+    for (const [key, value] of Object.entries(replacements)) {
+      content = content.replaceAll(`\${${key}}`, value);
+    }
+    return content;
+  } catch (err) {
+    console.error(`Failed to load prompt ${filename}:`, err.message);
+    return "";
+  }
+}
+
+function getFriendlyActionMessage(name, targetFirstName, args = {}) {
+  const templates = {
+    openUrl: [
+      `Opening up that website link for you right now, ${targetFirstName}!`,
+      `Let me open that page on your browser...`,
+      `Getting that web page opened for you, ${targetFirstName}!`
+    ],
+    openYoutubeVideo: [
+      `Opening YouTube to play that video for you now! 🎵`,
+      `Searching YouTube and playing that for you right away.`,
+      `Getting that video queued up on YouTube!`
+    ],
+    openLeetcodeDaily: [
+      `Opening the LeetCode daily coding question for you. Good luck, I know you'll crush it! 💻`,
+      `Loading today's LeetCode coding challenge... let's get solving!`,
+      `Getting the daily LeetCode challenge opened for you.`
+    ],
+    openFolder: [
+      `Opening up that folder on your screen now.`,
+      `Let me reveal that directory for you...`,
+      `Opening the folder. Let me know if there's anything else you need inside!`
+    ],
+    sendWhatsApp: [
+      `Sending that WhatsApp message to ${args.recipient || 'your contact'} right away.`,
+      `Getting that message sent on WhatsApp...`,
+      `On it! Sending the WhatsApp message.`
+    ],
+    webSearch: [
+      `Searching the web for "${args.query || 'your query'}" now...`,
+      `Let me search the web for that...`,
+      `Running a quick web search now...`
+    ],
+    webExtract: [
+      `Opening that page to read the content for you...`,
+      `Extracting the webpage content...`,
+      `Reading through the page content now...`
+    ],
+    manageApplication: [
+      `Triggering that application action now...`,
+      `On it! Managing the application state.`
+    ],
+    captureScreen: [
+      `Capturing a screenshot of your screen to take a look...`,
+      `Let me capture your screen details...`
+    ]
+  };
+
+  const options = templates[name] || [
+    `I'm starting up ${name} on your computer right now...`,
+    `Sure thing! Running ${name} for you now.`,
+    `Just a second, triggering ${name} on your PC!`
+  ];
+
+  return options[Math.floor(Math.random() * options.length)];
+}
 
 function isUserAllowed(ctx) {
   const allowedUser = config.ALLOWED_TELEGRAM_USER.toLowerCase();
@@ -20,12 +98,12 @@ function isUserAllowed(ctx) {
   );
 }
 
-async function saveMessage(chatId, role, content) {
+async function saveMessage(chatId, role, content, extra = {}) {
   try {
     if (isConnected()) {
-      await Message.create({ chatId, role, content });
+      await Message.create({ chatId, role, content, ...extra });
     } else {
-      mockMessages.push({ chatId, role, content, timestamp: new Date() });
+      mockMessages.push({ chatId, role, content, ...extra, timestamp: new Date() });
     }
   } catch (err) {
     console.error("Failed to save message to history:", err.message);
@@ -48,16 +126,16 @@ export function initBot() {
 
   bot.start((ctx) => {
     if (!isUserAllowed(ctx)) {
-      return ctx.reply("Sorry, only Subhodeep is allowed to command this PC.");
+      return ctx.reply(`Sorry, only ${targetFirstName} is allowed to command this PC.`);
     }
     ctx.reply(
-      "Hey Subhodeep! I'm here and ready to help you with anything you need on your computer. Let me know what you'd like to do.",
+      `Hey ${targetFirstName}! I'm here and ready to help you with anything you need on your computer. Let me know what you'd like to do.`,
     );
   });
 
   bot.on("text", async (ctx) => {
     if (!isUserAllowed(ctx)) {
-      return ctx.reply("Sorry, only Subhodeep is allowed to command this PC.");
+      return ctx.reply(`Sorry, only ${targetFirstName} is allowed to command this PC.`);
     }
 
     const chatId = ctx.chat.id;
@@ -92,43 +170,44 @@ export function initBot() {
       if (isConnected()) {
         const dbMsgs = await Message.find({ chatId })
           .sort({ timestamp: 1 })
-          .limit(15);
-        history = dbMsgs.map((m) => ({ role: m.role, content: m.content }));
+          .limit(30);
+        history = dbMsgs.map((m) => {
+          const msg = { role: m.role };
+          if (m.content !== undefined && m.content !== null) msg.content = m.content;
+          if (m.name) msg.name = m.name;
+          if (m.tool_call_id) msg.tool_call_id = m.tool_call_id;
+          if (m.tool_calls) msg.tool_calls = m.tool_calls;
+          return msg;
+        });
       } else {
         history = mockMessages
           .filter((m) => m.chatId === chatId)
-          .slice(-15)
-          .map((m) => ({ role: m.role, content: m.content }));
+          .slice(-30)
+          .map((m) => {
+            const msg = { role: m.role };
+            if (m.content !== undefined && m.content !== null) msg.content = m.content;
+            if (m.name) msg.name = m.name;
+            if (m.tool_call_id) msg.tool_call_id = m.tool_call_id;
+            if (m.tool_calls) msg.tool_calls = m.tool_calls;
+            return msg;
+          });
       }
 
       const systemPrompt = {
         role: "system",
-        content: `You are Kairos, a sweet, humble, and passionate human-like AI companion who helps Subhodeep Samanta coordinate tasks on his Windows PC.
-Your personality is warm, enthusiastic, polite, and deeply caring. You speak like a genuine human friend who is passionate about helping him succeed.
-Rules of Speech:
-1. Speak conversationally and with a warm, sweet, and humble human personality (e.g. ask how he is doing, be encouraging, and show real passion for his projects).
-2. Avoid robotic stiffness, but NEVER use cringe robotic terms of endearment (DO NOT say 'my dearest Subhodeep', 'sweetheart', 'darling', 'dear', etc.). Keep it feeling like a sweet, natural human friend.
-3. If you decide to call a tool, generate ONLY the tool call. Do NOT output any conversational text or explanation in your response. The system will notify him of the action conversationally.
-Your tools allow you to control his web browser (with Chrome account profile routing), file explorer, system terminal, desktop screen captures, and WhatsApp.
-WEB ACCESS — use these tools for ANY current information:
-• webSearch(query) — search anything you don't know the URL for
-• webExtract(url, task) — read a specific URL
-
-ROUTING RULES:
-• User asks about news, weather, scores, prices, people, events, anything current → webSearch first
-• User gives you a URL to read → webExtract directly
-• User wants to OPEN something in their browser → openUrl
-• User wants to control an app → uiAction
-
-NEVER guess current information from training data.
-NEVER hardcode URLs — always search first.
-openUrl is ONLY for when user wants to SEE a page themselves.`,
+        content: loadPrompt('systemPrompt.txt', { targetName, targetFirstName })
       };
 
       const messages = [systemPrompt, ...history];
       const llmRes = await getChatCompletion(messages);
 
       if (llmRes.toolCalls && llmRes.toolCalls.length > 0) {
+        await saveMessage(chatId, "assistant", llmRes.content || null, { tool_calls: llmRes.toolCalls });
+
+        if (llmRes.content) {
+          ctx.reply(llmRes.content);
+        }
+
         for (const toolCall of llmRes.toolCalls) {
           const { name, arguments: argsString } = toolCall.function;
 
@@ -142,39 +221,17 @@ openUrl is ONLY for when user wants to SEE a page themselves.`,
             );
           }
 
-          const payload = { ...args, chatId };
+          const payload = { 
+            ...args, 
+            toolCallId: toolCall.id || `call_${Math.random().toString(36).substring(2, 9)}`,
+            chatId,
+            task: userText
+          };
           await queueTask(name, payload);
 
-          await saveMessage(
-            chatId,
-            "assistant",
-            `[Action Triggered]: Executing ${name} with parameters ${argsString}.`,
-          );
-
-          let actionMessage = `I'm on it! Triggering ${name} on your computer right now...`;
-          if (name === "openUrl") {
-            actionMessage = `Opening that link for you right now, Subhodeep! Hope it's exactly what you need.`;
-            if (args.url?.includes("leetcode")) {
-              actionMessage = `I'm opening up the LeetCode daily question for you. Good luck, I know you'll crush it! 💻`;
-            } else if (args.url?.includes("youtube")) {
-              actionMessage = `Opening YouTube for you. Please make sure to eat something delicious while you watch! 🍔`;
-            }
-          } else if (name === "openFolder") {
-            actionMessage = `I'm opening up that folder on your screen now. Let me know if there's anything else you need inside!`;
-          } else if (name === "sendWhatsApp") {
-            actionMessage = `Sending that WhatsApp message to ${args.recipient} for you right away.`;
-          } else if (name === "webSearch") {
-            actionMessage = `I'm searching the web for "${args.query}" now...`;
-          } else if (name === "webExtract") {
-            actionMessage = `Opening that webpage to read the content for you...`;
-          } else if (name === "manageApplication") {
-            const act = args.action === "open" ? "opening" : "closing";
-            actionMessage = `I'm ${act} ${args.appName} for you now!`;
-          } else if (name === "captureScreen") {
-            actionMessage = `I'm capturing a screenshot of your screen right now to take a look...`;
+          if (!llmRes.content) {
+            ctx.reply(getFriendlyActionMessage(name, targetFirstName, args));
           }
-
-          ctx.reply(actionMessage);
         }
       } else if (llmRes.content) {
         ctx.reply(llmRes.content);
@@ -242,169 +299,162 @@ export async function handleTaskCompletion(task) {
   const { chatId } = task.payload;
   const { commandType, status, result } = task;
 
-  if (commandType === 'webSearch' && 
-      status === 'completed' &&
-      result?.startsWith('SEARCH_RESULTS|||')) {
-    
-    const rawData = result.replace('SEARCH_RESULTS|||', '')
-    let searchResults
-    try {
-      searchResults = JSON.parse(rawData)
-    } catch {
-      await sendSafeMessage(chatId, 
-        'Search completed but results could not be parsed.'
-      )
-      return
-    }
-
-    const resultText = searchResults
-      .map(r => `${r.position}. ${r.title}\n   ${r.url}\n   ${r.description}`)
-      .join('\n\n')
-
-    try {
-      const decision = await getChatCompletion([
-        {
-          role: 'system',
-          content: `You are Kairos. You just ran a web search. \n` +
-`Look at the results and decide:\n` +
-`- If descriptions have enough info to answer → answer directly\n` +
-`- If you need more detail → call webExtract on the best URL\n` +
-`- Pick the most relevant result for the user's actual question\n` +
-`Be decisive. If calling webExtract, pick ONE URL only.`
-        },
-        {
-          role: 'user',
-          content: `Search results:\n\n${resultText}`
-        }
-      ])
-
-      if (decision.toolCalls?.length > 0) {
-        const toolCall = decision.toolCalls[0]
-        const args = JSON.parse(toolCall.function.arguments)
-        await queueTask(toolCall.function.name, {
-          ...args,
-          chatId
-        })
-        return
-      }
-
-      await sendSafeMessage(chatId, decision.content)
-      await saveMessage(chatId, 'assistant', decision.content)
-    } catch (err) {
-      await sendSafeMessage(chatId,
-        `Found results but couldn't process them: ${err.message}`
-      )
-    }
-    return
-  }
-
-  if (commandType === 'webExtract' &&
-      status === 'completed' &&
-      result?.startsWith('EXTRACT_CONTENT|||')) {
-
-    const parts = result.replace('EXTRACT_CONTENT|||', '').split('|||')
-    const task = parts[0] || 'Summarize this page'
-    const content = parts.slice(1).join('|||')
-
-    if (!content || content.length < 50) {
-      await sendSafeMessage(chatId,
-        'I opened the page but it had no readable content.'
-      )
-      return
-    }
-
-    try {
-      const summary = await getChatCompletion([
-        {
-          role: 'system',
-          content: `You are Kairos, a helpful assistant.\n` +
-`Summarize the webpage content to answer the user's task.\n` +
-`Rules:\n` +
-`- Be natural and conversational\n` +
-`- For news: numbered list with source names\n` +
-`- For weather: temperature, feels-like, humidity, \n` +
-`  wind in one friendly sentence\n` +
-`- For scores: key results clearly stated\n` +
-`- For any other info: direct answer first, \n` +
-`  details after if relevant\n` +
-`- Under 200 words unless user asked for detail\n` +
-`- No markdown formatting`
-        },
-        {
-          role: 'user',
-          content: `Task: ${task}\n\nPage content:\n${content}`
-        }
-      ])
-
-      await sendSafeMessage(chatId, summary.content)
-      await saveMessage(chatId, 'assistant', summary.content)
-    } catch (err) {
-      await sendSafeMessage(chatId,
-        `Read the page but couldn't summarize: ${err.message}`
-      )
-    }
-    return
-  }
+  let toolResult = result || '';
 
   if (status === "failed") {
-    await sendSafeMessage(
-      chatId,
-      `I'm so sorry, I tried my best but couldn't get that done: ${result}`,
+    toolResult = `Error executing tool ${commandType}: ${result || 'unknown error'}`;
+  } else {
+    // Handle vision actions
+    if (
+      commandType === "checkWhatsAppStatuses" ||
+      commandType === "readWhatsAppStatus" ||
+      commandType === "readWhatsAppLastConversation" ||
+      commandType === "captureScreen"
+    ) {
+      await sendSafeMessage(
+        chatId,
+        "I've got the screen details! Just reading through it now for you...",
+      );
+
+      try {
+        let visionPrompt = "";
+        if (commandType === "checkWhatsAppStatuses") {
+          visionPrompt = loadPrompt('visionCheckStatuses.txt');
+        } else if (commandType === "readWhatsAppStatus") {
+          visionPrompt = loadPrompt('visionReadStatus.txt');
+        } else if (commandType === "readWhatsAppLastConversation") {
+          visionPrompt = loadPrompt('visionReadConversation.txt');
+        } else if (commandType === "captureScreen") {
+          visionPrompt = loadPrompt('visionCaptureScreen.txt');
+        }
+
+        console.log("Calling vision analysis, base64 length:", result?.length);
+        const analysis = await analyzeImage(result, visionPrompt);
+        toolResult = analysis;
+      } catch (err) {
+        console.error("Vision analysis callback error:", err.message);
+        toolResult = `Error analyzing screenshot: ${err.message}`;
+      }
+    } else if (commandType === 'webSearch' && result?.startsWith('SEARCH_RESULTS|||')) {
+      const rawData = result.replace('SEARCH_RESULTS|||', '');
+      try {
+        const searchResults = JSON.parse(rawData);
+        toolResult = searchResults
+          .map(r => `[Title]: ${r.title}\n[URL]: ${r.url}\n[Description]: ${r.description}`)
+          .join('\n\n');
+      } catch {
+        toolResult = result;
+      }
+    } else if (commandType === 'webExtract' && result?.startsWith('EXTRACT_CONTENT|||')) {
+      const parts = result.replace('EXTRACT_CONTENT|||', '').split('|||');
+      toolResult = parts.slice(2).join('|||');
+    }
+  }
+
+  // Save tool result
+  await saveMessage(chatId, "tool", toolResult, {
+    name: commandType,
+    tool_call_id: task.payload?.toolCallId || 'call_default'
+  });
+
+  // Check if there are other pending or running tasks for this chat
+  let hasMorePending = false;
+  if (isConnected()) {
+    const otherTasks = await Task.find({
+      status: { $in: ['pending', 'running'] },
+      'payload.chatId': chatId
+    });
+    hasMorePending = otherTasks.length > 0;
+  } else {
+    hasMorePending = mockTasks.some(t => 
+      (t.status === 'pending' || t.status === 'running') && 
+      t.payload?.chatId === chatId
     );
-    await saveMessage(
-      chatId,
-      "system",
-      `[Action Failed]: The task ${commandType} failed with error: ${result}`,
-    );
+  }
+
+  if (hasMorePending) {
+    console.log(`Still waiting for other tasks to complete for chat ${chatId}.`);
     return;
   }
 
-  if (
-    commandType === "checkWhatsAppStatuses" ||
-    commandType === "readWhatsAppStatus" ||
-    commandType === "readWhatsAppLastConversation" ||
-    commandType === "captureScreen"
-  ) {
-    await sendSafeMessage(
-      chatId,
-      "I've got the screen details! Just reading through it now for you...",
-    );
+  // All tasks completed, call LLM again
+  try {
+    let history = [];
+    if (isConnected()) {
+      const dbMsgs = await Message.find({ chatId })
+        .sort({ timestamp: 1 })
+        .limit(30);
+      history = dbMsgs.map((m) => {
+        const msg = { role: m.role };
+        if (m.content !== undefined && m.content !== null) msg.content = m.content;
+        if (m.name) msg.name = m.name;
+        if (m.tool_call_id) msg.tool_call_id = m.tool_call_id;
+        if (m.tool_calls) msg.tool_calls = m.tool_calls;
+        return msg;
+      });
+    } else {
+      history = mockMessages
+        .filter((m) => m.chatId === chatId)
+        .slice(-30)
+        .map((m) => {
+          const msg = { role: m.role };
+          if (m.content !== undefined && m.content !== null) msg.content = m.content;
+          if (m.name) msg.name = m.name;
+          if (m.tool_call_id) msg.tool_call_id = m.tool_call_id;
+          if (m.tool_calls) msg.tool_calls = m.tool_calls;
+          return msg;
+        });
+    }
 
-    try {
-      let visionPrompt = "";
-      if (commandType === "checkWhatsAppStatuses") {
-        visionPrompt =
-          "Identify which contact names have new or active status updates visible in this screenshot. Provide a brief bulleted list.";
-      } else if (commandType === "readWhatsAppStatus") {
-        visionPrompt = `This is a screenshot of the WhatsApp status story page. Please extract the text written by the user in this status, or summarize what is shown.`;
-      } else if (commandType === "readWhatsAppLastConversation") {
-        visionPrompt =
-          "This is a screenshot of a WhatsApp chat window. Please read the recent messages in the conversation and summarize what they are saying.";
-      } else if (commandType === "captureScreen") {
-        visionPrompt =
-          "Describe what is visible on this computer screen. What applications are open, what is the user working on, and what are the main details? Speak like a helpful friend.";
+    const systemPrompt = {
+      role: "system",
+      content: loadPrompt('systemPrompt.txt', { targetName, targetFirstName })
+    };
+
+    const messages = [systemPrompt, ...history];
+    const llmRes = await getChatCompletion(messages);
+
+    if (llmRes.toolCalls && llmRes.toolCalls.length > 0) {
+      await saveMessage(chatId, "assistant", llmRes.content || null, { tool_calls: llmRes.toolCalls });
+
+      if (llmRes.content) {
+        await sendSafeMessage(chatId, llmRes.content);
       }
 
-      console.log("Calling vision analysis, base64 length:", result?.length);
-      const analysis = await analyzeImage(result, visionPrompt);
-      await sendSafeMessage(
-        chatId,
-        `Here is what I found for you!:\n\n${analysis}`,
-      );
-      await saveMessage(chatId, "assistant", analysis);
-    } catch (err) {
-      console.error("Vision analysis callback error:", err.message);
-      await sendSafeMessage(
-        chatId,
-        `Oh dear, I had trouble reading the screenshot: ${err.message}`,
-      );
+      for (const toolCall of llmRes.toolCalls) {
+        const { name, arguments: argsString } = toolCall.function;
+
+        let args = {};
+        try {
+          args = JSON.parse(argsString);
+        } catch (e) {
+          console.error("Failed to parse tool call arguments:", argsString);
+          throw new Error(
+            `Invalid arguments returned from LLM for tool ${name}`,
+          );
+        }
+
+        const payload = { 
+          ...args, 
+          toolCallId: toolCall.id || `call_${Math.random().toString(36).substring(2, 9)}`,
+          chatId,
+          task: task.payload?.task || args.task
+        };
+        await queueTask(name, payload);
+
+        if (!llmRes.content) {
+          await sendSafeMessage(chatId, getFriendlyActionMessage(name, targetFirstName, args));
+        }
+      }
+    } else if (llmRes.content) {
+      await sendSafeMessage(chatId, llmRes.content);
+      await saveMessage(chatId, "assistant", llmRes.content);
     }
-  } else {
-    await sendSafeMessage(chatId, `All done! ${result} ✨`);
-    await saveMessage(
+  } catch (err) {
+    console.error("Agent completion iteration error:", err);
+    await sendSafeMessage(
       chatId,
-      "system",
-      `[Action Completed]: The task ${commandType} completed with result: ${result}`,
+      `Oh no, I ran into a little trouble: ${err.message || err}. Let's try that again!`,
     );
   }
 }

@@ -25,37 +25,48 @@ const headers = {
   "Content-Type": "application/json",
 };
 
+let reconnectAttempts = 0
+
 function connectWebSocket() {
-  const wsUrl = config.CLOUD_URL.replace("https://", "wss://").replace(
-    "http://",
-    "ws://",
-  );
+  const wsUrl = config.CLOUD_URL
+    .replace('https://', 'wss://')
+    .replace('http://', 'ws://')
 
   const ws = new WebSocket(wsUrl, {
-    headers: { "x-client-secret": config.CLIENT_SECRET },
-  });
+    headers: { 'x-client-secret': config.CLIENT_SECRET }
+  })
 
-  ws.on("open", () => console.log("Connected to cloud via WebSocket."));
+  ws.on('open', () => {
+    reconnectAttempts = 0
+    console.log('Connected to cloud via WebSocket.')
+  })
 
-  ws.on("message", async (data) => {
+  ws.on('message', async (data) => {
     try {
-      const payload = JSON.parse(data.toString());
-      if (payload.type === "cancel") {
-        abortCurrentTask();
-        return;
+      const payload = JSON.parse(data.toString())
+      if (payload.type === 'cancel') {
+        abortCurrentTask()
+        return
       }
-      await executeTask(payload);
+      await executeTask(payload)
     } catch (err) {
-      console.error("Failed to parse task or execute task:", err.message);
+      console.error("Failed to parse task or execute task:", err.message)
     }
-  });
+  })
 
-  ws.on("close", () => {
-    console.log("WebSocket closed. Reconnecting in 3s...");
-    setTimeout(connectWebSocket, 3000);
-  });
+  ws.on('close', () => {
+    const delay = Math.min(
+      1000 * Math.pow(2, reconnectAttempts), 
+      30000
+    )
+    reconnectAttempts++
+    console.log(`WebSocket closed. Reconnecting in ${delay}ms...`)
+    setTimeout(connectWebSocket, delay)
+  })
 
-  ws.on("error", (err) => console.error("WebSocket error:", err.message));
+  ws.on('error', (err) => {
+    console.error('WebSocket error:', err.message || err.code || 'Connection failed')
+  })
 }
 
 async function executeTask(task) {
@@ -93,17 +104,18 @@ async function executeTask(task) {
       case "openUrl": {
         const { url, profile } = payload;
         if (!url) throw new Error("No URL specified in payload");
+        await openBrowser(url, profile);
+        result = `Opened URL: ${url}`;
+        break;
+      }
 
-        if (url.includes("problem-of-the-day")) {
-          result = await utilityService.openLeetcodeDaily(profile);
-        } else if (url.includes("youtube.com/results")) {
-          const urlParams = new URL(url);
-          const q = urlParams.searchParams.get("search_query");
-          result = await utilityService.openYoutubeVideo(q, profile);
-        } else {
-          await openBrowser(url, profile);
-          result = `Opened URL: ${url}`;
-        }
+      case "openLeetcodeDaily": {
+        result = await utilityService.openLeetcodeDaily(payload.profile);
+        break;
+      }
+
+      case "openYoutubeVideo": {
+        result = await utilityService.openYoutubeVideo(payload.searchQuery, payload.profile);
         break;
       }
 

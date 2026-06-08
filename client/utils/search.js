@@ -1,19 +1,20 @@
-import DuckDuckGoSearch from 'ddg-search'
+import { search } from 'ddg-search'
 
 export async function webSearch(query, maxResults = 5) {
   try {
-    const ddg = new DuckDuckGoSearch()
-    const results = await ddg.search(query, {
+    const results = await search(query, {
       maxResults: Math.min(maxResults, 10)
     })
 
-    if (!results?.length) {
+    const items = results?.results
+
+    if (!items?.length) {
       return { success: false, error: 'No results', data: [] }
     }
 
     return {
       success: true,
-      data: results.slice(0, maxResults).map((r, i) => ({
+      data: items.slice(0, maxResults).map((r, i) => ({
         position: i + 1,
         title: r.title || '',
         url: r.url || r.link || '',

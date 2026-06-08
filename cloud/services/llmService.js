@@ -19,12 +19,49 @@ export const tools = [
           profile: {
             type: "string",
             description:
-              'The Chrome profile account to open the URL in. Can be an email address (e.g. "subhodeepsamanta2005@gmail.com"), an index number/word (e.g., "first", "second", "third", "1st", "2nd"), or a display name (e.g. "Saikou Kami", "UwU").',
+              'The Chrome profile account to open the URL in. Can be a profile email address, index number/word (e.g., "first", "second"), or a display name.',
           },
         },
         required: ["url"],
       },
     },
+  },
+  {
+    type: "function",
+    function: {
+      name: "openLeetcodeDaily",
+      description: "Opens today's LeetCode daily coding challenge question in the browser.",
+      parameters: {
+        type: "object",
+        properties: {
+          profile: {
+            type: "string",
+            description: "Optional Chrome profile to use.",
+          }
+        }
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "openYoutubeVideo",
+      description: "Searches and plays a video on YouTube for a given query.",
+      parameters: {
+        type: "object",
+        properties: {
+          searchQuery: {
+            type: "string",
+            description: "The video topic or query to search on YouTube.",
+          },
+          profile: {
+            type: "string",
+            description: "Optional Chrome profile to use.",
+          }
+        },
+        required: ["searchQuery"]
+      }
+    }
   },
   {
     type: "function",
@@ -79,7 +116,7 @@ export const tools = [
         properties: {
           recipient: {
             type: "string",
-            description: "The contact name (e.g. Subhodeep, Mom).",
+            description: "The contact name (e.g. John, Alice).",
           },
           message: { type: "string", description: "The text message content." },
         },
@@ -345,21 +382,13 @@ async function executeVisionCompletion(provider, base64Image, userPrompt) {
 export async function getChatCompletion(messages) {
   const providers = [];
 
-  if (config.GROQ_API_KEY) {
+  if (config.GOOGLE_AI_KEY) {
     providers.push({
-      name: "Groq",
-      endpoint: "https://api.groq.com/openai/v1/chat/completions",
-      key: config.GROQ_API_KEY,
-      model: "llama-3.3-70b-versatile",
-    });
-  }
-
-  if (config.NVIDIA_API_KEY) {
-    providers.push({
-      name: "NIM",
-      endpoint: "https://integrate.api.nvidia.com/v1/chat/completions",
-      key: config.NVIDIA_API_KEY,
-      model: "meta/llama-3.3-70b-instruct",
+      name: "Google",
+      endpoint:
+        "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+      key: config.GOOGLE_AI_KEY,
+      model: config.GOOGLE_MODEL,
     });
   }
 
@@ -368,17 +397,25 @@ export async function getChatCompletion(messages) {
       name: "OpenRouter",
       endpoint: "https://openrouter.ai/api/v1/chat/completions",
       key: config.OPENROUTER_API_KEY,
-      model: "google/gemini-2.5-flash",
+      model: config.OPENROUTER_MODEL,
     });
   }
 
-  if (config.GOOGLE_AI_KEY) {
+  if (config.GROQ_API_KEY) {
     providers.push({
-      name: "Google",
-      endpoint:
-        "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
-      key: config.GOOGLE_AI_KEY,
-      model: "gemini-2.0-flash",
+      name: "Groq",
+      endpoint: "https://api.groq.com/openai/v1/chat/completions",
+      key: config.GROQ_API_KEY,
+      model: config.GROQ_MODEL,
+    });
+  }
+
+  if (config.NVIDIA_API_KEY) {
+    providers.push({
+      name: "NIM",
+      endpoint: "https://integrate.api.nvidia.com/v1/chat/completions",
+      key: config.NVIDIA_API_KEY,
+      model: config.NVIDIA_MODEL,
     });
   }
 
@@ -411,12 +448,12 @@ export async function getChatCompletion(messages) {
 export async function analyzeImage(base64Image, userPrompt) {
   const providers = [];
 
-  if (config.NVIDIA_API_KEY) {
+  if (config.OPENROUTER_API_KEY) {
     providers.push({
-      name: "NIM",
-      endpoint: "https://integrate.api.nvidia.com/v1/chat/completions",
-      key: config.NVIDIA_API_KEY,
-      model: "llama-3.2-90b-vision-instruct",
+      name: "OpenRouter",
+      endpoint: "https://openrouter.ai/api/v1/chat/completions",
+      key: config.OPENROUTER_API_KEY,
+      model: config.OPENROUTER_MODEL,
     });
   }
 
@@ -425,16 +462,16 @@ export async function analyzeImage(base64Image, userPrompt) {
       name: "Groq",
       endpoint: "https://api.groq.com/openai/v1/chat/completions",
       key: config.GROQ_API_KEY,
-      model: "llama-3.2-11b-vision-instruct",
+      model: config.GROQ_VISION_MODEL,
     });
   }
 
-  if (config.OPENROUTER_API_KEY) {
+  if (config.NVIDIA_API_KEY) {
     providers.push({
-      name: "OpenRouter",
-      endpoint: "https://openrouter.ai/api/v1/chat/completions",
-      key: config.OPENROUTER_API_KEY,
-      model: "google/gemini-2.5-flash",
+      name: "NIM",
+      endpoint: "https://integrate.api.nvidia.com/v1/chat/completions",
+      key: config.NVIDIA_API_KEY,
+      model: config.NVIDIA_VISION_MODEL,
     });
   }
 

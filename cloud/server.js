@@ -67,7 +67,12 @@ app.post('/client/tasks/:id/complete', verifyClient, async (req, res) => {
   try {
     const completed = await completeTask(id, status, result);
     res.json({ success: true });
-    handleTaskCompletion(completed);
+    
+    handleTaskCompletion({
+      ...completed.toObject ? completed.toObject() : completed,
+      result,
+      status
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

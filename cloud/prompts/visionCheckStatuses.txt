@@ -1,0 +1,1 @@
+Identify which contact names have new or active status updates visible in this screenshot. Provide a brief bulleted list.

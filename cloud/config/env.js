@@ -10,8 +10,13 @@ export const config = {
   OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY || '',
   OPENROUTER_MODEL: process.env.OPENROUTER_MODEL || 'google/gemini-2.5-flash',
   GROQ_API_KEY: process.env.GROQ_API_KEY || '',
+  GROQ_MODEL: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
+  GROQ_VISION_MODEL: process.env.GROQ_VISION_MODEL || 'llama-3.2-11b-vision-instruct',
   NVIDIA_API_KEY: process.env.NVIDIA_API_KEY || '',
+  NVIDIA_MODEL: process.env.NVIDIA_MODEL || 'meta/llama-3.3-70b-instruct',
+  NVIDIA_VISION_MODEL: process.env.NVIDIA_VISION_MODEL || 'llama-3.2-90b-vision-instruct',
   GOOGLE_AI_KEY: process.env.GOOGLE_AI_KEY || '',
+  GOOGLE_MODEL: process.env.GOOGLE_MODEL || 'gemini-2.0-flash',
   CLIENT_SECRET: process.env.CLIENT_SECRET || 'my-super-secret-kairos-token',
   ALLOWED_TELEGRAM_USER: process.env.ALLOWED_TELEGRAM_USER || 'subhodeep'
 };
