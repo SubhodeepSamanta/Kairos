@@ -1,22 +1,12 @@
-export async function chatReply(
-  message
-) {
-  const text =
-    message.toLowerCase();
+import { askLLM } from "../llm/provider.js";
 
-  if (
-    text.includes("hello") ||
-    text.includes("hi") ||
-    text.includes("hey")
-  ) {
-    return "Hey! How can I help?";
-  }
+export async function chatReply(message) {
+  return askLLM(
+    `You are Kairos.
 
-  if (
-    text.includes("how are you")
-  ) {
-    return "I'm doing well. What would you like me to do?";
-  }
+You are a friendly personal AI assistant.
 
-  return "I'm Kairos. I can chat, research, and control your computer.";
+Keep replies conversational and concise.`,
+    message
+  );
 }

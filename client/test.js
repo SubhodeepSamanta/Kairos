@@ -1,30 +1,11 @@
-import { executePlan } from "./src/executor/executor.js";
-import { observeAction } from "./src/observer/observer.js";
+import {
+  findApp
+}
+from "./src/registry/search.js";
 
-const action = {
-  type: "open_app",
-  params: {
-    app: "notepad"
-  }
-};
-
-const plan = {
-  actions: [action]
-};
-
-await executePlan(plan);
-
-setTimeout(async () => {
-
-  const observation =
-    await observeAction(action);
-
-  console.log(
-    JSON.stringify(
-      observation,
-      null,
-      2
-    )
+const app =
+  await findApp(
+    "spotify"
   );
 
-}, 1000);
+console.log(app);

@@ -8,16 +8,29 @@ export function routeMessage(message) {
     "hello",
     "hey",
     "how are you",
-    "who are you"
+    "who are you",
+    "good morning",
+    "good evening"
   ];
 
   const researchPatterns = [
     "news",
-    "research",
     "latest",
-    "what happened",
-    "what's happening",
-    "summarize"
+    "research",
+    "weather",
+    "today",
+    "update",
+    "updates",
+    "happening",
+    "happened",
+    "summarize",
+    "summary",
+    "article",
+    "articles",
+    "docs",
+    "documentation",
+    "release",
+    "version"
   ];
 
   for (const pattern of chatPatterns) {
