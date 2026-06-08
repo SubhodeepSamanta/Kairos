@@ -1,53 +1,59 @@
-import { spawn } from 'child_process';
-import fs from 'fs';
-import path from 'path';
-import { config } from '../config/env.js';
-import { clientState } from './clientState.js';
+import { spawn } from "child_process";
+import fs from "fs";
+import path from "path";
+import { config } from "../config/env.js";
+import { clientState } from "./clientState.js";
 
 export function safeSpawn(binary, args = [], options = {}) {
   return new Promise((resolve, reject) => {
     if (clientState.isCancelled) {
-      return reject(new Error('Task was cancelled.'));
+      return reject(new Error("Task was cancelled."));
     }
 
     const spawnOpts = {
       shell: false,
       windowsHide: true,
-      ...options
+      ...options,
     };
 
-    console.log(`Spawning safely: ${binary} ${args.join(' ')}`);
+    console.log(`Spawning safely: ${binary} ${args.join(" ")}`);
 
     const proc = spawn(binary, args, spawnOpts);
     clientState.activeProcess = proc;
 
-    let stdout = '';
-    let stderr = '';
+    let stdout = "";
+    let stderr = "";
 
     if (proc.stdout) {
-      proc.stdout.on('data', (data) => {
+      proc.stdout.on("data", (data) => {
         stdout += data.toString();
       });
     }
 
     if (proc.stderr) {
-      proc.stderr.on('data', (data) => {
+      proc.stderr.on("data", (data) => {
         stderr += data.toString();
       });
     }
 
-    proc.on('close', (code) => {
+    proc.on("close", (code) => {
       if (clientState.activeProcess === proc) {
         clientState.activeProcess = null;
       }
       if (code === 0) {
-        resolve(stdout.trim() || stderr.trim() || 'Success');
+        resolve(stdout.trim() || stderr.trim() || "Success");
       } else {
-        reject(new Error(stderr.trim() || stdout.trim() || `Process exited with code ${code}`));
+        reject(
+          new Error(
+            stderr.trim() ||
+              stdout.trim() ||
+              `Process exited with code ${code}`,
+          ),
+        );
       }
     });
 
-    proc.on('error', (err) => {
+    proc.on("error", (err) => {
       if (clientState.activeProcess === proc) {
         clientState.activeProcess = null;
       }
@@ -58,10 +64,12 @@ export function safeSpawn(binary, args = [], options = {}) {
 
 export function runPowerShellScript(scriptPath, namedArgs = {}) {
   const args = [
-    '-NoProfile',
-    '-NonInteractive',
-    '-ExecutionPolicy', 'Bypass',
-    '-File', scriptPath
+    "-NoProfile",
+    "-NonInteractive",
+    "-ExecutionPolicy",
+    "Bypass",
+    "-File",
+    scriptPath,
   ];
 
   for (const [key, val] of Object.entries(namedArgs)) {
@@ -70,42 +78,41 @@ export function runPowerShellScript(scriptPath, namedArgs = {}) {
     }
   }
 
-  return safeSpawn('powershell.exe', args);
+  return safeSpawn("powershell.exe", args);
 }
 
 export function resolveChromeProfile(alias) {
   const localStatePath = path.join(
-    process.env.USERPROFILE || 'C:\\Users\\USER',
-    'AppData\\Local\\Google\\Chrome\\User Data\\Local State'
+    process.env.USERPROFILE || "C:\\Users\\USER",
+    "AppData\\Local\\Google\\Chrome\\User Data\\Local State",
   );
 
   let infoCache = {};
   if (fs.existsSync(localStatePath)) {
     try {
-      const data = JSON.parse(fs.readFileSync(localStatePath, 'utf8'));
+      const data = JSON.parse(fs.readFileSync(localStatePath, "utf8"));
       infoCache = data.profile?.info_cache || {};
     } catch (err) {
-      console.error('Failed to parse Chrome Local State:', err.message);
+      console.error("Failed to parse Chrome Local State:", err.message);
     }
   }
 
-  const normalized = (alias || '').toLowerCase().trim();
+  const normalized = (alias || "").toLowerCase().trim();
 
-  // Visual Picker Order from left-to-right, top-to-bottom:
-  // 1st: Profile 8 (subhodeepsamanta2005@gmail.com / Kami)
-  // 2nd: Profile 1 (subhoking75@gmail.com / Saikou Kami)
-  // 3rd: Profile 4 (theonekingofthewholemultiverse@gmail.com / Subhodeep)
-  // 4th: Profile 6 (subhodeepsamanta01@gmail.com / Subhodeep)
-  // 5th: Default (saikoukami0001@gmail.com / UwU)
-  // 6th: Profile 10 (sales@v10xai.com / v10xai.com)
-  // 7th: Profile 2 (guest-like "Your Chrome", empty email)
-  const visualOrder = config.CHROME_PROFILE_ORDER;
+  let visualOrder = ["Default"];
+  if (Object.keys(infoCache).length > 0) {
+    visualOrder = Object.keys(infoCache).sort((a, b) => {
+      const timeA = infoCache[a]?.active_time || 0;
+      const timeB = infoCache[b]?.active_time || 0;
+      return timeB - timeA;
+    });
+  }
 
   // Helper to match ordinal or number strings to visual index
   const getVisualIndex = (term) => {
     const cleanTerm = term
-      .replace(/\b(account|profile|chrome|one|number|no|index)\b/g, '')
-      .replace(/\s+/g, '')
+      .replace(/\b(account|profile|chrome|one|number|no|index)\b/g, "")
+      .replace(/\s+/g, "")
       .trim();
 
     if (/^(1st|first|1)$/.test(cleanTerm)) return 0;
@@ -137,13 +144,18 @@ export function resolveChromeProfile(alias) {
   if (normalized) {
     // Clean search alias by stripping noise words
     let cleanQuery = normalized;
-    const noiseRegex = /\b(account|profile|chrome|email|gmail|google|mailbox|address)\b/g;
-    const stripped = normalized.replace(noiseRegex, '').replace(/\s+/g, '').trim();
+    const noiseRegex =
+      /\b(account|profile|chrome|email|gmail|google|mailbox|address)\b/g;
+    const stripped = normalized
+      .replace(noiseRegex, "")
+      .replace(/\s+/g, "")
+      .trim();
     if (stripped.length > 0) {
       cleanQuery = stripped;
     }
 
-    const sanitize = (str) => (str || '').toLowerCase().replace(/[^a-z0-9@.]/g, '');
+    const sanitize = (str) =>
+      (str || "").toLowerCase().replace(/[^a-z0-9@.]/g, "");
     const querySanitized = sanitize(cleanQuery);
 
     if (querySanitized.length > 0) {
@@ -157,7 +169,7 @@ export function resolveChromeProfile(alias) {
         const shortcut = sanitize(profileInfo.shortcut_name);
 
         // Low priority for guest/Your Chrome profile unless explicitly requested
-        if (dirName === 'Profile 2' && querySanitized !== 'yourchrome') {
+        if (dirName === "Profile 2" && querySanitized !== "yourchrome") {
           score -= 50;
         }
 
@@ -177,11 +189,12 @@ export function resolveChromeProfile(alias) {
           // Cross-contains
           if (querySanitized.includes(email) && email.length > 0) score += 20;
           if (querySanitized.includes(name) && name.length > 0) score += 15;
-          if (querySanitized.includes(gaiaName) && gaiaName.length > 0) score += 10;
+          if (querySanitized.includes(gaiaName) && gaiaName.length > 0)
+            score += 10;
         }
 
         // Tie-breaker: prioritize Profile 8 as the primary user profile
-        if (dirName === 'Profile 8') {
+        if (dirName === "Profile 8") {
           score += 0.1;
         }
 
@@ -211,9 +224,14 @@ export function resolveChromeProfile(alias) {
   }
 
   // Generic fallback: use primary profile, or any signed-in profile, or Default
-  if (!alias || normalized === 'leetcode' || normalized === 'default' || normalized === 'personal') {
-    if (infoCache['Profile 8']) return 'Profile 8';
-    if (infoCache['Default']?.user_name) return 'Default';
+  if (
+    !alias ||
+    normalized === "leetcode" ||
+    normalized === "default" ||
+    normalized === "personal"
+  ) {
+    if (infoCache["Profile 8"]) return "Profile 8";
+    if (infoCache["Default"]?.user_name) return "Default";
     for (const [dirName, profileInfo] of Object.entries(infoCache)) {
       if (profileInfo.user_name) {
         return dirName;
@@ -221,22 +239,59 @@ export function resolveChromeProfile(alias) {
     }
   }
 
-  return 'Default';
+  return "Default";
 }
 
-export function openBrowser(url, profileAlias = '') {
+export function openBrowser(url, profileAlias = "") {
   const paths = [
-    'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
-    'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe'
+    "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+    "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
   ];
 
-  const chromePath = paths.find(p => fs.existsSync(p));
-  
+  const chromePath = paths.find((p) => fs.existsSync(p));
+
   if (chromePath) {
     const profileDir = resolveChromeProfile(profileAlias);
     console.log(`Opening URL in Chrome Profile directory: ${profileDir}`);
     return safeSpawn(chromePath, [`--profile-directory=${profileDir}`, url]);
   }
-  
-  return safeSpawn('cmd.exe', ['/c', 'start', '', url], { shell: true });
+
+  return safeSpawn("cmd.exe", ["/c", "start", "", url], { shell: true });
+}
+
+export function runPowerShellRaw(scriptPath, inputJson) {
+  return new Promise((resolve, reject) => {
+    const args = [
+      "-NoProfile",
+      "-NonInteractive",
+      "-ExecutionPolicy",
+      "Bypass",
+      "-File",
+      scriptPath,
+      "-InputJson",
+      inputJson,
+    ];
+    const proc = spawn("powershell.exe", args, { windowsHide: true });
+    let out = "";
+    let err = "";
+
+    const timeout = setTimeout(() => {
+      try {
+        proc.kill();
+      } catch (e) {}
+      reject(new Error("PowerShell timeout after 30s"));
+    }, 30000);
+
+    proc.stdout.on("data", (d) => (out += d.toString()));
+    proc.stderr.on("data", (d) => (err += d.toString()));
+    proc.on("close", (code) => {
+      clearTimeout(timeout);
+      if (out.trim()) resolve(out.trim());
+      else reject(new Error(err.trim() || `Exit code ${code}`));
+    });
+    proc.on("error", (err) => {
+      clearTimeout(timeout);
+      reject(err);
+    });
+  });
 }

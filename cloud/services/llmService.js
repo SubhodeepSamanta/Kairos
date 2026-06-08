@@ -1,142 +1,247 @@
-import axios from 'axios';
-import crypto from 'crypto';
-import { config } from '../config/env.js';
+import axios from "axios";
+import crypto from "crypto";
+import { config } from "../config/env.js";
 
 export const tools = [
   {
-    type: 'function',
+    type: "function",
     function: {
-      name: 'openUrl',
-      description: 'Opens a web URL in the user\'s local web browser (supports opening in specific Chrome accounts/profiles like work, personal, leetcode).',
+      name: "openUrl",
+      description:
+        "Opens a web URL in the user's local web browser (supports opening in specific Chrome accounts/profiles like work, personal, leetcode).",
       parameters: {
-        type: 'object',
+        type: "object",
         properties: {
-          url: { type: 'string', description: 'The absolute URL to open (including https://).' },
-          profile: { type: 'string', description: 'The Chrome profile account to open the URL in. Can be an email address (e.g. "subhodeepsamanta2005@gmail.com"), an index number/word (e.g., "first", "second", "third", "1st", "2nd"), or a display name (e.g. "Saikou Kami", "UwU").' }
+          url: {
+            type: "string",
+            description: "The absolute URL to open (including https://).",
+          },
+          profile: {
+            type: "string",
+            description:
+              'The Chrome profile account to open the URL in. Can be an email address (e.g. "subhodeepsamanta2005@gmail.com"), an index number/word (e.g., "first", "second", "third", "1st", "2nd"), or a display name (e.g. "Saikou Kami", "UwU").',
+          },
         },
-        required: ['url']
-      }
-    }
+        required: ["url"],
+      },
+    },
   },
   {
-    type: 'function',
+    type: "function",
     function: {
-      name: 'openFolder',
-      description: 'Opens a directory folder in VS Code, Antigravity, or standard File Explorer on the local PC.',
+      name: "openFolder",
+      description:
+        "Opens a directory folder in VS Code, Antigravity, or standard File Explorer on the local PC.",
       parameters: {
-        type: 'object',
+        type: "object",
         properties: {
-          folderPath: { type: 'string', description: 'The path of the folder to open (e.g., C:\\Users\\USER\\Desktop\\Kairos).' },
-          editor: { type: 'string', enum: ['vscode', 'explorer', 'antigravity'], description: 'The editor or application to open the folder with.' }
+          folderPath: {
+            type: "string",
+            description:
+              "The path of the folder to open (e.g., C:\\Users\\USER\\Desktop\\Kairos).",
+          },
+          editor: {
+            type: "string",
+            enum: ["vscode", "explorer", "antigravity"],
+            description: "The editor or application to open the folder with.",
+          },
         },
-        required: ['folderPath']
-      }
-    }
+        required: ["folderPath"],
+      },
+    },
   },
   {
-    type: 'function',
+    type: "function",
     function: {
-      name: 'runCommand',
-      description: 'Runs a command on the user\'s local command line (restricted to safe, non-destructive tools).',
+      name: "runCommand",
+      description:
+        "Runs a command on the user's local command line (restricted to safe, non-destructive tools).",
       parameters: {
-        type: 'object',
+        type: "object",
         properties: {
-          command: { type: 'string', description: 'The command line string to run.' }
+          command: {
+            type: "string",
+            description: "The command line string to run.",
+          },
         },
-        required: ['command']
-      }
-    }
+        required: ["command"],
+      },
+    },
   },
   {
-    type: 'function',
+    type: "function",
     function: {
-      name: 'sendWhatsApp',
-      description: 'Sends a WhatsApp text message to a specific contact name on the user\'s local PC.',
+      name: "sendWhatsApp",
+      description:
+        "Sends a WhatsApp text message to a specific contact name on the user's local PC.",
       parameters: {
-        type: 'object',
+        type: "object",
         properties: {
-          recipient: { type: 'string', description: 'The contact name (e.g. Subhodeep, Mom).' },
-          message: { type: 'string', description: 'The text message content.' }
+          recipient: {
+            type: "string",
+            description: "The contact name (e.g. Subhodeep, Mom).",
+          },
+          message: { type: "string", description: "The text message content." },
         },
-        required: ['recipient', 'message']
-      }
-    }
+        required: ["recipient", "message"],
+      },
+    },
   },
   {
-    type: 'function',
+    type: "function",
     function: {
-      name: 'checkWhatsAppStatuses',
-      description: 'Checks which contacts have recently posted active statuses by taking a screenshot of the WhatsApp status list.',
+      name: "checkWhatsAppStatuses",
+      description:
+        "Checks which contacts have recently posted active statuses by taking a screenshot of the WhatsApp status list.",
       parameters: {
-        type: 'object',
-        properties: {}
-      }
-    }
+        type: "object",
+        properties: {},
+      },
+    },
   },
   {
-    type: 'function',
+    type: "function",
     function: {
-      name: 'readWhatsAppStatus',
-      description: 'Opens and captures the active status story page for a specific contact to read what they said/posted.',
+      name: "readWhatsAppStatus",
+      description:
+        "Opens and captures the active status story page for a specific contact to read what they said/posted.",
       parameters: {
-        type: 'object',
+        type: "object",
         properties: {
-          recipient: { type: 'string', description: 'The contact name whose status needs to be opened.' }
+          recipient: {
+            type: "string",
+            description: "The contact name whose status needs to be opened.",
+          },
         },
-        required: ['recipient']
-      }
-    }
+        required: ["recipient"],
+      },
+    },
   },
   {
-    type: 'function',
+    type: "function",
     function: {
-      name: 'readWhatsAppLastConversation',
-      description: 'Opens and reads the recent conversation messages with a specific contact.',
+      name: "readWhatsAppLastConversation",
+      description:
+        "Opens and reads the recent conversation messages with a specific contact.",
       parameters: {
-        type: 'object',
+        type: "object",
         properties: {
-          recipient: { type: 'string', description: 'The contact name whose conversation needs to be read.' }
+          recipient: {
+            type: "string",
+            description:
+              "The contact name whose conversation needs to be read.",
+          },
         },
-        required: ['recipient']
-      }
-    }
+        required: ["recipient"],
+      },
+    },
   },
   {
-    type: 'function',
+    type: "function",
     function: {
-      name: 'manageApplication',
-      description: 'Opens or closes a specific desktop application on the computer (e.g. whatsapp, spotify, vscode, chrome).',
+      name: "manageApplication",
+      description:
+        "Opens or closes a specific desktop application on the computer (e.g. whatsapp, spotify, vscode, chrome).",
       parameters: {
-        type: 'object',
+        type: "object",
         properties: {
-          appName: { type: 'string', description: 'The name of the application (e.g. "whatsapp", "spotify", "vscode", "chrome").' },
-          action: { type: 'string', enum: ['open', 'close'], description: 'The action to perform.' }
+          appName: {
+            type: "string",
+            description:
+              'The name of the application (e.g. "whatsapp", "spotify", "vscode", "chrome").',
+          },
+          action: {
+            type: "string",
+            enum: ["open", "close"],
+            description: "The action to perform.",
+          },
         },
-        required: ['appName', 'action']
-      }
-    }
+        required: ["appName", "action"],
+      },
+    },
   },
   {
-    type: 'function',
+    type: "function",
     function: {
-      name: 'captureScreen',
-      description: 'Takes a screenshot of the user\'s desktop/screen to describe what is currently visible or open.',
+      name: "captureScreen",
+      description:
+        "Takes a screenshot of the user's desktop/screen to describe what is currently visible or open.",
       parameters: {
-        type: 'object',
-        properties: {}
-      }
-    }
+        type: "object",
+        properties: {},
+      },
+    },
   },
   {
     type: 'function',
     function: {
-      name: 'getWeather',
-      description: 'Gets the current weather or temperature. If location is omitted, checks the local city.',
+      name: 'webSearch',
+      description: `Search the web for any current \n` +
+`information. Use this when you need to find \n` +
+`information and don't know the exact URL, or when \n` +
+`information might have changed recently.\n` +
+`\n` +
+`Use for:\n` +
+`- News about anything ("youtube down", "IPL score", \n` +
+`  "tech news", "what happened today")\n` +
+`- Weather with details ("weather kolkata humidity")  \n` +
+`- Prices, availability, status of anything\n` +
+`- People, companies, events\n` +
+`- Any question needing current information\n` +
+`\n` +
+`After getting results, call webExtract on the \n` +
+`best URL to get the full content.\n` +
+`\n` +
+`Do NOT use for tasks that need browser interaction\n` +
+`like clicking buttons or filling forms — use \n` +
+`uiAction for those.`,
       parameters: {
         type: 'object',
         properties: {
-          location: { type: 'string', description: 'Optional city or region to check weather for.' }
-        }
+          query: {
+            type: 'string',
+            description: 'Search query. Be specific. Add "today" or "now" for current info. Add location for local info.'
+          },
+          maxResults: {
+            type: 'integer',
+            description: 'Max results. Default 5.',
+            default: 5
+          }
+        },
+        required: ['query'],
+        additionalProperties: false
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'webExtract',
+      description: `Opens a URL with a real browser \n` +
+`and reads the full page content. Use this to:\n` +
+`- Read the top result from webSearch\n` +
+`- Read a specific article or page\n` +
+`- Get detailed content from a known URL\n` +
+`\n` +
+`Always use webSearch first if you don't know \n` +
+`which URL has the best information.\n` +
+`\n` +
+`The content will be automatically summarized \n` +
+`and sent to the user.`,
+      parameters: {
+        type: 'object',
+        properties: {
+          url: {
+            type: 'string',
+            description: 'Full URL including https://'
+          },
+          task: {
+            type: 'string',
+            description: 'What to find in the page. Be specific: "top 5 news headlines with sources", "current temperature humidity feels-like wind", "todays match scores and results", "problem title difficulty and description"'
+          }
+        },
+        required: ['url', 'task'],
+        additionalProperties: false
       }
     }
   }
@@ -146,20 +251,18 @@ const apiCache = new Map();
 const CACHE_TTL = 5 * 60 * 1000;
 
 function getMD5(content) {
-  return crypto.createHash('md5').update(content).digest('hex');
+  return crypto.createHash("md5").update(content).digest("hex");
 }
 
-async function requestWithRetry(requestFn, retries = 2, delay = 1000) {
+async function requestWithRetry(requestFn, retries = 1) {
   try {
     return await requestFn();
   } catch (err) {
-    const isRateLimit = err.response?.status === 429;
-    const isTransientError = err.response?.status >= 500;
-    
-    if ((isRateLimit || isTransientError) && retries > 0) {
-      console.warn(`Encountered transient code ${err.response?.status}. Retrying in ${delay}ms...`);
-      await new Promise(resolve => setTimeout(resolve, delay));
-      return requestWithRetry(requestFn, retries - 1, delay * 2);
+    const status = err.response?.status;
+    const shouldRetry = status === 429 || (status >= 500 && status < 600);
+    if (shouldRetry && retries > 0) {
+      await new Promise((r) => setTimeout(r, 1000));
+      return requestWithRetry(requestFn, retries - 1);
     }
     throw err;
   }
@@ -167,114 +270,123 @@ async function requestWithRetry(requestFn, retries = 2, delay = 1000) {
 
 async function executeTextCompletion(provider, messages) {
   const headers = {
-    'Authorization': `Bearer ${provider.key}`,
-    'Content-Type': 'application/json'
+    Authorization: `Bearer ${provider.key}`,
+    "Content-Type": "application/json",
   };
 
-  if (provider.name === 'OpenRouter') {
-    headers['HTTP-Referer'] = 'https://github.com/SubhodeepSamanta/Kairos';
-    headers['X-Title'] = 'Kairos AI Agent';
+  if (provider.name === "OpenRouter") {
+    headers["HTTP-Referer"] = "https://github.com/SubhodeepSamanta/Kairos";
+    headers["X-Title"] = "Kairos AI Agent";
   }
 
   const payload = {
     model: provider.model,
     messages: messages,
     tools: tools,
-    tool_choice: 'auto',
-    max_tokens: 1024
+    tool_choice: "auto",
+    max_tokens: 1024,
   };
 
-  const response = await requestWithRetry(() => axios.post(provider.endpoint, payload, { headers }));
+  const response = await requestWithRetry(() =>
+    axios.post(provider.endpoint, payload, { headers, timeout: 15000 }),
+  );
   const choice = response.data.choices?.[0];
-  if (!choice) throw new Error(`Invalid response payload from ${provider.name}`);
+  if (!choice)
+    throw new Error(`Invalid response payload from ${provider.name}`);
 
   return {
-    content: choice.message.content || '',
-    toolCalls: choice.message.tool_calls || null
+    content: choice.message.content || "",
+    toolCalls: choice.message.tool_calls || null,
   };
 }
 
 async function executeVisionCompletion(provider, base64Image, userPrompt) {
   const headers = {
-    'Authorization': `Bearer ${provider.key}`,
-    'Content-Type': 'application/json'
+    Authorization: `Bearer ${provider.key}`,
+    "Content-Type": "application/json",
   };
 
-  if (provider.name === 'OpenRouter') {
-    headers['HTTP-Referer'] = 'https://github.com/SubhodeepSamanta/Kairos';
-    headers['X-Title'] = 'Kairos AI Agent';
+  if (provider.name === "OpenRouter") {
+    headers["HTTP-Referer"] = "https://github.com/SubhodeepSamanta/Kairos";
+    headers["X-Title"] = "Kairos AI Agent";
   }
 
   const messages = [
     {
-      role: 'user',
+      role: "user",
       content: [
-        { type: 'text', text: userPrompt },
+        { type: "text", text: userPrompt },
         {
-          type: 'image_url',
+          type: "image_url",
           image_url: {
-            url: `data:image/png;base64,${base64Image}`
-          }
-        }
-      ]
-    }
+            url: `data:image/png;base64,${base64Image}`,
+          },
+        },
+      ],
+    },
   ];
 
   const payload = {
     model: provider.model,
     messages: messages,
-    max_tokens: 1024
+    max_tokens: 1024,
   };
 
-  const response = await requestWithRetry(() => axios.post(provider.endpoint, payload, { headers }));
+  const response = await requestWithRetry(() =>
+    axios.post(provider.endpoint, payload, { headers, timeout: 15000 }),
+  );
   const choice = response.data.choices?.[0];
-  if (!choice) throw new Error(`Invalid response payload from ${provider.name}`);
+  if (!choice)
+    throw new Error(`Invalid response payload from ${provider.name}`);
 
-  return choice.message.content || 'No text extracted.';
+  return choice.message.content || "No text extracted.";
 }
 
 export async function getChatCompletion(messages) {
   const providers = [];
 
-  if (config.OPENROUTER_API_KEY) {
-    providers.push({
-      name: 'OpenRouter',
-      endpoint: 'https://openrouter.ai/api/v1/chat/completions',
-      key: config.OPENROUTER_API_KEY,
-      model: config.OPENROUTER_MODEL
-    });
-  }
-
   if (config.GROQ_API_KEY) {
     providers.push({
-      name: 'Groq',
-      endpoint: 'https://api.groq.com/openai/v1/chat/completions',
+      name: "Groq",
+      endpoint: "https://api.groq.com/openai/v1/chat/completions",
       key: config.GROQ_API_KEY,
-      model: 'llama-3.3-70b-versatile'
+      model: "llama-3.3-70b-versatile",
     });
   }
 
   if (config.NVIDIA_API_KEY) {
     providers.push({
-      name: 'Nvidia',
-      endpoint: 'https://integrate.api.nvidia.com/v1/chat/completions',
+      name: "NIM",
+      endpoint: "https://integrate.api.nvidia.com/v1/chat/completions",
       key: config.NVIDIA_API_KEY,
-      model: 'meta/llama-3.3-70b-instruct'
+      model: "meta/llama-3.3-70b-instruct",
+    });
+  }
+
+  if (config.OPENROUTER_API_KEY) {
+    providers.push({
+      name: "OpenRouter",
+      endpoint: "https://openrouter.ai/api/v1/chat/completions",
+      key: config.OPENROUTER_API_KEY,
+      model: "google/gemini-2.5-flash",
     });
   }
 
   if (config.GOOGLE_AI_KEY) {
     providers.push({
-      name: 'Google',
-      endpoint: 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
+      name: "Google",
+      endpoint:
+        "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
       key: config.GOOGLE_AI_KEY,
-      model: 'gemini-2.0-flash'
+      model: "gemini-2.0-flash",
     });
   }
 
   if (providers.length === 0) {
-    console.warn('WARNING: No LLM keys configured. Operating in mock mode.');
-    return { content: 'Agent is operating in mock mode. Please set an API key.' };
+    console.warn("WARNING: No LLM keys configured. Operating in mock mode.");
+    return {
+      content: "Agent is operating in mock mode. Please set an API key.",
+    };
   }
 
   let lastError = null;
@@ -283,54 +395,61 @@ export async function getChatCompletion(messages) {
       console.log(`Attempting text completion using: ${provider.name}`);
       return await executeTextCompletion(provider, messages);
     } catch (err) {
-      console.error(`${provider.name} text completion failed:`, err.response?.data || err.message);
+      console.error(
+        `${provider.name} text completion failed:`,
+        err.response?.data || err.message,
+      );
       lastError = err;
     }
   }
 
-  throw new Error(`All configured LLM text completion providers failed. Last error: ${lastError?.message}`);
+  throw new Error(
+    `All configured LLM text completion providers failed. Last error: ${lastError?.message}`,
+  );
 }
 
 export async function analyzeImage(base64Image, userPrompt) {
   const providers = [];
 
-  if (config.GROQ_API_KEY) {
+  if (config.NVIDIA_API_KEY) {
     providers.push({
-      name: 'Groq',
-      endpoint: 'https://api.groq.com/openai/v1/chat/completions',
-      key: config.GROQ_API_KEY,
-      model: 'llama-3.2-11b-vision-instruct'
+      name: "NIM",
+      endpoint: "https://integrate.api.nvidia.com/v1/chat/completions",
+      key: config.NVIDIA_API_KEY,
+      model: "llama-3.2-90b-vision-instruct",
     });
   }
 
-  if (config.NVIDIA_API_KEY) {
+  if (config.GROQ_API_KEY) {
     providers.push({
-      name: 'Nvidia',
-      endpoint: 'https://integrate.api.nvidia.com/v1/chat/completions',
-      key: config.NVIDIA_API_KEY,
-      model: 'meta/llama-3.2-11b-vision-instruct'
+      name: "Groq",
+      endpoint: "https://api.groq.com/openai/v1/chat/completions",
+      key: config.GROQ_API_KEY,
+      model: "llama-3.2-11b-vision-instruct",
     });
   }
 
   if (config.OPENROUTER_API_KEY) {
     providers.push({
-      name: 'OpenRouter',
-      endpoint: 'https://openrouter.ai/api/v1/chat/completions',
+      name: "OpenRouter",
+      endpoint: "https://openrouter.ai/api/v1/chat/completions",
       key: config.OPENROUTER_API_KEY,
-      model: 'google/gemini-2.5-flash'
+      model: "google/gemini-2.5-flash",
     });
   }
 
   if (providers.length === 0) {
-    return 'Mock mode: Cannot process images without an active LLM key.';
+    return "Mock mode: Cannot process images without an active LLM key.";
   }
 
   const imageHash = getMD5(base64Image);
   const cacheKey = `${imageHash}_${getMD5(userPrompt)}`;
   const cached = apiCache.get(cacheKey);
 
-  if (cached && (Date.now() - cached.timestamp < CACHE_TTL)) {
-    console.log('Returning cached Vision completion response (Rate Limit Avoided)');
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    console.log(
+      "Returning cached Vision completion response (Rate Limit Avoided)",
+    );
     return cached.data;
   }
 
@@ -338,19 +457,28 @@ export async function analyzeImage(base64Image, userPrompt) {
   for (const provider of providers) {
     try {
       console.log(`Attempting vision completion using: ${provider.name}`);
-      const text = await executeVisionCompletion(provider, base64Image, userPrompt);
-      
+      const text = await executeVisionCompletion(
+        provider,
+        base64Image,
+        userPrompt,
+      );
+
       apiCache.set(cacheKey, {
         data: text,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       });
-      
+
       return text;
     } catch (err) {
-      console.error(`${provider.name} vision completion failed:`, err.response?.data || err.message);
+      console.error(
+        `${provider.name} vision completion failed:`,
+        err.response?.data || err.message,
+      );
       lastError = err;
     }
   }
 
-  throw new Error(`All configured LLM vision providers failed. Last error: ${lastError?.message}`);
+  throw new Error(
+    `All configured LLM vision providers failed. Last error: ${lastError?.message}`,
+  );
 }

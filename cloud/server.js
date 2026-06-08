@@ -4,6 +4,25 @@ import { connectDB } from './services/db.js';
 import { fetchPendingTasks, completeTask, getTaskById } from './services/taskService.js';
 import { initBot, handleTaskCompletion, shutdownBot } from './services/botService.js';
 import { analyzeImage } from './services/llmService.js';
+import { WebSocketServer } from 'ws';
+
+let clientSocket = null;
+
+export function pushTaskToClient(task) {
+  if (clientSocket && clientSocket.readyState === 1) {
+    clientSocket.send(JSON.stringify(task));
+    return true;
+  }
+  return false;
+}
+
+export function pushCancelToClient() {
+  if (clientSocket && clientSocket.readyState === 1) {
+    clientSocket.send(JSON.stringify({ type: 'cancel' }))
+    return true
+  }
+  return false
+}
 
 const app = express();
 app.use(express.json({ limit: '50mb' }));
@@ -75,12 +94,53 @@ app.get('/', (req, res) => {
   res.send('Kairos Server is operational.');
 });
 
+const failedAttempts = new Map()
+
 async function startServer() {
   await connectDB();
   initBot();
 
-  app.listen(PORT, () => {
+  const httpServer = app.listen(PORT, () => {
     console.log(`Kairos Server listening on port ${PORT}`);
+  });
+
+  const wss = new WebSocketServer({ server: httpServer });
+
+  wss.on('connection', (ws, req) => {
+    const ip = req.socket.remoteAddress
+    const now = Date.now()
+    const attempts = failedAttempts.get(ip) || 
+      { count: 0, firstAttempt: now }
+    
+    if (now - attempts.firstAttempt > 60000) {
+      attempts.count = 0
+      attempts.firstAttempt = now
+    }
+    
+    if (attempts.count >= 5) {
+      ws.close(1008, 'Unauthorized')
+      return
+    }
+    
+    const token = req.headers['x-client-secret']
+    if (token !== config.CLIENT_SECRET) {
+      attempts.count++
+      failedAttempts.set(ip, attempts)
+      if (attempts.count >= 5) {
+        console.warn(`Blocking IP ${ip} after 5 failed attempts`)
+      }
+      ws.close(1008, 'Unauthorized')
+      return
+    }
+    
+    failedAttempts.delete(ip)
+    clientSocket = ws;
+    console.log('Client connected via WebSocket.');
+
+    ws.on('close', () => {
+      clientSocket = null;
+      console.log('Client WebSocket disconnected.');
+    });
   });
 }
 

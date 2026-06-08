@@ -1,17 +1,19 @@
 import { Task } from '../models.js';
 import { isConnected } from './db.js';
+import { pushTaskToClient, pushCancelToClient } from '../server.js';
 
 const mockTasks = [];
 
 export async function queueTask(commandType, payload) {
+  let task;
   if (isConnected()) {
-    return await Task.create({
+    task = await Task.create({
       commandType,
       payload,
       status: 'pending'
     });
   } else {
-    const task = {
+    task = {
       _id: `task_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
       commandType,
       payload,
@@ -20,8 +22,10 @@ export async function queueTask(commandType, payload) {
       updatedAt: new Date()
     };
     mockTasks.push(task);
-    return task;
   }
+
+  pushTaskToClient(task);
+  return task;
 }
 
 export async function fetchPendingTasks() {
@@ -91,4 +95,5 @@ export async function cancelAllTasks() {
       }
     });
   }
+  pushCancelToClient()
 }

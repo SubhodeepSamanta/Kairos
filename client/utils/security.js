@@ -3,10 +3,10 @@ import { config } from '../config/env.js';
 
 export function isPathSafe(targetPath) {
   if (!targetPath) return false;
-  
+
   try {
     const resolvedTarget = path.resolve(targetPath);
-    
+
     return config.PATH_WHITELIST.some(safePath => {
       const resolvedSafe = path.resolve(safePath);
       return resolvedTarget.startsWith(resolvedSafe);
@@ -23,13 +23,13 @@ export function sanitizeString(str) {
 }
 
 const FORBIDDEN_PATTERNS = [
-  'rm ', 'del ', 'format ', 'mkfs', 'shutdown', 'reboot', 'attrib', 'takeown', 
+  'rm ', 'del ', 'format ', 'mkfs', 'shutdown', 'reboot', 'attrib', 'takeown',
   'icacls', 'net user', 'reg ', 'sfc ', 'dism ', 'cipher'
 ];
 
 export function isCommandSafe(cmd) {
   if (!cmd) return false;
-  
+
   const cleanCmd = cmd.toLowerCase().trim();
   const isForbidden = FORBIDDEN_PATTERNS.some(pattern => cleanCmd.includes(pattern));
   if (isForbidden) return false;
