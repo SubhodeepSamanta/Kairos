@@ -22,12 +22,12 @@ export const tools = [
     type: 'function',
     function: {
       name: 'openFolder',
-      description: 'Opens a directory folder in VS Code or standard File Explorer on the local PC.',
+      description: 'Opens a directory folder in VS Code, Antigravity, or standard File Explorer on the local PC.',
       parameters: {
         type: 'object',
         properties: {
           folderPath: { type: 'string', description: 'The path of the folder to open (e.g., C:\\Users\\USER\\Desktop\\Kairos).' },
-          editor: { type: 'string', enum: ['vscode', 'explorer'], description: 'The editor or application to open the folder with.' }
+          editor: { type: 'string', enum: ['vscode', 'explorer', 'antigravity'], description: 'The editor or application to open the folder with.' }
         },
         required: ['folderPath']
       }
@@ -263,6 +263,15 @@ export async function getChatCompletion(messages) {
     });
   }
 
+  if (config.GOOGLE_AI_KEY) {
+    providers.push({
+      name: 'Google',
+      endpoint: 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
+      key: config.GOOGLE_AI_KEY,
+      model: 'gemini-2.0-flash'
+    });
+  }
+
   if (providers.length === 0) {
     console.warn('WARNING: No LLM keys configured. Operating in mock mode.');
     return { content: 'Agent is operating in mock mode. Please set an API key.' };
@@ -294,21 +303,21 @@ export async function analyzeImage(base64Image, userPrompt) {
     });
   }
 
-  if (config.OPENROUTER_API_KEY) {
-    providers.push({
-      name: 'OpenRouter',
-      endpoint: 'https://openrouter.ai/api/v1/chat/completions',
-      key: config.OPENROUTER_API_KEY,
-      model: 'google/gemini-2.5-flash'
-    });
-  }
-
   if (config.NVIDIA_API_KEY) {
     providers.push({
       name: 'Nvidia',
       endpoint: 'https://integrate.api.nvidia.com/v1/chat/completions',
       key: config.NVIDIA_API_KEY,
       model: 'meta/llama-3.2-11b-vision-instruct'
+    });
+  }
+
+  if (config.OPENROUTER_API_KEY) {
+    providers.push({
+      name: 'OpenRouter',
+      endpoint: 'https://openrouter.ai/api/v1/chat/completions',
+      key: config.OPENROUTER_API_KEY,
+      model: 'google/gemini-2.5-flash'
     });
   }
 

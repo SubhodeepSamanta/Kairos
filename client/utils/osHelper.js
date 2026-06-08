@@ -99,15 +99,7 @@ export function resolveChromeProfile(alias) {
   // 5th: Default (saikoukami0001@gmail.com / UwU)
   // 6th: Profile 10 (sales@v10xai.com / v10xai.com)
   // 7th: Profile 2 (guest-like "Your Chrome", empty email)
-  const visualOrder = [
-    'Profile 8',
-    'Profile 1',
-    'Profile 4',
-    'Profile 6',
-    'Default',
-    'Profile 10',
-    'Profile 2'
-  ];
+  const visualOrder = config.CHROME_PROFILE_ORDER;
 
   // Helper to match ordinal or number strings to visual index
   const getVisualIndex = (term) => {

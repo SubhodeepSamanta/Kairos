@@ -25,6 +25,9 @@ export async function openFolder(folderPath, editor = 'explorer') {
   if (editor === 'vscode') {
     await safeSpawn('code', [absolutePath]);
     return `Opened folder "${absolutePath}" in VS Code.`;
+  } else if (editor === 'antigravity') {
+    await safeSpawn('antigravity', [absolutePath]);
+    return `Opened folder "${absolutePath}" in Antigravity.`;
   } else {
     await safeSpawn('explorer.exe', [absolutePath]);
     return `Opened folder "${absolutePath}" in File Explorer.`;
@@ -64,6 +67,29 @@ function resolveSpecialFolder() {
   return desktopPath;
 }
 
+async function isAppRunning(processName) {
+  try {
+    const result = await safeSpawn('powershell.exe', [
+      '-NoProfile', '-NonInteractive', '-Command',
+      `(Get-Process -Name "${processName}" -ErrorAction SilentlyContinue) -ne $null`
+    ]);
+    return result.trim().toLowerCase() === 'true';
+  } catch {
+    return false;
+  }
+}
+
+async function focusApp(processName) {
+  try {
+    await safeSpawn('powershell.exe', [
+      '-NoProfile', '-NonInteractive', '-Command',
+      `$w = Get-Process -Name "${processName}" -ErrorAction SilentlyContinue | Where-Object {$_.MainWindowHandle -ne 0} | Select-Object -First 1; if ($w) { $wshell = New-Object -ComObject wscript.shell; $wshell.AppActivate($w.Id) }`
+    ]);
+  } catch (err) {
+    console.error(`Failed to focus app ${processName}:`, err.message);
+  }
+}
+
 export async function manageApplication(appName, action) {
   if (!appName) throw new Error('No application name specified.');
   if (!action) throw new Error('No action specified.');
@@ -74,25 +100,36 @@ export async function manageApplication(appName, action) {
   console.log(`Managing application: ${normalizedApp} (${normalizedAction})`);
 
   if (normalizedAction === 'open') {
-    if (normalizedApp === 'whatsapp') {
-      await safeSpawn('cmd.exe', ['/c', 'start', 'whatsapp:']);
-      return 'Successfully opened WhatsApp.';
-    } else if (normalizedApp === 'spotify') {
-      await safeSpawn('cmd.exe', ['/c', 'start', 'spotify:']);
-      return 'Successfully opened Spotify.';
-    } else if (normalizedApp === 'chrome') {
-      await safeSpawn('cmd.exe', ['/c', 'start', 'chrome']);
-      return 'Successfully opened Chrome.';
-    } else if (normalizedApp === 'vscode') {
-      await safeSpawn('cmd.exe', ['/c', 'code']);
-      return 'Successfully opened VS Code.';
-    } else {
-      try {
+    let procName = normalizedApp;
+    if (normalizedApp === 'whatsapp') procName = 'WhatsApp';
+    else if (normalizedApp === 'spotify') procName = 'Spotify';
+    else if (normalizedApp === 'chrome') procName = 'chrome';
+    else if (normalizedApp === 'vscode') procName = 'code';
+
+    if (await isAppRunning(procName)) {
+      await focusApp(procName);
+      return `Focused existing ${appName} window.`;
+    }
+
+    try {
+      if (normalizedApp === 'whatsapp') {
+        await safeSpawn('cmd.exe', ['/c', 'start', 'whatsapp:']);
+        return 'Successfully opened WhatsApp.';
+      } else if (normalizedApp === 'spotify') {
+        await safeSpawn('cmd.exe', ['/c', 'start', 'spotify:']);
+        return 'Successfully opened Spotify.';
+      } else if (normalizedApp === 'chrome') {
+        await safeSpawn('cmd.exe', ['/c', 'start', 'chrome']);
+        return 'Successfully opened Chrome.';
+      } else if (normalizedApp === 'vscode') {
+        await safeSpawn('cmd.exe', ['/c', 'code']);
+        return 'Successfully opened VS Code.';
+      } else {
         await safeSpawn('cmd.exe', ['/c', 'start', normalizedApp]);
         return `Attempted to open ${appName}.`;
-      } catch (err) {
-        throw new Error(`Failed to open application "${appName}": ${err.message}`);
       }
+    } catch (err) {
+      return `${appName} does not appear to be installed on this machine.`;
     }
   } else if (normalizedAction === 'close') {
     let processPattern = '';

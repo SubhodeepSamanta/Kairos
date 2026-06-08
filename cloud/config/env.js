@@ -11,6 +11,7 @@ export const config = {
   OPENROUTER_MODEL: process.env.OPENROUTER_MODEL || 'google/gemini-2.5-flash',
   GROQ_API_KEY: process.env.GROQ_API_KEY || '',
   NVIDIA_API_KEY: process.env.NVIDIA_API_KEY || '',
+  GOOGLE_AI_KEY: process.env.GOOGLE_AI_KEY || '',
   CLIENT_SECRET: process.env.CLIENT_SECRET || 'my-super-secret-kairos-token',
   ALLOWED_TELEGRAM_USER: process.env.ALLOWED_TELEGRAM_USER || 'subhodeep'
 };

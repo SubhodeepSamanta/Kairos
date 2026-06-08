@@ -3,6 +3,7 @@ import path from 'path';
 import axios from 'axios';
 import { runPowerShellScript } from '../utils/osHelper.js';
 import { config } from '../config/env.js';
+import sharp from 'sharp';
 
 const scriptPath = path.resolve('services/whatsapp_driver.ps1');
 
@@ -32,15 +33,20 @@ export async function searchContact(contactName) {
     throw new Error(`Search screenshot file does not exist at: ${imgPath}`);
   }
 
-  const base64Data = fs.readFileSync(imgPath, 'base64');
+  const rawBase64 = fs.readFileSync(imgPath, 'base64');
   
   try {
-    fs.unlinkSync(imgPath);
+    await fs.promises.unlink(imgPath);
   } catch (err) {
-    console.error('Failed to delete temporary search screenshot:', err.message);
+    console.error(`Failed to delete temporary search screenshot at ${imgPath}:`, err.message);
   }
 
-  return base64Data;
+  const compressedBuffer = await sharp(Buffer.from(rawBase64, 'base64'))
+    .resize(1280, 720, { fit: 'inside', withoutEnlargement: true })
+    .jpeg({ quality: 60 })
+    .toBuffer();
+
+  return compressedBuffer.toString('base64');
 }
 
 // Clicks the first search result card to open the conversation
@@ -94,15 +100,20 @@ async function captureScreenshotBase64() {
     throw new Error(`Screenshot file does not exist at: ${imgPath}`);
   }
 
-  const base64Data = fs.readFileSync(imgPath, 'base64');
+  const rawBase64 = fs.readFileSync(imgPath, 'base64');
   
   try {
-    fs.unlinkSync(imgPath);
+    await fs.promises.unlink(imgPath);
   } catch (err) {
-    console.error('Failed to delete temporary screenshot:', err.message);
+    console.error(`Failed to delete temporary screenshot at ${imgPath}:`, err.message);
   }
 
-  return base64Data;
+  const compressedBuffer = await sharp(Buffer.from(rawBase64, 'base64'))
+    .resize(1280, 720, { fit: 'inside', withoutEnlargement: true })
+    .jpeg({ quality: 60 })
+    .toBuffer();
+
+  return compressedBuffer.toString('base64');
 }
 
 export async function checkStatuses() {
