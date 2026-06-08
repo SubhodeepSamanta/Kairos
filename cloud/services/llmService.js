@@ -1,5 +1,4 @@
 import axios from "axios";
-import crypto from "crypto";
 import { config } from "../config/env.js";
 
 export const tools = [
@@ -30,17 +29,18 @@ export const tools = [
     type: "function",
     function: {
       name: "openLeetcodeDaily",
-      description: "Opens today's LeetCode daily coding challenge question in the browser.",
+      description:
+        "Opens today's LeetCode daily coding challenge question in the browser.",
       parameters: {
         type: "object",
         properties: {
           profile: {
             type: "string",
             description: "Optional Chrome profile to use.",
-          }
-        }
-      }
-    }
+          },
+        },
+      },
+    },
   },
   {
     type: "function",
@@ -57,11 +57,11 @@ export const tools = [
           profile: {
             type: "string",
             description: "Optional Chrome profile to use.",
-          }
+          },
         },
-        required: ["searchQuery"]
-      }
-    }
+        required: ["searchQuery"],
+      },
+    },
   },
   {
     type: "function",
@@ -219,7 +219,8 @@ export const tools = [
         properties: {
           appName: {
             type: "string",
-            description: "Process/app name, e.g. 'WhatsApp', 'chrome', 'spotify'.",
+            description:
+              "Process/app name, e.g. 'WhatsApp', 'chrome', 'spotify'.",
           },
         },
         required: ["appName"],
@@ -237,7 +238,8 @@ export const tools = [
           appName: { type: "string" },
           selector: {
             type: "object",
-            description: "Element selector using properties like name, controlType, or automationId.",
+            description:
+              "Element selector using properties like name, controlType, or automationId.",
             properties: {
               name: { type: "string" },
               controlType: {
@@ -320,7 +322,8 @@ export const tools = [
         properties: {
           appName: {
             type: "string",
-            description: "Application window name or '__screen__' for full desktop.",
+            description:
+              "Application window name or '__screen__' for full desktop.",
           },
         },
         required: ["appName"],
@@ -328,86 +331,83 @@ export const tools = [
     },
   },
   {
-    type: 'function',
+    type: "function",
     function: {
-      name: 'webSearch',
-      description: `Search the web for any current \n` +
-`information. Use this when you need to find \n` +
-`information and don't know the exact URL, or when \n` +
-`information might have changed recently.\n` +
-`\n` +
-`Use for:\n` +
-`- News about anything ("youtube down", "IPL score", \n` +
-`  "tech news", "what happened today")\n` +
-`- Weather with details ("weather kolkata humidity")  \n` +
-`- Prices, availability, status of anything\n` +
-`- People, companies, events\n` +
-`- Any question needing current information\n` +
-`\n` +
-`After getting results, call webExtract on the \n` +
-`best URL to get the full content.\n` +
-`\n` +
-`Do NOT use for tasks that need browser interaction\n` +
-`like clicking buttons or filling forms — use \n` +
-`focusApp/clickElement/typeInto/readElement for those.`,
+      name: "webSearch",
+      description:
+        `Search the web for any current \n` +
+        `information. Use this when you need to find \n` +
+        `information and don't know the exact URL, or when \n` +
+        `information might have changed recently.\n` +
+        `\n` +
+        `Use for:\n` +
+        `- News about anything ("youtube down", "IPL score", \n` +
+        `  "tech news", "what happened today")\n` +
+        `- Weather with details ("weather kolkata humidity")  \n` +
+        `- Prices, availability, status of anything\n` +
+        `- People, companies, events\n` +
+        `- Any question needing current information\n` +
+        `\n` +
+        `After getting results, call webExtract on the \n` +
+        `best URL to get the full content.\n` +
+        `\n` +
+        `Do NOT use for tasks that need browser interaction\n` +
+        `like clicking buttons or filling forms — use \n` +
+        `focusApp/clickElement/typeInto/readElement for those.`,
       parameters: {
-        type: 'object',
+        type: "object",
         properties: {
           query: {
-            type: 'string',
-            description: 'Search query. Be specific. Add "today" or "now" for current info. Add location for local info.'
+            type: "string",
+            description:
+              'Search query. Be specific. Add "today" or "now" for current info. Add location for local info.',
           },
           maxResults: {
-            type: 'integer',
-            description: 'Max results. Default 5.',
-            default: 5
-          }
+            type: "integer",
+            description: "Max results. Default 5.",
+            default: 5,
+          },
         },
-        required: ['query'],
-        additionalProperties: false
-      }
-    }
+        required: ["query"],
+        additionalProperties: false,
+      },
+    },
   },
   {
-    type: 'function',
+    type: "function",
     function: {
-      name: 'webExtract',
-      description: `Opens a URL with a real browser \n` +
-`and reads the full page content. Use this to:\n` +
-`- Read the top result from webSearch\n` +
-`- Read a specific article or page\n` +
-`- Get detailed content from a known URL\n` +
-`\n` +
-`Always use webSearch first if you don't know \n` +
-`which URL has the best information.\n` +
-`\n` +
-`The content will be automatically summarized \n` +
-`and sent to the user.`,
+      name: "webExtract",
+      description:
+        `Opens a URL with a real browser \n` +
+        `and reads the full page content. Use this to:\n` +
+        `- Read the top result from webSearch\n` +
+        `- Read a specific article or page\n` +
+        `- Get detailed content from a known URL\n` +
+        `\n` +
+        `Always use webSearch first if you don't know \n` +
+        `which URL has the best information.\n` +
+        `\n` +
+        `The content will be automatically summarized \n` +
+        `and sent to the user.`,
       parameters: {
-        type: 'object',
+        type: "object",
         properties: {
           url: {
-            type: 'string',
-            description: 'Full URL including https://'
+            type: "string",
+            description: "Full URL including https://",
           },
           task: {
-            type: 'string',
-            description: 'What to find in the page. Be specific: "top 5 news headlines with sources", "current temperature humidity feels-like wind", "todays match scores and results", "problem title difficulty and description"'
-          }
+            type: "string",
+            description:
+              'What to find in the page. Be specific: "top 5 news headlines with sources", "current temperature humidity feels-like wind", "todays match scores and results", "problem title difficulty and description"',
+          },
         },
-        required: ['url', 'task'],
-        additionalProperties: false
-      }
-    }
-  }
+        required: ["url", "task"],
+        additionalProperties: false,
+      },
+    },
+  },
 ];
-
-const apiCache = new Map();
-const CACHE_TTL = 5 * 60 * 1000;
-
-function getMD5(content) {
-  return crypto.createHash("md5").update(content).digest("hex");
-}
 
 async function requestWithRetry(requestFn, retries = 1) {
   try {
@@ -423,6 +423,28 @@ async function requestWithRetry(requestFn, retries = 1) {
   }
 }
 
+function sanitizeMessagesForProvider(messages, supportsVision) {
+  if (supportsVision) return messages;
+
+  return messages.map((message) => {
+    if (!Array.isArray(message.content)) {
+      return message;
+    }
+
+    const textContent = message.content
+      .filter(
+        (part) => part && part.type === "text" && typeof part.text === "string",
+      )
+      .map((part) => part.text)
+      .join("\n");
+
+    return {
+      ...message,
+      content: textContent || "[image content not available]",
+    };
+  });
+}
+
 async function executeTextCompletion(provider, messages) {
   const headers = {
     Authorization: `Bearer ${provider.key}`,
@@ -434,9 +456,16 @@ async function executeTextCompletion(provider, messages) {
     headers["X-Title"] = "Kairos AI Agent";
   }
 
+  const supportsVision =
+    provider.name === "OpenRouter" || provider.name === "Google";
+  const sanitizedMessages = sanitizeMessagesForProvider(
+    messages,
+    supportsVision,
+  );
+
   const payload = {
     model: provider.model,
-    messages: messages,
+    messages: sanitizedMessages,
     tools: tools,
     tool_choice: "auto",
     max_tokens: 1024,
@@ -453,48 +482,6 @@ async function executeTextCompletion(provider, messages) {
     content: choice.message.content || "",
     toolCalls: choice.message.tool_calls || null,
   };
-}
-
-async function executeVisionCompletion(provider, base64Image, userPrompt) {
-  const headers = {
-    Authorization: `Bearer ${provider.key}`,
-    "Content-Type": "application/json",
-  };
-
-  if (provider.name === "OpenRouter") {
-    headers["HTTP-Referer"] = "https://github.com/SubhodeepSamanta/Kairos";
-    headers["X-Title"] = "Kairos AI Agent";
-  }
-
-  const messages = [
-    {
-      role: "user",
-      content: [
-        { type: "text", text: userPrompt },
-        {
-          type: "image_url",
-          image_url: {
-            url: `data:image/png;base64,${base64Image}`,
-          },
-        },
-      ],
-    },
-  ];
-
-  const payload = {
-    model: provider.model,
-    messages: messages,
-    max_tokens: 1024,
-  };
-
-  const response = await requestWithRetry(() =>
-    axios.post(provider.endpoint, payload, { headers, timeout: 15000 }),
-  );
-  const choice = response.data.choices?.[0];
-  if (!choice)
-    throw new Error(`Invalid response payload from ${provider.name}`);
-
-  return choice.message.content || "No text extracted.";
 }
 
 export async function getChatCompletion(messages) {
@@ -560,80 +547,5 @@ export async function getChatCompletion(messages) {
 
   throw new Error(
     `All configured LLM text completion providers failed. Last error: ${lastError?.message}`,
-  );
-}
-
-export async function analyzeImage(base64Image, userPrompt) {
-  const providers = [];
-
-  if (config.OPENROUTER_API_KEY) {
-    providers.push({
-      name: "OpenRouter",
-      endpoint: "https://openrouter.ai/api/v1/chat/completions",
-      key: config.OPENROUTER_API_KEY,
-      model: config.OPENROUTER_MODEL,
-    });
-  }
-
-  if (config.GROQ_API_KEY) {
-    providers.push({
-      name: "Groq",
-      endpoint: "https://api.groq.com/openai/v1/chat/completions",
-      key: config.GROQ_API_KEY,
-      model: config.GROQ_VISION_MODEL,
-    });
-  }
-
-  if (config.NVIDIA_API_KEY) {
-    providers.push({
-      name: "NIM",
-      endpoint: "https://integrate.api.nvidia.com/v1/chat/completions",
-      key: config.NVIDIA_API_KEY,
-      model: config.NVIDIA_VISION_MODEL,
-    });
-  }
-
-  if (providers.length === 0) {
-    return "Mock mode: Cannot process images without an active LLM key.";
-  }
-
-  const imageHash = getMD5(base64Image);
-  const cacheKey = `${imageHash}_${getMD5(userPrompt)}`;
-  const cached = apiCache.get(cacheKey);
-
-  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-    console.log(
-      "Returning cached Vision completion response (Rate Limit Avoided)",
-    );
-    return cached.data;
-  }
-
-  let lastError = null;
-  for (const provider of providers) {
-    try {
-      console.log(`Attempting vision completion using: ${provider.name}`);
-      const text = await executeVisionCompletion(
-        provider,
-        base64Image,
-        userPrompt,
-      );
-
-      apiCache.set(cacheKey, {
-        data: text,
-        timestamp: Date.now(),
-      });
-
-      return text;
-    } catch (err) {
-      console.error(
-        `${provider.name} vision completion failed:`,
-        err.response?.data || err.message,
-      );
-      lastError = err;
-    }
-  }
-
-  throw new Error(
-    `All configured LLM vision providers failed. Last error: ${lastError?.message}`,
   );
 }

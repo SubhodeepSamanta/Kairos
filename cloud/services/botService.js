@@ -3,9 +3,13 @@ import { config } from "../config/env.js";
 import { getChatCompletion } from "./llmService.js";
 import { Message } from "../models.js";
 import { isConnected } from "./db.js";
-import { queueTask, cancelAllTasks, hasPendingTasksForChat } from "./taskService.js";
-import fs from 'fs';
-import path from 'path';
+import {
+  queueTask,
+  cancelAllTasks,
+  hasPendingTasksForChat,
+} from "./taskService.js";
+import fs from "fs";
+import path from "path";
 
 let bot = null;
 const mockMessages = [];
@@ -13,14 +17,14 @@ const runningAgentLoops = new Set();
 
 const targetName = (config.ALLOWED_TELEGRAM_USER || "user")
   .split(" ")
-  .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+  .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
   .join(" ");
 const targetFirstName = targetName.split(" ")[0];
 
 function loadPrompt(filename, replacements = {}) {
   try {
-    const filePath = path.join(process.cwd(), 'prompts', filename);
-    let content = fs.readFileSync(filePath, 'utf8');
+    const filePath = path.join(process.cwd(), "prompts", filename);
+    let content = fs.readFileSync(filePath, "utf8");
     for (const [key, value] of Object.entries(replacements)) {
       content = content.replaceAll(`\${${key}}`, value);
     }
@@ -36,52 +40,52 @@ function getFriendlyActionMessage(name, targetFirstName, args = {}) {
     openUrl: [
       `Opening up that website link for you right now, ${targetFirstName}!`,
       `Let me open that page on your browser...`,
-      `Getting that web page opened for you, ${targetFirstName}!`
+      `Getting that web page opened for you, ${targetFirstName}!`,
     ],
     openYoutubeVideo: [
       `Opening YouTube to play that video for you now! 🎵`,
       `Searching YouTube and playing that for you right away.`,
-      `Getting that video queued up on YouTube!`
+      `Getting that video queued up on YouTube!`,
     ],
     openLeetcodeDaily: [
       `Opening the LeetCode daily coding question for you. Good luck, I know you'll crush it! 💻`,
       `Loading today's LeetCode coding challenge... let's get solving!`,
-      `Getting the daily LeetCode challenge opened for you.`
+      `Getting the daily LeetCode challenge opened for you.`,
     ],
     openFolder: [
       `Opening up that folder on your screen now.`,
       `Let me reveal that directory for you...`,
-      `Opening the folder. Let me know if there's anything else you need inside!`
+      `Opening the folder. Let me know if there's anything else you need inside!`,
     ],
     sendWhatsApp: [
-      `Sending that WhatsApp message to ${args.recipient || 'your contact'} right away.`,
+      `Sending that WhatsApp message to ${args.recipient || "your contact"} right away.`,
       `Getting that message sent on WhatsApp...`,
-      `On it! Sending the WhatsApp message.`
+      `On it! Sending the WhatsApp message.`,
     ],
     webSearch: [
-      `Searching the web for "${args.query || 'your query'}" now...`,
+      `Searching the web for "${args.query || "your query"}" now...`,
       `Let me search the web for that...`,
-      `Running a quick web search now...`
+      `Running a quick web search now...`,
     ],
     webExtract: [
       `Opening that page to read the content for you...`,
       `Extracting the webpage content...`,
-      `Reading through the page content now...`
+      `Reading through the page content now...`,
     ],
     manageApplication: [
       `Triggering that application action now...`,
-      `On it! Managing the application state.`
+      `On it! Managing the application state.`,
     ],
     captureScreen: [
       `Capturing a screenshot of your screen to take a look...`,
-      `Let me capture your screen details...`
-    ]
+      `Let me capture your screen details...`,
+    ],
   };
 
   const options = templates[name] || [
     `I'm starting up ${name} on your computer right now...`,
     `Sure thing! Running ${name} for you now.`,
-    `Just a second, triggering ${name} on your PC!`
+    `Just a second, triggering ${name} on your PC!`,
   ];
 
   return options[Math.floor(Math.random() * options.length)];
@@ -104,18 +108,51 @@ async function saveMessage(chatId, role, content, extra = {}) {
     if (isConnected()) {
       await Message.create({ chatId, role, content, ...extra });
     } else {
-      mockMessages.push({ chatId, role, content, ...extra, timestamp: new Date() });
+      mockMessages.push({
+        chatId,
+        role,
+        content,
+        ...extra,
+        timestamp: new Date(),
+      });
     }
   } catch (err) {
     console.error("Failed to save message to history:", err.message);
   }
 }
 
+function normalizeOutgoingText(text) {
+  if (typeof text !== "string") return "";
+  return text.trim();
+}
+
+async function replySafe(ctx, text) {
+  const messageText = normalizeOutgoingText(text);
+  if (!messageText) return;
+  await ctx.reply(messageText);
+}
+
+function toPlain(value) {
+  if (value === undefined || value === null) return value;
+  try {
+    return JSON.parse(JSON.stringify(value));
+  } catch {
+    return value;
+  }
+}
+
 function dbMessageToLlmMessage(message) {
   const llmMessage = { role: message.role };
 
-  if (message.role === 'tool' && message.raw_content) {
-    llmMessage.content = message.raw_content;
+  if (message.role === "tool") {
+    if (message.raw_content) {
+      const rawContent = message.raw_content;
+      llmMessage.content = Array.isArray(rawContent)
+        ? rawContent.map((part) => toPlain(part))
+        : toPlain(rawContent);
+    } else {
+      llmMessage.content = message.content || "";
+    }
   } else if (message.content !== undefined && message.content !== null) {
     llmMessage.content = message.content;
   }
@@ -124,11 +161,15 @@ function dbMessageToLlmMessage(message) {
   if (message.tool_call_id) llmMessage.tool_call_id = message.tool_call_id;
   if (message.tool_calls) {
     try {
-      llmMessage.tool_calls = typeof message.tool_calls === 'string'
-        ? JSON.parse(message.tool_calls)
-        : message.tool_calls;
+      llmMessage.tool_calls =
+        typeof message.tool_calls === "string"
+          ? JSON.parse(message.tool_calls)
+          : toPlain(message.tool_calls);
     } catch (error) {
-      console.warn('Failed to parse tool_calls from DB message:', error.message);
+      console.warn(
+        "Failed to parse tool_calls from DB message:",
+        error.message,
+      );
     }
   }
 
@@ -138,8 +179,15 @@ function dbMessageToLlmMessage(message) {
 function mockMessageToLlmMessage(message) {
   const llmMessage = { role: message.role };
 
-  if (message.role === 'tool' && message.raw_content) {
-    llmMessage.content = message.raw_content;
+  if (message.role === "tool") {
+    if (message.raw_content) {
+      const rawContent = message.raw_content;
+      llmMessage.content = Array.isArray(rawContent)
+        ? rawContent.map((part) => toPlain(part))
+        : toPlain(rawContent);
+    } else {
+      llmMessage.content = message.content || "";
+    }
   } else if (message.content !== undefined && message.content !== null) {
     llmMessage.content = message.content;
   }
@@ -148,11 +196,15 @@ function mockMessageToLlmMessage(message) {
   if (message.tool_call_id) llmMessage.tool_call_id = message.tool_call_id;
   if (message.tool_calls) {
     try {
-      llmMessage.tool_calls = typeof message.tool_calls === 'string'
-        ? JSON.parse(message.tool_calls)
-        : message.tool_calls;
+      llmMessage.tool_calls =
+        typeof message.tool_calls === "string"
+          ? JSON.parse(message.tool_calls)
+          : toPlain(message.tool_calls);
     } catch (error) {
-      console.warn('Failed to parse tool_calls from mock message:', error.message);
+      console.warn(
+        "Failed to parse tool_calls from mock message:",
+        error.message,
+      );
     }
   }
 
@@ -173,25 +225,33 @@ async function getRecentHistory(chatId, limit = 30) {
     .map(mockMessageToLlmMessage);
 }
 
-async function runAgentLoop(chatId, originalTask, replyFn = null, maxIterations = 10) {
+async function runAgentLoop(
+  chatId,
+  originalTask,
+  replyFn = null,
+  maxIterations = 10,
+) {
   for (let iteration = 0; iteration < maxIterations; iteration++) {
     const history = await getRecentHistory(chatId);
     const systemPrompt = {
       role: "system",
-      content: loadPrompt('systemPrompt.txt', { targetName, targetFirstName }),
+      content: loadPrompt("systemPrompt.txt", { targetName, targetFirstName }),
     };
 
     const messages = [systemPrompt, ...history];
     const llmRes = await getChatCompletion(messages);
+    const content = normalizeOutgoingText(llmRes.content);
 
     if (llmRes.toolCalls && llmRes.toolCalls.length > 0) {
-      await saveMessage(chatId, "assistant", llmRes.content || null, { tool_calls: llmRes.toolCalls });
+      await saveMessage(chatId, "assistant", content || null, {
+        tool_calls: llmRes.toolCalls,
+      });
 
-      if (llmRes.content) {
+      if (content) {
         if (replyFn) {
-          await replyFn(llmRes.content);
+          await replyFn(content);
         } else {
-          await sendSafeMessage(chatId, llmRes.content);
+          await sendSafeMessage(chatId, content);
         }
       }
 
@@ -207,15 +267,20 @@ async function runAgentLoop(chatId, originalTask, replyFn = null, maxIterations 
 
         const payload = {
           ...args,
-          toolCallId: toolCall.id || `call_${Math.random().toString(36).substring(2, 9)}`,
+          toolCallId:
+            toolCall.id || `call_${Math.random().toString(36).substring(2, 9)}`,
           chatId,
           task: originalTask,
         };
 
         await queueTask(name, payload);
 
-        if (!llmRes.content) {
-          const friendly = getFriendlyActionMessage(name, targetFirstName, args);
+        if (!content) {
+          const friendly = getFriendlyActionMessage(
+            name,
+            targetFirstName,
+            args,
+          );
           if (replyFn) {
             await replyFn(friendly);
           } else {
@@ -228,13 +293,13 @@ async function runAgentLoop(chatId, originalTask, replyFn = null, maxIterations 
       return;
     }
 
-    if (llmRes.content) {
+    if (content) {
       if (replyFn) {
-        await replyFn(llmRes.content);
+        await replyFn(content);
       } else {
-        await sendSafeMessage(chatId, llmRes.content);
+        await sendSafeMessage(chatId, content);
       }
-      await saveMessage(chatId, "assistant", llmRes.content);
+      await saveMessage(chatId, "assistant", content);
       return;
     }
 
@@ -242,12 +307,15 @@ async function runAgentLoop(chatId, originalTask, replyFn = null, maxIterations 
     return;
   }
 
-  await sendSafeMessage(chatId, "I ran into a loop trying to complete that. Please try again.");
+  await sendSafeMessage(
+    chatId,
+    "I ran into a loop trying to complete that. Please try again.",
+  );
 }
 
 export function initBot() {
   if (bot) {
-    console.log('Bot already initialized; skipping second init.');
+    console.log("Bot already initialized; skipping second init.");
     return;
   }
   if (!config.TELEGRAM_BOT_TOKEN) {
@@ -261,16 +329,23 @@ export function initBot() {
 
   bot.start((ctx) => {
     if (!isUserAllowed(ctx)) {
-      return ctx.reply(`Sorry, only ${targetFirstName} is allowed to command this PC.`);
+      return replySafe(
+        ctx,
+        `Sorry, only ${targetFirstName} is allowed to command this PC.`,
+      );
     }
-    ctx.reply(
+    replySafe(
+      ctx,
       `Hey ${targetFirstName}! I'm here and ready to help you with anything you need on your computer. Let me know what you'd like to do.`,
     );
   });
 
   bot.on("text", async (ctx) => {
     if (!isUserAllowed(ctx)) {
-      return ctx.reply(`Sorry, only ${targetFirstName} is allowed to command this PC.`);
+      return replySafe(
+        ctx,
+        `Sorry, only ${targetFirstName} is allowed to command this PC.`,
+      );
     }
 
     const chatId = ctx.chat.id;
@@ -290,7 +365,7 @@ export function initBot() {
         await saveMessage(chatId, "user", userText);
         const replyText =
           "I've stopped all active and pending commands on your computer. Let me know what you'd like to do next.";
-        ctx.reply(replyText);
+        await replySafe(ctx, replyText);
         await saveMessage(chatId, "assistant", replyText);
         return;
       } catch (err) {
@@ -300,10 +375,11 @@ export function initBot() {
 
     try {
       await saveMessage(chatId, "user", userText);
-      await runAgentLoop(chatId, userText, (text) => ctx.reply(text));
+      await runAgentLoop(chatId, userText, (text) => replySafe(ctx, text));
     } catch (err) {
       console.error("Telegraf update handler error:", err);
-      ctx.reply(
+      replySafe(
+        ctx,
         `Oh no, I ran into a little trouble: ${err.message || err}. Let's try that again!`,
       );
     }
@@ -319,16 +395,17 @@ export function initBot() {
 
 // Helper to safely send messages that might exceed Telegram's 4096 character limit
 async function sendSafeMessage(chatId, text) {
-  if (!text) return;
+  const messageText = normalizeOutgoingText(text);
+  if (!messageText) return;
   const limit = 4000;
-  if (text.length <= limit) {
-    await bot.telegram.sendMessage(chatId, text);
+  if (messageText.length <= limit) {
+    await bot.telegram.sendMessage(chatId, messageText);
     return;
   }
 
   const chunks = [];
   let current = "";
-  const lines = text.split("\n");
+  const lines = messageText.split("\n");
 
   for (const line of lines) {
     if (line.length > limit) {
@@ -364,43 +441,49 @@ export async function handleTaskCompletion(task) {
   const { commandType, status, result } = task;
 
   const imageToolCommands = new Set([
-    'captureScreen',
-    'checkWhatsAppStatuses',
-    'readWhatsAppStatus',
-    'readWhatsAppLastConversation',
-    'captureWindow',
+    "captureScreen",
+    "checkWhatsAppStatuses",
+    "readWhatsAppStatus",
+    "readWhatsAppLastConversation",
+    "captureWindow",
   ]);
 
   let toolResultContent;
   let contentForStorage;
   let rawContentForStorage;
 
-  if (status === 'failed') {
-    toolResultContent = `Error executing tool ${commandType}: ${result || 'unknown error'}`;
+  if (status === "failed") {
+    toolResultContent = `Error executing tool ${commandType}: ${result || "unknown error"}`;
     contentForStorage = toolResultContent;
   } else if (imageToolCommands.has(commandType) && result) {
     toolResultContent = [
-      { type: 'text', text: 'Screenshot captured successfully.' },
-      { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${result}` } },
+      { type: "text", text: "Screenshot captured successfully." },
+      {
+        type: "image_url",
+        image_url: { url: `data:image/jpeg;base64,${result}` },
+      },
     ];
-    contentForStorage = 'Screenshot captured successfully.';
+    contentForStorage = "Screenshot captured successfully.";
     rawContentForStorage = toolResultContent;
   } else {
-    toolResultContent = result || 'Done.';
-    contentForStorage = typeof toolResultContent === 'string'
-      ? toolResultContent
-      : JSON.stringify(toolResultContent);
+    toolResultContent = result || "Done.";
+    contentForStorage =
+      typeof toolResultContent === "string"
+        ? toolResultContent
+        : JSON.stringify(toolResultContent);
   }
 
-  await saveMessage(chatId, 'tool', contentForStorage, {
+  await saveMessage(chatId, "tool", contentForStorage, {
     name: commandType,
-    tool_call_id: task.payload?.toolCallId || 'call_default',
+    tool_call_id: task.payload?.toolCallId || "call_default",
     raw_content: rawContentForStorage,
   });
 
   const hasMorePending = await hasPendingTasksForChat(chatId);
   if (hasMorePending) {
-    console.log(`Still waiting for other tasks to complete for chat ${chatId}.`);
+    console.log(
+      `Still waiting for other tasks to complete for chat ${chatId}.`,
+    );
     return;
   }
 
@@ -411,7 +494,7 @@ export async function handleTaskCompletion(task) {
 
   runningAgentLoops.add(chatId);
   try {
-    await runAgentLoop(chatId, task.payload?.task || '');
+    await runAgentLoop(chatId, task.payload?.task || "");
   } catch (err) {
     console.error("Agent completion iteration error:", err);
     await sendSafeMessage(

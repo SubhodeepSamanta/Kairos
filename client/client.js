@@ -16,8 +16,8 @@ import {
   readElement,
   captureWindow,
 } from "./utils/uia.js";
-import { webSearch } from './utils/search.js'
-import { webExtract, shutdownBrowser } from './utils/extractor.js'
+import { webSearch } from "./utils/search.js";
+import { webExtract, shutdownBrowser } from "./utils/extractor.js";
 
 console.log("Kairos Client is initializing...");
 console.log(`Connecting to Cloud at: ${config.CLOUD_URL}`);
@@ -27,48 +27,49 @@ const headers = {
   "Content-Type": "application/json",
 };
 
-let reconnectAttempts = 0
+let reconnectAttempts = 0;
 
 function connectWebSocket() {
-  const wsUrl = config.CLOUD_URL
-    .replace('https://', 'wss://')
-    .replace('http://', 'ws://')
+  const wsUrl = config.CLOUD_URL.replace("https://", "wss://").replace(
+    "http://",
+    "ws://",
+  );
 
   const ws = new WebSocket(wsUrl, {
-    headers: { 'x-client-secret': config.CLIENT_SECRET }
-  })
+    headers: { "x-client-secret": config.CLIENT_SECRET },
+  });
 
-  ws.on('open', () => {
-    reconnectAttempts = 0
-    console.log('Connected to cloud via WebSocket.')
-  })
+  ws.on("open", () => {
+    reconnectAttempts = 0;
+    console.log("Connected to cloud via WebSocket.");
+  });
 
-  ws.on('message', async (data) => {
+  ws.on("message", async (data) => {
     try {
-      const payload = JSON.parse(data.toString())
-      if (payload.type === 'cancel') {
-        abortCurrentTask()
-        return
+      const payload = JSON.parse(data.toString());
+      if (payload.type === "cancel") {
+        abortCurrentTask();
+        return;
       }
-      await executeTask(payload)
+      await executeTask(payload);
     } catch (err) {
-      console.error("Failed to parse task or execute task:", err.message)
+      console.error("Failed to parse task or execute task:", err.message);
     }
-  })
+  });
 
-  ws.on('close', () => {
-    const delay = Math.min(
-      1000 * Math.pow(2, reconnectAttempts), 
-      30000
-    )
-    reconnectAttempts++
-    console.log(`WebSocket closed. Reconnecting in ${delay}ms...`)
-    setTimeout(connectWebSocket, delay)
-  })
+  ws.on("close", () => {
+    const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
+    reconnectAttempts++;
+    console.log(`WebSocket closed. Reconnecting in ${delay}ms...`);
+    setTimeout(connectWebSocket, delay);
+  });
 
-  ws.on('error', (err) => {
-    console.error('WebSocket error:', err.message || err.code || 'Connection failed')
-  })
+  ws.on("error", (err) => {
+    console.error(
+      "WebSocket error:",
+      err.message || err.code || "Connection failed",
+    );
+  });
 }
 
 async function executeTask(task) {
@@ -117,7 +118,10 @@ async function executeTask(task) {
       }
 
       case "openYoutubeVideo": {
-        result = await utilityService.openYoutubeVideo(payload.searchQuery, payload.profile);
+        result = await utilityService.openYoutubeVideo(
+          payload.searchQuery,
+          payload.profile,
+        );
         break;
       }
 
@@ -173,7 +177,9 @@ async function executeTask(task) {
       case "focusApp": {
         const res = await focusApp(payload.appName);
         if (!res.success) {
-          throw new Error(res.error || `Could not focus app: ${payload.appName}`);
+          throw new Error(
+            res.error || `Could not focus app: ${payload.appName}`,
+          );
         }
         result = `Focused app: ${payload.appName}`;
         break;
@@ -189,9 +195,15 @@ async function executeTask(task) {
       }
 
       case "typeInto": {
-        const res = await typeInto(payload.appName, payload.selector, payload.value);
+        const res = await typeInto(
+          payload.appName,
+          payload.selector,
+          payload.value,
+        );
         if (!res.success) {
-          throw new Error(res.error || "Could not type into requested element.");
+          throw new Error(
+            res.error || "Could not type into requested element.",
+          );
         }
         result = "Typed text successfully.";
         break;
@@ -259,22 +271,19 @@ async function executeTask(task) {
         break;
       }
 
-      case 'webSearch': {
-        const { query, maxResults = 5 } = payload
-        
+      case "webSearch": {
+        const { query, maxResults = 5 } = payload;
+
         if (!query) {
-          result = 'No search query provided'
-          break
+          result = "No search query provided";
+          break;
         }
 
-        const searchResult = await webSearch(
-          query, 
-          Math.min(maxResults, 10)
-        )
+        const searchResult = await webSearch(query, Math.min(maxResults, 10));
 
         if (!searchResult.success || !searchResult.data.length) {
-          result = `Search returned no results for: ${query}`
-          break
+          result = `Search returned no results for: ${query}`;
+          break;
         }
 
         result = JSON.stringify(
@@ -284,27 +293,27 @@ async function executeTask(task) {
           },
           null,
           2,
-        )
-        break
+        );
+        break;
       }
 
-      case 'webExtract': {
-        const { url, task } = payload
-        
+      case "webExtract": {
+        const { url, task } = payload;
+
         if (!url) {
-          result = 'No URL provided'
-          break
+          result = "No URL provided";
+          break;
         }
 
-        const extracted = await webExtract(url)
+        const extracted = await webExtract(url);
 
         if (!extracted.success) {
-          result = `Could not read ${url}: ${extracted.error}`
-          break
+          result = `Could not read ${url}: ${extracted.error}`;
+          break;
         }
 
-        result = extracted.text
-        break
+        result = extracted.text;
+        break;
       }
 
       default:
@@ -355,11 +364,11 @@ async function executeTask(task) {
 
 connectWebSocket();
 
-process.once('SIGINT', async () => {
-  await shutdownBrowser()
-  process.exit(0)
-})
-process.once('SIGTERM', async () => {
-  await shutdownBrowser()
-  process.exit(0)
-})
+process.once("SIGINT", async () => {
+  await shutdownBrowser();
+  process.exit(0);
+});
+process.once("SIGTERM", async () => {
+  await shutdownBrowser();
+  process.exit(0);
+});
