@@ -11,7 +11,14 @@ export async function findApp(
     await getInstalledApps();
 
   query =
-    query.toLowerCase();
+    query.toLowerCase()
+      .trim();
+
+  let exactMatch = null;
+
+  let startsWithMatch = null;
+
+  let includesMatch = null;
 
   for (
     const app of apps
@@ -19,17 +26,45 @@ export async function findApp(
 
     const name =
       app.Name
-        ?.toLowerCase();
+        ?.toLowerCase()
+        .trim();
+
+    if (!name) {
+      continue;
+    }
 
     if (
-      name &&
+      name === query
+    ) {
+      exactMatch = app;
+      break;
+    }
+
+    if (
+      !startsWithMatch &&
+      name.startsWith(
+        query
+      )
+    ) {
+      startsWithMatch =
+        app;
+    }
+
+    if (
+      !includesMatch &&
       name.includes(
         query
       )
     ) {
-      return app;
+      includesMatch =
+        app;
     }
   }
 
-  return null;
+  return (
+    exactMatch ||
+    startsWithMatch ||
+    includesMatch ||
+    null
+  );
 }

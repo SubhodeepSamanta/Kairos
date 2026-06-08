@@ -1,60 +1,71 @@
-import { ACTIONS }
-from "../shared/schemas/action.js";
-
+import { ACTIONS } from "../shared/schemas/action.js";
 import {
   openApp,
   closeApp,
   focusApp
-}
-from "../automation/desktop/windows/apps.js";
+} from "../automation/desktop/windows/apps.js";
 
-export async function executePlan(
-  plan
-) {
+export async function executePlan(plan) {
+  console.log("\n===== EXECUTING PLAN =====");
+  console.log(JSON.stringify(plan, null, 2));
+
   const results = [];
 
-  for (
-    const action of
-    plan.actions
-  ) {
-    const result =
-      await executeAction(
-        action
-      );
+  for (const action of plan.actions) {
+    console.log(
+      "\nACTION:",
+      action.type,
+      action.params
+    );
 
-    results.push(
+    const result =
+      await executeAction(action);
+
+    console.log(
+      "RESULT:",
       result
     );
+
+    results.push(result);
   }
 
   return results;
 }
 
-async function executeAction(
-  action
-) {
-  switch (
-    action.type
-  ) {
+async function executeAction(action) {
+  try {
 
-    case ACTIONS.OPEN_APP:
-      return openApp(
-        action.params.app
-      );
+    switch (action.type) {
 
-    case ACTIONS.CLOSE_APP:
-      return closeApp(
-        action.params.app
-      );
+      case ACTIONS.OPEN_APP:
+        return await openApp(
+          action.params.app
+        );
 
-    case ACTIONS.FOCUS_APP:
-      return focusApp(
-        action.params.app
-      );
+      case ACTIONS.CLOSE_APP:
+        return await closeApp(
+          action.params.app
+        );
 
-    default:
-      throw new Error(
-        `Unsupported action: ${action.type}`
-      );
+      case ACTIONS.FOCUS_APP:
+        return await focusApp(
+          action.params.app
+        );
+
+      default:
+        return {
+          success: false,
+          reason: "unsupported_action",
+          action
+        };
+    }
+
+  } catch (error) {
+
+    return {
+      success: false,
+      reason: error.message,
+      action
+    };
   }
 }

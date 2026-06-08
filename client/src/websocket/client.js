@@ -27,16 +27,22 @@ export function connectToCloud(url) {
 
     log("Executing plan");
 
-    await executePlan(data.plan);
+    const plan = data.plan;
+
+    const results =
+      await executePlan(plan);
 
     const observations = [];
 
-    for (const action of data.plan.actions) {
-      const observation =
-        await observeAction(action);
+    for (let i = 0; i < plan.actions.length; i++) {
+      const action = plan.actions[i];
+      const result = results[i];
 
       observations.push(
-        observation
+        await observeAction(
+          action,
+          result
+        )
       );
     }
 

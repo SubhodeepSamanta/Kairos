@@ -1,67 +1,66 @@
 import { askLLM } from "../llm/provider.js";
 import { createPlan } from "../shared/schemas/plan.js";
-import { SYSTEM_PROMPT } from "./prompts/systemPrompt.js";
+import { buildSystemPrompt } from "./prompts/systemPrompt.js";
 import { validatePlan } from "./validator.js";
+import { buildMemoryContext } from "../memory/context.js";
 
 export async function createGoalPlan(goal) {
-    const response = await askLLM(
-        SYSTEM_PROMPT,
-        goal.objective
+  const memoryContext = await buildMemoryContext();
+  const systemPrompt = buildSystemPrompt(memoryContext);
+
+  const response = await askLLM(
+    systemPrompt,
+    goal.objective
+  );
+
+  return parsePlanResponse(
+    goal.id,
+    response
+  );
+}
+
+export function parsePlanResponse(goalId, response) {
+  let parsed;
+
+  try {
+    parsed = JSON.parse(
+      extractJson(response)
     );
+  }
 
-    let parsed;
+  catch {
+    return createPlan(goalId, []);
+  }
 
-    try {
-        parsed = JSON.parse(
-            extractJson(response)
-        );
-    }
+  if (
+    !parsed || !Array.isArray(parsed.actions)
+  ) {
+    return createPlan(goalId, []);
+  }
 
-    catch {
-        return createPlan(
-            goal.id,
-            []
-        );
-    }
+  const validated = validatePlan(parsed);
 
-    if (
-        !parsed ||
-        !Array.isArray(
-            parsed.actions
-        )
-    ) {
-        return createPlan(
-            goal.id,
-            []
-        );
-    }
-
-    const validated = validatePlan(parsed);
-
-    return createPlan(
-        goal.id,
-        validated.actions
-    );
+  return createPlan(
+    goalId,
+    validated.actions
+  );
 }
 
 function extractJson(text) {
-    const start =
-        text.indexOf("{");
+  const start = text.indexOf("{");
+  const end = text.lastIndexOf("}");
 
-    const end =
-        text.lastIndexOf("}");
-
-    if (
-        start === -1 ||
-        end === -1
-    ) {
-        throw new Error(
-            "No JSON found"
-        );
-    }
-
-    return text.slice(
-        start,
-        end + 1
+  if (
+    start === -1 ||
+    end === -1
+  ) {
+    throw new Error(
+      "No JSON found"
     );
+  }
+
+  return text.slice(
+    start,
+    end + 1
+  );
 }

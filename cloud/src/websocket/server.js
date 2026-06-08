@@ -60,20 +60,38 @@ export function startWebSocketServer(
 export async function executePlanRemotely(
   plan
 ) {
+
   if (!connectedClient) {
     throw new Error(
       "No connected client"
     );
   }
 
-  return new Promise((resolve) => {
-    pendingResolve = resolve;
+  console.log(
+    "\n===== SENDING PLAN ====="
+  );
 
-    connectedClient.send(
-      JSON.stringify({
-        type: "execute_plan",
-        plan
-      })
-    );
-  });
+  console.log(
+    JSON.stringify(
+      plan,
+      null,
+      2
+    )
+  );
+
+  return new Promise(
+    (resolve) => {
+
+      pendingResolve =
+        resolve;
+
+      connectedClient.send(
+        JSON.stringify({
+          type:
+            "execute_plan",
+          plan
+        })
+      );
+    }
+  );
 }

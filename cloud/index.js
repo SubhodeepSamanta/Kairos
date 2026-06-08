@@ -1,7 +1,9 @@
 import { env } from "./src/config/env.js";
 
+import { connectDatabase } from "./src/database/connection.js";
+import { createMemoryTables } from "./src/memory/schema.js";
+
 import { createGoal } from "./src/shared/schemas/goal.js";
-import { createGoalPlan } from "./src/planner/planner.js";
 
 import { routeMessage } from "./src/router/router.js";
 import { chatReply } from "./src/chat/chat.js";
@@ -15,6 +17,14 @@ import {
     startTelegramBot
 } from "./src/connectors/telegram/telegram.js";
 
+import { extractMemory } from "./src/memory/extract.js";
+import { storeMemory } from "./src/memory/store.js";
+import { retrieveMemory } from "./src/memory/retrieve.js";
+import { runAgent } from "./src/planner/agent.js";
+
+await connectDatabase();
+await createMemoryTables();
+
 startWebSocketServer();
 
 startTelegramBot(
@@ -22,10 +32,23 @@ startTelegramBot(
 
     async (message) => {
 
-        const route =
-            routeMessage(message);
-            console.log("MESSAGE:", message);
-console.log("ROUTE:", route);
+        const route = routeMessage(message);
+        const memory =
+            await extractMemory(message);
+
+        const memoryResponse =
+            await storeMemory(memory);
+
+        if (memoryResponse) {
+            return memoryResponse;
+        }
+        const retrieved =
+            await retrieveMemory(
+                message
+            );
+        if (retrieved) {
+            return retrieved;
+        }
 
         if (route.type === "chat") {
             return chatReply(message);
@@ -39,51 +62,48 @@ console.log("ROUTE:", route);
                 "./src/research/research.js"
             );
 
-            return runResearch(
-                message
-            );
+            return runResearch(message);
         }
 
         const goal =
-            createGoal(message);
+  createGoal(message);
 
-        const plan =
-            await createGoalPlan(goal);
+let agentResult;
 
-        if (
-            plan.actions.length === 0
-        ) {
-            return "I don't know how to do that yet.";
-        }
+try {
 
-        let result;
+  agentResult =
+    await runAgent({
+      goal,
+      executePlan:
+        executePlanRemotely
+    });
 
-        try {
+} catch {
 
-            result =
-                await executePlanRemotely(
-                    plan
-                );
+  return "No device is connected. Automation tasks require the Kairos client to be running.";
+}
 
-        }
+if (
+  agentResult.success
+) {
 
-        catch {
+  return `Success
 
-            return `
-No device is connected.
+Action: ${message}
+Result: ${
+    agentResult.observation?.actual ||
+    "completed"
+  }`;
+}
 
-Automation tasks require the Kairos client to be running.
-`;
-        }
-        const observation =
-            result.observations?.[0];
+return `Failed
 
-        if (
-            observation?.success
-        ) {
-            return `Completed: ${message}`;
-        }
-
-        return `Failed: ${message}`;
+Action: ${message}
+Reason: ${
+  agentResult.observation?.reason ||
+  agentResult.reason ||
+  "unknown"
+}`;
     }
 );
