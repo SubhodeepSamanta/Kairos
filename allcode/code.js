@@ -7,7 +7,7 @@ const scanRoots = ["client", "cloud"].map((folder) =>
 );
 const outputFile = path.join(__dirname, "allcode.md");
 
-const ignoredNames = new Set(["node_modules", "package-lock.json"]);
+const ignoredNames = new Set(["node_modules", "package-lock.json",".env"]);
 const binaryExtensions = new Set([
   ".png",
   ".jpg",
