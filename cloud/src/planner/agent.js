@@ -53,6 +53,25 @@ console.log(
             observations[
             observations.length - 1
             ];
+            console.log(
+  "OBSERVATION SUMMARY:",
+  JSON.stringify(
+    {
+      success:
+        observation?.success,
+      expected:
+        observation?.expected,
+      actual:
+        observation?.actual,
+      url:
+        observation?.url,
+      title:
+        observation?.title
+    },
+    null,
+    2
+  )
+);
         console.log(
             "OBSERVATION:",
             JSON.stringify(
@@ -62,17 +81,36 @@ console.log(
             )
         );
 
-        const allSucceeded =
+const allSucceeded =
   observations.every(
     obs => obs.success
   );
 
 if (allSucceeded) {
 
-  return {
-    success: true,
-    observation
-  };
+  const lastObservation =
+    observations[
+      observations.length - 1
+    ];
+
+  if (
+    lastObservation?.expected ===
+      "page_changed" &&
+    lastObservation?.actual ===
+      "unchanged"
+  ) {
+
+    console.log(
+      "Goal verification failed: page did not change"
+    );
+
+  } else {
+
+    return {
+      success: true,
+      observation
+    };
+  }
 }
 
         if (

@@ -7,11 +7,46 @@ export async function createReplan({goal,previousPlan,observation}) {
   const memoryContext =await buildMemoryContext();
   const systemPrompt = buildSystemPrompt(memoryContext);
 
-  const userPrompt = `Original goal: ${goal.objective} 
-    Previous plan:
-    ${JSON.stringify(previousPlan,null,2)}
-    Execution result:
-    ${JSON.stringify(observation,null,2)} The previous plan failed.Create a better plan.Return only valid JSON.`;
+  const userPrompt = `
+Original goal:
+
+${goal.objective}
+
+Previous plan:
+
+${JSON.stringify(
+  previousPlan,
+  null,
+  2
+)}
+
+Latest observation:
+
+${JSON.stringify(
+  observation,
+  null,
+  2
+)}
+
+The previous plan did not achieve the goal.
+
+Analyze why it failed.
+
+Use the observation data to create a better plan.
+
+If a click failed:
+- inspect available buttons
+- inspect available links
+- inspect available inputs
+
+If navigation failed:
+- try another route
+
+If the page changed unexpectedly:
+- adapt to the current page
+
+Return ONLY valid JSON.
+`;
 
   return askLLM(systemPrompt,userPrompt);
 }

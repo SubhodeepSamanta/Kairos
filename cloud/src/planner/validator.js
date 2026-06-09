@@ -4,7 +4,9 @@ const ALLOWED_ACTIONS = [
   "focus_app",
   "navigate",
   "read_ui",
-  "get_browser_context"
+  "type",
+  "get_browser_context",
+  "click",
 ];
 
 export function validatePlan(plan) {

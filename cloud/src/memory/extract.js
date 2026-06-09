@@ -15,6 +15,7 @@ export async function extractMemory(message) {
     "click ",
     "type ",
     "scroll ",
+    "search",
     "go ",
     "navigate "
   ];

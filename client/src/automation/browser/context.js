@@ -1,7 +1,10 @@
 let browserContext = {
   title: "",
   url: "",
-  content: ""
+  text: "",
+  buttons: [],
+  inputs: [],
+  links: []
 };
 
 export function updateBrowserContext(data) {

@@ -33,6 +33,25 @@ export function routeMessage(message) {
     "version"
   ];
 
+const automationPrefixes = [
+  "open",
+  "close",
+  "focus",
+  "type",
+  "search", 
+  "click",
+  "read",
+  "scroll"
+];
+
+for (const prefix of automationPrefixes) {
+  if (text.startsWith(prefix)) {
+    return {
+      type: "agent"
+    };
+  }
+}
+
   for (const pattern of chatPatterns) {
     if (text.includes(pattern)) {
       return {

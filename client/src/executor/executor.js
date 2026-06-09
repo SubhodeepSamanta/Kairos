@@ -3,6 +3,9 @@ import { openApp,closeApp,focusApp } from "../automation/desktop/windows/apps.js
 import { navigate } from "../automation/browser/actions/navigate.js";
 import { readPage } from "../automation/browser/actions/read.js";
 import { getContext } from "../automation/browser/actions/getContext.js";
+import { typeText } from "../automation/browser/actions/type.js";
+import { clickText } from "../automation/browser/actions/click.js";
+import { createSnapshot } from "../automation/browser/actions/snapshot.js";
 
 export async function executePlan(plan) {
   console.log("\n===== EXECUTING PLAN =====");
@@ -11,22 +14,32 @@ export async function executePlan(plan) {
   const results = [];
 
   for (const action of plan.actions) {
-    console.log(
-      "\nACTION:",
-      action.type,
-      action.params
-    );
 
-    const result =
-      await executeAction(action);
+  console.log(
+    "\nACTION:",
+    action.type,
+    action.params
+  );
 
-    console.log(
-      "RESULT:",
-      result
-    );
+  const before =
+    await createSnapshot();
 
-    results.push(result);
-  }
+  const result =
+    await executeAction(action);
+
+  const after =
+    await createSnapshot();
+
+  result.before = before;
+  result.after = after;
+
+  console.log(
+    "RESULT:",
+    result
+  );
+
+  results.push(result);
+}
 
   return results;
 }
@@ -54,6 +67,16 @@ async function executeAction(action) {
         case ACTIONS.NAVIGATE:
   return await navigate(
     action.params.url
+  );
+  
+  case ACTIONS.TYPE:
+  return await typeText(
+    action.params.text
+  );
+
+  case ACTIONS.CLICK:
+  return await clickText(
+    action.params.text
   );
 
 case ACTIONS.READ_UI:

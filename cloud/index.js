@@ -98,18 +98,97 @@ try {
 const observation =
   agentResult.observation;
 
+
 if (
-  observation?.action?.type === "read_ui"
+  observation?.action?.type === "type"
 ) {
 
-  return `Title: ${observation.actual}
+  return `Typed
 
-URL: ${observation.url}
-
-${observation.text || "No content found"}`;
+${observation.actual}`;
 }
+if (
+  observation?.action?.type === "click"
+) {
 
+  return `Clicked: ${
+    observation.action.params.text
+  }
+
+Page:
+${observation.actual}`;
+}
 if (agentResult.success) {
+
+  const observation =
+    agentResult.observation;
+
+  if (
+    observation?.expected ===
+    "page_read"
+  ) {
+
+    let response =
+`Title: ${observation.title || "Unknown"}
+
+URL: ${observation.url || "Unknown"}`;
+
+    if (
+      observation.inputs?.length
+    ) {
+
+      response +=
+
+`\n\nInputs:
+
+${observation.inputs
+  .slice(0, 10)
+  .map(input => `- ${input}`)
+  .join("\n")}`;
+    }
+
+    if (
+      observation.buttons?.length
+    ) {
+
+      response +=
+
+`\n\nButtons:
+
+${observation.buttons
+  .slice(0, 10)
+  .map(button => `- ${button}`)
+  .join("\n")}`;
+    }
+
+    if (
+      observation.links?.length
+    ) {
+
+      response +=
+
+`\n\nLinks:
+
+${observation.links
+  .slice(0, 10)
+  .map(link => `- ${link}`)
+  .join("\n")}`;
+    }
+
+    if (
+      observation.text
+    ) {
+
+      response +=
+
+`\n\nContent:
+
+${observation.text
+  .slice(0, 1000)}`;
+    }
+
+    return response;
+  }
 
   return `Success
 

@@ -17,15 +17,23 @@ export async function observeAction(action, result) {
     case ACTIONS.READ_UI:
       
 
-  return {
-    success: result?.success || false,
-    expected: "page_read",
-    actual: result?.title || "unknown",
-    url: result?.url,
-    text: result?.text || "",
-    action,
-    timestamp: new Date().toISOString()
-  };
+return {
+  success: result?.success || false,
+  expected: "page_read",
+  actual: result?.title || "unknown",
+
+  title: result?.title,
+  url: result?.url,
+
+  buttons: result?.buttons || [],
+  inputs: result?.inputs || [],
+  links: result?.links || [],
+
+  text: result?.text || "",
+
+  action,
+  timestamp: new Date().toISOString()
+};
 case ACTIONS.GET_BROWSER_CONTEXT:
 
   return {
@@ -35,6 +43,40 @@ case ACTIONS.GET_BROWSER_CONTEXT:
     url: result?.url,
     action,
     timestamp: new Date().toISOString()
+  };
+  
+case ACTIONS.CLICK:
+
+  const changed =
+
+    result.before?.url !==
+      result.after?.url ||
+
+    result.before?.title !==
+      result.after?.title;
+
+  return {
+    success:
+      result.success,
+
+    expected:
+      "page_changed",
+
+    actual:
+      changed
+        ? "changed"
+        : "unchanged",
+
+    before:
+      result.before,
+
+    after:
+      result.after,
+
+    action,
+
+    timestamp:
+      new Date().toISOString()
   };
     default:
 

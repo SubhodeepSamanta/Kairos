@@ -17,7 +17,10 @@ console.log(
   "PLANNER RESPONSE:",
   response
 );
-
+console.log(
+  "RAW LLM RESPONSE:",
+  response
+);
   return parsePlanResponse(
     goal.id,
     response
