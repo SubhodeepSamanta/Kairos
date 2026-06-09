@@ -6,53 +6,82 @@ import { observeAction } from "../observer/observer.js";
 let socket = null;
 
 export function connectToCloud(url) {
-  socket = new WebSocket(url);
 
-  socket.on("open", () => {
-    log("Connected to cloud");
-  });
+  function connect() {
 
-  socket.on("close", () => {
-    log("Disconnected from cloud");
-  });
+    log(`Connecting to ${url}...`);
 
-  socket.on("message", async (message) => {
-    const data = JSON.parse(
-      message.toString()
-    );
+    socket = new WebSocket(url);
 
-    if (data.type !== "execute_plan") {
-      return;
-    }
+    socket.on("open", () => {
+      log("Connected to cloud");
+    });
 
-    log("Executing plan");
+    socket.on("close", () => {
 
-    const plan = data.plan;
+      log("Disconnected from cloud");
 
-    const results =
-      await executePlan(plan);
+      setTimeout(() => {
+        connect();
+      }, 3000);
+    });
 
-    const observations = [];
+    socket.on("error", (error) => {
 
-    for (let i = 0; i < plan.actions.length; i++) {
-      const action = plan.actions[i];
-      const result = results[i];
-
-      observations.push(
-        await observeAction(
-          action,
-          result
-        )
+      log(
+        "Socket error:",
+        error.message
       );
-    }
 
-    socket.send(
-      JSON.stringify({
-        type: "execution_result",
-        observations
-      })
-    );
-  });
+    });
+
+    socket.on("message", async (message) => {
+
+      const data = JSON.parse(
+        message.toString()
+      );
+
+      if (
+        data.type !==
+        "execute_plan"
+      ) {
+        return;
+      }
+
+      log("Executing plan");
+
+      const plan = data.plan;
+
+      const results =
+        await executePlan(plan);
+
+      const observations = [];
+
+      for (
+        let i = 0;
+        i < plan.actions.length;
+        i++
+      ) {
+
+        observations.push(
+          await observeAction(
+            plan.actions[i],
+            results[i]
+          )
+        );
+      }
+
+      socket.send(
+        JSON.stringify({
+          type:
+            "execution_result",
+          observations
+        })
+      );
+    });
+  }
+
+  connect();
 
   return socket;
 }

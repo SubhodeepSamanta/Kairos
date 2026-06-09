@@ -41,10 +41,14 @@ export async function askGroq(
     );
 
   if (!response.ok) {
-    throw new Error(
-      "Groq failed"
-    );
-  }
+
+  const errorText =
+    await response.text();
+
+  throw new Error(
+    `Groq failed: ${response.status} ${errorText}`
+  );
+}
 
   const data =
     await response.json();

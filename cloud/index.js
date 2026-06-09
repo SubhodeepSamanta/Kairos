@@ -98,22 +98,45 @@ try {
 const observation =
   agentResult.observation;
 
+if (
+  !agentResult.success &&
+  agentResult.reason ===
+    "goal_impossible"
+) {
+
+  return `Goal could not be completed.
+
+Reason:
+${observation?.action?.params?.text || "requested item"} was not found.`;
+}
 
 if (
-  observation?.action?.type === "type"
+  observation?.action?.type ===
+  "type"
 ) {
 
   return `Typed
 
 ${observation.actual}`;
 }
+
 if (
-  observation?.action?.type === "click"
+  observation?.action?.type ===
+  "click"
 ) {
 
-  return `Clicked: ${
-    observation.action.params.text
+  const text =
+    observation.action.params.text;
+
+  if (!observation.success) {
+
+    return `Failed to click: ${text}
+
+Page:
+${observation.actual}`;
   }
+
+  return `Clicked: ${text}
 
 Page:
 ${observation.actual}`;

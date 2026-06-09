@@ -2,22 +2,35 @@ import { askLLM } from "../llm/provider.js";
 
 export async function verifyGoal({
   goal,
-  observation
+  observation, observations,
 }) {
 
   const response =
     await askLLM(
-`You verify whether a goal was achieved.
+`You verify whether a user's goal was achieved.
 
-Return ONLY JSON.
+Return ONLY valid JSON.
+
+Format:
+
+{
+  "achieved": true
+}
+
+or
+
+{
+  "achieved": false
+}
 
 Examples:
 
 Goal:
 search youtube for lofi
 
-Observation:
+Browser Context:
 {
+  "title":"lofi - YouTube",
   "url":"https://youtube.com/results?search_query=lofi"
 }
 
@@ -29,9 +42,9 @@ Response:
 Goal:
 click banana
 
-Observation:
+Browser Context:
 {
-  "actual":"unchanged"
+  "title":"YouTube"
 }
 
 Response:
@@ -40,13 +53,17 @@ Response:
 }`,
 JSON.stringify({
   goal,
-  observation
+  observation,
+  observations
 })
 );
 
   try {
     return JSON.parse(response);
-  } catch {
+  }
+
+  catch {
+
     return {
       achieved: false
     };

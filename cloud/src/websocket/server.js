@@ -2,53 +2,90 @@ import { WebSocketServer } from "ws";
 import { log } from "../utils/logger.js";
 
 let connectedClient = null;
-
 let pendingResolve = null;
 
 export function startWebSocketServer(
   port = 8080
 ) {
-  const wss = new WebSocketServer({
-    port
-  });
 
-  wss.on("connection", (ws) => {
-    connectedClient = ws;
-
-    log("Client connected");
-
-    ws.on("close", () => {
-      log("Client disconnected");
-
-      if (connectedClient === ws) {
-        connectedClient = null;
-      }
+  const wss =
+    new WebSocketServer({
+      port
     });
 
-    ws.on("message", (message) => {
-      const data = JSON.parse(
-        message.toString()
-      );
+  wss.on(
+    "connection",
+    (ws) => {
 
-      if (
-        data.type === "execution_result" &&
-        pendingResolve
-      ) {
-        pendingResolve(data);
-
-        pendingResolve = null;
-      }
+      connectedClient = ws;
 
       log(
-        "Received:",
-        JSON.stringify(
-          data,
-          null,
-          2
-        )
+        "Client connected"
       );
-    });
-  });
+
+      ws.on(
+        "close",
+        () => {
+
+          log(
+            "Client disconnected"
+          );
+
+          if (
+            connectedClient === ws
+          ) {
+            connectedClient =
+              null;
+          }
+        }
+      );
+
+      ws.on(
+        "error",
+        (error) => {
+
+          log(
+            "Client socket error:",
+            error.message
+          );
+        }
+      );
+
+      ws.on(
+        "message",
+        (message) => {
+
+          const data =
+            JSON.parse(
+              message.toString()
+            );
+
+          if (
+            data.type ===
+              "execution_result" &&
+            pendingResolve
+          ) {
+
+            pendingResolve(
+              data
+            );
+
+            pendingResolve =
+              null;
+          }
+
+          log(
+            "Received:",
+            JSON.stringify(
+              data,
+              null,
+              2
+            )
+          );
+        }
+      );
+    }
+  );
 
   log(
     `WebSocket listening on ${port}`
@@ -61,7 +98,11 @@ export async function executePlanRemotely(
   plan
 ) {
 
-  if (!connectedClient) {
+  if (
+    !connectedClient ||
+    connectedClient.readyState !== 1
+  ) {
+
     throw new Error(
       "No connected client"
     );

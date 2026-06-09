@@ -7,33 +7,49 @@ export async function askLLM(
   userPrompt
 ) {
   const providers = [
-    askGroq,
     askOpenRouter,
+    askGroq,
     askNvidia
   ];
 
   let lastError = null;
 
-  for (const provider of providers) {
-    try {
-      const response =
-        await provider(
-          systemPrompt,
-          userPrompt
-        );
+for (const provider of providers) {
 
-      if (
-        response &&
-        response.trim()
-      ) {
-        return response;
-      }
-    }
+  console.log(
+    `[LLM] Trying ${provider.name}`
+  );
 
-    catch (error) {
-      lastError = error;
+  try {
+
+    const response =
+      await provider(
+        systemPrompt,
+        userPrompt
+      );
+
+    console.log(
+      `[LLM] Success ${provider.name}`
+    );
+
+    if (
+      response &&
+      response.trim()
+    ) {
+      return response;
     }
   }
+
+  catch (error) {
+
+    console.log(
+      `[LLM] Failed ${provider.name}`,
+      error.message
+    );
+
+    lastError = error;
+  }
+}
 
   throw (
     lastError ||

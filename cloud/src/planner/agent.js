@@ -1,6 +1,9 @@
 import { createGoalPlan, parsePlanResponse } from "./planner.js";
 import { createReplan } from "./replanner.js";
-
+import { verifyGoal }
+from "./goalVerifier.js";
+import { isGoalImpossible }
+  from "./failureVerifier.js";
 export async function runAgent({
     goal,
     executePlan
@@ -87,30 +90,39 @@ const allSucceeded =
   );
 
 if (allSucceeded) {
+console.log(
+  "VERIFYING GOAL WITH:",
+  JSON.stringify(
+    observations,
+    null,
+    2
+  )
+);
+  const verification =
+    await verifyGoal({
+  goal: goal.objective,
+  observation,
+  observations
+});
 
-  const lastObservation =
-    observations[
-      observations.length - 1
-    ];
+  console.log(
+    "GOAL VERIFICATION:",
+    verification
+  );
 
   if (
-    lastObservation?.expected ===
-      "page_changed" &&
-    lastObservation?.actual ===
-      "unchanged"
+    verification.achieved
   ) {
-
-    console.log(
-      "Goal verification failed: page did not change"
-    );
-
-  } else {
 
     return {
       success: true,
       observation
     };
   }
+
+  console.log(
+    "Goal verification failed"
+  );
 }
 
         if (
@@ -126,17 +138,37 @@ if (allSucceeded) {
   };
 }
 
-        console.log(
-            "Replanning..."
-        );
+        const impossible =
+  await isGoalImpossible({
+    goal: goal.objective,
+    observations
+  });
 
-        const replanResponse =
-            await createReplan({
-                goal,
-                previousPlan: plan,
-                observation
-            });
+console.log(
+  "IMPOSSIBLE CHECK:",
+  impossible
+);
 
+if (impossible.impossible) {
+
+  return {
+    success: false,
+    reason: "goal_impossible",
+    observation
+  };
+}
+
+console.log(
+  "Replanning..."
+);
+
+const replanResponse =
+  await createReplan({
+    goal,
+    previousPlan: plan,
+    observation,
+    observations
+  });
         plan =
             parsePlanResponse(
                 goal.id,
