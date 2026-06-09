@@ -1,9 +1,8 @@
 import { ACTIONS } from "../shared/schemas/action.js";
-import {
-  openApp,
-  closeApp,
-  focusApp
-} from "../automation/desktop/windows/apps.js";
+import { openApp,closeApp,focusApp } from "../automation/desktop/windows/apps.js";
+import { navigate } from "../automation/browser/actions/navigate.js";
+import { readPage } from "../automation/browser/actions/read.js";
+import { getContext } from "../automation/browser/actions/getContext.js";
 
 export async function executePlan(plan) {
   console.log("\n===== EXECUTING PLAN =====");
@@ -51,6 +50,17 @@ async function executeAction(action) {
         return await focusApp(
           action.params.app
         );
+
+        case ACTIONS.NAVIGATE:
+  return await navigate(
+    action.params.url
+  );
+
+case ACTIONS.READ_UI:
+  return await readPage();
+
+case ACTIONS.GET_BROWSER_CONTEXT:
+  return await getContext();
 
       default:
         return {

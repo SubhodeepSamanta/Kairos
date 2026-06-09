@@ -2,38 +2,35 @@ import { query } from "../database/queries.js";
 
 export async function retrieveMemory(message) {
 
-  const lower =
-    message.toLowerCase()
-      .trim();
+  const lower = message
+    .toLowerCase()
+    .trim();
 
-  const isQuestion =
-    lower.includes("?") ||
-    lower.startsWith("what") ||
-    lower.startsWith("which") ||
-    lower.startsWith("who");
-
-  if (!isQuestion) {
-    return null;
-  }
-
-  const rows =
-    await query(
-      `
-      SELECT *
-      FROM memories
-      ORDER BY updated_at DESC
-      `
-    );
+  const rows = await query(`
+    SELECT *
+    FROM memories
+    ORDER BY updated_at DESC
+  `);
 
   for (const row of rows) {
 
-    const key =
-      row.memory_key
-        .toLowerCase();
+    const key = row.memory_key
+      .toLowerCase();
 
-    if (
-      lower.includes(key)
-    ) {
+    const patterns = [
+      `what is my ${key}`,
+      `what's my ${key}`,
+      `which ${key} do i use`,
+      `what ${key} do i use`,
+      `my ${key}`
+    ];
+
+    const matched =
+      patterns.some(
+        pattern => lower === pattern
+      );
+
+    if (matched) {
       return `Your ${row.memory_key} is ${row.value}.`;
     }
   }

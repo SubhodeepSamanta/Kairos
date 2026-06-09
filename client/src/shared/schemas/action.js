@@ -5,7 +5,8 @@ export const ACTIONS = {
   CLICK: "click",
   TYPE: "type",
   NAVIGATE: "navigate",
-  READ_UI: "read_ui"
+  READ_UI: "read_ui",
+  GET_BROWSER_CONTEXT: "get_browser_context"
 };
 
 export function createAction(

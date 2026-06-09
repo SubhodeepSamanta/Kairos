@@ -1,45 +1,48 @@
 import { askLLM } from "../llm/provider.js";
 
 export async function extractMemory(message) {
-const lower = message.toLowerCase().trim();
 
-const actionPrefixes = [
-  "open ",
-  "close ",
-  "focus ",
-  "launch ",
-  "start "
-];
-if (
-  lower.startsWith("open") ||
-  lower.startsWith("close") ||
-  lower.startsWith("focus")
-) {
-  return {
-    store: false
-  };
-}
-for (const prefix of actionPrefixes) {
-  if (lower.startsWith(prefix)) {
+  const lower =
+    message.toLowerCase().trim();
+
+  const actionPrefixes = [
+    "open ",
+    "close ",
+    "focus ",
+    "launch ",
+    "start ",
+    "read ",
+    "click ",
+    "type ",
+    "scroll ",
+    "go ",
+    "navigate "
+  ];
+
+  for (const prefix of actionPrefixes) {
+
+    if (lower.startsWith(prefix)) {
+      return {
+        store: false
+      };
+    }
+  }
+
+  if (
+    lower.includes("?") ||
+    lower.startsWith("what") ||
+    lower.startsWith("which") ||
+    lower.startsWith("who") ||
+    lower.startsWith("when") ||
+    lower.startsWith("where") ||
+    lower.startsWith("why") ||
+    lower.startsWith("how")
+  ) {
     return {
       store: false
     };
   }
-}
-if (
-  lower.includes("?") ||
-  lower.startsWith("what") ||
-  lower.startsWith("which") ||
-  lower.startsWith("who") ||
-  lower.startsWith("when") ||
-  lower.startsWith("where") ||
-  lower.startsWith("why") ||
-  lower.startsWith("how")
-) {
-  return {
-    store: false
-  };
-}
+
   const response = await askLLM(
 `You extract memories from messages.
 

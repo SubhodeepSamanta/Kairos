@@ -65,12 +65,13 @@ startTelegramBot(
             return runResearch(message);
         }
 
-        const goal =
-  createGoal(message);
+        const goal = createGoal(message);
 
 let agentResult;
 
 try {
+
+  try {
 
   agentResult =
     await runAgent({
@@ -79,20 +80,42 @@ try {
         executePlanRemotely
     });
 
+} catch (error) {
+
+  console.error(
+    "RUN AGENT ERROR:",
+    error
+  );
+
+  throw error;
+}
+
 } catch {
 
   return "No device is connected. Automation tasks require the Kairos client to be running.";
 }
 
+const observation =
+  agentResult.observation;
+
 if (
-  agentResult.success
+  observation?.action?.type === "read_ui"
 ) {
+
+  return `Title: ${observation.actual}
+
+URL: ${observation.url}
+
+${observation.text || "No content found"}`;
+}
+
+if (agentResult.success) {
 
   return `Success
 
 Action: ${message}
 Result: ${
-    agentResult.observation?.actual ||
+    observation?.actual ||
     "completed"
   }`;
 }
@@ -101,7 +124,7 @@ return `Failed
 
 Action: ${message}
 Reason: ${
-  agentResult.observation?.reason ||
+  observation?.reason ||
   agentResult.reason ||
   "unknown"
 }`;

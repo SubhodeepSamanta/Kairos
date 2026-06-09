@@ -1,21 +1,60 @@
+import { ACTIONS } from "../shared/schemas/action.js";
+
 export async function observeAction(action, result) {
 
-  if (result?.success) {
-    return {
-      success: true,
-      expected: "success",
-      actual: "success",
-      action,
-      timestamp: new Date().toISOString()
-    };
-  }
+  switch (action.type) {
+
+    case ACTIONS.NAVIGATE:
+
+      return {
+        success: result?.success || false,
+        expected: "page_loaded",
+        actual: result?.url || "unknown",
+        action,
+        timestamp: new Date().toISOString()
+      };
+
+    case ACTIONS.READ_UI:
+      
 
   return {
-    success: false,
-    expected: "success",
-    actual: "failed",
-    reason: result?.reason || "unknown_error",
+    success: result?.success || false,
+    expected: "page_read",
+    actual: result?.title || "unknown",
+    url: result?.url,
+    text: result?.text || "",
     action,
     timestamp: new Date().toISOString()
   };
+case ACTIONS.GET_BROWSER_CONTEXT:
+
+  return {
+    success: result?.success || false,
+    expected: "browser_context",
+    actual: result?.title || "unknown",
+    url: result?.url,
+    action,
+    timestamp: new Date().toISOString()
+  };
+    default:
+
+      if (result?.success) {
+        return {
+          success: true,
+          expected: "success",
+          actual: "success",
+          action,
+          timestamp: new Date().toISOString()
+        };
+      }
+
+      return {
+        success: false,
+        expected: "success",
+        actual: "failed",
+        reason: result?.reason || "unknown_error",
+        action,
+        timestamp: new Date().toISOString()
+      };
+  }
 }

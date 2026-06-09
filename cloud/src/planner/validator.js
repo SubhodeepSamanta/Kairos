@@ -1,30 +1,24 @@
 const ALLOWED_ACTIONS = [
   "open_app",
   "close_app",
-  "focus_app"
+  "focus_app",
+  "navigate",
+  "read_ui",
+  "get_browser_context"
 ];
 
-export function validatePlan(
-  plan
-) {
+export function validatePlan(plan) {
+
   const actions = [];
 
-  for (
-    const action of
-    plan.actions || []
-  ) {
-    if (
-      !ALLOWED_ACTIONS.includes(
-        action.type
-      )
-    ) {
+  for (const action of plan.actions || []) {
+
+    if (!ALLOWED_ACTIONS.includes(action.type)) {
       continue;
     }
 
     actions.push(action);
   }
 
-  return {
-    actions
-  };
+  return { actions };
 }

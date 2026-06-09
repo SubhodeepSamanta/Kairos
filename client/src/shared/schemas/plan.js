@@ -1,7 +1,11 @@
-export function createPlan(goalId, actions = []) {
+export function createPlan(
+  goalId,
+  actions = []
+) {
   return {
     goalId,
     actions,
-    createdAt: new Date().toISOString()
+    createdAt:
+      new Date().toISOString()
   };
 }

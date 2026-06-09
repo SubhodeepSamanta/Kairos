@@ -30,19 +30,25 @@ export function startTelegramBot(
 
                 await bot.sendMessage(
                     msg.chat.id,
-                    response,
-                    {
-                        parse_mode: "Markdown"
-                    }
+                    response
                 );
             }
 
             catch (error) {
-                await bot.sendMessage(
-                    msg.chat.id,
-                    `Error: ${error.message}`
-                );
-            }
+
+  console.error(
+    "TELEGRAM ERROR:",
+    error
+  );
+
+  try {
+    await bot.sendMessage(
+      msg.chat.id,
+      `Error: ${error.message}`
+    );
+  } catch {}
+
+}
         }
     );
 

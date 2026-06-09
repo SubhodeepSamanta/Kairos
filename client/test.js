@@ -1,5 +1,11 @@
-import { findApp } from "./src/registry/search.js";
+import { navigate } from "./src/automation/browser/actions/navigate.js";
+import { readPage } from "./src/automation/browser/actions/read.js";
 
-console.log(
-  await findApp("chrome")
+await navigate(
+  "https://google.com"
 );
+
+const page =
+  await readPage();
+
+console.log(page);

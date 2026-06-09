@@ -10,7 +10,14 @@ export async function runAgent({
 
     let plan =
         await createGoalPlan(goal);
-
+console.log(
+  "INITIAL PLAN:",
+  JSON.stringify(
+    plan,
+    null,
+    2
+  )
+);
     if (
         plan.actions.length === 0
     ) {
@@ -60,10 +67,7 @@ export async function runAgent({
     obs => obs.success
   );
 
-if (
-  allSucceeded &&
-  attempt === 0
-) {
+if (allSucceeded) {
 
   return {
     success: true,

@@ -1,15 +1,12 @@
 import { createGoal } from "./src/shared/schemas/goal.js";
 import { createGoalPlan } from "./src/planner/planner.js";
 
-const goal =
-  createGoal(
-    "open my browser"
-  );
+const goal = createGoal(
+  "open youtube.com"
+);
 
 const plan =
-  await createGoalPlan(
-    goal
-  );
+  await createGoalPlan(goal);
 
 console.log(
   JSON.stringify(

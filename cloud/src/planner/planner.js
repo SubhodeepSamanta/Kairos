@@ -8,10 +8,15 @@ export async function createGoalPlan(goal) {
   const memoryContext = await buildMemoryContext();
   const systemPrompt = buildSystemPrompt(memoryContext);
 
-  const response = await askLLM(
-    systemPrompt,
-    goal.objective
-  );
+const response = await askLLM(
+  systemPrompt,
+  goal.objective
+);
+
+console.log(
+  "PLANNER RESPONSE:",
+  response
+);
 
   return parsePlanResponse(
     goal.id,
@@ -40,10 +45,19 @@ export function parsePlanResponse(goalId, response) {
 
   const validated = validatePlan(parsed);
 
-  return createPlan(
-    goalId,
-    validated.actions
-  );
+console.log(
+  "VALIDATED ACTIONS:",
+  JSON.stringify(
+    validated.actions,
+    null,
+    2
+  )
+);
+
+return createPlan(
+  goalId,
+  validated.actions
+);
 }
 
 function extractJson(text) {
