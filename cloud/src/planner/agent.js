@@ -98,6 +98,23 @@ console.log(
     2
   )
 );
+const informationalActions = [
+  "read_ui",
+  "get_browser_context",
+  "list_tabs"
+];
+
+if (
+  informationalActions.includes(
+    observation?.action?.type
+  )
+) {
+
+  return {
+    success: true,
+    observation
+  };
+}
   const verification =
     await verifyGoal({
   goal: goal.objective,

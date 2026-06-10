@@ -4,7 +4,6 @@ import { findApp } from "../../../registry/search.js";
 const PROCESS_NAMES = {
     notepad: "notepad.exe",
     calculator: "CalculatorApp.exe",
-    chrome: "chrome.exe"
 };
 
 export async function openApp(app) {

@@ -18,6 +18,17 @@ get_browser_context
 type
 click
 
+Browser websites should use navigate.
+
+Do not open Chrome before navigate.
+
+Bad:
+open_app chrome
+navigate youtube
+
+Good:
+navigate youtube
+
 read current page
 what buttons are available
 what inputs are on screen
@@ -136,6 +147,81 @@ Response:
       "params": {
         "text": "Search"
       }
+    }
+  ]
+}
+  User:
+go back
+
+Response:
+{
+  "actions": [
+    {
+      "type": "back",
+      "params": {}
+    }
+  ]
+}
+  User:
+go forward
+
+Response:
+{
+  "actions": [
+    {
+      "type": "forward",
+      "params": {}
+    }
+  ]
+}
+  User:
+refresh page
+
+Response:
+{
+  "actions": [
+    {
+      "type": "refresh",
+      "params": {}
+    }
+  ]
+}
+User:
+list tabs
+
+Response:
+
+{
+  "actions": [
+    {
+      "type": "list_tabs",
+      "params": {}
+    }
+  ]
+}
+User:
+new tab
+
+Response:
+
+{
+  "actions": [
+    {
+      "type": "new_tab",
+      "params": {}
+    }
+  ]
+}
+User:
+open new tab
+
+Response:
+
+{
+  "actions": [
+    {
+      "type": "new_tab",
+      "params": {}
     }
   ]
 }

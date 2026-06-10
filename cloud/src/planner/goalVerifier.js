@@ -2,8 +2,39 @@ import { askLLM } from "../llm/provider.js";
 
 export async function verifyGoal({
   goal,
-  observation, observations,
+  observation,
+  observations
 }) {
+
+  // informational actions
+
+  if (
+    observation?.expected ===
+    "page_read"
+  ) {
+    return {
+      achieved: true
+    };
+  }
+
+  if (
+    observation?.action?.type ===
+    "get_browser_context"
+  ) {
+    return {
+      achieved: true
+    };
+  }
+
+  if (
+    observation?.expected ===
+      "page_loaded" &&
+    observation?.success
+  ) {
+    return {
+      achieved: true
+    };
+  }
 
   const response =
     await askLLM(
@@ -21,35 +52,6 @@ or
 
 {
   "achieved": false
-}
-
-Examples:
-
-Goal:
-search youtube for lofi
-
-Browser Context:
-{
-  "title":"lofi - YouTube",
-  "url":"https://youtube.com/results?search_query=lofi"
-}
-
-Response:
-{
-  "achieved": true
-}
-
-Goal:
-click banana
-
-Browser Context:
-{
-  "title":"YouTube"
-}
-
-Response:
-{
-  "achieved": false
 }`,
 JSON.stringify({
   goal,
@@ -59,10 +61,12 @@ JSON.stringify({
 );
 
   try {
-    return JSON.parse(response);
-  }
 
-  catch {
+    return JSON.parse(
+      response
+    );
+
+  } catch {
 
     return {
       achieved: false

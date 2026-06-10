@@ -6,6 +6,15 @@ export const ACTIONS = {
   TYPE: "type",
   NAVIGATE: "navigate",
   READ_UI: "read_ui",
+  CLOSE_BROWSER:
+  "close_browser",
+  BACK: "back",
+  FORWARD: "forward",
+  LIST_TABS: "list_tabs",
+  NEW_TAB: "new_tab",
+  REFRESH: "refresh",
+  RESTART_BROWSER:
+    "restart_browser",
   GET_BROWSER_CONTEXT: "get_browser_context"
 };
 

@@ -1,11 +1,33 @@
-import { getPage } from "../browser.js";
+import {
+  getCurrentPage,
+  isBrowserOpen
+} from "../browser.js";
 
 export async function createSnapshot() {
 
-  const page = await getPage();
+  if (!isBrowserOpen()) {
 
-  return {
-    url: page.url(),
-    title: await page.title()
-  };
+    return {
+      url: null,
+      title: null
+    };
+  }
+
+  const page =
+    getCurrentPage();
+
+  try {
+
+    return {
+      url: page.url(),
+      title: await page.title()
+    };
+
+  } catch {
+
+    return {
+      url: null,
+      title: null
+    };
+  }
 }

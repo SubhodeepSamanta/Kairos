@@ -78,6 +78,42 @@ case ACTIONS.CLICK:
     timestamp:
       new Date().toISOString()
   };
+  case ACTIONS.LIST_TABS:
+
+  return {
+    success: result?.success || false,
+
+    expected: "tabs_listed",
+
+    actual: result?.tabs?.length || 0,
+
+    tabs: result?.tabs || [],
+
+    action,
+
+    timestamp:
+      new Date().toISOString()
+  };
+  case ACTIONS.NEW_TAB:
+
+  return {
+    success:
+      result?.success || false,
+
+    expected:
+      "tab_created",
+
+    actual:
+      result?.index,
+
+    index:
+      result?.index,
+
+    action,
+
+    timestamp:
+      new Date().toISOString()
+  };
     default:
 
       if (result?.success) {

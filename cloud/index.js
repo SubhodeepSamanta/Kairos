@@ -145,7 +145,54 @@ if (agentResult.success) {
 
   const observation =
     agentResult.observation;
+if (
+  observation?.action?.type ===
+  "list_tabs"
+  
+) {
+console.log(
+  "TAB OBSERVATION:",
+  JSON.stringify(
+    observation,
+    null,
+    2
+  )
+);
+  const tabs =
+    observation.tabs || [];
 
+  if (
+    tabs.length === 0
+  ) {
+    return "No tabs open.";
+  }
+
+  let response =
+    "Open Tabs:\n\n";
+
+  for (
+  const tab of tabs
+) {
+
+  response +=
+    `${tab.active ? "→" : " "} Tab ${tab.index}\n`;
+
+  response +=
+    `${tab.title}\n`;
+
+  response +=
+    `${tab.url}\n\n`;
+}
+
+  return response;
+}
+if (
+  observation?.action?.type ===
+  "new_tab"
+) {
+
+  return `Created tab ${observation.index}`;
+}
   if (
     observation?.expected ===
     "page_read"
@@ -212,6 +259,7 @@ ${observation.text
 
     return response;
   }
+  
 
   return `Success
 

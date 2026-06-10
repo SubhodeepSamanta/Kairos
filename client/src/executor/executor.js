@@ -6,6 +6,30 @@ import { getContext } from "../automation/browser/actions/getContext.js";
 import { typeText } from "../automation/browser/actions/type.js";
 import { clickText } from "../automation/browser/actions/click.js";
 import { createSnapshot } from "../automation/browser/actions/snapshot.js";
+import {
+  closeCurrentBrowser
+} from "../automation/browser/closeBrowser.js";
+
+import {
+  restartCurrentBrowser
+} from "../automation/browser/restartBrowser.js";
+
+import { goBack }
+from "../automation/browser/actions/back.js";
+
+import { goForward }
+from "../automation/browser/actions/forward.js";
+
+import { refreshPage }
+from "../automation/browser/actions/refresh.js";
+
+import {
+  getTabs
+} from "../automation/browser/actions/listTabs.js";
+
+import {
+  newTab
+} from "../automation/browser/actions/newTab.js";
 
 export async function executePlan(plan) {
   console.log("\n===== EXECUTING PLAN =====");
@@ -84,7 +108,23 @@ case ACTIONS.READ_UI:
 
 case ACTIONS.GET_BROWSER_CONTEXT:
   return await getContext();
+case ACTIONS.CLOSE_BROWSER:
+  return await closeCurrentBrowser();
+  case ACTIONS.BACK:
+  return await goBack();
 
+case ACTIONS.FORWARD:
+  return await goForward();
+
+case ACTIONS.REFRESH:
+  return await refreshPage();
+  case ACTIONS.LIST_TABS:
+  return await getTabs();
+
+case ACTIONS.RESTART_BROWSER:
+  return await restartCurrentBrowser();
+  case ACTIONS.NEW_TAB:
+  return await newTab();
       default:
         return {
           success: false,
