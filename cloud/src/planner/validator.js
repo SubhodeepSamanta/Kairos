@@ -14,6 +14,8 @@ const ALLOWED_ACTIONS = [
 "refresh",
 "list_tabs",
   "close_browser",
+  "close_tab",
+  "switch_tab",
   "new_tab",
   "restart_browser"
 ];

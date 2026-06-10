@@ -236,3 +236,26 @@ Windows
 - switch_window
 - close_window
 - list_windows
+
+Decision:
+
+Kairos will use Playwright Chromium for
+Phase 3.1–3.5.
+
+Reason:
+
+- Fast development
+- Stable automation API
+- No profile complexity
+- Enables browser actions quickly
+
+Deferred:
+
+- Real Chrome profiles
+- Persistent sessions
+- Multiple browser profiles
+- Existing user cookies
+
+Target Phase:
+
+3.6 Profiles & Sessions

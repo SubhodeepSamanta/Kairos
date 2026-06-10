@@ -41,7 +41,11 @@ const automationPrefixes = [
   "search", 
   "click",
   "read",
-  "scroll"
+  "scroll",
+  "new ",
+  "switch ",
+  "list ",
+  "restart "
 ];
 
 for (const prefix of automationPrefixes) {

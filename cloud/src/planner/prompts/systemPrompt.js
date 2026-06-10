@@ -226,6 +226,66 @@ Response:
   ]
 }
 User:
+switch tab 0
+
+Response:
+
+{
+  "actions": [
+    {
+      "type": "switch_tab",
+      "params": {
+        "index": 0
+      }
+    }
+  ]
+}
+User:
+switch to tab 1
+
+Response:
+
+{
+  "actions": [
+    {
+      "type": "switch_tab",
+      "params": {
+        "index": 1
+      }
+    }
+  ]
+}
+User:
+close tab 0
+
+Response:
+
+{
+  "actions": [
+    {
+      "type": "close_tab",
+      "params": {
+        "index": 0
+      }
+    }
+  ]
+}
+User:
+close tab 1
+
+Response:
+
+{
+  "actions": [
+    {
+      "type": "close_tab",
+      "params": {
+        "index": 1
+      }
+    }
+  ]
+}
+User:
 click google search
 
 Response:

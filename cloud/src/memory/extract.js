@@ -17,7 +17,12 @@ export async function extractMemory(message) {
     "scroll ",
     "search",
     "go ",
-    "navigate "
+    "navigate ",
+    "new ",
+    "close ",
+    "switch ",
+    "list ",
+    "restart "
   ];
 
   for (const prefix of actionPrefixes) {

@@ -35,7 +35,10 @@ startTelegramBot(
         const route = routeMessage(message);
         const memory =
             await extractMemory(message);
-
+console.log(
+  "MEMORY:",
+  memory
+);
         const memoryResponse =
             await storeMemory(memory);
 
@@ -97,7 +100,13 @@ try {
 
 const observation =
   agentResult.observation;
+if (
+  observation?.action?.type ===
+  "close_tab"
+) {
 
+  return `Closed tab ${observation.index}`;
+}
 if (
   !agentResult.success &&
   agentResult.reason ===
@@ -185,6 +194,13 @@ console.log(
 }
 
   return response;
+}
+if (
+  observation?.action?.type ===
+  "switch_tab"
+) {
+
+  return `Switched to tab ${observation.index}`;
 }
 if (
   observation?.action?.type ===

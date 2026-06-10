@@ -10,8 +10,12 @@ export const ACTIONS = {
   "close_browser",
   BACK: "back",
   FORWARD: "forward",
+  CLOSE_TAB:
+  "close_tab",
   LIST_TABS: "list_tabs",
   NEW_TAB: "new_tab",
+  SWITCH_TAB:
+  "switch_tab",
   REFRESH: "refresh",
   RESTART_BROWSER:
     "restart_browser",

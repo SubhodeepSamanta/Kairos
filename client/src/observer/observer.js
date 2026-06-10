@@ -114,6 +114,47 @@ case ACTIONS.CLICK:
     timestamp:
       new Date().toISOString()
   };
+  case ACTIONS.SWITCH_TAB:
+
+  return {
+    success:
+      result?.success || false,
+
+    expected:
+      "tab_switched",
+
+    actual:
+      result?.index,
+
+    index:
+      result?.index,
+
+    action,
+
+    timestamp:
+      new Date().toISOString()
+  };
+  case ACTIONS.CLOSE_TAB:
+
+  return {
+    success:
+      result?.success || false,
+
+    expected:
+      "tab_closed",
+
+    actual:
+      result?.index,
+
+    index:
+      result?.index,
+
+    action,
+
+    timestamp:
+      new Date().toISOString()
+  };
+  
     default:
 
       if (result?.success) {

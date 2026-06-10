@@ -13,6 +13,10 @@ FORWARD: "forward",
 REFRESH: "refresh",
 LIST_TABS: "list_tabs",
 NEW_TAB: "new_tab",
+SWITCH_TAB:
+  "switch_tab",
+  CLOSE_TAB:
+  "close_tab",
 RESTART_BROWSER:
   "restart_browser",
   GET_BROWSER_CONTEXT: "get_browser_context",

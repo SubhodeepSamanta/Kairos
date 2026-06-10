@@ -31,6 +31,14 @@ import {
   newTab
 } from "../automation/browser/actions/newTab.js";
 
+import {
+  switchBrowserTab
+} from "../automation/browser/actions/switchTab.js";
+
+import {
+  closeBrowserTab
+} from "../automation/browser/actions/closeTab.js";
+
 export async function executePlan(plan) {
   console.log("\n===== EXECUTING PLAN =====");
   console.log(JSON.stringify(plan, null, 2));
@@ -120,6 +128,16 @@ case ACTIONS.REFRESH:
   return await refreshPage();
   case ACTIONS.LIST_TABS:
   return await getTabs();
+  case ACTIONS.SWITCH_TAB:
+
+  return await switchBrowserTab(
+    action.params.index
+  );
+  case ACTIONS.CLOSE_TAB:
+
+  return await closeBrowserTab(
+    action.params.index
+  );
 
 case ACTIONS.RESTART_BROWSER:
   return await restartCurrentBrowser();
