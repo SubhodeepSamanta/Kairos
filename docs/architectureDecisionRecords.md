@@ -279,3 +279,194 @@ Refactor Pass #1 after Phase 3:
 - Formatter registry
 - Prompt builder
 - Message service abstraction
+
+# ADR-008: Browser Element Grounding
+
+Status: Accepted
+
+Date: 2026-06-10
+
+## Context
+
+Kairos currently executes browser actions using text-based targeting and executor heuristics.
+
+Example:
+
+Goal:
+
+search github for playwright
+
+Generated actions:
+
+* navigate(github)
+* type(playwright)
+* press_enter
+
+The executor attempts to locate an input field automatically.
+
+Observed issues:
+
+* Hidden inputs selected
+* Incorrect visible inputs selected
+* Email fields selected instead of search fields
+* Site-specific behavior causes inconsistent results
+
+This creates brittle automation and poor scaling across websites.
+
+---
+
+## Decision
+
+Kairos will adopt an Element Grounding architecture.
+
+Browser actions will progressively move from:
+
+click("Search")
+
+and
+
+type("playwright")
+
+to:
+
+click(element=12)
+
+type(element=7, text="playwright")
+
+Element identifiers are generated during UI extraction and stored in an element registry.
+
+---
+
+## Phase 1
+
+Implement runtime element IDs.
+
+read_ui returns:
+
+{
+"inputs": [
+{
+"id": 1,
+"text": "Search GitHub"
+}
+]
+}
+
+A runtime element registry maps:
+
+element_id -> Playwright locator
+
+---
+
+## Phase 2
+
+Add element-aware actions.
+
+Examples:
+
+{
+"type": "click",
+"params": {
+"element": 12
+}
+}
+
+{
+"type": "type",
+"params": {
+"element": 7,
+"text": "playwright"
+}
+}
+
+---
+
+## Phase 3
+
+Planner learns to use element IDs when available.
+
+Example:
+
+Inputs:
+
+[1] Search GitHub
+[2] Email
+
+Goal:
+
+search github for playwright
+
+Planner output:
+
+type(element=1, text="playwright")
+
+press_key("Enter")
+
+---
+
+## Phase 4
+
+Rich element metadata.
+
+Elements contain:
+
+* role
+* label
+* placeholder
+* visible
+* enabled
+
+Example:
+
+{
+"id": 7,
+"role": "textbox",
+"label": "Search GitHub",
+"placeholder": "Search GitHub"
+}
+
+---
+
+## Phase 5
+
+Session grounding.
+
+Kairos remembers:
+
+* known elements
+* current page
+* current tab
+* recent successful actions
+
+---
+
+## Future Work
+
+Potential future upgrades:
+
+* Accessibility tree extraction
+* Screenshot + DOM grounding
+* Action history based replanning
+* Long-term browser memory
+* Multi-step workflow learning
+
+---
+
+## Consequences
+
+Benefits:
+
+* More reliable browser automation
+* Fewer site-specific patches
+* Better login support
+* Better form completion
+* Better research workflows
+* Closer architecture to OpenClaw and Hermes
+
+Tradeoffs:
+
+* Increased planner complexity
+* Requires element registry management
+* Requires read_ui redesign
+
+The reliability improvement is expected to outweigh the additional complexity.

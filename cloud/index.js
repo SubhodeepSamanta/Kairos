@@ -100,10 +100,24 @@ try {
 
 const observation =
   agentResult.observation;
-  if (
+if (
   observation?.action?.type ===
   "press_key"
 ) {
+
+  if (
+    observation.after?.url &&
+    observation.after?.title
+  ) {
+
+    return `Search completed
+
+Title:
+${observation.after.title}
+
+URL:
+${observation.after.url}`;
+  }
 
   return `Pressed ${observation.key}`;
 }
@@ -284,6 +298,7 @@ if (
 
   return `Switched to tab ${observation.index}`;
 }
+
 if (
   observation?.action?.type ===
   "new_tab"
@@ -344,20 +359,31 @@ ${observation.links
     }
 
     if (
-      observation.text
-    ) {
+  observation.text
+) {
 
-      response +=
+  response +=
 
 `\n\nContent:
 
 ${observation.text
   .slice(0, 1000)}`;
-    }
+}
 
-    return response;
+if (
+  response.length > 3500
+) {
+
+  response =
+    response.slice(
+      0,
+      3500
+    ) +
+    "\n\n[truncated]";
+}
+
+return response;
   }
-  
 
   return `Success
 

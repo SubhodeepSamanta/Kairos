@@ -134,7 +134,7 @@ case ACTIONS.CLICK:
     timestamp:
       new Date().toISOString()
   };
-  case ACTIONS.PRESS_KEY:
+case ACTIONS.PRESS_KEY:
 
   return {
     success:
@@ -148,6 +148,12 @@ case ACTIONS.CLICK:
 
     key:
       result?.key,
+
+    before:
+      result?.before,
+
+    after:
+      result?.after,
 
     action,
 

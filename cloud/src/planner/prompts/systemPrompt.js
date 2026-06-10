@@ -18,6 +18,9 @@ get_browser_context
 type
 click
 
+For search tasks, break the goal into multiple actions 
+using existing browser capabilities such as navigate, click, type, press_key, wait, read_ui, and tab management.
+
 Browser websites should use navigate.
 
 Do not open Chrome before navigate.
@@ -311,6 +314,99 @@ Response:
       "type": "wait",
       "params": {
         "seconds": 5
+      }
+    }
+  ]
+}
+User:
+search youtube for lofi
+
+Response:
+
+{
+  "actions": [
+    {
+      "type": "navigate",
+      "params": {
+        "url": "https://youtube.com"
+      }
+    },
+    {
+      "type": "click",
+      "params": {
+        "text": "Search"
+      }
+    },
+    {
+      "type": "type",
+      "params": {
+        "text": "lofi"
+      }
+    },
+    {
+      "type": "press_key",
+      "params": {
+        "key": "Enter"
+      }
+    }
+  ]
+}
+User:
+search google for browser agents
+
+Response:
+
+{
+  "actions": [
+    {
+      "type": "navigate",
+      "params": {
+        "url": "https://google.com"
+      }
+    },
+    {
+      "type": "type",
+      "params": {
+        "text": "browser agents"
+      }
+    },
+    {
+      "type": "press_key",
+      "params": {
+        "key": "Enter"
+      }
+    }
+  ]
+}
+User:
+search github for playwright
+
+Response:
+
+{
+  "actions": [
+    {
+      "type": "navigate",
+      "params": {
+        "url": "https://github.com"
+      }
+    },
+    {
+      "type": "click",
+      "params": {
+        "text": "Search"
+      }
+    },
+    {
+      "type": "type",
+      "params": {
+        "text": "playwright"
+      }
+    },
+    {
+      "type": "press_key",
+      "params": {
+        "key": "Enter"
       }
     }
   ]
