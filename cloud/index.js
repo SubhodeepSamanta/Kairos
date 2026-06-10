@@ -100,6 +100,88 @@ try {
 
 const observation =
   agentResult.observation;
+  if (
+  observation?.action?.type ===
+  "press_key"
+) {
+
+  return `Pressed ${observation.key}`;
+}
+if (
+  observation?.action?.type ===
+  "extract_metadata"
+) {
+
+  const meta =
+    observation.metadata;
+
+  return `
+Title:
+${meta.title}
+
+Description:
+${meta.description || "None"}
+
+Keywords:
+${meta.keywords || "None"}
+
+Author:
+${meta.author || "Unknown"}
+`;
+}
+if (
+  observation?.action?.type ===
+  "screenshot"
+) {
+
+  return `Screenshot saved:
+
+${observation.path}`;
+}
+if (
+  observation?.action?.type ===
+  "extract_links"
+) {
+
+  const links =
+    observation.links || [];
+
+  if (
+    links.length === 0
+  ) {
+    return "No links found.";
+  }
+
+  let response =
+    "Links:\n\n";
+
+  for (
+    const link of links.slice(0, 20)
+  ) {
+
+    response +=
+      `${link.text}\n`;
+
+    response +=
+      `${link.href}\n\n`;
+  }
+
+  return response;
+}
+if (
+  observation?.action?.type ===
+  "scroll"
+) {
+
+  return `Scrolled ${observation.direction}`;
+}
+if (
+  observation?.action?.type ===
+  "wait"
+) {
+
+  return `Waited ${observation.seconds} seconds`;
+}
 if (
   observation?.action?.type ===
   "close_tab"

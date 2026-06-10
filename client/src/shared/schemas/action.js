@@ -15,6 +15,18 @@ LIST_TABS: "list_tabs",
 NEW_TAB: "new_tab",
 SWITCH_TAB:
   "switch_tab",
+  PRESS_KEY:
+  "press_key",
+  SCROLL:
+  "scroll",
+  WAIT:
+  "wait",
+  EXTRACT_METADATA:
+  "extract_metadata",
+  EXTRACT_LINKS:
+  "extract_links",
+  SCREENSHOT:
+  "screenshot",
   CLOSE_TAB:
   "close_tab",
 RESTART_BROWSER:

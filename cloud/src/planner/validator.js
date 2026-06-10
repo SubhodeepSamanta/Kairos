@@ -16,6 +16,12 @@ const ALLOWED_ACTIONS = [
   "close_browser",
   "close_tab",
   "switch_tab",
+  "press_key",
+  "wait",
+  "scroll",
+  "extract_links",
+  "extract_metadata",
+  "screenshot",
   "new_tab",
   "restart_browser"
 ];

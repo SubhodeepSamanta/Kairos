@@ -16,7 +16,17 @@ export const ACTIONS = {
   NEW_TAB: "new_tab",
   SWITCH_TAB:
   "switch_tab",
+  PRESS_KEY:
+  "press_key",
   REFRESH: "refresh",
+  WAIT:
+  "wait",
+  EXTRACT_METADATA:
+  "extract_metadata",
+  SCREENSHOT:
+  "screenshot",
+  SCROLL:
+  "scroll",
   RESTART_BROWSER:
     "restart_browser",
   GET_BROWSER_CONTEXT: "get_browser_context"

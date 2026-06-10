@@ -259,3 +259,23 @@ Deferred:
 Target Phase:
 
 3.6 Profiles & Sessions
+
+ADR-00X Architecture Debt
+
+Observed:
+- Executor switch growing
+- Observer switch growing
+- Validator duplicated
+- Planner prompt monolithic
+- Cloud index.js Telegram-coupled
+- Response formatter embedded
+
+Decision:
+Defer until Browser Phase complete.
+
+Refactor Pass #1 after Phase 3:
+- Action registry
+- Observer registry
+- Formatter registry
+- Prompt builder
+- Message service abstraction

@@ -66,9 +66,9 @@ export async function createTab() {
     page.context();
 
   const newPage =
-  await context.newPage();
+  await context.newPage();s
 
-  pages.push(newPage);
+  pages.push(newPage);s
 
   activePageIndex =
     pages.length - 1;

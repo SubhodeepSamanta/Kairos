@@ -134,6 +134,126 @@ case ACTIONS.CLICK:
     timestamp:
       new Date().toISOString()
   };
+  case ACTIONS.PRESS_KEY:
+
+  return {
+    success:
+      result?.success || false,
+
+    expected:
+      "key_pressed",
+
+    actual:
+      result?.key,
+
+    key:
+      result?.key,
+
+    action,
+
+    timestamp:
+      new Date().toISOString()
+  };
+  case ACTIONS.WAIT:
+
+  return {
+    success:
+      result?.success || false,
+
+    expected:
+      "wait_completed",
+
+    actual:
+      result?.seconds,
+
+    seconds:
+      result?.seconds,
+
+    action,
+
+    timestamp:
+      new Date().toISOString()
+  };
+  case ACTIONS.EXTRACT_METADATA:
+
+  return {
+    success:
+      result?.success || false,
+
+    expected:
+      "metadata_extracted",
+
+    actual:
+      result.metadata.title,
+
+    metadata:
+      result.metadata,
+
+    action,
+
+    timestamp:
+      new Date().toISOString()
+  };
+  case ACTIONS.SCREENSHOT:
+
+  return {
+    success:
+      result?.success || false,
+
+    expected:
+      "screenshot_taken",
+
+    actual:
+      result?.path,
+
+    path:
+      result?.path,
+
+    action,
+
+    timestamp:
+      new Date().toISOString()
+  };
+  case ACTIONS.EXTRACT_LINKS:
+
+  return {
+    success:
+      result?.success || false,
+
+    expected:
+      "links_extracted",
+
+    actual:
+      `${result.links.length} links`,
+
+    links:
+      result.links,
+
+    action,
+
+    timestamp:
+      new Date().toISOString()
+  };
+  case ACTIONS.SCROLL:
+
+  return {
+    success:
+      result?.success || false,
+
+    expected:
+      "page_scrolled",
+
+    actual:
+      result?.direction,
+
+    direction:
+      result?.direction,
+
+    action,
+
+    timestamp:
+      new Date().toISOString()
+  };
   case ACTIONS.CLOSE_TAB:
 
   return {

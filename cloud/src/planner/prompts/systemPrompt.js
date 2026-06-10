@@ -271,6 +271,163 @@ Response:
   ]
 }
 User:
+press enter
+
+Response:
+
+{
+  "actions": [
+    {
+      "type": "press_key",
+      "params": {
+        "key": "Enter"
+      }
+    }
+  ]
+}
+User:
+press escape
+
+Response:
+
+{
+  "actions": [
+    {
+      "type": "press_key",
+      "params": {
+        "key": "Escape"
+      }
+    }
+  ]
+}
+User:
+wait 5 seconds
+
+Response:
+
+{
+  "actions": [
+    {
+      "type": "wait",
+      "params": {
+        "seconds": 5
+      }
+    }
+  ]
+}
+User:
+take screenshot
+
+Response:
+
+{
+  "actions": [
+    {
+      "type": "screenshot",
+      "params": {}
+    }
+  ]
+}
+User:
+screenshot
+
+Response:
+
+{
+  "actions": [
+    {
+      "type": "screenshot",
+      "params": {}
+    }
+  ]
+}
+User:
+extract metadata
+
+Response:
+
+{
+  "actions": [
+    {
+      "type": "extract_metadata",
+      "params": {}
+    }
+  ]
+}
+User:
+extract links
+
+Response:
+
+{
+  "actions": [
+    {
+      "type": "extract_links",
+      "params": {}
+    }
+  ]
+}
+User:
+scroll up
+
+Response:
+
+{
+  "actions": [
+    {
+      "type": "scroll",
+      "params": {
+        "direction": "up"
+      }
+    }
+  ]
+}
+User:
+scroll down
+
+Response:
+
+{
+  "actions": [
+    {
+      "type": "scroll",
+      "params": {
+        "direction": "down"
+      }
+    }
+  ]
+}
+User:
+wait 5 seconds
+
+Response:
+
+{
+  "actions": [
+    {
+      "type": "wait",
+      "params": {
+        "seconds": 5
+      }
+    }
+  ]
+}
+User:
+press tab
+
+Response:
+
+{
+  "actions": [
+    {
+      "type": "press_key",
+      "params": {
+        "key": "Tab"
+      }
+    }
+  ]
+}
+User:
 close tab 1
 
 Response:

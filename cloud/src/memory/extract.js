@@ -21,6 +21,8 @@ export async function extractMemory(message) {
     "new ",
     "close ",
     "switch ",
+    "screenshot",
+    "take ",
     "list ",
     "restart "
   ];
