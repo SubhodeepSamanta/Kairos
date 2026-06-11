@@ -27,10 +27,16 @@ export async function clickText(
       };
     }
 
-    const beforeUrl =
-      page.url();
+    const before = {
+  url:
+    page.url(),
 
-    await locator.click();
+  title:
+    await page.title()
+};
+
+await locator.click();
+
 
 await Promise.race([
   page.waitForNavigation({
@@ -43,13 +49,13 @@ await Promise.race([
     }
   ),
   page.waitForFunction(
-    oldUrl =>
-      location.href !== oldUrl,
-    beforeUrl,
-    {
-      timeout: 5000
-    }
-  )
+  oldUrl =>
+    location.href !== oldUrl,
+  before.url,
+  {
+    timeout: 5000
+  }
+)
 ]).catch(() => {});
 
 await page
@@ -61,11 +67,26 @@ await page
   )
   .catch(() => {});
 
-    return {
-      success: true,
-      clicked:
-        `element ${element}`
-    };
+    const after = {
+  url:
+    page.url(),
+
+  title:
+    await page.title()
+};
+
+const changed =
+
+  before.url !== after.url ||
+
+  before.title !== after.title;
+
+return {
+  success: true,
+
+  clicked:
+    text
+};
   }
 
   const elements =
@@ -154,10 +175,9 @@ input[type='button'],
     text
   );
 
-  const beforeUrl =
-    page.url();
 
 await target.click();
+
 
 await Promise.race([
   page.waitForNavigation({
@@ -170,13 +190,13 @@ await Promise.race([
     }
   ),
   page.waitForFunction(
-    oldUrl =>
-      location.href !== oldUrl,
-    beforeUrl,
-    {
-      timeout: 5000
-    }
-  )
+  oldUrl =>
+    location.href !== oldUrl,
+  before.url,
+  {
+    timeout: 5000
+  }
+)
 ]).catch(() => {});
 
 await page
@@ -188,8 +208,11 @@ await page
   )
   .catch(() => {});
 
-  return {
-    success: true,
-    clicked: text
-  };
+
+return {
+  success: true,
+
+  clicked:
+    `element ${element}`
+};
 }

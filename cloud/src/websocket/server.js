@@ -79,30 +79,19 @@ console.log(
     data.observations.length - 1
   ];
 
-if (
-  latestObservation?.expected ===
-  "page_read"
-) {
+const pageState =
+  latestObservation?.pageState;
 
-  setBrowserState({
-    title:
-      latestObservation.title,
+if (pageState) {
 
-    url:
-      latestObservation.url,
+  console.log(
+    "UPDATING BROWSER STATE:",
+    pageState.title
+  );
 
-    buttons:
-      latestObservation.buttons,
-
-    inputs:
-      latestObservation.inputs,
-
-    links:
-      latestObservation.links,
-
-    text:
-      latestObservation.text
-  });
+  setBrowserState(
+    pageState
+  );
 }
 console.log(
   "STATE AFTER UPDATE:",

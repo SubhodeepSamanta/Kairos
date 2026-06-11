@@ -15,26 +15,62 @@ export async function observeAction(action, result) {
         timestamp: new Date().toISOString()
       };
 
-    case ACTIONS.READ_UI:
-      
+case ACTIONS.READ_UI:
 
 return {
   success: result?.success || false,
+
   expected: "page_read",
-  actual: result?.title || "unknown",
 
-  title: result?.title,
-  url: result?.url,
+  actual:
+    result?.title || "unknown",
 
-  buttons: result?.buttons || [],
-  inputs: result?.inputs || [],
-  links: result?.links || [],
+  pageState:
+    result,
 
-  text: result?.text || "",
+  title:
+    result?.title,
+
+  url:
+    result?.url,
+
+  buttons:
+    result?.buttons || [],
+
+  inputs:
+    result?.inputs || [],
+
+  links:
+    result?.links || [],
+
+  text:
+    result?.text || "",
 
   action,
-  timestamp: new Date().toISOString()
+
+  timestamp:
+    new Date().toISOString()
 };
+case ACTIONS.TYPE:
+
+  return {
+    success:
+      result?.success || false,
+
+    expected:
+      "text_typed",
+
+    actual:
+      result?.text,
+
+    element:
+      result?.element,
+
+    action,
+
+    timestamp:
+      new Date().toISOString()
+  };
 case ACTIONS.BACK:
 
   return {
@@ -131,7 +167,10 @@ case ACTIONS.CLICK:
 
     result.before?.title !==
       result.after?.title;
-
+console.log(
+  "CLICK RESULT:",
+  JSON.stringify(result, null, 2)
+);
   return {
     success:
       result.success,

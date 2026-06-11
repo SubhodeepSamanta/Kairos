@@ -8,7 +8,7 @@ export async function buildMemoryContext() {
       SELECT *
       FROM memories
       ORDER BY updated_at DESC
-      LIMIT 50
+      LIMIT 10
       `
     );
 

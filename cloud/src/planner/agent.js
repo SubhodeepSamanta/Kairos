@@ -4,6 +4,10 @@ import { verifyGoal }
 from "./goalVerifier.js";
 import { isGoalImpossible }
   from "./failureVerifier.js";
+  import {
+  verifyByRules
+}
+from "./ruleVerifier.js";
 import {
   setGoal,
   setPlan,
@@ -108,29 +112,54 @@ console.log(
     2
   )
 );
-const informationalActions = [
-  "read_ui",
-  "get_browser_context",
-  "list_tabs"
-];
+
+const ruleResult =
+  verifyByRules(
+    observation
+  );
 
 if (
-  informationalActions.includes(
-    observation?.action?.type
-  )
+  ruleResult &&
+  ruleResult.achieved
 ) {
+
+  console.log(
+    "RULE VERIFIER SUCCESS"
+  );
 
   return {
     success: true,
     observation
   };
 }
-  const verification =
-    await verifyGoal({
-  goal: goal.objective,
-  observation,
-  observations
-});
+
+const compactObservation = {
+  success:
+    observation?.success,
+
+  expected:
+    observation?.expected,
+
+  actual:
+    observation?.actual,
+
+  before:
+    observation?.before,
+
+  after:
+    observation?.after,
+
+  action:
+    observation?.action
+};
+
+const verification =
+  await verifyGoal({
+    goal: goal.objective,
+    observation:
+      compactObservation,
+    observations: []
+  });
 
   console.log(
     "GOAL VERIFICATION:",
@@ -165,10 +194,32 @@ if (
   };
 }
 
-        const impossible =
+const compactObservations =
+  observations.map(obs => ({
+    success:
+      obs.success,
+
+    expected:
+      obs.expected,
+
+    actual:
+      obs.actual,
+
+    before:
+      obs.before,
+
+    after:
+      obs.after,
+
+    action:
+      obs.action
+  }));
+
+const impossible =
   await isGoalImpossible({
     goal: goal.objective,
-    observations
+    observations:
+      compactObservations
   });
 
 console.log(

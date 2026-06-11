@@ -7,27 +7,42 @@ export async function scrollPage(
   const page =
     await getPage();
 
-  const amount = 800;
-
+const beforeY =
   await page.evaluate(
-    ({ direction, amount }) => {
-
-      window.scrollBy(
-        0,
-        direction === "up"
-          ? -amount
-          : amount
-      );
-
-    },
-    {
-      direction,
-      amount
-    }
+    () => window.scrollY
   );
 
-  return {
-    success: true,
-    direction
-  };
+const amount = 800;
+
+await page.evaluate(
+  ({ direction, amount }) => {
+
+    window.scrollBy(
+      0,
+      direction === "up"
+        ? -amount
+        : amount
+    );
+
+  },
+  {
+    direction,
+    amount
+  }
+);
+
+const afterY =
+  await page.evaluate(
+    () => window.scrollY
+  );
+
+return {
+  success:
+    beforeY !== afterY,
+
+  direction,
+
+  beforeY,
+  afterY
+};
 }

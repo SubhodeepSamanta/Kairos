@@ -89,9 +89,28 @@ const pageChanged =
 
   before.title !== after.title;
 
+const forceReadActions = [
+
+  ACTIONS.BACK,
+
+  ACTIONS.FORWARD,
+
+  ACTIONS.REFRESH,
+
+  ACTIONS.SWITCH_TAB
+];
+
+const shouldRead =
+
+  pageChanged ||
+
+  forceReadActions.includes(
+    action.type
+  );
+
 if (
   result.success &&
-  pageChanged
+  shouldRead
 ) {
 
   const page =
@@ -112,6 +131,12 @@ if (
 
   result.pageState =
     await readPage();
+
+  console.log(
+    "AUTO READ:",
+    action.type,
+    result.pageState?.url
+  );
 }
 
 results.push(result);

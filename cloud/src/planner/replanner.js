@@ -1,6 +1,9 @@
 import { askLLM } from "../llm/provider.js";
 import { buildSystemPrompt } from "./prompts/systemPrompt.js";
 import { buildMemoryContext } from "../memory/context.js";
+import {
+  buildRelevantBrowserContext
+} from "../agent/context.js";
 
 export async function createReplan({
   goal,
@@ -9,9 +12,24 @@ export async function createReplan({
   observations
 }) {
 
-  const memoryContext =await buildMemoryContext();
-  const systemPrompt = buildSystemPrompt(memoryContext);
+  const memoryContext =
+  await buildMemoryContext();
 
+const browserContext =
+  buildRelevantBrowserContext(
+    goal.objective
+  );
+
+const systemPrompt =
+  buildSystemPrompt(
+    memoryContext,
+    browserContext
+  );
+  console.log(
+  "REPLAN BROWSER CONTEXT:\n",
+  browserContext
+);
+  
   const userPrompt = `
 Original goal:
 
@@ -20,26 +38,26 @@ ${goal.objective}
 Previous plan:
 
 ${JSON.stringify(
-  previousPlan,
-  null,
-  2
-)}
+    previousPlan,
+    null,
+    2
+  )}
 
-All observations:
+Recent observations:
 
 ${JSON.stringify(
-  observations,
-  null,
-  2
-)}
+    observations.slice(-3),
+    null,
+    2
+  )}
 
 Latest observation:
 
 ${JSON.stringify(
-  observation,
-  null,
-  2
-)}
+    observation,
+    null,
+    2
+  )}
 The previous plan did not achieve the goal.
 
 Analyze why it failed.
@@ -74,6 +92,20 @@ Instead:
 
 Return ONLY valid JSON.
 `;
+  console.log(
+    "SYSTEM CHARS:",
+    systemPrompt.length
+  );
 
-  return askLLM(systemPrompt,userPrompt);
+  console.log(
+    "GOAL CHARS:",
+    goal.objective.length
+  );
+
+  console.log(
+    "TOTAL CHARS:",
+    systemPrompt.length +
+    goal.objective.length
+  );
+  return askLLM(systemPrompt, userPrompt);
 }

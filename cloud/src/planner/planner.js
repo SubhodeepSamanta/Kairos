@@ -10,7 +10,8 @@ import {
 
 
 import {
-  buildBrowserContext
+  buildBrowserContext,
+  buildRelevantBrowserContext
 } from "../agent/context.js";
 
 export async function createGoalPlan(goal) {
@@ -18,8 +19,10 @@ export async function createGoalPlan(goal) {
   const memoryContext =
     await buildMemoryContext();
 
-  const browserContext =
-    buildBrowserContext();
+const browserContext =
+  buildRelevantBrowserContext(
+    goal.objective
+  );
 
   const systemPrompt =
     buildSystemPrompt(
@@ -38,6 +41,35 @@ export async function createGoalPlan(goal) {
 console.log(
   "BROWSER CONTEXT:\n",
   browserContext
+);
+console.log(
+  "MEMORY CHARS:",
+  memoryContext.length
+);
+
+console.log(
+  "BROWSER CHARS:",
+  browserContext.length
+);
+
+console.log(
+  "SYSTEM PROMPT CHARS:",
+  systemPrompt.length
+);
+console.log(
+  "SYSTEM CHARS:",
+  systemPrompt.length
+);
+
+console.log(
+  "GOAL CHARS:",
+  goal.objective.length
+);
+
+console.log(
+  "TOTAL CHARS:",
+  systemPrompt.length +
+  goal.objective.length
 );
   const response =
     await askLLM(

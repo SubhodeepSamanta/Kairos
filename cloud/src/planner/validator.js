@@ -37,18 +37,41 @@ console.log(
     2
   )
 );
-  for (const action of plan.actions || []) {
+for (const action of plan.actions || []) {
 
-    if (
-      !ALLOWED_ACTIONS.includes(
-        action.type
-      )
-    ) {
-      continue;
-    }
-
-    actions.push(action);
+  if (
+    !ALLOWED_ACTIONS.includes(
+      action.type
+    )
+  ) {
+    continue;
   }
+
+  if (
+    action.type === "click" &&
+    action.params?.element !== undefined &&
+    typeof action.params.element !== "number"
+  ) {
+    continue;
+  }
+
+  if (
+    action.type === "type" &&
+    action.params?.element !== undefined &&
+    typeof action.params.element !== "number"
+  ) {
+    continue;
+  }
+
+  if (
+    action.type === "switch_tab" &&
+    typeof action.params?.index !== "number"
+  ) {
+    continue;
+  }
+
+  actions.push(action);
+}
 
   return {
     actions

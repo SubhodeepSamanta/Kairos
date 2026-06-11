@@ -470,3 +470,1067 @@ Tradeoffs:
 * Requires read_ui redesign
 
 The reliability improvement is expected to outweigh the additional complexity.
+
+
+# ADR-010: Prompt Compression and Context Budgeting
+
+Status: Accepted
+
+Date: 2026-06-11
+
+## Context
+
+Kairos currently sends a large planner system prompt containing:
+
+* action definitions
+* browser rules
+* tab management examples
+* navigation examples
+* search examples
+* click examples
+* screenshot examples
+* metadata examples
+* repeated JSON examples
+
+As browser capabilities expand, prompt size continues to grow.
+
+Observed issues:
+
+* increased token usage
+* higher latency
+* larger OpenRouter bills
+* more inconsistent planner outputs
+* conflicting examples
+* reduced context available for browser state
+
+Example:
+
+A GitHub page may contain:
+
+* 100+ links
+* dozens of buttons
+* large text content
+
+The browser state can exceed the size of the actual user request.
+
+Prompt bloat reduces planner efficiency and reliability.
+
+---
+
+## Decision
+
+Kairos will move to a compressed prompt architecture.
+
+The planner prompt should primarily contain:
+
+* available actions
+* output format
+* browser state rules
+* element grounding rules
+* minimal examples
+
+Examples should be treated as teaching material rather than documentation.
+
+---
+
+## Phase 1
+
+Reduce duplicate examples.
+
+Keep:
+
+* one click example
+* one type example
+* one navigate example
+* one search example
+
+Remove:
+
+* repeated click examples
+* repeated search examples
+* repeated navigation examples
+
+---
+
+## Phase 2
+
+Create a dedicated output contract.
+
+Planner always returns:
+
+{
+"actions": [...]
+}
+
+Never:
+
+[
+...
+]
+
+Never:
+
+explanations
+
+Never:
+
+markdown
+
+The output contract should appear once near the top of the prompt.
+
+---
+
+## Phase 3
+
+Compress browser state.
+
+Instead of sending:
+
+* hundreds of links
+* entire page text
+
+Send:
+
+* top visible inputs
+* top visible buttons
+* top relevant links
+
+Apply limits.
+
+Example:
+
+* max 20 inputs
+* max 20 buttons
+* max 20 links
+* max 1000 page characters
+
+---
+
+## Phase 4
+
+Separate planner knowledge from execution knowledge.
+
+Planner receives:
+
+* actions
+* browser state
+* memory
+
+Planner does not need:
+
+* executor implementation details
+* Playwright details
+* debugging instructions
+
+---
+
+## Phase 5
+
+Introduce dynamic prompt sections.
+
+Include only relevant capability instructions.
+
+Example:
+
+If screenshot action is unavailable:
+
+* do not include screenshot examples
+
+If browser state exists:
+
+* include browser grounding section
+
+If browser state does not exist:
+
+* omit browser grounding section
+
+---
+
+## Future Work
+
+Potential upgrades:
+
+* prompt templates by task type
+* task-specific planners
+* planner fine-tuning
+* compressed browser summaries
+* semantic page compression
+* retrieval-based prompt assembly
+
+---
+
+## Consequences
+
+Benefits:
+
+* lower token usage
+* lower cost
+* lower latency
+* more reliable plans
+* more browser context available
+* improved scalability
+
+Tradeoffs:
+
+* fewer examples available to the model
+* prompt management becomes more dynamic
+
+Expected result:
+
+50–80% reduction in planner prompt size while improving planning consistency.
+
+
+# ADR-010: Context Engine & Token Budgeting
+
+Status: Accepted
+
+Date: 2026-06-11
+
+## Context
+
+Kairos currently sends large amounts of information to language models.
+
+Examples include:
+
+* Large system prompts
+* Full browser state
+* Large observation objects
+* Memory context dumps
+* Repeated examples
+* Repeated instructions
+
+As browser capabilities, memory systems, companion features, desktop control, and long-running agents are added, context size will continue growing.
+
+Without a dedicated context architecture, Kairos will face:
+
+* Excessive token usage
+* Slow response times
+* Higher costs
+* Provider context limits
+* Reduced reliability
+
+The problem is not action execution.
+
+The problem is context management.
+
+---
+
+# Decision
+
+Kairos will introduce a dedicated Context Engine.
+
+The Context Engine becomes responsible for:
+
+* Context retrieval
+* Context compression
+* Token budgeting
+* Memory selection
+* Environment summarization
+
+No LLM component should directly receive raw application state, raw browser state, or full memory history.
+
+Instead:
+
+Raw Data
+↓
+Context Engine
+↓
+Compressed Context
+↓
+LLM
+
+---
+
+# Design Principles
+
+## Principle 1 — Retrieval Over Dumping
+
+Never send all memories.
+
+Bad:
+
+Send entire memory database.
+
+Good:
+
+Retrieve only memories relevant to the current task.
+
+Example:
+
+Goal:
+
+Continue Kairos roadmap discussion
+
+Retrieve:
+
+* Current phase
+* Recent decisions
+* Active roadmap
+
+Do not retrieve:
+
+* Browser history
+* Unrelated projects
+* Old conversations
+
+---
+
+## Principle 2 — Compression Before Planning
+
+Planner receives compressed context.
+
+Bad:
+
+URL
+Title
+500 links
+200 buttons
+2000 words of page text
+
+Good:
+
+Page: GitHub Login
+
+Inputs:
+[6] Username
+[7] Password
+
+Buttons:
+[1] Sign In
+
+Links:
+[10] Forgot Password
+
+---
+
+## Principle 3 — Environment Awareness
+
+Planner should understand:
+
+* Browser state
+* Desktop state
+* Active tasks
+
+Without receiving unnecessary detail.
+
+---
+
+## Principle 4 — Explicit Token Budgets
+
+Every subsystem receives a budget.
+
+Example:
+
+Planner:
+1500 tokens
+
+Verifier:
+500 tokens
+
+Memory:
+500 tokens
+
+Companion:
+1000 tokens
+
+Research:
+3000 tokens
+
+Budgets may change over time.
+
+---
+
+# Context Categories
+
+Kairos context is divided into categories.
+
+## Identity Context
+
+Permanent information.
+
+Examples:
+
+* Kairos identity
+* User identity
+* Core behavior rules
+
+Small and stable.
+
+---
+
+## Task Context
+
+Current task.
+
+Examples:
+
+* Goal
+* Current step
+* Active objective
+
+Temporary.
+
+---
+
+## Environment Context
+
+Current environment.
+
+Examples:
+
+* Browser state
+* Desktop state
+* Active applications
+* Active tabs
+
+Compressed.
+
+---
+
+## Project Context
+
+Project awareness.
+
+Examples:
+
+* Current project
+* Current phase
+* Completed milestones
+* Active blockers
+
+Retrieved only when relevant.
+
+---
+
+## Memory Context
+
+Relevant memories.
+
+Retrieved by search.
+
+Never fully loaded.
+
+---
+
+## Session Context
+
+Current conversation continuity.
+
+Examples:
+
+* Current topic
+* Current workflow
+* Recent decisions
+
+Short-term only.
+
+---
+
+# Browser Context Compression
+
+Browser state should be transformed before reaching the planner.
+
+Raw:
+
+{
+title,
+url,
+buttons,
+inputs,
+links,
+text
+}
+
+Compressed:
+
+Page:
+GitHub Login
+
+Inputs:
+[6] Username
+[7] Password
+
+Buttons:
+[1] Sign In
+
+Links:
+[10] Forgot Password
+
+The planner should never receive unnecessary page text.
+
+---
+
+# Observation Compression
+
+Observers produce detailed data.
+
+Example:
+
+{
+before,
+after,
+pageState,
+metadata,
+links
+}
+
+Verifiers should receive only what is needed.
+
+Example:
+
+{
+action: "click",
+success: true,
+changed: true
+}
+
+Large observation payloads should not be forwarded automatically.
+
+---
+
+# Memory Retrieval Pipeline
+
+Memory database
+↓
+Retriever
+↓
+Relevance ranking
+↓
+Compression
+↓
+Planner
+
+Only relevant memories are injected.
+
+No memory dumping.
+
+---
+
+# Companion Compatibility
+
+The Context Engine must support future companion systems.
+
+Future companion features:
+
+* Relationship memory
+* Project awareness
+* Session continuity
+* Reflection
+* Goal tracking
+* Timeline generation
+
+All companion features use retrieval and compression.
+
+No feature may bypass the Context Engine.
+
+---
+
+# Desktop Compatibility
+
+Future desktop state:
+
+* Open windows
+* Active application
+* UI elements
+* Window handles
+
+Desktop state must be compressed exactly like browser state.
+
+---
+
+# Voice Compatibility
+
+Future voice systems should inject:
+
+* Transcript summary
+* Speaker intent
+* Relevant emotional context
+
+Not full transcripts.
+
+---
+
+# Vision Compatibility
+
+Future vision systems should inject:
+
+* Visual summaries
+* OCR summaries
+* Relevant detections
+
+Not raw image data.
+
+---
+
+# Long Running Agent Compatibility
+
+Long-running tasks should store:
+
+* Goal
+* Current progress
+* Last observation
+
+The planner should not reload entire histories.
+
+---
+
+# Future Work
+
+Potential future upgrades:
+
+* Embedding retrieval
+* Vector search
+* Semantic compression
+* Hierarchical memory
+* Dynamic token budgeting
+* Multi-agent context sharing
+
+---
+
+# Consequences
+
+Benefits:
+
+* Lower token usage
+* Faster planning
+* Better scalability
+* Better companion support
+* Better memory systems
+* Better desktop support
+* Better long-running agents
+
+Tradeoffs:
+
+* Additional architecture complexity
+* Requires retrieval layer
+* Requires compression layer
+* Requires context management system
+
+The long-term scalability benefits outweigh the added complexity.
+
+ADR-010 establishes the Context Engine as a first-class Kairos subsystem.
+
+Brief note for ADR-011 (later)
+
+Don't implement this yet.
+
+ADR-011: Observation Driven Planning
+
+Goal:
+
+Move from:
+
+Plan Entire Workflow
+↓
+Execute Everything
+↓
+Verify
+
+to:
+
+Observe
+↓
+Plan Next Step
+↓
+Execute
+↓
+Observe
+↓
+Plan Next Step
+
+This is what enables:
+
+"Find a YouTube video and comment on it"
+"Open GitHub and read the newest issue"
+"Find a Reddit post and reply"
+General website-agnostic workflows
+
+ADR-010 makes Kairos cheaper and scalable.
+
+ADR-011 makes Kairos genuinely autonomous.
+
+ADR-010 Phase A
+Context filtering
+
+ADR-010 Phase B
+Prompt split
+
+ADR-010 Phase C
+Browser compression
+
+Test 3.6
+
+Finish 3.6
+
+Finish ADR-008 remaining pieces
+
+Move to 3.7 Session Memory
+
+
+Yes. I would do ADR-010 **before** serious 3.6 testing.
+
+Right now you're testing on a moving foundation.
+
+Current situation:
+
+```text
+Browser works
+Element IDs mostly work
+State propagation mostly works
+
+BUT
+
+Planner context is bloated
+Browser context is huge
+Prompt architecture is inefficient
+```
+
+So every 3.6 test is costing:
+
+```text
+read github
+→ send 2000+ tokens
+
+click sign in
+→ send 2000+ tokens
+
+search playwright
+→ send 2000+ tokens
+```
+
+which is exactly why you're burning through Groq/OpenRouter.
+
+---
+
+# What ADR-010 should accomplish first
+
+Before touching Companion, Memory V2, Desktop, etc.
+
+We need:
+
+```text
+Prompt Layer V2
+```
+
+Instead of:
+
+```text
+System Prompt
++
+Full Browser State
++
+Full Memory
++
+Goal
+```
+
+we move to:
+
+```text
+System Prompt
++
+Relevant Context
++
+Goal
+```
+
+---
+
+# Phase A — Context Filtering
+
+Current:
+
+```text
+Buttons: 26
+Links: 121
+Inputs: 2
+Text: 2000 chars
+```
+
+sent every time.
+
+New:
+
+Goal:
+
+```text
+click sign in
+```
+
+Planner gets:
+
+```text
+Links:
+[47] Sign in
+```
+
+Only.
+
+---
+
+Goal:
+
+```text
+search github for playwright
+```
+
+Planner gets:
+
+```text
+Inputs:
+[27] Search GitHub
+
+Buttons:
+[3] Search
+```
+
+Only.
+
+---
+
+This alone probably cuts:
+
+```text
+2000 tokens
+↓
+300 tokens
+```
+
+---
+
+# Phase B — Split System Prompt
+
+Current:
+
+```text
+monster prompt
+```
+
+with:
+
+```text
+200+
+examples
+```
+
+every request.
+
+---
+
+Instead:
+
+### plannerRules.js
+
+```text
+Output JSON only
+Use element ids
+Use actions
+```
+
+---
+
+### browserRules.js
+
+```text
+Use browser state
+Prefer ids
+```
+
+---
+
+### examples.js
+
+Only load when needed.
+
+Example:
+
+```text
+search github for playwright
+```
+
+loads:
+
+```text
+browser search examples
+```
+
+not:
+
+```text
+tabs
+screenshots
+metadata
+scrolling
+```
+
+---
+
+# Phase C — Context Compression
+
+Current browser state:
+
+```text
+Buttons:
+[1] Platform
+[2] Resources
+[3] ...
+...
+[121]
+```
+
+Store internally.
+
+Planner receives:
+
+```text
+Relevant elements:
+
+[47] Sign in
+```
+
+---
+
+This is how OpenClaw and Hermes survive long sessions.
+
+They don't resend the entire world every step.
+
+---
+
+# Phase D — Goal-Aware Context
+
+Example:
+
+Goal:
+
+```text
+click sign in
+```
+
+Need:
+
+```text
+sign in link
+```
+
+Don't need:
+
+```text
+120 other links
+```
+
+---
+
+Goal:
+
+```text
+switch tab
+```
+
+Need:
+
+```text
+tabs
+```
+
+Don't need:
+
+```text
+page text
+```
+
+---
+
+# Phase E — Memory Filtering
+
+Current:
+
+```text
+entire memory context
+```
+
+Eventually:
+
+```text
+retrieve top 5 relevant memories
+```
+
+Only.
+
+---
+
+Example:
+
+Goal:
+
+```text
+continue kairos work
+```
+
+Retrieve:
+
+```text
+Current phase
+Current ADR
+Current blockers
+```
+
+Not:
+
+```text
+old random conversations
+```
+
+---
+
+# What happens after ADR-010
+
+Then we retest 3.6.
+
+Because:
+
+```text
+planner behavior changes
+browser context changes
+memory retrieval changes
+```
+
+so search workflows should be validated again anyway.
+
+---
+
+My order would be:
+
+```text
+ADR-010 Phase A
+Context filtering
+
+ADR-010 Phase B
+Prompt split
+
+ADR-010 Phase C
+Browser compression
+
+Test 3.6
+
+Finish 3.6
+
+Finish ADR-008 remaining pieces
+
+Move to 3.7 Session Memory
+```
+
+That gives the biggest return for the least code.
+
+If we do ADR-010 properly, Kairos goes from:
+
+```text
+~50 planner calls/day
+```
+
+to something closer to:
+
+```text
+300-500 planner calls/day
+```
+
+on the same free-provider budget, which makes continued development much less painful.

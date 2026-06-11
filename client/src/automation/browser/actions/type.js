@@ -28,15 +28,22 @@ if (element) {
 
   await locator.click();
 
-  await locator.fill(
-    text
-  );
+await locator.fill(text);
 
-  return {
-    success: true,
-    text,
-    element
-  };
+const value =
+  await locator.inputValue()
+    .catch(() => null);
+
+return {
+  success:
+    value === text,
+
+  text,
+  element,
+
+  actualValue:
+    value
+};
 }
 const active =
   await page.evaluate(() => {
@@ -146,18 +153,42 @@ await target.fill(
   text
 );
 
+const value =
+  await target
+    .inputValue()
+    .catch(() => null);
+
 return {
-  success: true,
-  text
+  success:
+    value === text,
+
+  text,
+
+  actualValue:
+    value
 };
   }
-  await page.keyboard.type(
+await page.keyboard.type(
   text
 );
 
+const value =
+  await page.evaluate(() => {
+
+    const el =
+      document.activeElement;
+
+    return el?.value || "";
+  });
+
 return {
-  success: true,
-  text
+  success:
+    value.includes(text),
+
+  text,
+
+  actualValue:
+    value
 };
   
 }

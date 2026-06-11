@@ -21,7 +21,21 @@ for (const provider of providers) {
   );
 
   try {
+console.log(
+  "SYSTEM CHARS:",
+  systemPrompt.length
+);
 
+console.log(
+  "USER CHARS:",
+  userPrompt.length
+);
+
+console.log(
+  "TOTAL CHARS:",
+  systemPrompt.length +
+  userPrompt.length
+);
     const response =
       await provider(
         systemPrompt,

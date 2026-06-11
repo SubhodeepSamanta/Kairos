@@ -15,7 +15,7 @@ export async function askNvidia(
   const timeout =
     setTimeout(
       () => controller.abort(),
-      15000
+      30000
     );
 
   try {

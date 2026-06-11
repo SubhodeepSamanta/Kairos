@@ -35,7 +35,6 @@ export async function verifyGoal({
       achieved: true
     };
   }
-
   const response =
     await askLLM(
 `You verify whether a user's goal was achieved.

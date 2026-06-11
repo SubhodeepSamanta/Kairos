@@ -53,10 +53,21 @@ for (
       locator
     );
 
-  buttons.push({
-    id,
-    text
-  });
+  const enabled =
+  await locator
+    .isEnabled()
+    .catch(() => true);
+
+buttons.push({
+  id,
+  text,
+
+  role: "button",
+
+  visible: true,
+
+  enabled
+});
 }
 
 const inputs = [];
@@ -87,26 +98,48 @@ for (
     continue;
   }
 
-  const label =
-    await locator.evaluate(el => {
+  const metadata =
+  await locator.evaluate(el => ({
 
-      return (
-        el.placeholder ||
-        el.name ||
-        el.type ||
-        "input"
-      );
-    });
+    placeholder:
+      el.placeholder || null,
+
+    name:
+      el.name || null,
+
+    type:
+      el.type || null
+
+  }));
 
   const id =
     registerElement(
       locator
     );
 
-  inputs.push({
-    id,
-    text: label
-  });
+  const enabled =
+  await locator
+    .isEnabled()
+    .catch(() => true);
+
+inputs.push({
+  id,
+
+  text:
+    metadata.placeholder ||
+    metadata.name ||
+    metadata.type ||
+    "input",
+
+  role: "input",
+
+  placeholder:
+    metadata.placeholder,
+
+  visible: true,
+
+  enabled
+});
 }
 const links = [];
 
@@ -148,10 +181,21 @@ for (
       locator
     );
 
-  links.push({
-    id,
-    text
-  });
+  const enabled =
+  await locator
+    .isEnabled()
+    .catch(() => true);
+
+links.push({
+  id,
+  text,
+
+  role: "link",
+
+  visible: true,
+
+  enabled
+});
 }
 
 const text = await page.evaluate(() => {
