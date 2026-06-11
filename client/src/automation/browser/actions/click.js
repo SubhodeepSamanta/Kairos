@@ -27,66 +27,34 @@ export async function clickText(
       };
     }
 
-    const before = {
-  url:
-    page.url(),
+    await locator.click();
 
-  title:
-    await page.title()
-};
+    await Promise.race([
+      page.waitForNavigation({
+        timeout: 5000
+      }),
+      page.waitForLoadState(
+        "networkidle",
+        {
+          timeout: 5000
+        }
+      )
+    ]).catch(() => {});
 
-await locator.click();
+    await page
+      .waitForLoadState(
+        "domcontentloaded",
+        {
+          timeout: 3000
+        }
+      )
+      .catch(() => {});
 
-
-await Promise.race([
-  page.waitForNavigation({
-    timeout: 5000
-  }),
-  page.waitForLoadState(
-    "networkidle",
-    {
-      timeout: 5000
-    }
-  ),
-  page.waitForFunction(
-  oldUrl =>
-    location.href !== oldUrl,
-  before.url,
-  {
-    timeout: 5000
-  }
-)
-]).catch(() => {});
-
-await page
-  .waitForLoadState(
-    "domcontentloaded",
-    {
-      timeout: 3000
-    }
-  )
-  .catch(() => {});
-
-    const after = {
-  url:
-    page.url(),
-
-  title:
-    await page.title()
-};
-
-const changed =
-
-  before.url !== after.url ||
-
-  before.title !== after.title;
-
-return {
-  success: true,
-
-  clicked:
-    text
-};
+    return {
+      success: true,
+      clicked:
+        `element ${element}`
+    };
   }
 
   const elements =
@@ -175,44 +143,31 @@ input[type='button'],
     text
   );
 
+  await target.click();
 
-await target.click();
-
-
-await Promise.race([
-  page.waitForNavigation({
-    timeout: 5000
-  }),
-  page.waitForLoadState(
-    "networkidle",
-    {
+  await Promise.race([
+    page.waitForNavigation({
       timeout: 5000
-    }
-  ),
-  page.waitForFunction(
-  oldUrl =>
-    location.href !== oldUrl,
-  before.url,
-  {
-    timeout: 5000
-  }
-)
-]).catch(() => {});
+    }),
+    page.waitForLoadState(
+      "networkidle",
+      {
+        timeout: 5000
+      }
+    )
+  ]).catch(() => {});
 
-await page
-  .waitForLoadState(
-    "domcontentloaded",
-    {
-      timeout: 3000
-    }
-  )
-  .catch(() => {});
+  await page
+    .waitForLoadState(
+      "domcontentloaded",
+      {
+        timeout: 3000
+      }
+    )
+    .catch(() => {});
 
-
-return {
-  success: true,
-
-  clicked:
-    `element ${element}`
-};
+  return {
+    success: true,
+    clicked: text
+  };
 }
