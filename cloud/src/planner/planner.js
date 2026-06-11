@@ -3,24 +3,58 @@ import { createPlan } from "../shared/schemas/plan.js";
 import { buildSystemPrompt } from "./prompts/systemPrompt.js";
 import { validatePlan } from "./validator.js";
 import { buildMemoryContext } from "../memory/context.js";
+import {
+  getAgentState
+} from "../agent/state.js";
+
+
+
+import {
+  buildBrowserContext
+} from "../agent/context.js";
 
 export async function createGoalPlan(goal) {
-  const memoryContext = await buildMemoryContext();
-  const systemPrompt = buildSystemPrompt(memoryContext);
 
-const response = await askLLM(
-  systemPrompt,
-  goal.objective
-);
+  const memoryContext =
+    await buildMemoryContext();
 
+  const browserContext =
+    buildBrowserContext();
+
+  const systemPrompt =
+    buildSystemPrompt(
+      memoryContext,
+      browserContext
+    );
+
+  console.log(
+    "AGENT STATE:",
+    JSON.stringify(
+      getAgentState(),
+      null,
+      2
+    )
+  );
 console.log(
-  "PLANNER RESPONSE:",
-  response
+  "BROWSER CONTEXT:\n",
+  browserContext
 );
-console.log(
-  "RAW LLM RESPONSE:",
-  response
-);
+  const response =
+    await askLLM(
+      systemPrompt,
+      goal.objective
+    );
+
+  console.log(
+    "PLANNER RESPONSE:",
+    response
+  );
+
+  console.log(
+    "RAW LLM RESPONSE:",
+    response
+  );
+
   return parsePlanResponse(
     goal.id,
     response
@@ -32,8 +66,33 @@ export function parsePlanResponse(goalId, response) {
 
   try {
     parsed = JSON.parse(
-      extractJson(response)
-    );
+  extractJson(response)
+);
+console.log(
+  "PARSED:",
+  JSON.stringify(
+    parsed,
+    null,
+    2
+  )
+);
+if (
+  Array.isArray(parsed)
+) {
+
+  parsed = {
+    actions: parsed
+  };
+}
+if (
+  parsed.type &&
+  parsed.params
+) {
+
+  parsed = {
+    actions: [parsed]
+  };
+}
   }
 
   catch {
@@ -64,20 +123,35 @@ return createPlan(
 }
 
 function extractJson(text) {
-  const start = text.indexOf("{");
-  const end = text.lastIndexOf("}");
+
+  const arrayStart =
+    text.indexOf("[");
+
+  const objectStart =
+    text.indexOf("{");
 
   if (
-    start === -1 ||
-    end === -1
+    arrayStart !== -1 &&
+    (
+      objectStart === -1 ||
+      arrayStart < objectStart
+    )
   ) {
-    throw new Error(
-      "No JSON found"
+
+    const end =
+      text.lastIndexOf("]");
+
+    return text.slice(
+      arrayStart,
+      end + 1
     );
   }
 
+  const end =
+    text.lastIndexOf("}");
+
   return text.slice(
-    start,
+    objectStart,
     end + 1
   );
 }

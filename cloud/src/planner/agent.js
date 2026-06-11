@@ -4,6 +4,11 @@ import { verifyGoal }
 from "./goalVerifier.js";
 import { isGoalImpossible }
   from "./failureVerifier.js";
+import {
+  setGoal,
+  setPlan,
+  setObservation
+} from "../agent/state.js";
 export async function runAgent({
     goal,
     executePlan
@@ -13,6 +18,8 @@ export async function runAgent({
 
     let plan =
         await createGoalPlan(goal);
+        setGoal(goal);
+setPlan(plan);
 console.log(
   "INITIAL PLAN:",
   JSON.stringify(
@@ -56,6 +63,9 @@ console.log(
             observations[
             observations.length - 1
             ];
+            setObservation(
+  observation
+);
             console.log(
   "OBSERVATION SUMMARY:",
   JSON.stringify(
@@ -191,7 +201,7 @@ const replanResponse =
                 goal.id,
                 replanResponse
             );
-
+            setPlan(plan);
         if (
             plan.actions.length === 0
         ) {

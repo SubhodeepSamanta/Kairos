@@ -56,6 +56,7 @@ import {
 import {
   takeScreenshot
 } from "../automation/browser/actions/screenshot.js";
+import { getCurrentPage } from "../automation/browser/browser.js";
 export async function executePlan(plan) {
   console.log("\n===== EXECUTING PLAN =====");
   console.log(JSON.stringify(plan, null, 2));
@@ -74,20 +75,46 @@ export async function executePlan(plan) {
       await createSnapshot();
 
     const result =
-      await executeAction(action);
+  await executeAction(action);
 
-    const after =
-      await createSnapshot();
+const after =
+  await createSnapshot();
 
-    result.before = before;
-    result.after = after;
+result.before = before;
+result.after = after;
 
-    console.log(
-      "RESULT:",
-      result
+const pageChanged =
+
+  before.url !== after.url ||
+
+  before.title !== after.title;
+
+if (
+  result.success &&
+  pageChanged
+) {
+
+  const page =
+    getCurrentPage();
+
+  try {
+
+    await page.waitForLoadState(
+      "domcontentloaded",
+      { timeout: 3000 }
     );
 
-    results.push(result);
+  } catch {}
+
+  await page.waitForTimeout(
+    500
+  );
+
+  result.pageState =
+    await readPage();
+}
+
+results.push(result);
   }
 
   return results;
@@ -118,15 +145,17 @@ async function executeAction(action) {
           action.params.url
         );
 
-      case ACTIONS.TYPE:
-        return await typeText(
-          action.params.text
-        );
+case ACTIONS.TYPE:
+  return await typeText(
+    action.params.text,
+    action.params.element
+  );
 
-      case ACTIONS.CLICK:
-        return await clickText(
-          action.params.text
-        );
+case ACTIONS.CLICK:
+  return await clickText(
+    action.params.text,
+    action.params.element
+  );
 case ACTIONS.SCREENSHOT:
 
   return await takeScreenshot();

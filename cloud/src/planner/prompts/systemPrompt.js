@@ -1,5 +1,5 @@
 export function buildSystemPrompt(
-  memoryContext = ""
+  memoryContext = "", browserContext=""
 ) {
 
   return `
@@ -48,9 +48,174 @@ Navigate to the website.
 Type the query.
 
 Click the search button if one exists.
+When Current browser state is provided:
 
+- Treat it as the current page.
+- Use the available inputs, buttons and links.
+- Prefer element ids.
+- Do not navigate unless required.
+- Do not ask to read the page again if the required element is already visible.
 Return ONLY valid JSON.
+Return ONLY this format:
 
+{
+  "actions": [
+    {
+      "type": "action_name",
+      "params": {}
+    }
+  ]
+}
+
+Never return:
+
+[
+  ...
+]
+If no browser state exists yet, navigation actions may use text matching.
+
+After a page has been read and element ids exist, always use element ids.
+Never return explanations.
+
+Never return markdown.
+Never explain your reasoning.
+
+Never say:
+
+"Since element 47 exists..."
+
+Never say:
+
+"The response should be..."
+
+Output only the JSON object.
+Never return text before or after the JSON object.
+Return ONLY valid JSON.
+Return ONLY this format:
+
+{
+  "actions": [
+    {
+      "type": "action_name",
+      "params": {}
+    }
+  ]
+}
+
+Never return:
+
+[
+  ...
+]
+
+Never return explanations.
+
+Never return markdown.
+
+Never return text before or after the JSON object.
+
+Never explain your reasoning.
+
+Never say:
+
+"Since element 47 exists..."
+
+Never say:
+
+"The response should be..."
+
+Never say:
+
+"I will click..."
+
+Output only the JSON object.
+When browser state contains indexed elements:
+
+Inputs:
+[27] Email
+[28] Search
+
+Buttons:
+[1] Sign in
+[2] Submit
+
+Links:
+[31] Pricing
+[32] Documentation
+
+Prefer element ids over text matching.
+If an element id is available in Current browser state:
+
+ALWAYS use the element id.
+
+Do not use text matching.
+
+Bad:
+
+{
+  "actions": [
+    {
+      "type": "click",
+      "params": {
+        "text": "Sign in"
+      }
+    }
+  ]
+}
+
+Good:
+
+{
+  "actions": [
+    {
+      "type": "click",
+      "params": {
+        "element": 47
+      }
+    }
+  ]
+}
+Good:
+
+{
+  "actions": [
+    {
+      "type": "click",
+      "params": {
+        "element": 1
+      }
+    }
+  ]
+}
+
+Good:
+
+{
+  "actions": [
+    {
+      "type": "type",
+      "params": {
+        "element": 27,
+        "text": "hello@example.com"
+      }
+    }
+  ]
+}
+
+Avoid:
+
+{
+  "actions": [
+    {
+      "type": "click",
+      "params": {
+        "text": "Sign in"
+      }
+    }
+  ]
+}
+
+Use text matching only when no element id is available.
 Example:
 
 {
@@ -121,38 +286,13 @@ Example:
     {
       "type": "type",
       "params": {
+        "element": 27,
         "text": "cats"
       }
     }
   ]
 }
-Example:
 
-{
-  "actions": [
-    {
-      "type": "click",
-      "params": {
-        "text": "Search"
-      }
-    }
-  ]
-}
-User:
-click Search
-
-Response:
-
-{
-  "actions": [
-    {
-      "type": "click",
-      "params": {
-        "text": "Search"
-      }
-    }
-  ]
-}
   User:
 go back
 
@@ -318,39 +458,7 @@ Response:
     }
   ]
 }
-User:
-search youtube for lofi
 
-Response:
-
-{
-  "actions": [
-    {
-      "type": "navigate",
-      "params": {
-        "url": "https://youtube.com"
-      }
-    },
-    {
-      "type": "click",
-      "params": {
-        "text": "Search"
-      }
-    },
-    {
-      "type": "type",
-      "params": {
-        "text": "lofi"
-      }
-    },
-    {
-      "type": "press_key",
-      "params": {
-        "key": "Enter"
-      }
-    }
-  ]
-}
 User:
 search google for browser agents
 
@@ -538,21 +646,7 @@ Response:
     }
   ]
 }
-User:
-click google search
 
-Response:
-
-{
-  "actions": [
-    {
-      "type": "click",
-      "params": {
-        "text": "Google Search"
-      }
-    }
-  ]
-}
 User:
 click sign in
 
@@ -563,7 +657,7 @@ Response:
     {
       "type": "click",
       "params": {
-        "text": "Sign In"
+        "element": 5
       }
     }
   ]
@@ -578,6 +672,7 @@ Response:
     {
       "type": "type",
       "params": {
+        "element": 27,
         "text": "cats"
       }
     }
@@ -658,6 +753,10 @@ Response:
     }
   ]
 }
+Current browser state:
+
+${browserContext}
+
 Known user memories:
 
 ${memoryContext}

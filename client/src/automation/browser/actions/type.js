@@ -1,10 +1,43 @@
 import { getPage } from "../browser.js";
+import {
+  getElement
+} from "../elements/registry.js";
 
-export async function typeText(text) {
+export async function typeText(
+  text,
+  element
+) {
 
   const page =
     await getPage();
+if (element) {
 
+  const locator =
+    getElement(
+      element
+    );
+
+  if (!locator) {
+
+    return {
+      success: false,
+      reason:
+        `Unknown element ${element}`
+    };
+  }
+
+  await locator.click();
+
+  await locator.fill(
+    text
+  );
+
+  return {
+    success: true,
+    text,
+    element
+  };
+}
 const active =
   await page.evaluate(() => {
 
@@ -109,14 +142,22 @@ console.log(
     placeholder: el.placeholder
   }))
 );
+await target.fill(
+  text
+);
+
+return {
+  success: true,
+  text
+};
   }
-
   await page.keyboard.type(
-    text
-  );
+  text
+);
 
-  return {
-    success: true,
-    text
-  };
+return {
+  success: true,
+  text
+};
+  
 }

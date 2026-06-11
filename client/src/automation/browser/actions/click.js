@@ -1,70 +1,192 @@
 import { getPage } from "../browser.js";
+import {
+  getElement
+} from "../elements/registry.js";
 
-export async function clickText(text) {
+export async function clickText(
+  text,
+  element
+) {
 
-  const page = await getPage();
+  const page =
+    await getPage();
 
-  const clicked = await page.evaluate(
-    target => {
+  if (element) {
 
-      const elements = [
-  ...document.querySelectorAll(
-    `
-    button,
-    a,
-    input[type='submit'],
-    input[type='button'],
-    [role='button'],
-    [aria-label]
-    `
+    const locator =
+      getElement(
+        element
+      );
+
+    if (!locator) {
+
+      return {
+        success: false,
+        reason:
+          `Unknown element ${element}`
+      };
+    }
+
+    const beforeUrl =
+      page.url();
+
+    await locator.click();
+
+await Promise.race([
+  page.waitForNavigation({
+    timeout: 5000
+  }),
+  page.waitForLoadState(
+    "networkidle",
+    {
+      timeout: 5000
+    }
+  ),
+  page.waitForFunction(
+    oldUrl =>
+      location.href !== oldUrl,
+    beforeUrl,
+    {
+      timeout: 5000
+    }
   )
-];
+]).catch(() => {});
 
-      const match = elements.find(el => {
-
-  const textContent =
-    (
-      el.innerText ||
-      el.value ||
-      el.getAttribute("aria-label") ||
-      ""
-    )
-    .trim()
-    .toLowerCase();
-
-  const targetText =
-  target.toLowerCase();
-
-return (
-  textContent === targetText ||
-  textContent.startsWith(
-    targetText + " "
+await page
+  .waitForLoadState(
+    "domcontentloaded",
+    {
+      timeout: 3000
+    }
   )
-);
-});
-      if (!match) {
-        return false;
-      }
-console.log(
-  "CLICKING:",
-  match.tagName,
-  match.innerText,
-  match.value,
-  match.getAttribute("aria-label")
-);
-      match.click();
+  .catch(() => {});
 
-      return true;
-    },
+    return {
+      success: true,
+      clicked:
+        `element ${element}`
+    };
+  }
+
+  const elements =
+    page.locator(
+`
+button,
+a,
+input[type='submit'],
+input[type='button'],
+[role='button'],
+[aria-label]
+`
+    );
+
+  const count =
+    await elements.count();
+
+  let target =
+    null;
+
+  for (
+    let i = 0;
+    i < count;
+    i++
+  ) {
+
+    const candidate =
+      elements.nth(i);
+
+    const visible =
+      await candidate
+        .isVisible()
+        .catch(() => false);
+
+    if (!visible) {
+      continue;
+    }
+
+    const textContent =
+      (
+        await candidate
+          .innerText()
+          .catch(() => "") ||
+
+        await candidate
+          .getAttribute(
+            "aria-label"
+          )
+          .catch(() => "") ||
+
+        ""
+      )
+      .trim()
+      .toLowerCase();
+
+    const targetText =
+      text.toLowerCase();
+
+    if (
+      textContent ===
+        targetText ||
+
+      textContent.startsWith(
+        targetText + " "
+      )
+    ) {
+
+      target =
+        candidate;
+
+      break;
+    }
+  }
+
+  if (!target) {
+
+    return {
+      success: false,
+      reason:
+        `Could not find ${text}`
+    };
+  }
+
+  console.log(
+    "CLICKING:",
     text
   );
 
-  if (!clicked) {
-    return {
-      success: false,
-      reason: `Could not find ${text}`
-    };
-  }
+  const beforeUrl =
+    page.url();
+
+await target.click();
+
+await Promise.race([
+  page.waitForNavigation({
+    timeout: 5000
+  }),
+  page.waitForLoadState(
+    "networkidle",
+    {
+      timeout: 5000
+    }
+  ),
+  page.waitForFunction(
+    oldUrl =>
+      location.href !== oldUrl,
+    beforeUrl,
+    {
+      timeout: 5000
+    }
+  )
+]).catch(() => {});
+
+await page
+  .waitForLoadState(
+    "domcontentloaded",
+    {
+      timeout: 3000
+    }
+  )
+  .catch(() => {});
 
   return {
     success: true,

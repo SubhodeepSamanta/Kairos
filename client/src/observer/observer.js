@@ -11,6 +11,7 @@ export async function observeAction(action, result) {
         expected: "page_loaded",
         actual: result?.url || "unknown",
         action,
+        pageState: result.pageState,
         timestamp: new Date().toISOString()
       };
 
@@ -34,6 +35,32 @@ return {
   action,
   timestamp: new Date().toISOString()
 };
+case ACTIONS.BACK:
+
+  return {
+    success: result?.success || false,
+
+    expected: "page_changed",
+
+    actual:
+      result.after?.url ||
+
+      "unknown",
+
+    pageState:
+      result.pageState,
+
+    before:
+      result.before,
+
+    after:
+      result.after,
+
+    action,
+
+    timestamp:
+      new Date().toISOString()
+  };
 case ACTIONS.GET_BROWSER_CONTEXT:
 
   return {
@@ -44,11 +71,61 @@ case ACTIONS.GET_BROWSER_CONTEXT:
     action,
     timestamp: new Date().toISOString()
   };
-  
+  case ACTIONS.FORWARD:
+
+  return {
+    success: result?.success || false,
+
+    expected: "page_changed",
+
+    actual:
+      result.after?.url ||
+
+      "unknown",
+
+    pageState:
+      result.pageState,
+
+    before:
+      result.before,
+
+    after:
+      result.after,
+
+    action,
+
+    timestamp:
+      new Date().toISOString()
+  };
+  case ACTIONS.REFRESH:
+
+  return {
+    success: result?.success || false,
+
+    expected: "page_refreshed",
+
+    actual:
+      result.after?.url ||
+
+      "unknown",
+
+    pageState:
+      result.pageState,
+
+    before:
+      result.before,
+
+    after:
+      result.after,
+
+    action,
+
+    timestamp:
+      new Date().toISOString()
+  };
 case ACTIONS.CLICK:
 
   const changed =
-
     result.before?.url !==
       result.after?.url ||
 
@@ -67,6 +144,10 @@ case ACTIONS.CLICK:
         ? "changed"
         : "unchanged",
 
+    clicked:
+      result.clicked,
+pageState:
+  result.pageState,
     before:
       result.before,
 
@@ -114,7 +195,7 @@ case ACTIONS.CLICK:
     timestamp:
       new Date().toISOString()
   };
-  case ACTIONS.SWITCH_TAB:
+case ACTIONS.SWITCH_TAB:
 
   return {
     success:
@@ -128,6 +209,15 @@ case ACTIONS.CLICK:
 
     index:
       result?.index,
+
+    pageState:
+      result?.pageState,
+
+    before:
+      result?.before,
+
+    after:
+      result?.after,
 
     action,
 
@@ -145,7 +235,7 @@ case ACTIONS.PRESS_KEY:
 
     actual:
       result?.key,
-
+pageState: result.pageState,
     key:
       result?.key,
 

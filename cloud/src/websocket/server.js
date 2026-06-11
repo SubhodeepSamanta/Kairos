@@ -1,5 +1,9 @@
 import { WebSocketServer } from "ws";
 import { log } from "../utils/logger.js";
+import {
+  getAgentState,
+  setBrowserState
+} from "../agent/state.js";
 
 let connectedClient = null;
 let pendingResolve = null;
@@ -59,13 +63,55 @@ export function startWebSocketServer(
             JSON.parse(
               message.toString()
             );
-
+console.log(
+  "LATEST OBS:",
+  data.observations?.[
+    data.observations.length - 1
+  ]?.expected
+);
           if (
             data.type ===
               "execution_result" &&
             pendingResolve
           ) {
+            const latestObservation =
+  data.observations?.[
+    data.observations.length - 1
+  ];
 
+if (
+  latestObservation?.expected ===
+  "page_read"
+) {
+
+  setBrowserState({
+    title:
+      latestObservation.title,
+
+    url:
+      latestObservation.url,
+
+    buttons:
+      latestObservation.buttons,
+
+    inputs:
+      latestObservation.inputs,
+
+    links:
+      latestObservation.links,
+
+    text:
+      latestObservation.text
+  });
+}
+console.log(
+  "STATE AFTER UPDATE:",
+  JSON.stringify(
+    getAgentState(),
+    null,
+    2
+  )
+);
             pendingResolve(
               data
             );

@@ -225,27 +225,6 @@ if (
 ${observation.actual}`;
 }
 
-if (
-  observation?.action?.type ===
-  "click"
-) {
-
-  const text =
-    observation.action.params.text;
-
-  if (!observation.success) {
-
-    return `Failed to click: ${text}
-
-Page:
-${observation.actual}`;
-  }
-
-  return `Clicked: ${text}
-
-Page:
-${observation.actual}`;
-}
 if (agentResult.success) {
 
   const observation =
@@ -306,6 +285,21 @@ if (
 
   return `Created tab ${observation.index}`;
 }
+if (
+  observation?.action?.type ===
+  "click"
+) {
+
+  return `Clicked: ${
+    observation.clicked ||
+    "unknown"
+  }
+
+Page:
+${
+    observation.actual
+  }`;
+}
   if (
     observation?.expected ===
     "page_read"
@@ -326,7 +320,9 @@ URL: ${observation.url || "Unknown"}`;
 
 ${observation.inputs
   .slice(0, 10)
-  .map(input => `- ${input}`)
+  .map(input =>
+    `- [${input.id}] ${input.text}`
+  )
   .join("\n")}`;
     }
 
@@ -340,7 +336,9 @@ ${observation.inputs
 
 ${observation.buttons
   .slice(0, 10)
-  .map(button => `- ${button}`)
+  .map(button =>
+    `- [${button.id}] ${button.text}`
+  )
   .join("\n")}`;
     }
 
@@ -354,7 +352,9 @@ ${observation.buttons
 
 ${observation.links
   .slice(0, 10)
-  .map(link => `- ${link}`)
+  .map(link =>
+    `- [${link.id}] ${link.text}`
+  )
   .join("\n")}`;
     }
 
