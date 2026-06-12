@@ -1,7 +1,7 @@
 import { askLLM } from "../llm/provider.js";
 
 export async function isGoalImpossible({
-  goal,
+  intent,
   observations
 }) {
 
@@ -31,7 +31,7 @@ return:
   "impossible": true
 }`,
 JSON.stringify({
-  goal,
+  intent,
   observations
 })
 );

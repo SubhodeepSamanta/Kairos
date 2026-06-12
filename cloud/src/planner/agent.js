@@ -9,17 +9,47 @@ import { isGoalImpossible }
 }
 from "./ruleVerifier.js";
 import {
+  parseGoal
+} from "./goalParser.js";
+
+import {
+  setIntent
+} from "../agent/state.js";
+import {
   setGoal,
   setPlan,
   setObservation
 } from "../agent/state.js";
+import {
+  verifyState
+} from "./stateVerifier.js";
+import {
+  verifyEvents
+} from "./eventVerifier.js";
+import {
+  retrieveRelevantMemories
+} from "../memory/relevant.js";
 export async function runAgent({
     goal,
     executePlan
 }) {
 
     const MAX_RETRIES = 3;
+const intent =
+  parseGoal(
+    goal.objective
+  );
 
+setIntent(intent);
+
+console.log(
+  "INTENT:",
+  JSON.stringify(
+    intent,
+    null,
+    2
+  )
+);
     let plan =
         await createGoalPlan(goal);
         setGoal(goal);
@@ -113,6 +143,46 @@ console.log(
   )
 );
 
+const stateResult =
+  verifyState({
+    intent,
+    observation
+  });
+
+const eventResult =
+  verifyEvents({
+    intent,
+    observation
+  });
+if (
+  eventResult?.achieved
+) {
+
+  console.log(
+    "EVENT VERIFIER SUCCESS:",
+    eventResult
+  );
+
+  return {
+    success: true,
+    observation
+  };
+}
+if (
+  stateResult?.achieved
+) {
+
+  console.log(
+    "STATE VERIFIER SUCCESS:",
+    stateResult
+  );
+
+  return {
+    success: true,
+    observation
+  };
+}
+
 const ruleResult =
   verifyByRules(
     observation
@@ -155,7 +225,7 @@ const compactObservation = {
 
 const verification =
   await verifyGoal({
-    goal: goal.objective,
+    intent,
     observation:
       compactObservation,
     observations: []
@@ -217,7 +287,7 @@ const compactObservations =
 
 const impossible =
   await isGoalImpossible({
-    goal: goal.objective,
+    intent,
     observations:
       compactObservations
   });

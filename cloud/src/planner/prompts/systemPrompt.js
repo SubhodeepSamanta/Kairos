@@ -1,4 +1,5 @@
 export function buildSystemPrompt(
+  intent,
   memoryContext = "",
   browserContext = ""
 ) {
@@ -80,6 +81,9 @@ Response:
     }
   ]
 }
+Current intent:
+
+${JSON.stringify(intent, null, 2)}
 
 Current browser state:
 

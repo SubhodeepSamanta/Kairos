@@ -1534,3 +1534,271 @@ to something closer to:
 ```
 
 on the same free-provider budget, which makes continued development much less painful.
+
+
+ADR-11.1
+Observation Engine folder
+
+ADR-11.2
+pageDetector
+
+ADR-11.3
+elementDetector
+
+ADR-11.4
+formDetector
+
+ADR-11.5
+event aggregation
+
+ADR-11.6
+goal-aware verifier
+
+ADR-11.7
+lightweight LLM observer
+
+ADR-11 Phase 1
+
+Create:
+
+src/observation/
+
+Inside:
+
+detectors/
+pageDetector.js
+
+Detect:
+
+url_changed
+title_changed
+
+Input:
+
+before
+after
+
+Output:
+
+[
+  "url_changed",
+  "title_changed"
+]
+elementDetector.js
+
+Detect:
+
+new_inputs
+new_buttons
+new_links
+
+removed_inputs
+removed_buttons
+removed_links
+
+Example:
+
+Before:
+
+0 inputs
+
+After:
+
+username
+password
+
+Output:
+
+login_form_candidate
+new_inputs
+modalDetector.js
+
+Detect:
+
+modal_opened
+modal_closed
+
+By comparing:
+
+button counts
+visibility
+dialog role
+ADR-11 Phase 2
+
+Semantic detectors.
+
+Not page specific.
+
+Generic.
+
+formDetector.js
+
+Detect:
+
+login_form_detected
+
+signup_form_detected
+
+search_form_detected
+
+Based on labels.
+
+Not websites.
+
+Example:
+
+email
+password
+
+↓
+
+login_form_detected
+
+Example:
+
+search
+
+↓
+
+search_form_detected
+contentDetector.js
+
+Detect:
+
+search_results_loaded
+
+comments_loaded
+
+article_loaded
+
+video_page_loaded
+
+Using page state.
+
+ADR-11 Phase 3
+
+Observation Memory
+
+Store:
+
+events
+
+not only snapshots.
+
+Example:
+
+[
+ "navigate",
+ "search_results_loaded",
+ "video_page_loaded",
+ "comments_loaded"
+]
+
+Now replanner understands history.
+
+ADR-11 Phase 4
+
+Goal-aware observation scoring
+
+Goal:
+
+click sign in
+
+Important events:
+
+login_form_detected
+url_changed
+
+Ignore:
+
+footer_loaded
+
+Goal:
+
+read comments
+
+Important:
+
+comments_loaded
+
+Ignore:
+
+cookie_banner_opened
+ADR-11 Phase 5
+
+LLM Observer
+
+This is where most people do it wrong.
+
+Don't replace deterministic detection.
+
+Add an LLM layer after deterministic.
+
+Deterministic Events
++
+Page Summary
+↓
+LLM Observer
+
+Input:
+
+{
+  "goal": "read comments",
+  "events": [
+    "url_changed",
+    "comments_loaded"
+  ]
+}
+
+Output:
+
+{
+  "goal_progress": 0.9,
+  "next_hint": "comments available"
+}
+
+Small.
+
+Cheap.
+
+Not huge page dumps.
+
+Then your example works
+
+User:
+
+Open YouTube
+Play lofi hiphop
+Open comments
+Read first comment
+Play related videos
+
+Flow:
+
+navigate
+↓
+video_page_loaded
+
+click
+↓
+video_started
+
+scroll
+↓
+comments_loaded
+
+read
+↓
+comment_text_extracted
+
+click related
+↓
+related_video_loaded
+
+Planner sees events.
+
+Not raw HTML.
+
+What I would build next
+
+Exactly this order:

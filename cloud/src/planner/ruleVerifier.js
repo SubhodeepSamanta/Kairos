@@ -1,58 +1,33 @@
 export function verifyByRules(
   observation
 ) {
-if (
-  observation?.expected ===
-  "text_typed"
-) {
-  return {
-    achieved: true
-  };
-}
-if (
-  observation?.expected ===
-  "key_pressed"
-) {
-  return {
-    achieved: true
-  };
-}
-if (
-  observation?.expected ===
-  "page_scrolled"
-) {
-  return {
-    achieved: true
-  };
-}
-if (
-  observation?.expected ===
-  "tab_switched"
-) {
-  return {
-    achieved: true
-  };
-}
+const immediateSuccess = [
 
-if (
-  observation?.expected ===
-  "tab_created"
-) {
-  return {
-    achieved: true
-  };
-}
+  "text_typed",
 
-if (
-  observation?.expected ===
+  "key_pressed",
+
+  "page_scrolled",
+
+  "tab_switched",
+
+  "tab_created",
+
   "tab_closed"
+];
+
+if (
+  immediateSuccess.includes(
+    observation?.expected
+  )
 ) {
+
   return {
     achieved: true
   };
 }
   switch (
-    observation?.expected
+  observation?.expected
   ) {
 
     case "page_loaded":
@@ -68,7 +43,7 @@ if (
         achieved:
           observation.success &&
           observation.actual ===
-            "changed"
+          "changed"
       };
 
     case "page_read":

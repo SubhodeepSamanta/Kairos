@@ -1,9 +1,11 @@
 import { askLLM } from "../llm/provider.js";
 import { buildSystemPrompt } from "./prompts/systemPrompt.js";
-import { buildMemoryContext } from "../memory/context.js";
+
 import {
   buildRelevantBrowserContext
 } from "../agent/context.js";
+import { retrieveRelevantMemories } from "../memory/relevant.js";
+import { getAgentState } from "../agent/state.js";
 
 export async function createReplan({
   goal,
@@ -12,16 +14,29 @@ export async function createReplan({
   observations
 }) {
 
+  const intent =
+  getAgentState().intent;
+console.log(
+  "REPLAN INTENT:",
+  JSON.stringify(
+    intent,
+    null,
+    2
+  )
+);
   const memoryContext =
-  await buildMemoryContext();
+  await retrieveRelevantMemories(
+    intent
+  );
 
 const browserContext =
   buildRelevantBrowserContext(
-    goal.objective
+    intent
   );
 
 const systemPrompt =
   buildSystemPrompt(
+    intent,
     memoryContext,
     browserContext
   );
@@ -34,6 +49,10 @@ const systemPrompt =
 Original goal:
 
 ${goal.objective}
+
+Intent:
+
+${JSON.stringify(intent, null, 2)}
 
 Previous plan:
 
@@ -107,5 +126,6 @@ Return ONLY valid JSON.
     systemPrompt.length +
     goal.objective.length
   );
+  
   return askLLM(systemPrompt, userPrompt);
 }

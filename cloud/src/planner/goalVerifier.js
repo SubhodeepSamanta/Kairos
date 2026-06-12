@@ -1,7 +1,7 @@
 import { askLLM } from "../llm/provider.js";
 
 export async function verifyGoal({
-  goal,
+  intent,
   observation,
   observations
 }) {
@@ -53,7 +53,7 @@ or
   "achieved": false
 }`,
 JSON.stringify({
-  goal,
+  intent,
   observation,
   observations
 })

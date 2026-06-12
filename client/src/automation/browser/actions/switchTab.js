@@ -6,10 +6,14 @@ export async function switchBrowserTab(
   index
 ) {
 
-  switchTab(index);
+  await switchTab(index);
 
   return {
     success: true,
-    index
+
+    index,
+
+    operation:
+      "switch_tab"
   };
 }

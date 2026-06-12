@@ -4,5 +4,13 @@ import {
 
 export async function newTab() {
 
-  return await createNewTab();
+  const result =
+    await createNewTab();
+
+  return {
+    ...result,
+
+    operation:
+      "new_tab"
+  };
 }

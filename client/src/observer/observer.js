@@ -1,59 +1,95 @@
 import { ACTIONS } from "../shared/schemas/action.js";
+import {
+  detectEvents
+}
+from "./events.js";
 
 export async function observeAction(action, result) {
 
+  function buildObservation(
+    base,
+    result
+  ) {
+  
+    return {
+      ...base,
+  
+      events:
+        detectEvents(result)
+    };
+  }
+  
   switch (action.type) {
 
     case ACTIONS.NAVIGATE:
 
-      return {
-        success: result?.success || false,
-        expected: "page_loaded",
-        actual: result?.url || "unknown",
-        action,
-        pageState: result.pageState,
-        timestamp: new Date().toISOString()
-      };
+  return buildObservation(
+    {
+      success:
+        result?.success || false,
+
+      expected:
+        "page_loaded",
+
+      actual:
+        result?.url || "unknown",
+
+      action,
+
+      pageState:
+        result.pageState,
+
+      timestamp:
+        new Date().toISOString()
+    },
+    result
+  );
 
 case ACTIONS.READ_UI:
 
-return {
-  success: result?.success || false,
+return buildObservation(
+  {
+    success:
+      result?.success || false,
 
-  expected: "page_read",
+    expected:
+      "page_read",
 
-  actual:
-    result?.title || "unknown",
+    actual:
+      result?.title || "unknown",
 
-  pageState:
-    result,
+    pageState:
+      result,
 
-  title:
-    result?.title,
+    title:
+      result?.title,
 
-  url:
-    result?.url,
+    url:
+      result?.url,
 
-  buttons:
-    result?.buttons || [],
+    buttons:
+      result?.buttons || [],
 
-  inputs:
-    result?.inputs || [],
+    inputs:
+      result?.inputs || [],
 
-  links:
-    result?.links || [],
+    links:
+      result?.links || [],
 
-  text:
-    result?.text || "",
+    text:
+      result?.text || "",
 
-  action,
+    action,
 
-  timestamp:
-    new Date().toISOString()
-};
+    timestamp:
+      new Date().toISOString()
+  },
+  result
+);
 case ACTIONS.TYPE:
 
-  return {
+  return buildObservation(
+  {
     success:
       result?.success || false,
 
@@ -70,17 +106,24 @@ case ACTIONS.TYPE:
 
     timestamp:
       new Date().toISOString()
-  };
+  },
+  {
+    ...result,
+    text: result?.text
+  }
+);
 case ACTIONS.BACK:
 
-  return {
-    success: result?.success || false,
+  return buildObservation(
+  {
+    success:
+      result?.success || false,
 
-    expected: "page_changed",
+    expected:
+      "page_changed",
 
     actual:
       result.after?.url ||
-
       "unknown",
 
     pageState:
@@ -96,7 +139,9 @@ case ACTIONS.BACK:
 
     timestamp:
       new Date().toISOString()
-  };
+  },
+  result
+);
 case ACTIONS.GET_BROWSER_CONTEXT:
 
   return {
@@ -109,14 +154,16 @@ case ACTIONS.GET_BROWSER_CONTEXT:
   };
   case ACTIONS.FORWARD:
 
-  return {
-    success: result?.success || false,
+  return buildObservation(
+  {
+    success:
+      result?.success || false,
 
-    expected: "page_changed",
+    expected:
+      "page_changed",
 
     actual:
       result.after?.url ||
-
       "unknown",
 
     pageState:
@@ -132,17 +179,21 @@ case ACTIONS.GET_BROWSER_CONTEXT:
 
     timestamp:
       new Date().toISOString()
-  };
+  },
+  result
+);
   case ACTIONS.REFRESH:
 
-  return {
-    success: result?.success || false,
+  return buildObservation(
+  {
+    success:
+      result?.success || false,
 
-    expected: "page_refreshed",
+    expected:
+      "page_refreshed",
 
     actual:
       result.after?.url ||
-
       "unknown",
 
     pageState:
@@ -158,7 +209,9 @@ case ACTIONS.GET_BROWSER_CONTEXT:
 
     timestamp:
       new Date().toISOString()
-  };
+  },
+  result
+);
 case ACTIONS.CLICK:
 
   const changed =
@@ -171,7 +224,9 @@ console.log(
   "CLICK RESULT:",
   JSON.stringify(result, null, 2)
 );
-  return {
+
+return buildObservation(
+  {
     success:
       result.success,
 
@@ -185,8 +240,10 @@ console.log(
 
     clicked:
       result.clicked,
-pageState:
-  result.pageState,
+
+    pageState:
+      result.pageState,
+
     before:
       result.before,
 
@@ -197,26 +254,36 @@ pageState:
 
     timestamp:
       new Date().toISOString()
-  };
+  },
+  result
+);
   case ACTIONS.LIST_TABS:
 
-  return {
-    success: result?.success || false,
+  return buildObservation(
+  {
+    success:
+      result?.success || false,
 
-    expected: "tabs_listed",
+    expected:
+      "tabs_listed",
 
-    actual: result?.tabs?.length || 0,
+    actual:
+      result?.tabs?.length || 0,
 
-    tabs: result?.tabs || [],
+    tabs:
+      result?.tabs || [],
 
     action,
 
     timestamp:
       new Date().toISOString()
-  };
+  },
+  result
+);
   case ACTIONS.NEW_TAB:
 
-  return {
+return buildObservation(
+  {
     success:
       result?.success || false,
 
@@ -233,10 +300,13 @@ pageState:
 
     timestamp:
       new Date().toISOString()
-  };
+  },
+  result
+);
 case ACTIONS.SWITCH_TAB:
 
-  return {
+  return buildObservation(
+  {
     success:
       result?.success || false,
 
@@ -262,36 +332,41 @@ case ACTIONS.SWITCH_TAB:
 
     timestamp:
       new Date().toISOString()
-  };
+  },
+  result
+);
 case ACTIONS.PRESS_KEY:
 
-  return {
+return buildObservation(
+  {
     success:
       result?.success || false,
 
     expected:
-      "key_pressed",
+      "text_typed",
 
     actual:
-      result?.key,
-pageState: result.pageState,
-    key:
-      result?.key,
+      result?.text,
 
-    before:
-      result?.before,
-
-    after:
-      result?.after,
+    element:
+      result?.element,
 
     action,
 
     timestamp:
       new Date().toISOString()
-  };
+  },
+  {
+    ...result,
+    pageState: {
+      text: result?.text
+    }
+  }
+);
   case ACTIONS.WAIT:
 
-  return {
+  return buildObservation(
+  {
     success:
       result?.success || false,
 
@@ -308,10 +383,13 @@ pageState: result.pageState,
 
     timestamp:
       new Date().toISOString()
-  };
+  },
+  result
+);
   case ACTIONS.EXTRACT_METADATA:
 
-  return {
+  return buildObservation(
+  {
     success:
       result?.success || false,
 
@@ -328,10 +406,13 @@ pageState: result.pageState,
 
     timestamp:
       new Date().toISOString()
-  };
+  },
+  result
+);
   case ACTIONS.SCREENSHOT:
 
-  return {
+  return buildObservation(
+  {
     success:
       result?.success || false,
 
@@ -348,10 +429,13 @@ pageState: result.pageState,
 
     timestamp:
       new Date().toISOString()
-  };
+  },
+  result
+);
   case ACTIONS.EXTRACT_LINKS:
 
-  return {
+  return buildObservation(
+  {
     success:
       result?.success || false,
 
@@ -368,10 +452,13 @@ pageState: result.pageState,
 
     timestamp:
       new Date().toISOString()
-  };
+  },
+  result
+);
   case ACTIONS.SCROLL:
 
-  return {
+return buildObservation(
+  {
     success:
       result?.success || false,
 
@@ -388,10 +475,13 @@ pageState: result.pageState,
 
     timestamp:
       new Date().toISOString()
-  };
+  },
+  result
+);
   case ACTIONS.CLOSE_TAB:
 
-  return {
+  return buildObservation(
+  {
     success:
       result?.success || false,
 
@@ -408,7 +498,9 @@ pageState: result.pageState,
 
     timestamp:
       new Date().toISOString()
-  };
+  },
+  result
+);
   
     default:
 

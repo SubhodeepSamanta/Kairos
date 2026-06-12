@@ -8,8 +8,12 @@ export async function closeBrowserTab(
 
   await closeTab(index);
 
-  return {
-    success: true,
-    index
-  };
+return {
+  success: true,
+
+  index,
+
+  operation:
+    "close_tab"
+};
 }

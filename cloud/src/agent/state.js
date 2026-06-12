@@ -6,7 +6,8 @@ const state = {
 
   observation: null,
 
-  browser: null
+  browser: null,
+  intent: null
 };
 
 export function setGoal(
@@ -14,7 +15,15 @@ export function setGoal(
 ) {
   state.goal = goal;
 }
+export function setIntent(
+  intent
+) {
+  state.intent = intent;
+}
 
+export function getIntent() {
+  return state.intent;
+}
 export function getGoal() {
   return state.goal;
 }

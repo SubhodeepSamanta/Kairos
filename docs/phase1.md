@@ -203,3 +203,253 @@ Phase 3.6 = Browser Evaluation
 not Browser Development.
 
 We're finally stress-testing the architecture. 🚀
+
+
+I agree. If we do this in 20 micro-steps we'll lose the architecture in the noise.
+
+For Kairos I'd do **3 larger ADR-11 refactor waves**, each ending in a working system.
+
+---
+
+# Wave 1 — Intent Architecture (Big Refactor)
+
+Goal:
+
+```text
+Remove goal.includes(...)
+from the whole verifier stack
+```
+
+Files:
+
+```text
+cloud/src/planner/goalParser.js       NEW
+cloud/src/planner/agent.js
+cloud/src/agent/state.js
+cloud/src/planner/stateVerifier.js
+cloud/src/planner/eventVerifier.js
+cloud/src/agent/context.js
+cloud/src/memory/relevant.js
+```
+
+Result:
+
+Instead of:
+
+```js
+goal
+```
+
+flowing everywhere:
+
+```js
+"search for history videos"
+```
+
+you get:
+
+```js
+{
+  intent: "SEARCH",
+  entities: [
+    "history",
+    "videos"
+  ],
+  constraints: {}
+}
+```
+
+stored in agent state.
+
+Everything downstream uses:
+
+```js
+intent
+```
+
+not:
+
+```js
+goal string
+```
+
+---
+
+# Wave 2 — Generic Events + Generic State
+
+Goal:
+
+```text
+Remove website-specific verification
+```
+
+Files:
+
+```text
+client/src/observer/events.js
+cloud/src/planner/eventVerifier.js
+cloud/src/planner/eventMatchers.js
+cloud/src/planner/stateMatchers.js
+cloud/src/planner/stateVerifier.js
+```
+
+Current:
+
+```js
+login_page_opened
+video_page_opened
+comments_visible
+```
+
+Future:
+
+```js
+AUTH_FORM_DETECTED
+MEDIA_PLAYER_DETECTED
+SECTION_VISIBLE
+URL_CHANGED
+FORM_DETECTED
+CONTENT_CHANGED
+NEW_ELEMENTS_VISIBLE
+```
+
+Then:
+
+```js
+AUTHENTICATE intent
+```
+
+can succeed on:
+
+```text
+GitHub
+Google
+Instagram
+Facebook
+```
+
+without new code.
+
+---
+
+# Wave 3 — Multi-Step Goal Graphs
+
+This is the real OpenClaw/Hermes step.
+
+Files:
+
+```text
+cloud/src/planner/planner.js
+cloud/src/planner/replanner.js
+cloud/src/shared/schemas/task.js
+cloud/src/shared/schemas/plan.js
+cloud/src/planner/agent.js
+```
+
+Current:
+
+```text
+Goal
+↓
+Plan
+↓
+Execute
+```
+
+Future:
+
+```text
+Goal
+↓
+Task Graph
+
+SEARCH
+↓
+OPEN_VIDEO
+↓
+OPEN_WIKIPEDIA
+↓
+READ_CONTENT
+
+↓
+Plan
+```
+
+Example:
+
+User:
+
+```text
+Search for Greece videos on YouTube
+Open Wikipedia in a new tab
+Read the first section
+```
+
+Parser returns:
+
+```js
+[
+  {
+    intent: "SEARCH_VIDEO",
+    topic: "greece"
+  },
+  {
+    intent: "OPEN_REFERENCE",
+    target: "wikipedia",
+    newTab: true
+  },
+  {
+    intent: "READ_CONTENT"
+  }
+]
+```
+
+Now Kairos becomes a workflow agent instead of a single-action planner.
+
+---
+
+# After ADR-11
+
+Then:
+
+```text
+3.6 validation
+3.7 memory
+3.8 session memory
+3.9 companion
+```
+
+becomes much easier because everything uses:
+
+```text
+Intent
+Events
+State
+Tasks
+```
+
+instead of:
+
+```text
+Keywords
+Website logic
+Special cases
+```
+
+---
+
+# What I would do right now
+
+Let's do **Wave 1 completely in one pass**.
+
+Before we touch code, I need these files because they are the ones Wave 1 will modify heavily:
+
+```text
+cloud/src/agent/state.js
+cloud/src/agent/context.js
+cloud/src/memory/relevant.js
+cloud/src/planner/eventVerifier.js
+cloud/src/planner/eventMatchers.js
+```
+
+Once I see those 5 files I can give you the full Wave 1 refactor (all file changes together), instead of drip-feeding one file at a time. That will get us from keyword-driven goals to intent-driven goals in a single working checkpoint.

@@ -2,6 +2,9 @@ import {
   getBrowserState
 } from "./state.js";
 
+import { rankElements }
+from "./ranker.js";
+
 const MAX_INPUTS = 20;
 const MAX_BUTTONS = 30;
 const MAX_LINKS = 30;
@@ -76,7 +79,7 @@ export function buildBrowserContext() {
   return context;
 }
 export function buildRelevantBrowserContext(
-  goal = ""
+  intent = ""
 ) {
 
   const browser =
@@ -86,21 +89,59 @@ export function buildRelevantBrowserContext(
     return "";
   }
 
+  const ranked =
+    rankElements(
+      intent,
+      browser
+    );
+
   let context = "";
 
   if (browser.url) {
-    context += `URL:\n${browser.url}\n\n`;
+    context +=
+      `URL:\n${browser.url}\n\n`;
   }
 
   if (browser.title) {
-    context += `Title:\n${browser.title}\n\n`;
+    context +=
+      `Title:\n${browser.title}\n\n`;
   }
 
-  if (browser.inputs?.length) {
+  const inputs =
+    ranked
+      .filter(
+        item =>
+          item.category ===
+          "input"
+      )
+      .slice(0, 10);
+
+  const buttons =
+    ranked
+      .filter(
+        item =>
+          item.category ===
+          "button"
+      )
+      .slice(0, 10);
+
+  const links =
+    ranked
+      .filter(
+        item =>
+          item.category ===
+          "link"
+      )
+      .slice(0, 10);
+
+  if (inputs.length) {
 
     context += "Inputs:\n";
 
-    for (const input of browser.inputs) {
+    for (
+      const input of inputs
+    ) {
+
       context +=
         `[${input.id}] ${input.text}\n`;
     }
@@ -108,11 +149,14 @@ export function buildRelevantBrowserContext(
     context += "\n";
   }
 
-  if (browser.buttons?.length) {
+  if (buttons.length) {
 
     context += "Buttons:\n";
 
-    for (const button of browser.buttons) {
+    for (
+      const button of buttons
+    ) {
+
       context +=
         `[${button.id}] ${button.text}\n`;
     }
@@ -120,11 +164,14 @@ export function buildRelevantBrowserContext(
     context += "\n";
   }
 
-  if (browser.links?.length) {
+  if (links.length) {
 
     context += "Links:\n";
 
-    for (const link of browser.links) {
+    for (
+      const link of links
+    ) {
+
       context +=
         `[${link.id}] ${link.text}\n`;
     }

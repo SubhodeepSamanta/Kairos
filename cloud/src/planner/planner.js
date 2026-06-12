@@ -2,7 +2,13 @@ import { askLLM } from "../llm/provider.js";
 import { createPlan } from "../shared/schemas/plan.js";
 import { buildSystemPrompt } from "./prompts/systemPrompt.js";
 import { validatePlan } from "./validator.js";
-import { buildMemoryContext } from "../memory/context.js";
+import {
+  verifyState
+}
+from "./stateVerifier.js";
+import {
+  retrieveRelevantMemories
+} from "../memory/relevant.js";
 import {
   getAgentState
 } from "../agent/state.js";
@@ -16,16 +22,25 @@ import {
 
 export async function createGoalPlan(goal) {
 
-  const memoryContext =
-    await buildMemoryContext();
+const intent =
+  getAgentState().intent;
 
+const memoryContext =
+  await retrieveRelevantMemories(
+    intent
+  );
+console.log(
+  "MEMORY CONTEXT:\n",
+  memoryContext
+);
 const browserContext =
   buildRelevantBrowserContext(
-    goal.objective
+    intent
   );
 
   const systemPrompt =
     buildSystemPrompt(
+      intent,
       memoryContext,
       browserContext
     );
@@ -71,11 +86,20 @@ console.log(
   systemPrompt.length +
   goal.objective.length
 );
+
+console.log(
+  "INTENT:",
+  JSON.stringify(
+    intent,
+    null,
+    2
+  )
+);
   const response =
-    await askLLM(
-      systemPrompt,
-      goal.objective
-    );
+    askLLM(
+  systemPrompt,
+  JSON.stringify(intent)
+)
 
   console.log(
     "PLANNER RESPONSE:",
