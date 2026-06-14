@@ -1,7 +1,6 @@
 import {
-  matchUrlChanged,
-  matchSearchForm,
-  matchNewElements
+  matchAuthForm,
+  matchMediaLoaded
 } from "./eventMatchers.js";
 
 export function verifyEvents({
@@ -9,14 +8,12 @@ export function verifyEvents({
   observation
 }) {
 
-  const matchers = [
+const matchers = [
 
-    matchSearchForm,
+  matchAuthForm,
 
-    matchUrlChanged,
-
-    matchNewElements
-  ];
+  matchMediaLoaded
+];
 
   for (
     const matcher of matchers

@@ -5,7 +5,7 @@ import { validatePlan } from "./validator.js";
 import {
   verifyState
 }
-from "./stateVerifier.js";
+  from "./stateVerifier.js";
 import {
   retrieveRelevantMemories
 } from "../memory/relevant.js";
@@ -22,22 +22,29 @@ import {
 
 export async function createGoalPlan(goal) {
 
-const intent =
-  getAgentState().intent;
+  const intent =
+    getAgentState().intent;
 
-const memoryContext =
-  await retrieveRelevantMemories(
-    intent
+  const memoryContext =
+    await retrieveRelevantMemories(
+      intent
+    );
+  console.log(
+    "MEMORY CONTEXT:\n",
+    memoryContext
   );
-console.log(
-  "MEMORY CONTEXT:\n",
-  memoryContext
-);
-const browserContext =
-  buildRelevantBrowserContext(
-    intent
-  );
+  const browserContext =
+    buildRelevantBrowserContext(
+      intent
+    );
+if (
+  !browserContext.trim()
+) {
 
+  console.log(
+    "EMPTY BROWSER CONTEXT"
+  );
+}
   const systemPrompt =
     buildSystemPrompt(
       intent,
@@ -53,53 +60,53 @@ const browserContext =
       2
     )
   );
-console.log(
-  "BROWSER CONTEXT:\n",
-  browserContext
-);
-console.log(
-  "MEMORY CHARS:",
-  memoryContext.length
-);
+  console.log(
+    "BROWSER CONTEXT:\n",
+    browserContext
+  );
+  console.log(
+    "MEMORY CHARS:",
+    memoryContext.length
+  );
 
-console.log(
-  "BROWSER CHARS:",
-  browserContext.length
-);
+  console.log(
+    "BROWSER CHARS:",
+    browserContext.length
+  );
 
-console.log(
-  "SYSTEM PROMPT CHARS:",
-  systemPrompt.length
-);
-console.log(
-  "SYSTEM CHARS:",
-  systemPrompt.length
-);
+  console.log(
+    "SYSTEM PROMPT CHARS:",
+    systemPrompt.length
+  );
+  console.log(
+    "SYSTEM CHARS:",
+    systemPrompt.length
+  );
 
-console.log(
-  "GOAL CHARS:",
-  goal.objective.length
-);
+  console.log(
+    "GOAL CHARS:",
+    goal.objective.length
+  );
 
-console.log(
-  "TOTAL CHARS:",
-  systemPrompt.length +
-  goal.objective.length
-);
+  console.log(
+    "TOTAL CHARS:",
+    systemPrompt.length +
+    goal.objective.length
+  );
 
-console.log(
-  "INTENT:",
-  JSON.stringify(
-    intent,
-    null,
-    2
-  )
-);
+  console.log(
+    "INTENT:",
+    JSON.stringify(
+      intent,
+      null,
+      2
+    )
+  );
   const response =
-    askLLM(
-  systemPrompt,
-  JSON.stringify(intent)
-)
+    await askLLM(
+      systemPrompt,
+      JSON.stringify(intent)
+    )
 
   console.log(
     "PLANNER RESPONSE:",
@@ -122,33 +129,33 @@ export function parsePlanResponse(goalId, response) {
 
   try {
     parsed = JSON.parse(
-  extractJson(response)
-);
-console.log(
-  "PARSED:",
-  JSON.stringify(
-    parsed,
-    null,
-    2
-  )
-);
-if (
-  Array.isArray(parsed)
-) {
+      extractJson(response)
+    );
+    console.log(
+      "PARSED:",
+      JSON.stringify(
+        parsed,
+        null,
+        2
+      )
+    );
+    if (
+      Array.isArray(parsed)
+    ) {
 
-  parsed = {
-    actions: parsed
-  };
-}
-if (
-  parsed.type &&
-  parsed.params
-) {
+      parsed = {
+        actions: parsed
+      };
+    }
+    if (
+      parsed.type &&
+      parsed.params
+    ) {
 
-  parsed = {
-    actions: [parsed]
-  };
-}
+      parsed = {
+        actions: [parsed]
+      };
+    }
   }
 
   catch {
@@ -163,19 +170,19 @@ if (
 
   const validated = validatePlan(parsed);
 
-console.log(
-  "VALIDATED ACTIONS:",
-  JSON.stringify(
-    validated.actions,
-    null,
-    2
-  )
-);
+  console.log(
+    "VALIDATED ACTIONS:",
+    JSON.stringify(
+      validated.actions,
+      null,
+      2
+    )
+  );
 
-return createPlan(
-  goalId,
-  validated.actions
-);
+  return createPlan(
+    goalId,
+    validated.actions
+  );
 }
 
 function extractJson(text) {

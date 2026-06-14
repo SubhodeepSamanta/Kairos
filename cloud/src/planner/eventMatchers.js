@@ -1,71 +1,42 @@
-export function matchUrlChanged(
-  intent,
-  observation
-) {
-
-  if (
-    observation?.events?.includes(
-      "url_changed"
-    )
-  ) {
-
-    return {
-      achieved: true,
-      reason:
-        "url_changed"
-    };
-  }
-
-  return null;
-}
-
-export function matchSearchForm(
+export function matchAuthForm(
   intent,
   observation
 ) {
 
   if (
     intent?.type ===
-      "search" &&
+      "authenticate" &&
     observation?.events?.includes(
-      "form_detected"
+      "auth_form_detected"
     )
   ) {
 
     return {
       achieved: true,
       reason:
-        "search_form_detected"
+        "auth_form_detected"
     };
   }
 
   return null;
 }
 
-export function matchNewElements(
+export function matchMediaLoaded(
   intent,
   observation
 ) {
 
-  const events =
-    observation?.events || [];
-
   if (
-    events.includes(
-      "buttons_detected"
-    ) ||
-    events.includes(
-      "links_detected"
-    ) ||
-    events.includes(
-      "form_detected"
-    )
+    intent?.type ===
+      "media" &&
+    observation?.pageState?.url
+      ?.includes("/watch")
   ) {
 
     return {
       achieved: true,
       reason:
-        "elements_detected"
+        "media_loaded"
     };
   }
 

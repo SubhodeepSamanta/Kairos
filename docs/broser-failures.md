@@ -292,3 +292,540 @@ Planned fixes:
 Outcome:
 
 Kairos can perform generic website search workflows without hardcoded YouTube, Google, or GitHub logic.
+
+
+# Kairos Agent Architecture Roadmap
+
+## Current Status
+
+### Wave 1 — Intent Architecture
+
+Status: Complete
+
+Goal:
+
+Replace raw goal string usage throughout the system with structured intents.
+
+Flow:
+
+Goal
+↓
+Intent Parser
+↓
+Intent Object
+↓
+Planner / Memory / Context / Verification
+
+Example:
+
+User:
+"Play a Greece history video"
+
+Intent:
+
+{
+"type": "media",
+"action": "play",
+"entities": [
+"greece",
+"history",
+"video"
+]
+}
+
+Result:
+
+* Planner uses intent
+* Memory uses intent
+* Context ranking uses intent
+* Verifiers use intent
+* Goal keyword logic centralized in goalParser.js
+
+---
+
+### Wave 2 — Generic Events & State
+
+Status: Complete
+
+Goal:
+
+Remove website-specific verification.
+
+Old:
+
+login_page_opened
+youtube_video_opened
+comments_visible
+
+New:
+
+url_changed
+content_changed
+form_detected
+auth_form_detected
+buttons_detected
+links_detected
+content_loaded
+text_entered
+tab_created
+tab_closed
+tab_switched
+
+Result:
+
+Verification becomes generic.
+
+Authenticate intent works for:
+
+* Google
+* YouTube
+* GitHub
+* Reddit
+* Instagram
+
+without new code.
+
+---
+
+# Wave 3 — Task Execution Architecture
+
+This is the major transition from planner to agent.
+
+Goal:
+
+Move from:
+
+Goal
+↓
+Plan
+↓
+Execute
+
+to:
+
+Goal
+↓
+Intent
+↓
+Task Graph
+↓
+Task Executor
+↓
+Planner
+↓
+Execute
+↓
+Observe
+↓
+Verify
+↓
+Replan
+
+---
+
+## Part 1 — Task Graph
+
+New File:
+
+cloud/src/planner/taskGraph.js
+
+Purpose:
+
+Convert one user goal into multiple tasks.
+
+Example:
+
+User:
+
+"Play a Greece history video on YouTube and open Wikipedia in a new tab"
+
+Task Graph:
+
+[
+{
+"id": "task_1",
+"intent": "PLAY_MEDIA",
+"topic": "greece history",
+"target": "youtube"
+},
+{
+"id": "task_2",
+"intent": "OPEN_REFERENCE",
+"topic": "greece history",
+"target": "wikipedia",
+"newTab": true
+}
+]
+
+Result:
+
+Agent understands workflows instead of single actions.
+
+---
+
+## Part 2 — Task Status Engine
+
+Task statuses:
+
+PENDING
+RUNNING
+COMPLETED
+FAILED
+BLOCKED
+SKIPPED
+
+Purpose:
+
+Track task lifecycle.
+
+Examples:
+
+Need OTP:
+BLOCKED
+
+Already on correct page:
+SKIPPED
+
+Task finished:
+COMPLETED
+
+This becomes the foundation for long-running workflows.
+
+---
+
+## Part 3 — Task Executor
+
+New File:
+
+cloud/src/planner/taskExecutor.js
+
+Purpose:
+
+Execute tasks one-by-one.
+
+Flow:
+
+Task 1
+↓
+Plan
+↓
+Execute
+↓
+Verify
+↓
+Complete
+
+Task 2
+↓
+Plan
+↓
+Execute
+↓
+Verify
+
+Instead of generating one giant plan.
+
+---
+
+## Part 4 — Task-Level Replanning
+
+Current:
+
+Goal fails
+↓
+Replan everything
+
+Future:
+
+Task fails
+↓
+Replan only that task
+
+Example:
+
+AUTHENTICATE fails.
+
+Replan AUTHENTICATE only.
+
+Do not regenerate:
+
+OPEN_HISTORY
+OPEN_VIDEO
+COMMENT
+
+This dramatically improves reliability.
+
+---
+
+## Part 5 — Blocking & Clarification
+
+Purpose:
+
+Allow agent to pause and ask for information.
+
+Task:
+
+{
+"status": "BLOCKED",
+"reason": "need_phone_number"
+}
+
+Examples:
+
+need_phone_number
+need_otp
+need_file_path
+need_confirmation
+ambiguous_request
+
+Agent asks user.
+
+User replies.
+
+Task resumes.
+
+No restart.
+
+No new goal.
+
+---
+
+## Part 6 — Task Context
+
+Every task stores working memory.
+
+Example:
+
+{
+"intent": "AUTHENTICATE",
+"context": {
+"email": "[user@gmail.com](mailto:user@gmail.com)",
+"phone": null,
+"otp": null
+}
+}
+
+Later:
+
+User:
+
+"OTP is 7856"
+
+Task updates:
+
+{
+"otp": "7856"
+}
+
+Execution continues.
+
+---
+
+## Part 7 — Resume Engine
+
+Every task tracks progress.
+
+Example:
+
+{
+"currentStep": 2
+}
+
+Authentication flow:
+
+Step 1:
+Email
+
+Step 2:
+Phone Verification
+
+Step 3:
+OTP
+
+If blocked at OTP:
+
+Resume from Step 3.
+
+Do not restart Step 1.
+
+---
+
+## Part 8 — Task Dependencies
+
+Schema support:
+
+{
+"id": "open_history",
+"dependsOn": [
+"authenticate"
+]
+}
+
+Purpose:
+
+Prevent impossible execution order.
+
+Example:
+
+Cannot open YouTube History before authentication.
+
+Future workflows rely heavily on this.
+
+---
+
+# Clarification Architecture
+
+Clarification happens BEFORE planning.
+
+Flow:
+
+Goal
+↓
+Intent
+↓
+Task Graph
+↓
+Confidence Check
+
+Confidence Low?
+↓
+Ask User
+↓
+Update Task Graph
+↓
+Plan
+
+Example:
+
+User:
+"Play a Greek video"
+
+Task:
+
+{
+"intent": "PLAY_MEDIA",
+"topic": "greek",
+"source": null,
+"confidence": 0.4
+}
+
+Agent:
+
+"Where would you like me to play it?
+
+* YouTube
+* Netflix
+* Local File"
+
+Then planning begins.
+
+---
+
+# Authentication Architecture
+
+Goal:
+
+Handle real-world authentication dynamically.
+
+Example:
+
+Login to YouTube
+
+Agent:
+
+1. Enter email
+2. Click next
+
+Unexpected page appears:
+
+"Verify with phone"
+
+Observation:
+
+auth_form_detected
+
+Task:
+
+AUTHENTICATE
+
+Status:
+
+BLOCKED
+
+Reason:
+
+need_phone_number
+
+Agent:
+
+"Please provide the phone number."
+
+User:
+
+"37478"
+
+Agent resumes.
+
+Later:
+
+OTP page appears.
+
+Status:
+
+BLOCKED
+
+Reason:
+
+need_otp
+
+User:
+
+"7856"
+
+Agent resumes from OTP step.
+
+Authentication completes.
+
+No restart.
+
+No special-case code.
+
+---
+
+# Long-Term Architecture
+
+Final core architecture:
+
+Goal
+↓
+Intent
+↓
+Task Graph
+↓
+Task Executor
+↓
+Planner
+↓
+Execute
+↓
+Observe
+↓
+Verify
+↓
+Replan
+↓
+Continue
+
+Capabilities built later:
+
+* Browser Automation
+* Windows Automation
+* Filesystem
+* Terminal
+* Research
+* Memory
+* Companion
+
+These become capabilities plugged into the same architecture.
+
+No further core redesign should be required.

@@ -9,15 +9,6 @@ export async function verifyGoal({
   // informational actions
 
   if (
-    observation?.expected ===
-    "page_read"
-  ) {
-    return {
-      achieved: true
-    };
-  }
-
-  if (
     observation?.action?.type ===
     "get_browser_context"
   ) {
@@ -26,15 +17,6 @@ export async function verifyGoal({
     };
   }
 
-  if (
-    observation?.expected ===
-      "page_loaded" &&
-    observation?.success
-  ) {
-    return {
-      achieved: true
-    };
-  }
   const response =
     await askLLM(
 `You verify whether a user's goal was achieved.

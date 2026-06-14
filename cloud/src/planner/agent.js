@@ -29,6 +29,10 @@ import {
 import {
   retrieveRelevantMemories
 } from "../memory/relevant.js";
+import {
+  buildTaskGraph
+}
+from "./taskGraph.js";
 export async function runAgent({
     goal,
     executePlan
@@ -39,7 +43,13 @@ const intent =
   parseGoal(
     goal.objective
   );
+goal.intent =
+  intent;
 
+goal.tasks =
+  buildTaskGraph(
+    intent
+  );
 setIntent(intent);
 
 console.log(
@@ -228,7 +238,8 @@ const verification =
     intent,
     observation:
       compactObservation,
-    observations: []
+    observations:
+      compactObservation
   });
 
   console.log(

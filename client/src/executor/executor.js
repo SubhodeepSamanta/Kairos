@@ -91,6 +91,8 @@ const pageChanged =
 
 const forceReadActions = [
 
+  ACTIONS.NAVIGATE,
+
   ACTIONS.BACK,
 
   ACTIONS.FORWARD,

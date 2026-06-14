@@ -1,342 +1,299 @@
-# Kairos Roadmap
+Honestly, after seeing the schemas, I think Wave 3 is **the most important architectural wave in the whole project**.
 
-## Vision
+The good news:
 
-Kairos is a personal AI agent with two components:
-
-* Cloud (planning, research, memory, messaging)
-* Client (automation, execution, observation)
-
-Architecture:
-
-User → Cloud → Planner → Client → Executor → Observer → Cloud
-
-The long-term goal is a self-improving assistant capable of:
-
-* Chat
-* Research
-* Desktop automation
-* Memory
-* Replanning
-* Voice
-* Multi-platform support
+```text
+Wave 1 ≈ done
+Wave 2 ≈ mostly done
+Wave 3 = where Kairos actually becomes an agent
+```
 
 ---
 
-# Current Status
+# How many parts in Wave 3?
 
-## Phase 1 - Foundation
+I would split it into **4 sub-parts**, not 10 tiny ones.
 
-### 1.1 Schemas
+### Part A — Task Graph Schema
 
-Status: Complete
+Replace:
 
-* Goal schema
-* Plan schema
-* Action schema
-* Observation schema
-* Task schema
+```text
+Goal
+ ↓
+Plan
+ ↓
+Actions
+```
 
-### 1.2 Planner
+with:
 
-Status: Complete
+```text
+Goal
+ ↓
+Tasks
+ ↓
+Plan
+ ↓
+Actions
+```
 
-* LLM planner
-* Groq integration
-* Provider abstraction
+Files:
 
-### 1.3 Executor
-
-Status: Complete
-
-* open_app
-* close_app
-
-### 1.4 Observer
-
-Status: Complete
-
-* Running state verification
-* Closing verification
-
-### 1.5 Communication
-
-Status: Complete
-
-* WebSocket server
-* WebSocket client
-* Cloud → Client execution
-* Client → Cloud observations
-
-### 1.6 Telegram
-
-Status: Complete
-
-* Telegram control
-* Agent execution from Telegram
+```text
+cloud/src/shared/schemas/task.js
+cloud/src/shared/schemas/plan.js
+cloud/src/shared/schemas/goal.js
+```
 
 ---
 
-# Phase 2 - Intelligence Layer
+### Part B — Goal → Tasks
 
-## 2.0 Router
+This is the big one.
 
-Status: Complete
+User:
 
-Routes messages into:
+```text
+Play a Greece history video
+Open Wikipedia in a new tab
+```
 
-* Chat
-* Agent
-* Research
+becomes:
 
-## 2.1 LLM Planning
+```js
+[
+  {
+    intent: "FIND_MEDIA",
+    topic: "greece history"
+  },
+  {
+    intent: "PLAY_MEDIA"
+  },
+  {
+    intent: "OPEN_REFERENCE",
+    target: "wikipedia",
+    topic: "greece history",
+    newTab: true
+  }
+]
+```
 
-Status: Complete
+Files:
 
-Removed keyword-based planner.
+```text
+cloud/src/planner/goalParser.js
+cloud/src/planner/agent.js
+```
 
-Uses:
+Possibly a new file:
 
-* Groq
-* OpenRouter fallback (pending)
-* NVIDIA fallback (pending)
-
-## 2.2 Actions
-
-Status: In Progress
-
-Completed:
-
-* open_app
-* close_app
-
-Pending:
-
-* focus_app
-
-Reason:
-Current implementation is placeholder only.
-
-Return in:
-Phase 4
-
----
-
-## 2.2B Dynamic App Registry
-
-Status: Deferred
-
-Goal:
-
-Open and manage installed apps without hardcoded lists.
-
-Examples:
-
-* Spotify
-* VS Code
-* Discord
-* Steam
-* OBS
-
-Reason:
-
-Needs proper registry/process mapping.
-
-Return in:
-Phase 4
+```text
+cloud/src/planner/taskGraph.js
+```
 
 ---
 
-## 2.3 Research Brain
+### Part C — Task → Plan
 
-Status: Next
+Current:
 
-Goal:
+```text
+Goal
+ ↓
+LLM
+ ↓
+Actions
+```
 
-Support:
+Future:
 
-* Latest AI news
-* Research summaries
-* Deep research
-* Web search
-* Web extraction
-
-Planned modules:
-
-* Search
-* Extract
-* Summarize
-* Research Pipeline
-
----
-
-## 2.4 Memory
-
-Status: Planned
-
-Storage:
-
-Local SQLite
-
-Store:
-
-* User preferences
-* Preferred browser
-* Preferred music app
-* Installed apps cache
-* Recent tasks
-
----
-
-## 2.5 Replanner
-
-Status: Planned
-
-Goal:
-
-Observe failures.
-
-Automatically generate alternative plans.
+```text
+Task
+ ↓
+LLM
+ ↓
+Actions
+```
 
 Example:
 
-Open Spotify
-↓
-Fail
-↓
-Open Spotify Web
-↓
-Success
+Task:
+
+```js
+{
+  intent: "OPEN_REFERENCE",
+  target: "wikipedia",
+  topic: "greece"
+}
+```
+
+Planner generates:
+
+```js
+[
+  navigate,
+  type,
+  click
+]
+```
+
+Files:
+
+```text
+cloud/src/planner/planner.js
+cloud/src/planner/replanner.js
+cloud/src/planner/validator.js
+```
 
 ---
 
-# Phase 3 - Assistant Layer
+### Part D — Task Execution Loop
 
-Status: Planned
+Current:
 
-Features:
+```text
+Execute entire plan
+Verify goal
+Done
+```
 
-* Rich chat
-* Personality
-* Conversation history
-* User preferences
-* Better responses
+Future:
 
-Deferred Item:
+```text
+Task 1
+ ↓
+Verify
 
-Rich Chat Personality
+Task 2
+ ↓
+Verify
 
-Reason:
+Task 3
+ ↓
+Verify
+```
 
-Needs memory first.
+Files:
 
----
+```text
+cloud/src/planner/agent.js
+```
 
-# Phase 4 - Automation Perfection
-
-Status: Planned
-
-Features:
-
-* Dynamic App Registry
-* Real focus_app
-* Better UIA
-* Better application detection
-
-Deferred Items:
-
-* Dynamic Registry
-* focus_app
+This is the biggest change.
 
 ---
 
-# Phase 5 - Voice & Ecosystem
+# How long?
 
-Status: Planned
+If done cleanly:
 
-Features:
+```text
+Part A : 30 mins
+Part B : 1-2 hours
+Part C : 1 hour
+Part D : 1-2 hours
+```
 
-* STT
-* TTS
-* Voice conversations
-* Discord
-* WhatsApp
-* Additional connectors
+So roughly:
 
----
+```text
+4-6 hours of coding
+```
 
-# Technical Rules
+Not weeks.
 
-Never add a new action type unless:
-
-* Planner supports it
-* Executor supports it
-* Observer supports it
-
-Never leave partial implementations.
-
-Every deferred feature must be added to this roadmap.
-
-Every phase must be completed before starting unrelated work.
+The hard part is architecture, not code volume.
 
 ---
 
-# Current Next Step
+# How many files?
 
-Phase 2.3
+Probably:
 
-Research Brain
-Research Modes
+```text
+goal.js
+task.js
+plan.js
 
-Cloud Research
-- Works when client offline
-- Search
-- Extract
-- Summarize
+goalParser.js
 
-Deep Research
-- Requires client online
-- Browser automation
-- Multi-page extraction
-- Documentation analysis
-- Long-form reports
+agent.js
 
-Phase 2.3 Research Brain
-Status: In Progress
+planner.js
+replanner.js
+validator.js
 
-Completed:
-- Search
-- Extract
-- Summarize
+(possibly)
+taskGraph.js
+```
 
-Phase 2.3 Research Brain
+Around:
 
-Completed:
-- Search
-- Extract
-- Summarize
-- Multi-source aggregation
-- Deduplication
+```text
+8-10 files
+```
 
-Phase 2.3
-Status: Complete (Cloud Research V1)
+---
 
-Completed:
-- Search
-- Extract
-- Summarize
-- Multi-source aggregation
-- Deduplication
-- Citations
-- Telegram formatting
+# Biggest thing we must decide BEFORE coding
 
-Phase 2.3D
-Research Stabilization
+This is the key design question:
 
-Status: Current
+Should tasks be:
 
-Tasks:
-- Fix router classification
-- Fix formatting
-- Improve weather routing
-- Improve research detection
+### Option 1
+
+```js
+{
+  intent: "OPEN_REFERENCE",
+  target: "wikipedia"
+}
+```
+
+Very abstract.
+
+Planner figures out everything.
+
+---
+
+### Option 2
+
+```js
+{
+  intent: "OPEN_REFERENCE",
+  target: "wikipedia",
+  topic: "greece",
+  newTab: true
+}
+```
+
+Structured.
+
+Planner gets more information.
+
+---
+
+OpenClaw/Hermes style systems use something much closer to:
+
+```text
+Option 2
+```
+
+because it reduces hallucinations.
+
+---
+
+# What I need before starting
+
+Only these now:
+
+```text
+cloud/src/planner/planner.js
+cloud/src/planner/replanner.js
+cloud/src/planner/prompts/systemPrompt.js
+```
+
+I've seen parts of planner/replanner earlier, but I want the current versions together before designing the task graph layer.
+
+After those 3 files, we can design Wave 3 properly and avoid another major refactor later.

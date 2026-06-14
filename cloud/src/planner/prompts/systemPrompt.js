@@ -51,12 +51,12 @@ Rules:
 - Prefer element ids when available.
 - Element ids are authoritative.
 - Never invent element ids.
+- Never reference an element id that does not appear in browser state.
+- If browser state contains no usable elements, do not return click or type actions.
+- When browser state is empty, use navigate, read_ui, or get_browser_context first.
 - Use text matching only when no element id exists.
 - Do not navigate if the target element already exists.
 - If required elements are missing, use read_ui.
-- Return only JSON.
-- Never explain reasoning.
-- Never return markdown.
 
 Example:
 

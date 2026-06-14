@@ -1,14 +1,23 @@
 import { getPage } from "../browser.js";
 import { updateBrowserContext } from "../context.js";
+import { readPage }
+from "./read.js";
 
 export async function navigate(url) {
 
-  const page = await getPage();
+  const page =
+    await getPage();
 
   await page.goto(url);
 
-  const title = await page.title();
-  const currentUrl = page.url();
+  const title =
+    await page.title();
+
+  const currentUrl =
+    page.url();
+
+  const pageState =
+    await readPage();
 
   updateBrowserContext({
     title,
@@ -18,6 +27,7 @@ export async function navigate(url) {
   return {
     success: true,
     title,
-    url: currentUrl
+    url: currentUrl,
+    pageState
   };
 }

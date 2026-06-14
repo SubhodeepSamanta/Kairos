@@ -57,19 +57,29 @@ export function connectToCloud(url) {
 
       const observations = [];
 
-      for (
-        let i = 0;
-        i < plan.actions.length;
-        i++
-      ) {
+for (
+  let i = 0;
+  i < plan.actions.length;
+  i++
+) {
 
-        observations.push(
-          await observeAction(
-            plan.actions[i],
-            results[i]
-          )
-        );
-      }
+  const obs =
+    await observeAction(
+      plan.actions[i],
+      results[i]
+    );
+
+  console.log(
+    "OBS CREATED:",
+    JSON.stringify(
+      obs,
+      null,
+      2
+    )
+  );
+
+  observations.push(obs);
+}
 
       socket.send(
         JSON.stringify({

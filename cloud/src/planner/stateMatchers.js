@@ -30,44 +30,7 @@ export function matchNavigation(
   return null;
 }
 
-export function matchSearch(
-  intent,
-  observation
-) {
 
-  if (
-    intent?.type !==
-    "search"
-  ) {
-    return null;
-  }
-
-  const text = `
-    ${observation?.pageState?.title || ""}
-    ${observation?.pageState?.url || ""}
-    ${observation?.pageState?.text || ""}
-  `.toLowerCase();
-
-  const terms =
-    intent?.entities || [];
-
-  const matches =
-    terms.filter(term =>
-      text.includes(term)
-    );
-
-  if (matches.length > 0) {
-
-    return {
-      achieved: true,
-      reason:
-        "search_match",
-      matches
-    };
-  }
-
-  return null;
-}
 
 export function matchLogin(
   intent,
@@ -209,11 +172,19 @@ export function matchReadPage(
     return null;
   }
 
-  return {
-    achieved: true,
-    reason:
-      "page_read"
-  };
+  if (
+    intent?.type ===
+    "generic"
+  ) {
+
+    return {
+      achieved: true,
+      reason:
+        "page_read"
+    };
+  }
+
+  return null;
 }
 
 export function matchEvents(

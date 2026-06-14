@@ -40,7 +40,7 @@ export function parseGoal(
     "an",
     "of",
     "in",
-    "on"
+    "on",
   ]);
 
   const words =
@@ -146,7 +146,13 @@ export function parseGoal(
       break;
     }
   }
-intent.originalGoal =
-  goal;
+  if (
+    !intent.target &&
+    intent.entities.length === 1
+  ) {
+
+    intent.target =
+      intent.entities[0];
+  }
   return intent;
 }

@@ -1,6 +1,5 @@
 import {
   matchNavigation,
-  matchSearch,
   matchLogin,
   matchVideo,
   matchComments,
@@ -41,8 +40,6 @@ export function verifyState({
     matchReadPage,
 
     matchLogin,
-
-    matchSearch,
 
     matchVideo,
 
