@@ -1,8 +1,5 @@
 import {
   matchNavigation,
-  matchLogin,
-  matchVideo,
-  matchComments,
   matchFormFill,
   matchTabSwitch,
   matchReadPage
@@ -38,12 +35,6 @@ export function verifyState({
     matchTabSwitch,
 
     matchReadPage,
-
-    matchLogin,
-
-    matchVideo,
-
-    matchComments,
 
     matchNavigation
   ];

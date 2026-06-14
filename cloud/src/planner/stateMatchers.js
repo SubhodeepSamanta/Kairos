@@ -3,27 +3,16 @@ export function matchNavigation(
   observation
 ) {
 
-  const text = `
-    ${observation?.after?.url || ""}
-    ${observation?.pageState?.url || ""}
-    ${observation?.pageState?.title || ""}
-  `.toLowerCase();
-
-  const terms =
-    intent?.entities || [];
-
-  const matches =
-    terms.filter(term =>
-      text.includes(term)
-    );
-
-  if (matches.length > 0) {
+  if (
+    observation?.expected ===
+      "page_loaded" &&
+    observation?.success
+  ) {
 
     return {
       achieved: true,
       reason:
-        "navigation_match",
-      matches
+        "page_loaded"
     };
   }
 
@@ -31,96 +20,6 @@ export function matchNavigation(
 }
 
 
-
-export function matchLogin(
-  intent,
-  observation
-) {
-
-  if (
-    intent?.type !==
-    "authenticate"
-  ) {
-    return null;
-  }
-
-  const url = (
-    observation?.pageState?.url ||
-    observation?.after?.url ||
-    ""
-  ).toLowerCase();
-
-  if (
-    url.includes("login") ||
-    url.includes("signin") ||
-    url.includes("sign-in")
-  ) {
-
-    return {
-      achieved: true,
-      reason:
-        "login_page_detected"
-    };
-  }
-
-  return null;
-}
-
-export function matchVideo(
-  intent,
-  observation
-) {
-
-  if (
-    intent?.type !==
-    "media"
-  ) {
-    return null;
-  }
-
-  const url = (
-    observation?.pageState?.url ||
-    observation?.after?.url ||
-    ""
-  ).toLowerCase();
-
-  if (
-    url.includes("/watch")
-  ) {
-
-    return {
-      achieved: true,
-      reason:
-        "video_detected"
-    };
-  }
-
-  return null;
-}
-
-export function matchComments(
-  intent,
-  observation
-) {
-
-  const text = (
-    observation?.pageState?.text ||
-    ""
-  ).toLowerCase();
-
-  if (
-    text.includes("comments")
-  ) {
-
-    return {
-      achieved: true,
-      reason:
-        "comments_detected"
-    };
-  }
-
-  return null;
-}
 
 export function matchFormFill(
   intent,
