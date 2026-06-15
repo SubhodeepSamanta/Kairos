@@ -16,6 +16,17 @@ export async function createReplan({
 
   const intent =
   getAgentState().intent;
+ const currentTask =
+  goal.tasks[
+    goal.currentTask
+  ];
+
+if (!currentTask) {
+
+  throw new Error(
+    "No current task"
+  );
+}
 console.log(
   "REPLAN INTENT:",
   JSON.stringify(
@@ -49,6 +60,14 @@ const systemPrompt =
 Original goal:
 
 ${goal.objective}
+
+Current task:
+
+${JSON.stringify(
+  currentTask,
+  null,
+  2
+)}
 
 Intent:
 

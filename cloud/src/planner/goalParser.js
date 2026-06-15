@@ -151,12 +151,17 @@ export function parseGoal(
     }
   }
   if (
-    !intent.target &&
-    intent.entities.length === 1
-  ) {
+  !intent.target &&
+  intent.entities.length === 1
+) {
 
-    intent.target =
-      intent.entities[0];
-  }
+  intent.target =
+    intent.entities[0];
+}
+
+intent.originalGoal =
+  goal;
+
+return intent;
   return intent;
 }

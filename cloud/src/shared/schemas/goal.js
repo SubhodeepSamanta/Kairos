@@ -1,21 +1,18 @@
-export function createGoal(
-  objective
-) {
-
+export function createGoal(objective) {
   return {
-  id: crypto.randomUUID(),
+    id: crypto.randomUUID(),
 
-  objective,
+    objective,
 
-  intent: null,
+    intent: null,
 
-  tasks: [],
+    tasks: [],
 
-  currentTask: 0,
+    currentTask: 0,
 
-  status: "pending",
+    status: "pending",
 
-  createdAt:
-    new Date().toISOString()
-};
+    createdAt:
+      new Date().toISOString()
+  };
 }

@@ -102,11 +102,41 @@ if (
       2
     )
   );
-  const response =
-    await askLLM(
-      systemPrompt,
-      JSON.stringify(intent)
+const currentTask =
+  goal.tasks[
+    goal.currentTask
+  ];
+
+if (!currentTask) {
+
+  console.log(
+    "NO CURRENT TASK"
+  );
+
+  return createPlan(
+    goal.id,
+    []
+  );
+}
+
+console.log(
+  "CURRENT TASK:",
+  JSON.stringify(
+    currentTask,
+    null,
+    2
+  )
+);
+
+const response =
+  await askLLM(
+    systemPrompt,
+    JSON.stringify(
+      currentTask,
+      null,
+      2
     )
+  );
 
   console.log(
     "PLANNER RESPONSE:",

@@ -23,8 +23,6 @@ export function routeMessage(message) {
     "updates",
     "happening",
     "happened",
-    "summarize",
-    "summary",
     "article",
     "articles",
     "docs",

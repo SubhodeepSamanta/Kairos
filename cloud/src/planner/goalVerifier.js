@@ -1,6 +1,8 @@
 import { askLLM } from "../llm/provider.js";
 
 export async function verifyGoal({
+  goal,
+  task,
   intent,
   observation,
   observations
@@ -35,8 +37,15 @@ or
   "achieved": false
 }`,
 JSON.stringify({
+  goal:
+    goal?.objective,
+
+  task,
+
   intent,
+
   observation,
+
   observations
 })
 );

@@ -2,9 +2,7 @@ export const TASK_STATUS = {
   PENDING: "pending",
   RUNNING: "running",
   COMPLETED: "completed",
-  FAILED: "failed",
-  BLOCKED: "blocked",
-  WAITING_FOR_USER: "waiting_for_user"
+  FAILED: "failed"
 };
 
 export function createTask({
@@ -14,27 +12,26 @@ export function createTask({
   dependsOn = []
 }) {
 
-return {
-  id: crypto.randomUUID(),
+  return {
+    id: crypto.randomUUID(),
 
-  intent,
+    intent,
 
-  target,
+    target,
 
-  context,
+    context,
 
-  dependsOn,
+    dependsOn,
 
-  plan: null,
+    plan: null,
 
-  result: null,
+    result: null,
 
-  currentStep: 0,
+    currentStep: 0,
 
-  status:
-    TASK_STATUS.PENDING,
+    status: TASK_STATUS.PENDING,
 
-  createdAt:
-    new Date().toISOString()
-};
+    createdAt:
+      new Date().toISOString()
+  };
 }

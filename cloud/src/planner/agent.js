@@ -27,12 +27,41 @@ import {
   verifyEvents
 } from "./eventVerifier.js";
 import {
-  retrieveRelevantMemories
-} from "../memory/relevant.js";
+  TASK_STATUS
+}
+from "../shared/schemas/task.js";
 import {
   buildTaskGraph
 }
-from "./taskGraph.js";
+from "./taskParser.js";
+
+function completeTask(
+  goal,
+  observation
+) {
+
+  const currentTask =
+    goal.tasks[
+      goal.currentTask
+    ];
+
+  if (currentTask) {
+
+    currentTask.status =
+      TASK_STATUS.COMPLETED;
+
+    currentTask.result =
+      observation;
+  }
+
+  goal.currentTask++;
+
+  return (
+    goal.currentTask >=
+    goal.tasks.length
+  );
+}
+
 export async function runAgent({
     goal,
     executePlan
@@ -47,11 +76,20 @@ goal.intent =
   intent;
 
 goal.tasks =
-  buildTaskGraph(
-    intent
+  await buildTaskGraph(
+    goal
   );
-setIntent(intent);
+console.log(
+  "TASK GRAPH:",
+  JSON.stringify(
+    goal.tasks,
+    null,
+    2
+  )
+);
+goal.currentTask = 0;
 
+setIntent(intent);
 console.log(
   "INTENT:",
   JSON.stringify(
@@ -90,7 +128,10 @@ console.log(
         console.log(
             `Attempt ${attempt + 1}`
         );
-
+goal.tasks[
+  goal.currentTask
+].status =
+  TASK_STATUS.RUNNING;
         const result =
             await executePlan(plan);
 
@@ -168,11 +209,44 @@ if (
   eventResult?.achieved
 ) {
 
-  console.log(
-    "EVENT VERIFIER SUCCESS:",
-    eventResult
-  );
+  const finished =
+    completeTask(
+      goal,
+      observation
+    );
 
+if (!finished) {
+
+  plan =
+    await createGoalPlan(
+      goal
+    );
+
+  if (
+    plan.actions.length === 0
+  ) {
+
+    return {
+      success: false,
+      reason: "no_plan_for_task"
+    };
+  }
+
+  setPlan(plan);
+
+  attempt = -1;
+
+  continue;
+}
+if (
+  plan.actions.length === 0
+) {
+
+  return {
+    success: false,
+    reason: "no_plan_for_task"
+  };
+}
   return {
     success: true,
     observation
@@ -182,10 +256,35 @@ if (
   stateResult?.achieved
 ) {
 
-  console.log(
-    "STATE VERIFIER SUCCESS:",
-    stateResult
-  );
+  const finished =
+    completeTask(
+      goal,
+      observation
+    );
+
+if (!finished) {
+
+  plan =
+    await createGoalPlan(
+      goal
+    );
+
+  if (
+    plan.actions.length === 0
+  ) {
+
+    return {
+      success: false,
+      reason: "no_plan_for_task"
+    };
+  }
+
+  setPlan(plan);
+
+  attempt = -1;
+
+  continue;
+}
 
   return {
     success: true,
@@ -199,13 +298,38 @@ const ruleResult =
   );
 
 if (
-  ruleResult &&
-  ruleResult.achieved
+  ruleResult?.achieved
 ) {
 
-  console.log(
-    "RULE VERIFIER SUCCESS"
-  );
+  const finished =
+    completeTask(
+      goal,
+      observation
+    );
+
+if (!finished) {
+
+  plan =
+    await createGoalPlan(
+      goal
+    );
+
+  if (
+    plan.actions.length === 0
+  ) {
+
+    return {
+      success: false,
+      reason: "no_plan_for_task"
+    };
+  }
+
+  setPlan(plan);
+
+  attempt = -1;
+
+  continue;
+}
 
   return {
     success: true,
@@ -234,28 +358,48 @@ const compactObservation = {
 };
 
 const verification =
-  await verifyGoal({
-    intent,
-    observation:
-      compactObservation,
-    observations:
-      compactObservation
-  });
+await verifyGoal({
+  goal,
+  task:goal.tasks[goal.currentTask],
+  intent,
+  observation:compactObservation,
+  observations:compactObservations
+});
 
   console.log(
     "GOAL VERIFICATION:",
     verification
   );
 
-  if (
-    verification.achieved
-  ) {
+if (
+  verification.achieved
+) {
 
-    return {
-      success: true,
+  const finished =
+    completeTask(
+      goal,
       observation
-    };
-  }
+    );
+
+if (!finished) {
+
+  plan =
+    await createGoalPlan(
+      goal
+    );
+
+  setPlan(plan);
+
+  attempt = -1;
+
+  continue;
+}
+
+  return {
+    success: true,
+    observation
+  };
+}
 
   console.log(
     "Goal verification failed"
