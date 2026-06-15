@@ -17,17 +17,19 @@ export async function createSnapshot() {
     getCurrentPage();
 
   try {
-
+    const context = page.context();
     return {
       url: page.url(),
-      title: await page.title()
+      title: await page.title(),
+      tabCount: context.pages().length
     };
 
   } catch {
 
     return {
       url: null,
-      title: null
+      title: null,
+      tabCount: 0
     };
   }
 }

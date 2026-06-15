@@ -63,6 +63,23 @@ const systemPrompt =
   browserContext
 );
   
+const summary = {
+  lastAction:
+    goal.world?.lastAction,
+
+  lastOutcome:
+    goal.world?.lastOutcome,
+
+  lastUrl:
+    goal.world?.lastUrl,
+
+  lastTitle:
+    goal.world?.lastTitle,
+
+  failedActions:
+    goal.world?.failedActionHistory?.slice(-5)
+};
+  
   const userPrompt = `
 Original goal:
 
@@ -78,7 +95,7 @@ ${JSON.stringify(
 
 World state:
 
-${JSON.stringify(goal.world, null, 2)}
+${JSON.stringify(summary, null, 2)}
 
 Previous plan:
 

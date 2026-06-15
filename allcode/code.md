@@ -1,436 +1,483 @@
 
 ## File List
 
-- [cloud/src/planner/planner.js](file:///c:/Users/USER/Desktop/Kairos/cloud/src/planner/planner.js)
-- [cloud/src/planner/replanner.js](file:///c:/Users/USER/Desktop/Kairos/cloud/src/planner/replanner.js)
-- [cloud/src/planner/prompt/systemPrompt.js](file:///c:/Users/USER/Desktop/Kairos/cloud/src/planner/prompt/systemPrompt.js)
+- [client/src/automation/browser/actions/snapshot.js](file:///c:/Users/USER/Desktop/Kairos/client/src/automation/browser/actions/snapshot.js)
+- [client/src/automation/browser/actions/click.js](file:///c:/Users/USER/Desktop/Kairos/client/src/automation/browser/actions/click.js)
+- [cloud/src/agent/worldModel.js](file:///c:/Users/USER/Desktop/Kairos/cloud/src/agent/worldModel.js)
 
 ## Contents
 
-### cloud/src/planner/planner.js
+### client/src/automation/browser/actions/snapshot.js
 
 ```javascript
-import { askLLM } from "../llm/provider.js";
-import { createPlan } from "../shared/schemas/plan.js";
-import { buildSystemPrompt } from "./prompts/systemPrompt.js";
-import { validatePlan } from "./validator.js";
 import {
-  retrieveRelevantMemories
-} from "../memory/relevant.js";
-import {
-  getWorldSummary
-} from "../agent/worldModel.js";
+  getCurrentPage,
+  isBrowserOpen
+} from "../browser.js";
 
+export async function createSnapshot() {
 
+  if (!isBrowserOpen()) {
 
-import {
-  buildBrowserContext,
-  buildRelevantBrowserContext
-} from "../agent/context.js";
+    return {
+      url: null,
+      title: null
+    };
+  }
 
-export async function createGoalPlan(goal) {
-
-  const currentTask =
-    goal.tasks[
-      goal.currentTask
-    ];
-
-  const memoryContext =
-    await retrieveRelevantMemories(
-      currentTask
-    );
-  console.log(
-    "MEMORY CONTEXT:\n",
-    memoryContext
-  );
-  const browserContext =
-    buildRelevantBrowserContext(
-      currentTask
-    );
-if (
-  !browserContext.trim()
-) {
-
-  console.log(
-    "EMPTY BROWSER CONTEXT"
-  );
-}
-  const worldContext =
-    getWorldSummary(
-      goal
-    );
-  const systemPrompt =
-    buildSystemPrompt(
-      currentTask,
-      memoryContext,
-      browserContext,
-      worldContext
-    );
-
-  console.log(
-    "CURRENT TASK:",
-    JSON.stringify(
-      currentTask,
-      null,
-      2
-    )
-  );
-  console.log(
-    "BROWSER CONTEXT:\n",
-    browserContext
-  );
-  console.log(
-    "MEMORY CHARS:",
-    memoryContext.length
-  );
-
-  console.log(
-    "BROWSER CHARS:",
-    browserContext.length
-  );
-
-  console.log(
-    "SYSTEM PROMPT CHARS:",
-    systemPrompt.length
-  );
-  console.log(
-    "SYSTEM CHARS:",
-    systemPrompt.length
-  );
-
-  console.log(
-    "GOAL CHARS:",
-    goal.objective.length
-  );
-
-  console.log(
-    "TOTAL CHARS:",
-    systemPrompt.length +
-    goal.objective.length
-  );
-
-  console.log(
-    "TASK:",
-    JSON.stringify(
-      currentTask,
-      null,
-      2
-    )
-  );
-if (!currentTask) {
-
-  console.log(
-    "NO CURRENT TASK"
-  );
-
-  return createPlan(
-    goal.id,
-    []
-  );
-}
-
-  const latestObs = goal.world?.history?.[goal.world.history.length - 1]?.observation;
-  const browser = latestObs?.pageState || latestObs || {};
-  
-  const userPrompt = JSON.stringify({
-    task: {
-      id: currentTask.id,
-      objective: currentTask.objective,
-      successCriteria: currentTask.successCriteria
-    },
-    lastAction: goal.world?.lastAction || null,
-    lastOutcome: goal.world?.lastOutcome || null,
-    browserState: {
-      url: browser.url || goal.world?.lastUrl || "",
-      title: browser.title || goal.world?.lastTitle || "",
-      inputs: browser.inputs || [],
-      buttons: browser.buttons || [],
-      links: browser.links || [],
-      forms: browser.forms || []
-    }
-  }, null, 2);
-
-const response =
-  await askLLM(
-    systemPrompt,
-    userPrompt
-  );
-
-  console.log(
-    "PLANNER RESPONSE:",
-    response
-  );
-
-  console.log(
-    "RAW LLM RESPONSE:",
-    response
-  );
-
-  return parsePlanResponse(
-    goal.id,
-    response
-  );
-}
-
-export function parsePlanResponse(goalId, response) {
-  let parsed;
+  const page =
+    getCurrentPage();
 
   try {
-    parsed = JSON.parse(
-      extractJson(response)
-    );
-    console.log(
-      "PARSED:",
-      JSON.stringify(
-        parsed,
-        null,
-        2
-      )
-    );
-    if (
-      Array.isArray(parsed)
-    ) {
+    const context = page.context();
+    return {
+      url: page.url(),
+      title: await page.title(),
+      tabCount: context.pages().length
+    };
 
-      parsed = {
-        actions: parsed
-      };
-    }
-    if (
-      parsed.type &&
-      parsed.params
-    ) {
+  } catch {
 
-      parsed = {
-        actions: [parsed]
-      };
-    }
+    return {
+      url: null,
+      title: null,
+      tabCount: 0
+    };
   }
-
-  catch {
-    return createPlan(goalId, []);
-  }
-
-  if (
-    !parsed || !Array.isArray(parsed.actions)
-  ) {
-    return createPlan(goalId, []);
-  }
-
-  const validated = validatePlan(parsed);
-
-  console.log(
-    "VALIDATED ACTIONS:",
-    JSON.stringify(
-      validated.actions,
-      null,
-      2
-    )
-  );
-
-  return createPlan(
-    goalId,
-    validated.actions
-  );
-}
-
-function extractJson(text) {
-
-  const arrayStart =
-    text.indexOf("[");
-
-  const objectStart =
-    text.indexOf("{");
-
-  if (
-    arrayStart !== -1 &&
-    (
-      objectStart === -1 ||
-      arrayStart < objectStart
-    )
-  ) {
-
-    const end =
-      text.lastIndexOf("]");
-
-    return text.slice(
-      arrayStart,
-      end + 1
-    );
-  }
-
-  const end =
-    text.lastIndexOf("}");
-
-  return text.slice(
-    objectStart,
-    end + 1
-  );
 }
 ```
 
-### cloud/src/planner/replanner.js
+### client/src/automation/browser/actions/click.js
 
 ```javascript
-import { askLLM } from "../llm/provider.js";
-import { buildSystemPrompt } from "./prompts/systemPrompt.js";
-
+import { getPage } from "../browser.js";
 import {
-  buildRelevantBrowserContext
-} from "../agent/context.js";
-import { retrieveRelevantMemories } from "../memory/relevant.js";
-import { getAgentState } from "../agent/state.js";
-import {
-  getWorldSummary
-} from "../agent/worldModel.js";
+  getElement
+} from "../elements/registry.js";
 
-export async function createReplan({
-  goal,
-  previousPlan,
-  observation,
-  observations
-}) {
+export async function clickText(
+  text,
+  element
+) {
 
- const currentTask =
-  goal.tasks[
-    goal.currentTask
-  ];
+  const page =
+    await getPage();
 
-if (!currentTask) {
+  const context = page.context();
+  const pagesBefore = context.pages().length;
 
-  throw new Error(
-    "No current task"
-  );
-}
-console.log(
-  "REPLAN TASK:",
-  JSON.stringify(
-    currentTask,
-    null,
-    2
-  )
-);
-  const memoryContext =
-  await retrieveRelevantMemories(
-    currentTask
-  );
+  if (element) {
 
-const browserContext =
-  buildRelevantBrowserContext(
-    currentTask
-  );
+    const locator =
+      getElement(
+        element
+      );
 
-const worldContext =
-  getWorldSummary(
-    goal
-  );
+    if (!locator) {
 
-const systemPrompt =
-  buildSystemPrompt(
-    currentTask,
-    memoryContext,
-    browserContext,
-    worldContext
-  );
+      return {
+        success: false,
+        reason:
+          `Unknown element ${element}`
+      };
+    }
+
+    await locator.click();
+
+    await Promise.race([
+      page.waitForNavigation({
+        timeout: 5000
+      }),
+      page.waitForLoadState(
+        "networkidle",
+        {
+          timeout: 5000
+        }
+      )
+    ]).catch(() => {});
+
+    await page
+      .waitForLoadState(
+        "domcontentloaded",
+        {
+          timeout: 3000
+        }
+      )
+      .catch(() => {});
+
+    await page.waitForTimeout(1000);
+    const pagesAfter = context.pages().length;
+
+    return {
+      success: true,
+      clicked:
+        `element ${element}`,
+      newTabOpened: pagesAfter > pagesBefore
+    };
+  }
+
+  const elements =
+    page.locator(
+`
+button,
+a,
+input[type='submit'],
+input[type='button'],
+[role='button'],
+[aria-label]
+`
+    );
+
+  const count =
+    await elements.count();
+
+  let target =
+    null;
+
+  for (
+    let i = 0;
+    i < count;
+    i++
+  ) {
+
+    const candidate =
+      elements.nth(i);
+
+    const visible =
+      await candidate
+        .isVisible()
+        .catch(() => false);
+
+    if (!visible) {
+      continue;
+    }
+
+    const textContent =
+      (
+        await candidate
+          .innerText()
+          .catch(() => "") ||
+
+        await candidate
+          .getAttribute(
+            "aria-label"
+          )
+          .catch(() => "") ||
+
+        ""
+      )
+      .trim()
+      .toLowerCase();
+
+    const targetText =
+      text.toLowerCase();
+
+    if (
+      textContent ===
+        targetText ||
+
+      textContent.startsWith(
+        targetText + " "
+      )
+    ) {
+
+      target =
+        candidate;
+
+      break;
+    }
+  }
+
+  if (!target) {
+
+    return {
+      success: false,
+      reason:
+        `Could not find ${text}`
+    };
+  }
+
   console.log(
-  "REPLAN BROWSER CONTEXT:\n",
-  browserContext
-);
-  
-  const userPrompt = `
-Original goal:
-
-${goal.objective}
-
-Current task:
-
-${JSON.stringify(
-  currentTask,
-  null,
-  2
-)}
-
-World state:
-
-${JSON.stringify(goal.world, null, 2)}
-
-Previous plan:
-
-${JSON.stringify(
-    previousPlan,
-    null,
-    2
-  )}
-
-Recent observations:
-
-${JSON.stringify(
-    observations.slice(-3),
-    null,
-    2
-  )}
-
-Latest observation:
-
-${JSON.stringify(
-    observation,
-    null,
-    2
-  )}
-The previous plan did not achieve the goal.
-
-Analyze why it failed.
-
-Use the observation data to create a better plan.
-
-If a click failed:
-- inspect available buttons
-- inspect available links
-- inspect available inputs
-
-If navigation failed:
-- try another route
-
-If the page changed unexpectedly:
-- adapt to the current page
-
-Never repeat the exact action that just failed.
-
-If the failed action was:
-{
-  "type":"click",
-  "params":{"text":"banana"}
-}
-
-do not return another click on banana.
-
-Instead:
-- inspect the page
-- choose a different action
-- or conclude the goal cannot currently be achieved
-
-Return ONLY valid JSON.
-`;
-  console.log(
-    "SYSTEM CHARS:",
-    systemPrompt.length
+    "CLICKING:",
+    text
   );
 
-  console.log(
-    "GOAL CHARS:",
-    goal.objective.length
-  );
+  await target.click();
 
-  console.log(
-    "TOTAL CHARS:",
-    systemPrompt.length +
-    goal.objective.length
-  );
-  
-  return askLLM(systemPrompt, userPrompt);
+  await Promise.race([
+    page.waitForNavigation({
+      timeout: 5000
+    }),
+    page.waitForLoadState(
+      "networkidle",
+      {
+        timeout: 5000
+      }
+    )
+  ]).catch(() => {});
+
+  await page
+    .waitForLoadState(
+      "domcontentloaded",
+      {
+        timeout: 3000
+      }
+    )
+    .catch(() => {});
+
+  await page.waitForTimeout(1000);
+  const pagesAfter = context.pages().length;
+
+  return {
+    success: true,
+    clicked: text,
+    newTabOpened: pagesAfter > pagesBefore
+  };
 }
 ```
 
-### cloud/src/planner/prompt/systemPrompt.js (Error Reading File)
+### cloud/src/agent/worldModel.js
 
-Could not read file: ENOENT: no such file or directory, open 'C:\Users\USER\Desktop\Kairos\cloud\src\planner\prompt\systemPrompt.js'
+```javascript
+
+export function updateWorldModel(
+  goal,
+  observation
+) {
+
+  const world =
+    goal.world;
+
+  if (!world) return;
+
+  world.history.push({
+    timestamp:
+      Date.now(),
+    observation: {
+      success:
+        observation?.success,
+      url:
+        observation?.url,
+      title:
+        observation?.title,
+      action:
+        observation?.action,
+      pageState:
+        observation?.pageState
+          ? {
+              url:
+                observation.pageState.url,
+              title:
+                observation.pageState.title
+            }
+          : null,
+      events:
+        observation?.events || [],
+      reason:
+        observation?.reason || null
+    }
+  });
+
+  if (world.history.length > 50) {
+    world.history =
+      world.history.slice(-50);
+  }
+
+  if (
+    observation?.pageState?.url ||
+    observation?.url
+  ) {
+    world.lastUrl =
+      observation?.pageState?.url ||
+      observation?.url;
+  }
+
+  if (
+    observation?.pageState?.title ||
+    observation?.title
+  ) {
+    world.lastTitle =
+      observation?.pageState?.title ||
+      observation?.title;
+  }
+
+  // Record action outcomes and failures
+  if (observation?.action) {
+    world.lastAction = observation.action;
+    
+    // Page unchanged outcome check
+    const historyLen = world.history.length;
+    let outcome = "success";
+    if (observation.success === false) {
+      outcome = observation.reason || "failed";
+    } else if (historyLen >= 2) {
+      const prevObs = world.history[historyLen - 2]?.observation;
+      const prevUrl = prevObs?.url;
+      const prevTitle = prevObs?.title;
+      const currentUrl = observation.url || observation.pageState?.url;
+      const currentTitle = observation.title || observation.pageState?.title;
+      
+      if (prevUrl === currentUrl && prevTitle === currentTitle) {
+        outcome = "page unchanged";
+      }
+    }
+    
+    world.lastOutcome = outcome;
+
+    if (outcome !== "success") {
+      world.failedActionHistory.push({
+        action: observation.action,
+        reason: outcome,
+        timestamp: Date.now()
+      });
+      if (world.failedActionHistory.length > 20) {
+        world.failedActionHistory = world.failedActionHistory.slice(-20);
+      }
+    }
+  }
+}
+
+export function recordCompletedTask(
+  goal,
+  task
+) {
+
+  if (!goal.world) return;
+
+  goal.world.completedTasks.push({
+    id: task.id,
+    objective: task.objective,
+    completedAt: Date.now()
+  });
+}
+
+export function recordFailedTask(
+  goal,
+  task,
+  reason
+) {
+
+  if (!goal.world) return;
+
+  goal.world.failedTasks.push({
+    id: task.id,
+    objective: task.objective,
+    reason,
+    failedAt: Date.now()
+  });
+}
+
+export function addFinding(
+  goal,
+  finding
+) {
+
+  if (!goal.world) return;
+
+  goal.world.findings.push({
+    ...finding,
+    discoveredAt: Date.now()
+  });
+}
+
+export function addEntity(
+  goal,
+  entity
+) {
+
+  if (!goal.world) return;
+
+  goal.world.entities.push({
+    ...entity,
+    discoveredAt: Date.now()
+  });
+}
+
+export function getWorldSummary(
+  goal
+) {
+
+  if (!goal.world) return "";
+
+  const w = goal.world;
+
+  const parts = [];
+
+  if (w.lastUrl) {
+    parts.push(
+      `Current URL: ${w.lastUrl}`
+    );
+  }
+
+  if (w.lastTitle) {
+    parts.push(
+      `Current Title: ${w.lastTitle}`
+    );
+  }
+
+  if (w.completedTasks.length > 0) {
+    parts.push(
+      `Completed tasks: ${
+        w.completedTasks.map(
+          t => `${t.objective}`
+        ).join(", ")
+      }`
+    );
+  }
+
+  if (w.failedTasks.length > 0) {
+    parts.push(
+      `Failed tasks: ${
+        w.failedTasks.map(
+          t => `${t.objective}: ${t.reason}`
+        ).join(", ")
+      }`
+    );
+  }
+
+  if (w.findings.length > 0) {
+    parts.push(
+      `Findings: ${
+        w.findings.map(
+          f => JSON.stringify(f)
+        ).join(", ")
+      }`
+    );
+  }
+
+  if (w.entities.length > 0) {
+    parts.push(
+      `Entities: ${
+        w.entities.map(
+          e => JSON.stringify(e)
+        ).join(", ")
+      }`
+    );
+  }
+
+  if (w.lastAction) {
+    parts.push(
+      `Last Action: ${JSON.stringify(w.lastAction)}`
+    );
+  }
+
+  if (w.lastOutcome) {
+    parts.push(
+      `Last Action Outcome: ${w.lastOutcome}`
+    );
+  }
+
+  if (w.failedActionHistory.length > 0) {
+    parts.push(
+      `Failed Actions: ${
+        w.failedActionHistory.map(
+          f => `${f.action.type}(${JSON.stringify(f.action.params)}): ${f.reason}`
+        ).join(", ")
+      }`
+    );
+  }
+
+  return parts.join("\n");
+}
+```
 

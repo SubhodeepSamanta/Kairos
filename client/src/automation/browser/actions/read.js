@@ -258,33 +258,38 @@ const text = await page.evaluate(() => {
     .trim()
     .slice(0, 2000);
 });
+
+  const cappedButtons = buttons.slice(0, 20);
+  const cappedInputs = inputs.slice(0, 10);
+  const cappedLinks = links.slice(0, 20);
+
   updateBrowserContext({
     title,
     url,
-    buttons,
-    inputs,
-    links,
+    buttons: cappedButtons,
+    inputs: cappedInputs,
+    links: cappedLinks,
     forms,
     text
   });
-console.log("BUTTONS:", buttons);
+console.log("BUTTONS:", cappedButtons);
 console.log(
   "INPUTS:",
   JSON.stringify(
-    inputs,
+    cappedInputs,
     null,
     2
   )
 );
-console.log("LINKS:", links);
+console.log("LINKS:", cappedLinks);
 console.log("FORMS:", forms);
   return {
     success: true,
     title,
     url,
-    buttons,
-    inputs,
-    links,
+    buttons: cappedButtons,
+    inputs: cappedInputs,
+    links: cappedLinks,
     forms,
     text
   };

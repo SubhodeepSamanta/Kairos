@@ -77,6 +77,20 @@ export async function executePlan(plan) {
     const result =
       await executeAction(action);
 
+    if (
+      action.type === ACTIONS.PRESS_KEY
+    ) {
+      const page =
+        getCurrentPage();
+      try {
+        await page.waitForLoadState(
+          "domcontentloaded",
+          { timeout: 3000 }
+        );
+      } catch {}
+      await page.waitForTimeout(500);
+    }
+
     const after =
       await createSnapshot();
 
@@ -87,7 +101,11 @@ export async function executePlan(plan) {
 
       before.url !== after.url ||
 
-      before.title !== after.title;
+      before.title !== after.title ||
+
+      before.tabCount !== after.tabCount ||
+
+      result.newTabOpened === true;
 
     const forceReadActions = [
 
@@ -99,7 +117,9 @@ export async function executePlan(plan) {
 
       ACTIONS.REFRESH,
 
-      ACTIONS.SWITCH_TAB
+      ACTIONS.SWITCH_TAB,
+
+      ACTIONS.PRESS_KEY
     ];
 
     const shouldRead =

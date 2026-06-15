@@ -7,8 +7,8 @@ export async function askLLM(
   userPrompt
 ) {
   const providers = [
-    askOpenRouter,
     askGroq,
+    askOpenRouter,
     askNvidia
   ];
 

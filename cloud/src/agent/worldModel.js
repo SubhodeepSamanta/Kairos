@@ -22,7 +22,14 @@ export function updateWorldModel(
       action:
         observation?.action,
       pageState:
-        observation?.pageState || null,
+        observation?.pageState
+          ? {
+              url:
+                observation.pageState.url,
+              title:
+                observation.pageState.title
+            }
+          : null,
       events:
         observation?.events || [],
       reason:

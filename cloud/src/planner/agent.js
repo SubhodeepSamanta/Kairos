@@ -147,6 +147,11 @@ goal.tasks[
         const result =
             await executePlan(plan);
 
+        console.log(
+          "EXECUTE RESULT:",
+          JSON.stringify(result, null, 2)
+        );
+
         const observations =
             result.observations || [];
 
@@ -187,10 +192,12 @@ updateWorldModel(
   goal,
   observation
 );
-console.log(
-  "WORLD STATE UPDATE:",
-  JSON.stringify(goal.world, null, 2)
-);
+console.log("WORLD:", {
+  history: goal.world?.history?.length || 0,
+  url: goal.world?.lastUrl,
+  title: goal.world?.lastTitle,
+  lastOutcome: goal.world?.lastOutcome
+});
 const compactObservation = {
   success:
     observation?.success,

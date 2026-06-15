@@ -11,6 +11,9 @@ export async function clickText(
   const page =
     await getPage();
 
+  const context = page.context();
+  const pagesBefore = context.pages().length;
+
   if (element) {
 
     const locator =
@@ -50,10 +53,14 @@ export async function clickText(
       )
       .catch(() => {});
 
+    await page.waitForTimeout(1000);
+    const pagesAfter = context.pages().length;
+
     return {
       success: true,
       clicked:
-        `element ${element}`
+        `element ${element}`,
+      newTabOpened: pagesAfter > pagesBefore
     };
   }
 
@@ -166,8 +173,12 @@ input[type='button'],
     )
     .catch(() => {});
 
+  await page.waitForTimeout(1000);
+  const pagesAfter = context.pages().length;
+
   return {
     success: true,
-    clicked: text
+    clicked: text,
+    newTabOpened: pagesAfter > pagesBefore
   };
 }
