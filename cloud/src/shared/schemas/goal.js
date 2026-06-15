@@ -12,6 +12,20 @@ export function createGoal(objective) {
 
     status: "pending",
 
+    world: {
+      entities: [],
+      tabs: [],
+      findings: [],
+      completedTasks: [],
+      failedTasks: [],
+      failedActionHistory: [],
+      lastAction: null,
+      lastOutcome: null,
+      history: [],
+      lastUrl: null,
+      lastTitle: null
+    },
+
     createdAt:
       new Date().toISOString()
   };

@@ -82,6 +82,20 @@ console.log(
 const pageState =
   latestObservation?.pageState;
 
+console.log(
+  "LATEST OBSERVATION:",
+  JSON.stringify(
+    latestObservation,
+    null,
+    2
+  )
+);
+
+console.log(
+  "PAGE STATE FOUND:",
+  !!pageState
+);
+
 if (pageState) {
 
   console.log(

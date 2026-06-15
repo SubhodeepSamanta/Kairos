@@ -6,6 +6,9 @@ import {
 } from "../agent/context.js";
 import { retrieveRelevantMemories } from "../memory/relevant.js";
 import { getAgentState } from "../agent/state.js";
+import {
+  getWorldSummary
+} from "../agent/worldModel.js";
 
 export async function createReplan({
   goal,
@@ -14,8 +17,6 @@ export async function createReplan({
   observations
 }) {
 
-  const intent =
-  getAgentState().intent;
  const currentTask =
   goal.tasks[
     goal.currentTask
@@ -28,28 +29,34 @@ if (!currentTask) {
   );
 }
 console.log(
-  "REPLAN INTENT:",
+  "REPLAN TASK:",
   JSON.stringify(
-    intent,
+    currentTask,
     null,
     2
   )
 );
   const memoryContext =
   await retrieveRelevantMemories(
-    intent
+    currentTask
   );
 
 const browserContext =
   buildRelevantBrowserContext(
-    intent
+    currentTask
+  );
+
+const worldContext =
+  getWorldSummary(
+    goal
   );
 
 const systemPrompt =
   buildSystemPrompt(
-    intent,
+    currentTask,
     memoryContext,
-    browserContext
+    browserContext,
+    worldContext
   );
   console.log(
   "REPLAN BROWSER CONTEXT:\n",
@@ -69,9 +76,9 @@ ${JSON.stringify(
   2
 )}
 
-Intent:
+World state:
 
-${JSON.stringify(intent, null, 2)}
+${JSON.stringify(goal.world, null, 2)}
 
 Previous plan:
 

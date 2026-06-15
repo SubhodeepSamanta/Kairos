@@ -10,19 +10,19 @@ import {
 } from "./stateMatchers.js";
 
 export function verifyState({
-  intent,
+  task,
   observation
 }) {
 
   const browser =
-    observation?.pageState;
+    observation?.pageState || observation;
 
   console.log(
-    "INTENT:",
-    intent
+    "task:",
+    task
   );
 
-  if (!browser) {
+  if (!browser || (!browser.url && !browser.title)) {
     return null;
   }
 
@@ -45,7 +45,7 @@ export function verifyState({
 
     const result =
       matcher(
-        intent,
+        task,
         observation
       );
 

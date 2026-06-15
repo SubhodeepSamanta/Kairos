@@ -90,7 +90,8 @@ export function detectEvents(
     );
   }
 if (
-  result.text
+  result.text &&
+  result.action?.type === "type"
 ) {
 
   events.push(

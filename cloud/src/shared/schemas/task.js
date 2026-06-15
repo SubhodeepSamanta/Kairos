@@ -6,10 +6,14 @@ export const TASK_STATUS = {
 };
 
 export function createTask({
-  intent,
+  intent = null,
+  objective = "",
   target = null,
   context = {},
-  dependsOn = []
+  dependsOn = [],
+  successCriteria = [],
+  requires = [],
+  produces = []
 }) {
 
   return {
@@ -17,11 +21,19 @@ export function createTask({
 
     intent,
 
+    objective,
+
     target,
 
     context,
 
     dependsOn,
+
+    successCriteria,
+
+    requires,
+
+    produces,
 
     plan: null,
 
@@ -34,4 +46,4 @@ export function createTask({
     createdAt:
       new Date().toISOString()
   };
-}
+}

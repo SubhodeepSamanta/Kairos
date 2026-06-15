@@ -16,7 +16,7 @@ export async function readPage() {
 const buttons = [];
 
 const buttonLocators =
-  page.locator("button");
+  page.locator("button:not([disabled])");
 
 const buttonCount =
   await buttonLocators.count();
@@ -74,7 +74,7 @@ const inputs = [];
 
 const inputLocators =
   page.locator(
-    "input, textarea"
+    "input:not([type='hidden']):not([disabled]), textarea:not([disabled])"
   );
 
 const inputCount =
@@ -108,7 +108,10 @@ for (
       el.name || null,
 
     type:
-      el.type || null
+      el.type || null,
+
+    value:
+      el.value || null
 
   }));
 
@@ -122,24 +125,27 @@ for (
     .isEnabled()
     .catch(() => true);
 
-inputs.push({
-  id,
+  inputs.push({
+    id,
 
-  text:
-    metadata.placeholder ||
-    metadata.name ||
-    metadata.type ||
-    "input",
+    text:
+      metadata.placeholder ||
+      metadata.name ||
+      metadata.type ||
+      "input",
 
-  role: "input",
+    value:
+      metadata.value || "",
 
-  placeholder:
-    metadata.placeholder,
+    role: "input",
 
-  visible: true,
+    placeholder:
+      metadata.placeholder,
 
-  enabled
-});
+    visible: true,
+
+    enabled
+  });
 }
 const links = [];
 
@@ -198,6 +204,54 @@ links.push({
 });
 }
 
+const forms = [];
+
+const formLocators =
+  page.locator("form");
+
+const formCount =
+  await formLocators.count();
+
+for (
+  let i = 0;
+  i < formCount;
+  i++
+) {
+
+  const locator =
+    formLocators.nth(i);
+
+  const visible =
+    await locator
+      .isVisible()
+      .catch(() => false);
+
+  if (!visible) {
+    continue;
+  }
+
+  const metadata =
+  await locator.evaluate(el => ({
+    id: el.id || null,
+    action: el.action || null,
+    method: el.method || null,
+    role: el.getAttribute("role") || "form"
+  }));
+
+  const id =
+    registerElement(
+      locator
+    );
+
+  forms.push({
+    id,
+    role: metadata.role,
+    action: metadata.action,
+    method: metadata.method,
+    visible: true
+  });
+}
+
 const text = await page.evaluate(() => {
   return document.body.innerText
     .replace(/\s+/g, " ")
@@ -210,6 +264,7 @@ const text = await page.evaluate(() => {
     buttons,
     inputs,
     links,
+    forms,
     text
   });
 console.log("BUTTONS:", buttons);
@@ -222,6 +277,7 @@ console.log(
   )
 );
 console.log("LINKS:", links);
+console.log("FORMS:", forms);
   return {
     success: true,
     title,
@@ -229,6 +285,7 @@ console.log("LINKS:", links);
     buttons,
     inputs,
     links,
+    forms,
     text
   };
 }

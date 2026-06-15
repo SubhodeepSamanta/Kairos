@@ -38,7 +38,7 @@ export function buildBrowserContext() {
     .slice(0, MAX_INPUTS)
 ) {
       context +=
-        `[${input.id}] ${input.text}\n`;
+        `[${input.id}] ${input.text}${input.value ? ` (value: "${input.value}")` : ""}\n`;
     }
 
     context += "\n";
@@ -71,6 +71,21 @@ export function buildBrowserContext() {
 ) {
       context +=
         `[${link.id}] ${link.text}\n`;
+    }
+
+    context += "\n";
+  }
+
+  if (browser.forms?.length) {
+
+    context += "Forms:\n";
+
+    for (
+  const form of
+  browser.forms
+) {
+      context +=
+        `[${form.id}] role: ${form.role || "form"}, action: ${form.action || ""}, method: ${form.method || ""}\n`;
     }
 
     context += "\n";
@@ -143,7 +158,7 @@ export function buildRelevantBrowserContext(
     ) {
 
       context +=
-        `[${input.id}] ${input.text}\n`;
+        `[${input.id}] ${input.text}${input.value ? ` (value: "${input.value}")` : ""}\n`;
     }
 
     context += "\n";
@@ -176,6 +191,14 @@ export function buildRelevantBrowserContext(
         `[${link.id}] ${link.text}\n`;
     }
 
+    context += "\n";
+  }
+
+  if (browser.forms?.length) {
+    context += "Forms:\n";
+    for (const form of browser.forms) {
+      context += `[${form.id}] role: ${form.role || "form"}, action: ${form.action || ""}, method: ${form.method || ""}\n`;
+    }
     context += "\n";
   }
 

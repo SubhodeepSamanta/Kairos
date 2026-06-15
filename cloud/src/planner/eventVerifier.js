@@ -4,7 +4,7 @@ import {
 } from "./eventMatchers.js";
 
 export function verifyEvents({
-  intent,
+  task,
   observation
 }) {
 
@@ -21,7 +21,7 @@ const matchers = [
 
     const result =
       matcher(
-        intent,
+        task,
         observation
       );
 

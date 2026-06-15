@@ -1,10 +1,68 @@
-export function matchNavigation() {
+export function matchNavigation(task, observation) {
+  const objective = task?.objective?.toLowerCase() || "";
+  const navigationTask =
+    objective.includes("open") ||
+    objective.includes("navigate") ||
+    objective.includes("go to");
+
+  if (!navigationTask) {
+    return null;
+  }
+
+  const action = observation?.action;
+  const currentUrl = observation?.url || observation?.pageState?.url;
+  
+  if (action?.type === "navigate" && action?.params?.url && currentUrl) {
+    try {
+      const targetHost = new URL(action.params.url).hostname.replace("www.", "");
+      const currentHost = new URL(currentUrl).hostname.replace("www.", "");
+      
+      if (currentHost === targetHost || currentUrl.includes(targetHost)) {
+        return {
+          achieved: true,
+          reason: `Programmatic verification: Successfully navigated to host ${targetHost}.`
+        };
+      }
+    } catch (e) {
+      // Fallback to simple substring match if URL parsing fails
+      if (currentUrl.includes(action.params.url)) {
+        return {
+          achieved: true,
+          reason: `Programmatic verification: URL matches target.`
+        };
+      }
+    }
+  }
   return null;
 }
 
-
-
-export function matchFormFill() {
+export function matchFormFill(task, observation) {
+  const action = observation?.action;
+  const pageState = observation?.pageState || observation;
+  
+  const obj = task?.objective?.toLowerCase() || "";
+  if (obj.includes("search") || obj.includes("find") || obj.includes("query")) {
+    return null;
+  }
+  
+  if (action?.type === "type" && action?.params?.text) {
+    const targetElementId = action.params.element;
+    const typedText = action.params.text.toLowerCase().trim();
+    
+    // Find the input element in the page state and check its value
+    const inputs = pageState?.inputs || [];
+    const targetInput = inputs.find(input => input.id === targetElementId);
+    
+    if (targetInput && targetInput.value) {
+      const actualValue = targetInput.value.toLowerCase().trim();
+      if (actualValue.includes(typedText) || typedText.includes(actualValue)) {
+        return {
+          achieved: true,
+          reason: `Programmatic verification: Text successfully entered into input element [${targetElementId}].`
+        };
+      }
+    }
+  }
   return null;
 }
 
@@ -17,7 +75,7 @@ export function matchReadPage() {
 }
 
 export function matchEvents(
-  intent,
+  task,
   observation
 ) {
 
@@ -25,7 +83,7 @@ export function matchEvents(
     observation?.events || [];
 
   if (
-    intent?.type ===
+    task?.intent ===
       "authenticate" &&
     events.includes(
       "login_page_opened"
@@ -40,7 +98,7 @@ export function matchEvents(
   }
 
   if (
-    intent?.type ===
+    task?.intent ===
       "media" &&
     events.includes(
       "video_page_opened"

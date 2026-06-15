@@ -8,8 +8,17 @@ export async function verifyGoal({
   observations
 }) {
 
-  // informational actions
+  if (
+    goal?.tasks?.some(
+      t => t.status !== "completed"
+    )
+  ) {
+    return {
+      achieved: false
+    };
+  }
 
+  // informational actions
   if (
     observation?.action?.type ===
     "get_browser_context"
@@ -21,7 +30,7 @@ export async function verifyGoal({
 
   const response =
     await askLLM(
-`You verify whether a user's goal was achieved.
+      `You verify whether a user's goal was achieved.
 
 Return ONLY valid JSON.
 
@@ -36,19 +45,19 @@ or
 {
   "achieved": false
 }`,
-JSON.stringify({
-  goal:
-    goal?.objective,
+      JSON.stringify({
+        goal:
+          goal?.objective,
 
-  task,
+        task,
 
-  intent,
+        intent,
 
-  observation,
+        observation,
 
-  observations
-})
-);
+        observations
+      })
+    );
 
   try {
 

@@ -24,38 +24,42 @@ Break a user goal into smaller executable tasks.
 Each task must represent a single objective.
 
 Do not generate browser actions.
-
 Do not generate clicks.
-
 Do not generate navigation steps.
-
 Generate semantic tasks only.
+
+Each task MUST include:
+- objective: a clear description of what this task must achieve
+- successCriteria: array of human-readable conditions that prove this task succeeded
+- requires: array of prerequisite conditions (e.g. "youtube_open", "search_results_visible")
+- produces: array of conditions this task creates for downstream tasks
 
 Example:
 
 Goal:
-Find a greek video and summarize it
+Find a greek video and watch it
 
 Response:
 
 {
   "tasks": [
     {
-      "intent": "open_site",
-      "target": "youtube"
+      "objective": "Open YouTube homepage",
+      "successCriteria": ["YouTube homepage is visible"],
+      "requires": [],
+      "produces": ["youtube_open"]
     },
     {
-      "intent": "search",
-      "target": "greek video"
+      "objective": "Search for a greek video on YouTube",
+      "successCriteria": ["search results are visible", "results relate to greek video"],
+      "requires": ["youtube_open"],
+      "produces": ["search_results_visible"]
     },
     {
-      "intent": "open_result"
-    },
-    {
-      "intent": "extract_content"
-    },
-    {
-      "intent": "summarize"
+      "objective": "Open a Greek video from results",
+      "successCriteria": ["a video page is open", "video is playing or ready to play"],
+      "requires": ["search_results_visible"],
+      "produces": ["video_open"]
     }
   ]
 }
@@ -66,8 +70,10 @@ Format:
 {
   "tasks": [
     {
-      "intent": "",
-      "target": "",
+      "objective": "",
+      "successCriteria": [],
+      "requires": [],
+      "produces": [],
       "context": {}
     }
   ]
@@ -90,42 +96,47 @@ const parsed =
       parsed.tasks || []
     ).map(task =>
       createTask({
-        intent:
-          task.intent,
-
-        target:
-          task.target,
+        objective:
+          task.objective,
 
         context:
-          task.context || {}
+          task.context || {},
+
+        successCriteria:
+          task.successCriteria || [],
+
+        requires:
+          task.requires || [],
+
+        produces:
+          task.produces || []
       })
     );
 
-  } catch {
-console.log(
-  "TASK GRAPH:",
-  JSON.stringify(
-    parsed.tasks,
-    null,
-    2
-  )
-);
-    return [
-      createTask({
-        intent:
-          goal.intent.type,
+  } catch (error) {
 
-        target:
-          goal.intent.target,
+  console.error(
+    "TASK PARSE ERROR:",
+    error
+  );
 
-        context: {
-          entities:
-            goal.intent.entities,
+  return [
+    createTask({
+      objective:
+        goal.objective,
 
-          constraints:
-            goal.intent.constraints
-        }
-      })
-    ];
-  }
+      context: {
+        entities:
+          goal.intent.entities,
+
+        constraints:
+          goal.intent.constraints
+      },
+
+      successCriteria: [
+        "goal objective is achieved"
+      ]
+    })
+  ];
 }
+}

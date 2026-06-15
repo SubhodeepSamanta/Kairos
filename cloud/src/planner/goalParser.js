@@ -163,5 +163,4 @@ intent.originalGoal =
   goal;
 
 return intent;
-  return intent;
 }

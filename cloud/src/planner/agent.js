@@ -2,6 +2,13 @@ import { createGoalPlan, parsePlanResponse } from "./planner.js";
 import { createReplan } from "./replanner.js";
 import { verifyGoal }
 from "./goalVerifier.js";
+import { verifyTask }
+from "./taskVerifier.js";
+import {
+  updateWorldModel,
+  recordCompletedTask,
+  recordFailedTask
+} from "../agent/worldModel.js";
 import { isGoalImpossible }
   from "./failureVerifier.js";
   import {
@@ -52,6 +59,11 @@ function completeTask(
 
     currentTask.result =
       observation;
+
+    recordCompletedTask(
+      goal,
+      currentTask
+    );
   }
 
   goal.currentTask++;
@@ -67,7 +79,7 @@ export async function runAgent({
     executePlan
 }) {
 
-    const MAX_RETRIES = 3;
+    const MAX_RETRIES = 10;
 const intent =
   parseGoal(
     goal.objective
@@ -148,9 +160,56 @@ goal.tasks[
             observations[
             observations.length - 1
             ];
+            const compactObservations =
+  observations.map(obs => ({
+    success:
+      obs.success,
+
+    expected:
+      obs.expected,
+
+    actual:
+      obs.actual,
+
+    before:
+      obs.before,
+
+    after:
+      obs.after,
+
+    action:
+      obs.action
+  }));
             setObservation(
   observation
 );
+updateWorldModel(
+  goal,
+  observation
+);
+console.log(
+  "WORLD STATE UPDATE:",
+  JSON.stringify(goal.world, null, 2)
+);
+const compactObservation = {
+  success:
+    observation?.success,
+
+  expected:
+    observation?.expected,
+
+  actual:
+    observation?.actual,
+
+  before:
+    observation?.before,
+
+  after:
+    observation?.after,
+
+  action:
+    observation?.action
+};
             console.log(
   "OBSERVATION SUMMARY:",
   JSON.stringify(
@@ -186,7 +245,7 @@ const allSucceeded =
 
 if (allSucceeded) {
 console.log(
-  "VERIFYING GOAL WITH:",
+  "VERIFYING TASK WITH CRITERIA:",
   JSON.stringify(
     observations,
     null,
@@ -194,97 +253,59 @@ console.log(
   )
 );
 
+const currentTask =
+  goal.tasks[
+    goal.currentTask
+  ];
+
+// Fallback 1: Programmatic State and Event verifiers (highly efficient)
 const stateResult =
   verifyState({
-    intent,
+    task:
+      currentTask,
     observation
   });
 
 const eventResult =
   verifyEvents({
-    intent,
+    task:
+      currentTask,
     observation
   });
+
+console.log("STATE VERIFIED:", stateResult);
+console.log("EVENT VERIFIED:", eventResult);
+
 if (
-  eventResult?.achieved
-) {
-
-  const finished =
-    completeTask(
-      goal,
-      observation
-    );
-
-if (!finished) {
-
-  plan =
-    await createGoalPlan(
-      goal
-    );
-
-  if (
-    plan.actions.length === 0
-  ) {
-
-    return {
-      success: false,
-      reason: "no_plan_for_task"
-    };
-  }
-
-  setPlan(plan);
-
-  attempt = -1;
-
-  continue;
-}
-if (
-  plan.actions.length === 0
-) {
-
-  return {
-    success: false,
-    reason: "no_plan_for_task"
-  };
-}
-  return {
-    success: true,
-    observation
-  };
-}
-if (
+  eventResult?.achieved ||
   stateResult?.achieved
 ) {
-
+  console.log("Programmatic state/event check confirmed achievement.");
   const finished =
     completeTask(
       goal,
       observation
     );
 
-if (!finished) {
+  if (!finished) {
+    plan =
+      await createGoalPlan(
+        goal
+      );
 
-  plan =
-    await createGoalPlan(
-      goal
-    );
+    if (
+      plan.actions.length === 0
+    ) {
+      return {
+        success: false,
+        reason: "no_plan_for_task"
+      };
+    }
 
-  if (
-    plan.actions.length === 0
-  ) {
-
-    return {
-      success: false,
-      reason: "no_plan_for_task"
-    };
+    setPlan(plan);
+    attempt = -1;
+    continue;
   }
-
-  setPlan(plan);
-
-  attempt = -1;
-
-  continue;
-}
 
   return {
     success: true,
@@ -292,44 +313,43 @@ if (!finished) {
   };
 }
 
+// Fallback 2: Rule verifier
 const ruleResult =
   verifyByRules(
     observation
   );
 
+console.log("RULE VERIFIED:", ruleResult);
+
 if (
   ruleResult?.achieved
 ) {
-
+  console.log("Rule check confirmed achievement.");
   const finished =
     completeTask(
       goal,
       observation
     );
 
-if (!finished) {
+  if (!finished) {
+    plan =
+      await createGoalPlan(
+        goal
+      );
 
-  plan =
-    await createGoalPlan(
-      goal
-    );
+    if (
+      plan.actions.length === 0
+    ) {
+      return {
+        success: false,
+        reason: "no_plan_for_task"
+      };
+    }
 
-  if (
-    plan.actions.length === 0
-  ) {
-
-    return {
-      success: false,
-      reason: "no_plan_for_task"
-    };
+    setPlan(plan);
+    attempt = -1;
+    continue;
   }
-
-  setPlan(plan);
-
-  attempt = -1;
-
-  continue;
-}
 
   return {
     success: true,
@@ -337,26 +357,53 @@ if (!finished) {
   };
 }
 
-const compactObservation = {
-  success:
-    observation?.success,
+// Fallback 3: LLM successCriteria-based task verifier (more thorough, more expensive)
+const taskResult =
+  await verifyTask({
+    task: currentTask,
+    observation,
+    world: goal.world
+  });
 
-  expected:
-    observation?.expected,
+console.log(
+  "LLM TASK VERIFICATION:",
+  JSON.stringify(taskResult, null, 2)
+);
 
-  actual:
-    observation?.actual,
+if (taskResult.achieved) {
+  const finished =
+    completeTask(
+      goal,
+      observation
+    );
 
-  before:
-    observation?.before,
+  if (!finished) {
+    plan =
+      await createGoalPlan(
+        goal
+      );
 
-  after:
-    observation?.after,
+    if (
+      plan.actions.length === 0
+    ) {
+      return {
+        success: false,
+        reason: "no_plan_for_task"
+      };
+    }
 
-  action:
-    observation?.action
-};
+    setPlan(plan);
+    attempt = -1;
+    continue;
+  }
 
+  return {
+    success: true,
+    observation
+  };
+}
+
+// Last resort: LLM goal verification
 const verification =
 await verifyGoal({
   goal,
@@ -381,19 +428,17 @@ if (
       observation
     );
 
-if (!finished) {
+  if (!finished) {
 
-  plan =
-    await createGoalPlan(
-      goal
-    );
+    plan =
+      await createGoalPlan(
+        goal
+      );
 
-  setPlan(plan);
-
-  attempt = -1;
-
-  continue;
-}
+    setPlan(plan);
+    attempt = -1;
+    continue;
+  }
 
   return {
     success: true,
@@ -402,8 +447,11 @@ if (!finished) {
 }
 
   console.log(
-    "Goal verification failed"
+    "Task verification failed — replanning for current task"
   );
+  
+  // Replanning for current task, attempt counter will increment
+  // We do NOT call completeTask or advance goal.currentTask.
 }
 
         if (
@@ -419,26 +467,7 @@ if (!finished) {
   };
 }
 
-const compactObservations =
-  observations.map(obs => ({
-    success:
-      obs.success,
 
-    expected:
-      obs.expected,
-
-    actual:
-      obs.actual,
-
-    before:
-      obs.before,
-
-    after:
-      obs.after,
-
-    action:
-      obs.action
-  }));
 
 const impossible =
   await isGoalImpossible({

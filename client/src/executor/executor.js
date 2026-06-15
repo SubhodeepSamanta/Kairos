@@ -75,73 +75,73 @@ export async function executePlan(plan) {
       await createSnapshot();
 
     const result =
-  await executeAction(action);
+      await executeAction(action);
 
-const after =
-  await createSnapshot();
+    const after =
+      await createSnapshot();
 
-result.before = before;
-result.after = after;
+    result.before = before;
+    result.after = after;
 
-const pageChanged =
+    const pageChanged =
 
-  before.url !== after.url ||
+      before.url !== after.url ||
 
-  before.title !== after.title;
+      before.title !== after.title;
 
-const forceReadActions = [
+    const forceReadActions = [
 
-  ACTIONS.NAVIGATE,
+      ACTIONS.NAVIGATE,
 
-  ACTIONS.BACK,
+      ACTIONS.BACK,
 
-  ACTIONS.FORWARD,
+      ACTIONS.FORWARD,
 
-  ACTIONS.REFRESH,
+      ACTIONS.REFRESH,
 
-  ACTIONS.SWITCH_TAB
-];
+      ACTIONS.SWITCH_TAB
+    ];
 
-const shouldRead =
+    const shouldRead =
 
-  pageChanged ||
+      pageChanged ||
 
-  forceReadActions.includes(
-    action.type
-  );
+      forceReadActions.includes(
+        action.type
+      );
 
-if (
-  result.success &&
-  shouldRead
-) {
+    if (
+      result.success &&
+      shouldRead
+    ) {
 
-  const page =
-    getCurrentPage();
+      const page =
+        getCurrentPage();
 
-  try {
+      try {
 
-    await page.waitForLoadState(
-      "domcontentloaded",
-      { timeout: 3000 }
-    );
+        await page.waitForLoadState(
+          "domcontentloaded",
+          { timeout: 3000 }
+        );
 
-  } catch {}
+      } catch { }
 
-  await page.waitForTimeout(
-    500
-  );
+      await page.waitForTimeout(
+        500
+      );
 
-  result.pageState =
-    await readPage();
+      result.pageState =
+        await readPage();
 
-  console.log(
-    "AUTO READ:",
-    action.type,
-    result.pageState?.url
-  );
-}
+      console.log(
+        "AUTO READ:",
+        action.type,
+        result.pageState?.url
+      );
+    }
 
-results.push(result);
+    results.push(result);
   }
 
   return results;
@@ -172,20 +172,20 @@ async function executeAction(action) {
           action.params.url
         );
 
-case ACTIONS.TYPE:
-  return await typeText(
-    action.params.text,
-    action.params.element
-  );
+      case ACTIONS.TYPE:
+        return await typeText(
+          action.params.text,
+          action.params.element
+        );
 
-case ACTIONS.CLICK:
-  return await clickText(
-    action.params.text,
-    action.params.element
-  );
-case ACTIONS.SCREENSHOT:
+      case ACTIONS.CLICK:
+        return await clickText(
+          action.params.text,
+          action.params.element
+        );
+      case ACTIONS.SCREENSHOT:
 
-  return await takeScreenshot();
+        return await takeScreenshot();
       case ACTIONS.READ_UI:
         return await readPage();
 
@@ -203,19 +203,19 @@ case ACTIONS.SCREENSHOT:
         return await refreshPage();
       case ACTIONS.LIST_TABS:
         return await getTabs();
-        case ACTIONS.WAIT:
+      case ACTIONS.WAIT:
 
-  return await waitSeconds(
-    action.params.seconds
-  );
-  case ACTIONS.SCROLL:
+        return await waitSeconds(
+          action.params.seconds
+        );
+      case ACTIONS.SCROLL:
 
-  return await scrollPage(
-    action.params.direction
-  );
-  case ACTIONS.EXTRACT_LINKS:
+        return await scrollPage(
+          action.params.direction
+        );
+      case ACTIONS.EXTRACT_LINKS:
 
-  return await extractLinks();
+        return await extractLinks();
       case ACTIONS.SWITCH_TAB:
 
         return await switchBrowserTab(
@@ -226,18 +226,18 @@ case ACTIONS.SCREENSHOT:
         return await closeBrowserTab(
           action.params.index
         );
-case ACTIONS.PRESS_KEY:
+      case ACTIONS.PRESS_KEY:
 
-  return await pressKey(
-    action.params.key
-  );
+        return await pressKey(
+          action.params.key
+        );
       case ACTIONS.RESTART_BROWSER:
         return await restartCurrentBrowser();
       case ACTIONS.NEW_TAB:
         return await newTab();
-        case ACTIONS.EXTRACT_METADATA:
+      case ACTIONS.EXTRACT_METADATA:
 
-  return await extractMetadata();
+        return await extractMetadata();
       default:
         return {
           success: false,

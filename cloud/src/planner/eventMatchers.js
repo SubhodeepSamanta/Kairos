@@ -1,10 +1,10 @@
 export function matchAuthForm(
-  intent,
+  task,
   observation
 ) {
 
   if (
-    intent?.type ===
+    task?.intent ===
       "authenticate" &&
     observation?.events?.includes(
       "auth_form_detected"
@@ -22,12 +22,12 @@ export function matchAuthForm(
 }
 
 export function matchMediaLoaded(
-  intent,
+  task,
   observation
 ) {
 
   if (
-    intent?.type ===
+    task?.intent ===
       "media" &&
     observation?.pageState?.url
       ?.includes("/watch")
