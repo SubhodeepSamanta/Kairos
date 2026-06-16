@@ -350,18 +350,30 @@ const currentTask =
   ];
 
 // Fallback 1: Programmatic State and Event verifiers (highly efficient)
+const activeTab = activeObservation?.pageState?.activeTab || activeObservation?.activeTab;
+const normalizedObservation = activeTab ? {
+  ...activeObservation,
+  url: activeTab.url,
+  title: activeTab.title,
+  pageState: {
+    ...activeObservation.pageState,
+    url: activeTab.url,
+    title: activeTab.title
+  }
+} : activeObservation;
+
 const stateResult =
   verifyState({
     task:
       currentTask,
-    observation: activeObservation
+    observation: normalizedObservation
   });
 
 const eventResult =
   verifyEvents({
     task:
       currentTask,
-    observation: activeObservation
+    observation: normalizedObservation
   });
 
 console.log("STATE VERIFIED:", stateResult);
@@ -375,7 +387,7 @@ if (
   const finished =
     completeTask(
       goal,
-      activeObservation
+      normalizedObservation
     );
 
   if (!finished) {
@@ -399,14 +411,14 @@ if (
 
   return {
     success: true,
-    observation: activeObservation
+    observation: normalizedObservation
   };
 }
 
 // Fallback 2: Rule verifier
 const ruleResult =
   verifyByRules(
-    activeObservation
+    normalizedObservation
   );
 
 console.log("RULE VERIFIED:", ruleResult);
@@ -418,7 +430,7 @@ if (
   const finished =
     completeTask(
       goal,
-      activeObservation
+      normalizedObservation
     );
 
   if (!finished) {
@@ -442,7 +454,7 @@ if (
 
   return {
     success: true,
-    observation: activeObservation
+    observation: normalizedObservation
   };
 }
 
@@ -450,7 +462,7 @@ if (
 const taskResult =
   await verifyTask({
     task: currentTask,
-    observation: activeObservation,
+    observation: normalizedObservation,
     world: goal.world
   });
 
@@ -463,7 +475,7 @@ if (taskResult.achieved) {
   const finished =
     completeTask(
       goal,
-      activeObservation
+      normalizedObservation
     );
 
   if (!finished) {

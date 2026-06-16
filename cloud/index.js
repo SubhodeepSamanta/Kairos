@@ -1,3 +1,6 @@
+// Activate file logging (writes to allcode/cloud_server.log for live_output.js)
+import "../allcode/cloud_logger.js";
+
 import { env } from "./src/config/env.js";
 
 import { connectDatabase } from "./src/database/connection.js";

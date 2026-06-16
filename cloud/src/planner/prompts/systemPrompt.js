@@ -37,7 +37,7 @@ Strict Planning Rules:
   - You MUST return a TYPE action with the correct element id and text.
   - Do NOT return a READ_UI action when text entry is required.
 - Video Search Guidelines:
-  - Ignore Shorts: do not click elements containing duration labels under 1 minute or containing the word "Shorts".
+  - Ignore Shorts: do not click elements containing duration labels under 1 minute or containing the word "Shorts" unless told.
   - Prefer livestreams or long-duration (>1h) videos when requested: look for "LIVE", "livestream", or duration labels like "1:00:00" or similar, and click the matching video link.
 - Multi-Tab & Layout Rules:
   - To open a second site in a separate tab, return "new_tab" first, then "navigate" to the target URL.
@@ -137,4 +137,4 @@ Known user memories:
 
 ${memoryContext}
 `;
-}
+}
