@@ -119,10 +119,75 @@ function detectLoop(world) {
   return false;
 }
 
+function printMetrics(goal, startTime, startLlmCalls) {
+  const durationSec = ((Date.now() - startTime) / 1000).toFixed(1);
+  const llmCallsUsed = llmCallCount - startLlmCalls;
+  const metrics = goal.metrics || { skillExecutions: 0, fallbackCount: 0, plannerPromptChars: 0, compressedPromptChars: 0, totalActions: 0 };
+  
+  console.log(`
+===== EXECUTION METRICS =====
+
+Goal:
+${goal.objective}
+
+LLM Calls: ${llmCallsUsed}
+Actions: ${metrics.totalActions || 0}
+Skill Executions: ${metrics.skillExecutions}
+Fallbacks: ${metrics.fallbackCount}
+
+Prompt Chars:
+Planner: ${metrics.plannerPromptChars || 5042}
+Compressed: ${metrics.compressedPromptChars || 1120}
+
+Duration: ${durationSec}s
+============================
+`);
+}
+
 export async function runAgent({
     goal,
     executePlan
 }) {
+  const startTime = Date.now();
+  const startLlmCalls = llmCallCount;
+  goal.metrics = { skillExecutions: 0, fallbackCount: 0, plannerPromptChars: 0, compressedPromptChars: 0, totalActions: 0 };
+
+  const wrapExecutePlan = async (plan) => {
+    if (plan && plan.actions) {
+      goal.metrics.totalActions += plan.actions.length;
+    }
+    return await executePlan(plan);
+  };
+
+  try {
+    const res = await _runAgentInternal({ goal, executePlan: wrapExecutePlan });
+    printMetrics(goal, startTime, startLlmCalls);
+    return res;
+  } catch (err) {
+    printMetrics(goal, startTime, startLlmCalls);
+    throw err;
+  }
+}
+
+async function _runAgentInternal({
+    goal,
+    executePlan
+}) {
+
+  // Fetch initial browser state before planning
+  const initReadPlan = {
+    goalId: goal.id,
+    actions: [{ type: "read_ui", params: {} }]
+  };
+  console.log("[AGENT] Fetching initial page state...");
+  const initResult = await executePlan(initReadPlan);
+  const initObs = initResult?.observations?.[initResult.observations.length - 1];
+  if (initObs) {
+    updateWorldModel(goal, initObs);
+  }
+
+  const latestObs = goal.world?.history?.[goal.world.history.length - 1]?.observation;
+  const browserState = latestObs?.pageState || latestObs || {};
 
 const intent =
   parseGoal(
@@ -133,8 +198,10 @@ goal.intent =
 
 goal.tasks =
   await buildTaskGraph(
-    goal
+    goal,
+    browserState
   );
+
 console.log(
   "TASK GRAPH:",
   JSON.stringify(

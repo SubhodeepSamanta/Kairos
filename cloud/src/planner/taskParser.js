@@ -15,7 +15,7 @@ import { createTask } from "../shared/schemas/task.js";
   );
 }
 
-export async function buildTaskGraph(goal) {
+export async function buildTaskGraph(goal, browserState = {}) {
 
   const systemPrompt = `
 You are a task decomposition engine.
@@ -37,6 +37,13 @@ Each task MUST include:
   3. If a task switches tabs, include a criterion verifying that the active tab's URL/title matches the target site.
 - requires: array of prerequisite conditions (e.g. "youtube_open", "search_results_visible")
 - produces: array of conditions this task creates for downstream tasks
+
+Current Browser State:
+URL: ${browserState.url || "unknown"}
+Title: ${browserState.title || "unknown"}
+Page Type: ${browserState.pageType || "generic"}
+
+If the browser is already on the target website homepage or results page, DO NOT generate a task to navigate to that page. Skip directly to downstream tasks.
 
 Example:
 

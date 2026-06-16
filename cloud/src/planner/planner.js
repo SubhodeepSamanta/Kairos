@@ -13,6 +13,7 @@ import {
   buildRelevantBrowserContext
 } from "../agent/context.js";
 import { routeSkill } from "./skills/router.js";
+import { getBrowserState } from "../agent/state.js";
 
 export async function createGoalPlan(goal) {
 
@@ -26,13 +27,14 @@ export async function createGoalPlan(goal) {
     return createPlan(goal.id, []);
   }
 
-  const latestObs = goal.world?.history?.[goal.world.history.length - 1]?.observation;
-  const browser = latestObs?.pageState || latestObs || {};
+  const browser = getBrowserState() || {};
   
   goal.blacklistedSkills = goal.blacklistedSkills || [];
   const skillPlan = routeSkill(goal.id, currentTask, browser, goal.blacklistedSkills);
   if (skillPlan) {
     console.log("[PLANNER] Routed via Skill Router. Bypassing LLM call.");
+    goal.metrics = goal.metrics || { skillExecutions: 0, fallbackCount: 0, plannerPromptChars: 0, compressedPromptChars: 0 };
+    goal.metrics.skillExecutions++;
     return skillPlan;
   }
 
@@ -56,6 +58,15 @@ if (
     "EMPTY BROWSER CONTEXT"
   );
 }
+
+  const rawBrowserContext = buildBrowserContext();
+  const rawLength = rawBrowserContext.length;
+  const compressedLength = browserContext.length;
+  const reduction = rawLength > 0 ? ((rawLength - compressedLength) / rawLength * 100).toFixed(1) : 0;
+  console.log(`[COMPRESSION] raw context chars: ${rawLength}`);
+  console.log(`[COMPRESSION] compressed context chars: ${compressedLength}`);
+  console.log(`[COMPRESSION] reduction %: ${reduction}%`);
+
   const worldContext =
     getWorldSummary(
       goal
@@ -67,6 +78,18 @@ if (
       browserContext,
       worldContext
     );
+
+  const rawSystemPrompt = buildSystemPrompt(
+    currentTask,
+    memoryContext,
+    rawBrowserContext,
+    worldContext
+  );
+
+  goal.metrics = goal.metrics || { skillExecutions: 0, fallbackCount: 0, plannerPromptChars: 0, compressedPromptChars: 0 };
+  goal.metrics.plannerPromptChars = rawSystemPrompt.length;
+  goal.metrics.compressedPromptChars = systemPrompt.length;
+  goal.metrics.fallbackCount++;
 
   console.log(
     "CURRENT TASK:",

@@ -2,10 +2,11 @@ import { askLLM } from "../llm/provider.js";
 import { buildSystemPrompt } from "./prompts/systemPrompt.js";
 
 import {
-  buildRelevantBrowserContext
+  buildRelevantBrowserContext,
+  buildBrowserContext
 } from "../agent/context.js";
 import { retrieveRelevantMemories } from "../memory/relevant.js";
-import { getAgentState } from "../agent/state.js";
+import { getBrowserState } from "../agent/state.js";
 import {
   getWorldSummary
 } from "../agent/worldModel.js";
@@ -30,12 +31,13 @@ if (!currentTask) {
   );
 }
 
-  const latestObs = goal.world?.history?.[goal.world.history.length - 1]?.observation;
-  const browser = latestObs?.pageState || latestObs || {};
+  const browser = getBrowserState() || {};
   goal.blacklistedSkills = goal.blacklistedSkills || [];
   const skillPlan = routeSkill(goal.id, currentTask, browser, goal.blacklistedSkills);
   if (skillPlan) {
     console.log("[REPLANNER] Routed via Skill Router. Bypassing LLM call.");
+    goal.metrics = goal.metrics || { skillExecutions: 0, fallbackCount: 0, plannerPromptChars: 0, compressedPromptChars: 0 };
+    goal.metrics.skillExecutions++;
     return JSON.stringify(skillPlan.actions);
   }
 
@@ -57,6 +59,14 @@ const browserContext =
     currentTask
   );
 
+  const rawBrowserContext = buildBrowserContext();
+  const rawLength = rawBrowserContext.length;
+  const compressedLength = browserContext.length;
+  const reduction = rawLength > 0 ? ((rawLength - compressedLength) / rawLength * 100).toFixed(1) : 0;
+  console.log(`[COMPRESSION] raw context chars: ${rawLength}`);
+  console.log(`[COMPRESSION] compressed context chars: ${compressedLength}`);
+  console.log(`[COMPRESSION] reduction %: ${reduction}%`);
+
 const worldContext =
   getWorldSummary(
     goal
@@ -69,6 +79,19 @@ const systemPrompt =
     browserContext,
     worldContext
   );
+
+  const rawSystemPrompt = buildSystemPrompt(
+    currentTask,
+    memoryContext,
+    rawBrowserContext,
+    worldContext
+  );
+
+  goal.metrics = goal.metrics || { skillExecutions: 0, fallbackCount: 0, plannerPromptChars: 0, compressedPromptChars: 0 };
+  goal.metrics.plannerPromptChars = rawSystemPrompt.length;
+  goal.metrics.compressedPromptChars = systemPrompt.length;
+  goal.metrics.fallbackCount++;
+
   console.log(
   "REPLAN BROWSER CONTEXT:\n",
   browserContext

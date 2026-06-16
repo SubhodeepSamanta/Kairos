@@ -3,6 +3,8 @@ export function handleExecutionFailure(goal, currentTask, failedAction, blacklis
   const browser = latestObs?.pageState || latestObs || {};
   const pageType = browser.pageType || "";
   
+  console.log(`[STRATEGY] Failure detected. pageType="${pageType}", failedAction=${JSON.stringify(failedAction)}`);
+
   const skillName = getSkillNameForPageType(pageType);
   if (skillName && !blacklistedSkills.includes(skillName)) {
     console.log(`[STRATEGY] Skill ${skillName} failed on action. Blacklisting skill to fallback to LLM Planner.`);

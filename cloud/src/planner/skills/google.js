@@ -8,9 +8,15 @@ export const googleSkill = {
     const objective = (task.objective || "").toLowerCase();
     const actions = [];
 
-    if (objective.includes("search") || objective.includes("google")) {
-      const queryMatch = objective.match(/search (?:google for|for) (['"]?)(.*?)\1/i) || objective.match(/google (['"]?)(.*?)\1/i) || objective.match(/search (['"]?)(.*?)\1/i);
-      const query = queryMatch ? queryMatch[2] : "";
+    if (objective.includes("search") || objective.includes("google") || objective.includes("query")) {
+      let query = "";
+      const quoteMatch = objective.match(/['"](.*?)['"]/);
+      if (quoteMatch && quoteMatch[1].trim()) {
+        query = quoteMatch[1].trim();
+      } else {
+        const queryMatch = objective.match(/search (?:google for|for) (['"]?)(.*?)\1/i) || objective.match(/google (['"]?)(.*?)\1/i) || objective.match(/search (['"]?)(.*?)\1/i);
+        query = queryMatch ? queryMatch[2] : "";
+      }
 
       if (query) {
         const searchInput = (browserState.inputs || []).find(input => input.purpose === "search_input");

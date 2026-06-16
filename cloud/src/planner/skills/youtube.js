@@ -8,11 +8,17 @@ export const youtubeSkill = {
     const objective = (task.objective || "").toLowerCase();
     const actions = [];
 
-    if (objective.includes("search") || objective.includes("play") || objective.includes("watch")) {
+    if (objective.includes("search") || objective.includes("play") || objective.includes("watch") || objective.includes("query")) {
       // Search YouTube
-      if (objective.includes("search") || (objective.includes("play") && browserState.pageType === "youtube_home")) {
-        const queryMatch = objective.match(/search (?:youtube for|for) (['"]?)(.*?)\1/i) || objective.match(/(?:play|watch) (['"]?)(.*?)\1/i);
-        const query = queryMatch ? queryMatch[2] : "";
+      if (objective.includes("search") || objective.includes("query") || (objective.includes("play") && browserState.pageType === "youtube_home")) {
+        let query = "";
+        const quoteMatch = objective.match(/['"](.*?)['"]/);
+        if (quoteMatch && quoteMatch[1].trim()) {
+          query = quoteMatch[1].trim();
+        } else {
+          const queryMatch = objective.match(/search (?:youtube for|for) (['"]?)(.*?)\1/i) || objective.match(/(?:play|watch) (['"]?)(.*?)\1/i);
+          query = queryMatch ? queryMatch[2] : "";
+        }
 
         if (query) {
           const searchInput = (browserState.inputs || []).find(input => input.purpose === "search_input");
@@ -36,7 +42,7 @@ export const youtubeSkill = {
       }
 
       // Play video from results
-      if (browserState.pageType === "youtube_results") {
+      if (browserState.pageType === "youtube_results" && (objective.includes("play") || objective.includes("watch") || objective.includes("open"))) {
         const videoLink = (browserState.links || []).find(link => link.href && link.href.includes("/watch"));
         if (videoLink) {
           actions.push({

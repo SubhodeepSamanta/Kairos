@@ -3,21 +3,23 @@ import { routeSkill } from "./skills/router.js";
 export function resolveExecutor(goalId, task, browserState, blacklistedSkills = []) {
   if (!browserState) return null;
 
-  // If we have blacklisted this skill due to repeated failures, bypass it
   const pageType = browserState.pageType || "";
   const skillName = getSkillNameForPageType(pageType);
+  
+  console.log(`[CAPABILITY GRAPH] pageType="${pageType}", blacklisted=${JSON.stringify(blacklistedSkills)}`);
+
   if (skillName && blacklistedSkills.includes(skillName)) {
     console.log(`[CAPABILITY GRAPH] Skill ${skillName} is blacklisted for this task. Bypassing to LLM.`);
     return null;
   }
 
-  const plan = routeSkill(goalId, task, browserState);
+  const plan = routeSkill(goalId, task, browserState, blacklistedSkills);
   if (plan) {
-    console.log(`[CAPABILITY GRAPH] Found capability route: ${skillName}`);
+    console.log(`[CAPABILITY GRAPH] Found capability route: executor="${skillName}"`);
     return plan;
   }
 
-  console.log(`[CAPABILITY GRAPH] No matching skill capability found. Bypassing to LLM.`);
+  console.log(`[CAPABILITY GRAPH] No matching skill capability found for pageType="${pageType}". Bypassing to LLM.`);
   return null;
 }
 

@@ -9,9 +9,15 @@ export const redditSkill = {
     const actions = [];
 
     // Search Reddit / Subreddit
-    if (objective.includes("search") || objective.includes("find")) {
-      const queryMatch = objective.match(/search (?:reddit for|for) (['"]?)(.*?)\1/i) || objective.match(/find (['"]?)(.*?)\1/i);
-      const query = queryMatch ? queryMatch[2] : "";
+    if (objective.includes("search") || objective.includes("find") || objective.includes("query")) {
+      let query = "";
+      const quoteMatch = objective.match(/['"](.*?)['"]/);
+      if (quoteMatch && quoteMatch[1].trim()) {
+        query = quoteMatch[1].trim();
+      } else {
+        const queryMatch = objective.match(/search (?:reddit for|for) (['"]?)(.*?)\1/i) || objective.match(/find (['"]?)(.*?)\1/i);
+        query = queryMatch ? queryMatch[2] : "";
+      }
 
       if (query) {
         const searchInput = (browserState.inputs || []).find(input => input.purpose === "search_input");
