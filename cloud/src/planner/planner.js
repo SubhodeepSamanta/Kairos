@@ -8,13 +8,11 @@ import {
 import {
   getWorldSummary
 } from "../agent/worldModel.js";
-
-
-
 import {
   buildBrowserContext,
   buildRelevantBrowserContext
 } from "../agent/context.js";
+import { routeSkill } from "./skills/router.js";
 
 export async function createGoalPlan(goal) {
 
@@ -22,6 +20,21 @@ export async function createGoalPlan(goal) {
     goal.tasks[
       goal.currentTask
     ];
+
+  if (!currentTask) {
+    console.log("NO CURRENT TASK");
+    return createPlan(goal.id, []);
+  }
+
+  const latestObs = goal.world?.history?.[goal.world.history.length - 1]?.observation;
+  const browser = latestObs?.pageState || latestObs || {};
+  
+  goal.blacklistedSkills = goal.blacklistedSkills || [];
+  const skillPlan = routeSkill(goal.id, currentTask, browser, goal.blacklistedSkills);
+  if (skillPlan) {
+    console.log("[PLANNER] Routed via Skill Router. Bypassing LLM call.");
+    return skillPlan;
+  }
 
   const memoryContext =
     await retrieveRelevantMemories(
@@ -117,8 +130,6 @@ if (!currentTask) {
   );
 }
 
-  const latestObs = goal.world?.history?.[goal.world.history.length - 1]?.observation;
-  const browser = latestObs?.pageState || latestObs || {};
   
   const userPrompt = JSON.stringify({
     task: {

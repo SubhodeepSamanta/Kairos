@@ -112,6 +112,9 @@ function scoreCandidate(
   ) {
     score += 2;
   }
+  if (candidate.purpose && candidate.purpose !== "generic") {
+    score += 8;
+  }
   const textLower = text.toLowerCase();
   if (textLower.includes("search") || textLower.includes("find") || textLower.includes("query")) {
     score += 5;

@@ -20,6 +20,10 @@ export function buildBrowserContext() {
 
   let context = "";
 
+  if (browser.pageType) {
+    context += `Page Type:\n${browser.pageType}\n\n`;
+  }
+
   if (browser.url) {
     context += `URL:\n${browser.url}\n\n`;
   }
@@ -32,6 +36,7 @@ export function buildBrowserContext() {
     context += "Inputs:\n";
     for (const input of browser.inputs.slice(0, MAX_INPUTS)) {
       const parts = [];
+      if (input.purpose && input.purpose !== "generic") parts.push(`purpose: "${input.purpose}"`);
       if (input.type) parts.push(`type: "${input.type}"`);
       if (input.placeholder) parts.push(`placeholder: "${input.placeholder}"`);
       if (input.ariaLabel) parts.push(`ariaLabel: "${input.ariaLabel}"`);
@@ -48,6 +53,7 @@ export function buildBrowserContext() {
     context += "Buttons:\n";
     for (const button of browser.buttons.slice(0, MAX_BUTTONS)) {
       const parts = [];
+      if (button.purpose && button.purpose !== "generic") parts.push(`purpose: "${button.purpose}"`);
       if (button.type) parts.push(`type: "${button.type}"`);
       if (button.ariaLabel) parts.push(`ariaLabel: "${button.ariaLabel}"`);
       if (button.name) parts.push(`name: "${button.name}"`);
@@ -62,6 +68,7 @@ export function buildBrowserContext() {
     context += "Links:\n";
     for (const link of browser.links.slice(0, MAX_LINKS)) {
       const parts = [];
+      if (link.purpose && link.purpose !== "generic") parts.push(`purpose: "${link.purpose}"`);
       if (link.href) parts.push(`href: "${link.href}"`);
       if (link.ariaLabel) parts.push(`ariaLabel: "${link.ariaLabel}"`);
       if (link.title) parts.push(`title: "${link.title}"`);
@@ -100,6 +107,10 @@ export function buildRelevantBrowserContext(
 
   let context = "";
 
+  if (browser.pageType) {
+    context += `Page Type:\n${browser.pageType}\n\n`;
+  }
+
   if (browser.url) {
     context +=
       `URL:\n${browser.url}\n\n`;
@@ -110,37 +121,52 @@ export function buildRelevantBrowserContext(
       `Title:\n${browser.title}\n\n`;
   }
 
+  // Filter & Compress based on pageType
+  let filteredRanked = ranked;
+  if (browser.pageType && browser.pageType !== "generic") {
+    // Keep elements with semantic purpose, plus higher ranked ones
+    filteredRanked = ranked.filter(item => 
+      (item.purpose && item.purpose !== "generic") || 
+      item.score > 10
+    );
+    // If we filtered out too much, fall back to top ranked elements
+    if (filteredRanked.length < 5) {
+      filteredRanked = ranked;
+    }
+  }
+
   const inputs =
-    ranked
+    filteredRanked
       .filter(
         item =>
           item.category ===
           "input"
       )
-      .slice(0, 15);
+      .slice(0, 10); // Compressed down from 15
 
   const buttons =
-    ranked
+    filteredRanked
       .filter(
         item =>
           item.category ===
           "button"
       )
-      .slice(0, 20);
+      .slice(0, 15); // Compressed down from 20
 
   const links =
-    ranked
+    filteredRanked
       .filter(
         item =>
           item.category ===
           "link"
       )
-      .slice(0, 20);
+      .slice(0, 15); // Compressed down from 20
 
   if (inputs.length) {
     context += "Inputs:\n";
     for (const input of inputs) {
       const parts = [];
+      if (input.purpose && input.purpose !== "generic") parts.push(`purpose: "${input.purpose}"`);
       if (input.type) parts.push(`type: "${input.type}"`);
       if (input.placeholder) parts.push(`placeholder: "${input.placeholder}"`);
       if (input.ariaLabel) parts.push(`ariaLabel: "${input.ariaLabel}"`);
@@ -157,6 +183,7 @@ export function buildRelevantBrowserContext(
     context += "Buttons:\n";
     for (const button of buttons) {
       const parts = [];
+      if (button.purpose && button.purpose !== "generic") parts.push(`purpose: "${button.purpose}"`);
       if (button.type) parts.push(`type: "${button.type}"`);
       if (button.ariaLabel) parts.push(`ariaLabel: "${button.ariaLabel}"`);
       if (button.name) parts.push(`name: "${button.name}"`);
@@ -171,6 +198,7 @@ export function buildRelevantBrowserContext(
     context += "Links:\n";
     for (const link of links) {
       const parts = [];
+      if (link.purpose && link.purpose !== "generic") parts.push(`purpose: "${link.purpose}"`);
       if (link.href) parts.push(`href: "${link.href}"`);
       if (link.ariaLabel) parts.push(`ariaLabel: "${link.ariaLabel}"`);
       if (link.title) parts.push(`title: "${link.title}"`);

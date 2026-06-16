@@ -44,6 +44,8 @@ import {
   buildTaskGraph
 }
 from "./taskParser.js";
+import { resolveExecutor } from "./capabilityGraph.js";
+import { handleExecutionFailure } from "./strategy.js";
 
 function completeTask(
   goal,
@@ -70,6 +72,7 @@ function completeTask(
   }
 
   goal.currentTask++;
+  goal.blacklistedSkills = [];
 
   return (
     goal.currentTask >=
@@ -539,6 +542,8 @@ if (
   console.log(
     "Task verification failed — replanning for current task"
   );
+  goal.blacklistedSkills = goal.blacklistedSkills || [];
+  handleExecutionFailure(goal, goal.tasks[goal.currentTask], failedObservation?.action, goal.blacklistedSkills);
 }
 
 const impossible =

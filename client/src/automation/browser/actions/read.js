@@ -5,6 +5,7 @@ import {
   registerElement,
   pruneRegistry
 } from "../elements/registry.js";
+import { classifyElement, classifyPage } from "./classifier.js";
 
 export async function readPage() {
   const page = await getPage();
@@ -59,7 +60,7 @@ export async function readPage() {
     registerElement(id, page.locator(`[data-kairos-id="${id}"]`));
 
     const enabled = await locator.isEnabled().catch(() => true);
-    buttons.push({
+    const btnObj = {
       id: parseInt(id, 10),
       text,
       role: "button",
@@ -69,7 +70,11 @@ export async function readPage() {
       name: metadata.name,
       visible: true,
       enabled
-    });
+    };
+    const cls = classifyElement(btnObj, "button");
+    btnObj.purpose = cls.purpose;
+    btnObj.confidence = cls.confidence;
+    buttons.push(btnObj);
   }
 
   // 3. Inputs
@@ -97,7 +102,7 @@ export async function readPage() {
     registerElement(id, page.locator(`[data-kairos-id="${id}"]`));
 
     const enabled = await locator.isEnabled().catch(() => true);
-    inputs.push({
+    const inputObj = {
       id: parseInt(id, 10),
       text: metadata.ariaLabel || metadata.placeholder || metadata.name || metadata.type || "input",
       value: metadata.value || "",
@@ -109,7 +114,11 @@ export async function readPage() {
       title: metadata.title,
       visible: true,
       enabled
-    });
+    };
+    const cls = classifyElement(inputObj, "input");
+    inputObj.purpose = cls.purpose;
+    inputObj.confidence = cls.confidence;
+    inputs.push(inputObj);
   }
 
   // 4. Links
@@ -138,7 +147,7 @@ export async function readPage() {
     registerElement(id, page.locator(`[data-kairos-id="${id}"]`));
 
     const enabled = await locator.isEnabled().catch(() => true);
-    links.push({
+    const linkObj = {
       id: parseInt(id, 10),
       text,
       role: "link",
@@ -147,7 +156,11 @@ export async function readPage() {
       title: metadata.title,
       visible: true,
       enabled
-    });
+    };
+    const cls = classifyElement(linkObj, "link");
+    linkObj.purpose = cls.purpose;
+    linkObj.confidence = cls.confidence;
+    links.push(linkObj);
   }
 
   // 5. Forms
@@ -195,10 +208,12 @@ export async function readPage() {
   // Get active tabs
   const tabs = await listTabs().catch(() => []);
   const activeTab = tabs.find(t => t.active) || null;
+  const pageType = classifyPage(url, title);
 
   updateBrowserContext({
     title,
     url,
+    pageType,
     buttons: cappedButtons,
     inputs: cappedInputs,
     links: cappedLinks,
@@ -233,6 +248,7 @@ export async function readPage() {
     success: true,
     title,
     url,
+    pageType,
     buttons: cappedButtons,
     inputs: cappedInputs,
     links: cappedLinks,
