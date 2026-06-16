@@ -1,267 +1,172 @@
-import { getPage } from "../browser.js";
+import { getPage, listTabs } from "../browser.js";
 import { updateBrowserContext } from "../context.js";
 import {
   clearRegistry,
-  registerElement
+  registerElement,
+  pruneRegistry
 } from "../elements/registry.js";
 
 export async function readPage() {
-
   const page = await getPage();
-
-  const title = await page.title();
+  const title = await page.title().catch(() => "unknown");
   const url = page.url();
+  
+  // Clear locator references for the current read
   clearRegistry();
 
-const buttons = [];
+  // 1. Inject data-kairos-id attributes directly to interactive elements in DOM
+  await page.evaluate(() => {
+    window.__kairosNextId = window.__kairosNextId || 1;
+    const selectors = [
+      "button:not([disabled])",
+      "input:not([type='hidden']):not([disabled])",
+      "textarea:not([disabled])",
+      "a",
+      "form"
+    ];
+    const elements = document.querySelectorAll(selectors.join(", "));
+    elements.forEach(el => {
+      if (!el.getAttribute("data-kairos-id")) {
+        el.setAttribute("data-kairos-id", String(window.__kairosNextId++));
+      }
+    });
+  }).catch(() => {});
 
-const buttonLocators =
-  page.locator("button:not([disabled])");
+  // 2. Buttons
+  const buttons = [];
+  const buttonLocators = page.locator("button:not([disabled])");
+  const buttonCount = await buttonLocators.count().catch(() => 0);
 
-const buttonCount =
-  await buttonLocators.count();
+  for (let i = 0; i < buttonCount; i++) {
+    const locator = buttonLocators.nth(i);
+    const visible = await locator.isVisible().catch(() => false);
+    if (!visible) continue;
 
-for (
-  let i = 0;
-  i < buttonCount;
-  i++
-) {
+    const id = await locator.getAttribute("data-kairos-id").catch(() => null);
+    if (!id) continue;
 
-  const locator =
-    buttonLocators.nth(i);
+    const text = await locator.innerText().catch(() => "");
+    if (!text.trim()) continue;
 
-  const visible =
-    await locator
-      .isVisible()
-      .catch(() => false);
+    registerElement(id, page.locator(`[data-kairos-id="${id}"]`));
 
-  if (!visible) {
-    continue;
+    const enabled = await locator.isEnabled().catch(() => true);
+    buttons.push({
+      id: parseInt(id, 10),
+      text,
+      role: "button",
+      visible: true,
+      enabled
+    });
   }
 
-  const text =
-    await locator
-      .innerText()
-      .catch(() => "");
+  // 3. Inputs
+  const inputs = [];
+  const inputLocators = page.locator("input:not([type='hidden']):not([disabled]), textarea:not([disabled])");
+  const inputCount = await inputLocators.count().catch(() => 0);
 
-  if (!text.trim()) {
-    continue;
+  for (let i = 0; i < inputCount; i++) {
+    const locator = inputLocators.nth(i);
+    const visible = await locator.isVisible().catch(() => false);
+    if (!visible) continue;
+
+    const id = await locator.getAttribute("data-kairos-id").catch(() => null);
+    if (!id) continue;
+
+    const metadata = await locator.evaluate(el => ({
+      placeholder: el.placeholder || null,
+      name: el.name || null,
+      type: el.type || null,
+      value: el.value || null
+    })).catch(() => ({}));
+
+    registerElement(id, page.locator(`[data-kairos-id="${id}"]`));
+
+    const enabled = await locator.isEnabled().catch(() => true);
+    inputs.push({
+      id: parseInt(id, 10),
+      text: metadata.placeholder || metadata.name || metadata.type || "input",
+      value: metadata.value || "",
+      role: "input",
+      placeholder: metadata.placeholder,
+      visible: true,
+      enabled
+    });
   }
 
-  const id =
-    registerElement(
-      locator
-    );
+  // 4. Links
+  const links = [];
+  const linkLocators = page.locator("a");
+  const linkCount = await linkLocators.count().catch(() => 0);
 
-  const enabled =
-  await locator
-    .isEnabled()
-    .catch(() => true);
+  for (let i = 0; i < linkCount; i++) {
+    const locator = linkLocators.nth(i);
+    const visible = await locator.isVisible().catch(() => false);
+    if (!visible) continue;
 
-buttons.push({
-  id,
-  text,
+    const id = await locator.getAttribute("data-kairos-id").catch(() => null);
+    if (!id) continue;
 
-  role: "button",
+    const text = await locator.innerText().catch(() => "");
+    if (!text.trim()) continue;
 
-  visible: true,
+    registerElement(id, page.locator(`[data-kairos-id="${id}"]`));
 
-  enabled
-});
-}
-
-const inputs = [];
-
-const inputLocators =
-  page.locator(
-    "input:not([type='hidden']):not([disabled]), textarea:not([disabled])"
-  );
-
-const inputCount =
-  await inputLocators.count();
-
-for (
-  let i = 0;
-  i < inputCount;
-  i++
-) {
-
-  const locator =
-    inputLocators.nth(i);
-
-  const visible =
-    await locator
-      .isVisible()
-      .catch(() => false);
-
-  if (!visible) {
-    continue;
+    const enabled = await locator.isEnabled().catch(() => true);
+    links.push({
+      id: parseInt(id, 10),
+      text,
+      role: "link",
+      visible: true,
+      enabled
+    });
   }
 
-  const metadata =
-  await locator.evaluate(el => ({
+  // 5. Forms
+  const forms = [];
+  const formLocators = page.locator("form");
+  const formCount = await formLocators.count().catch(() => 0);
 
-    placeholder:
-      el.placeholder || null,
+  for (let i = 0; i < formCount; i++) {
+    const locator = formLocators.nth(i);
+    const visible = await locator.isVisible().catch(() => false);
+    if (!visible) continue;
 
-    name:
-      el.name || null,
+    const id = await locator.getAttribute("data-kairos-id").catch(() => null);
+    if (!id) continue;
 
-    type:
-      el.type || null,
+    const metadata = await locator.evaluate(el => ({
+      id: el.id || null,
+      action: el.action || null,
+      method: el.method || null,
+      role: el.getAttribute("role") || "form"
+    })).catch(() => ({}));
 
-    value:
-      el.value || null
+    registerElement(id, page.locator(`[data-kairos-id="${id}"]`));
 
-  }));
-
-  const id =
-    registerElement(
-      locator
-    );
-
-  const enabled =
-  await locator
-    .isEnabled()
-    .catch(() => true);
-
-  inputs.push({
-    id,
-
-    text:
-      metadata.placeholder ||
-      metadata.name ||
-      metadata.type ||
-      "input",
-
-    value:
-      metadata.value || "",
-
-    role: "input",
-
-    placeholder:
-      metadata.placeholder,
-
-    visible: true,
-
-    enabled
-  });
-}
-const links = [];
-
-const linkLocators =
-  page.locator("a");
-
-const linkCount =
-  await linkLocators.count();
-
-for (
-  let i = 0;
-  i < linkCount;
-  i++
-) {
-
-  const locator =
-    linkLocators.nth(i);
-
-  const visible =
-    await locator
-      .isVisible()
-      .catch(() => false);
-
-  if (!visible) {
-    continue;
+    forms.push({
+      id: parseInt(id, 10),
+      role: metadata.role,
+      action: metadata.action,
+      method: metadata.method,
+      visible: true
+    });
   }
 
-  const text =
-    await locator
-      .innerText()
-      .catch(() => "");
-
-  if (!text.trim()) {
-    continue;
-  }
-
-  const id =
-    registerElement(
-      locator
-    );
-
-  const enabled =
-  await locator
-    .isEnabled()
-    .catch(() => true);
-
-links.push({
-  id,
-  text,
-
-  role: "link",
-
-  visible: true,
-
-  enabled
-});
-}
-
-const forms = [];
-
-const formLocators =
-  page.locator("form");
-
-const formCount =
-  await formLocators.count();
-
-for (
-  let i = 0;
-  i < formCount;
-  i++
-) {
-
-  const locator =
-    formLocators.nth(i);
-
-  const visible =
-    await locator
-      .isVisible()
-      .catch(() => false);
-
-  if (!visible) {
-    continue;
-  }
-
-  const metadata =
-  await locator.evaluate(el => ({
-    id: el.id || null,
-    action: el.action || null,
-    method: el.method || null,
-    role: el.getAttribute("role") || "form"
-  }));
-
-  const id =
-    registerElement(
-      locator
-    );
-
-  forms.push({
-    id,
-    role: metadata.role,
-    action: metadata.action,
-    method: metadata.method,
-    visible: true
-  });
-}
-
-const text = await page.evaluate(() => {
-  return document.body.innerText
-    .replace(/\s+/g, " ")
-    .trim()
-    .slice(0, 2000);
-});
+  const text = await page.evaluate(() => {
+    return document.body.innerText
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, 2000);
+  }).catch(() => "");
 
   const cappedButtons = buttons.slice(0, 20);
   const cappedInputs = inputs.slice(0, 10);
   const cappedLinks = links.slice(0, 20);
+
+  // Get active tabs
+  const tabs = await listTabs().catch(() => []);
+  const activeTab = tabs.find(t => t.active) || null;
 
   updateBrowserContext({
     title,
@@ -270,19 +175,32 @@ const text = await page.evaluate(() => {
     inputs: cappedInputs,
     links: cappedLinks,
     forms,
-    text
+    text,
+    tabs,
+    activeTab
   });
-console.log("BUTTONS:", cappedButtons);
-console.log(
-  "INPUTS:",
-  JSON.stringify(
-    cappedInputs,
-    null,
-    2
-  )
-);
-console.log("LINKS:", cappedLinks);
-console.log("FORMS:", forms);
+  
+  const scoreReasons = [];
+  let score = 1.0;
+
+  if (text.length < 100) {
+    score -= 0.5;
+    scoreReasons.push("Low text content");
+  }
+  
+  const textLower = text.toLowerCase();
+  if (textLower.includes("loading...") || textLower.includes("please wait") || textLower.includes("fetching")) {
+    score -= 0.3;
+    scoreReasons.push("Loading text detected");
+  }
+
+  if (cappedButtons.length === 0 && cappedInputs.length === 0 && cappedLinks.length === 0) {
+    score -= 0.4;
+    scoreReasons.push("No interactive elements");
+  }
+
+  score = Math.max(0.0, score);
+
   return {
     success: true,
     title,
@@ -291,6 +209,12 @@ console.log("FORMS:", forms);
     inputs: cappedInputs,
     links: cappedLinks,
     forms,
-    text
+    text,
+    tabs,
+    activeTab,
+    observationQuality: {
+      score,
+      reasons: scoreReasons
+    }
   };
 }

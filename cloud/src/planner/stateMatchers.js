@@ -1,36 +1,32 @@
 export function matchNavigation(task, observation) {
-  const objective = task?.objective?.toLowerCase() || "";
-  const navigationTask =
-    objective.includes("open") ||
-    objective.includes("navigate") ||
-    objective.includes("go to");
-
-  if (!navigationTask) {
+  const action = observation?.action;
+  
+  // Only match actual navigate actions, not objective keywords
+  if (action?.type !== "navigate" || !action?.params?.url) {
     return null;
   }
 
-  const action = observation?.action;
   const currentUrl = observation?.url || observation?.pageState?.url;
-  
-  if (action?.type === "navigate" && action?.params?.url && currentUrl) {
-    try {
-      const targetHost = new URL(action.params.url).hostname.replace("www.", "");
-      const currentHost = new URL(currentUrl).hostname.replace("www.", "");
-      
-      if (currentHost === targetHost || currentUrl.includes(targetHost)) {
-        return {
-          achieved: true,
-          reason: `Programmatic verification: Successfully navigated to host ${targetHost}.`
-        };
-      }
-    } catch (e) {
-      // Fallback to simple substring match if URL parsing fails
-      if (currentUrl.includes(action.params.url)) {
-        return {
-          achieved: true,
-          reason: `Programmatic verification: URL matches target.`
-        };
-      }
+  if (!currentUrl) {
+    return null;
+  }
+
+  try {
+    const targetHost = new URL(action.params.url).hostname.replace("www.", "");
+    const currentHost = new URL(currentUrl).hostname.replace("www.", "");
+    
+    if (currentHost === targetHost || currentUrl.includes(targetHost)) {
+      return {
+        achieved: true,
+        reason: `Programmatic verification: Successfully navigated to host ${targetHost}.`
+      };
+    }
+  } catch (e) {
+    if (currentUrl.includes(action.params.url)) {
+      return {
+        achieved: true,
+        reason: `Programmatic verification: URL matches target.`
+      };
     }
   }
   return null;
@@ -78,39 +74,5 @@ export function matchEvents(
   task,
   observation
 ) {
-
-  const events =
-    observation?.events || [];
-
-  if (
-    task?.intent ===
-      "authenticate" &&
-    events.includes(
-      "login_page_opened"
-    )
-  ) {
-
-    return {
-      achieved: true,
-      reason:
-        "login_page_opened"
-    };
-  }
-
-  if (
-    task?.intent ===
-      "media" &&
-    events.includes(
-      "video_page_opened"
-    )
-  ) {
-
-    return {
-      achieved: true,
-      reason:
-        "video_page_opened"
-    };
-  }
-
   return null;
 }

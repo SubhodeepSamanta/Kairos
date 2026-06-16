@@ -2,10 +2,23 @@ import { askGroq } from "./groq.js";
 import { askOpenRouter } from "./openrouter.js";
 import { askNvidia } from "./nvidia.js";
 
+export let llmCallCount = 0;
+export let maxLlmCalls = 40;
+
+export function resetLlmCallCount() {
+  llmCallCount = 0;
+}
+
 export async function askLLM(
   systemPrompt,
   userPrompt
 ) {
+
+  if (llmCallCount >= maxLlmCalls) {
+    throw new Error(`LLM Call Budget Exceeded: limit of ${maxLlmCalls} calls reached.`);
+  }
+  llmCallCount++;
+
   const providers = [
     askGroq,
     askOpenRouter,

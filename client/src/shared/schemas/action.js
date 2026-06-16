@@ -32,6 +32,7 @@ SWITCH_TAB:
 RESTART_BROWSER:
   "restart_browser",
   GET_BROWSER_CONTEXT: "get_browser_context",
+  EXTRACT_DATA: "extract_data"
 };
 
 export function createAction(

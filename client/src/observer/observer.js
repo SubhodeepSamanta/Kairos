@@ -39,6 +39,12 @@ export async function observeAction(action, result) {
       pageState:
         result.pageState,
 
+      before:
+        result?.before,
+
+      after:
+        result?.after,
+
       timestamp:
         new Date().toISOString()
     },
@@ -102,15 +108,21 @@ case ACTIONS.TYPE:
     element:
       result?.element,
 
+    pageState:
+      result?.pageState,
+
+    before:
+      result?.before,
+
+    after:
+      result?.after,
+
     action,
 
     timestamp:
       new Date().toISOString()
   },
-  {
-    ...result,
-    text: result?.text
-  }
+  result
 );
 case ACTIONS.BACK:
 
@@ -343,25 +355,29 @@ return buildObservation(
       result?.success || false,
 
     expected:
-      "text_typed",
+      "key_pressed",
 
     actual:
-      result?.text,
+      result?.key || result?.text,
 
-    element:
-      result?.element,
+    key:
+      result?.key,
+
+    pageState:
+      result?.pageState,
+
+    before:
+      result?.before,
+
+    after:
+      result?.after,
 
     action,
 
     timestamp:
       new Date().toISOString()
   },
-  {
-    ...result,
-    pageState: {
-      text: result?.text
-    }
-  }
+  result
 );
   case ACTIONS.WAIT:
 

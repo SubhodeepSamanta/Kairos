@@ -123,41 +123,12 @@ export function parseGoal(
       true;
   }
 
-  const commonTargets = [
-
-    "youtube",
-    "google",
-    "github",
-    "wikipedia",
-    "twitter",
-    "x",
-    "reddit",
-    "linkedin",
-    "instagram"
-  ];
-
-  for (
-    const target of commonTargets
-  ) {
-
-    if (
-      text.includes(target)
-    ) {
-
-      intent.target =
-        target;
-
-      break;
-    }
-  }
   if (
-  !intent.target &&
-  intent.entities.length === 1
-) {
-
-  intent.target =
-    intent.entities[0];
-}
+    intent.entities.length === 1
+  ) {
+    intent.target =
+      intent.entities[0];
+  }
 
 intent.originalGoal =
   goal;

@@ -30,7 +30,7 @@ Generate semantic tasks only.
 
 Each task MUST include:
 - objective: a clear description of what this task must achieve
-- successCriteria: array of human-readable conditions that prove this task succeeded
+- successCriteria: array of concrete, human-readable conditions that are directly observable on the page (e.g., "URL contains youtube.com/watch", "Search input contains react", "Page title contains Search", "Link with text 'Home' is visible"). NEVER use unobservable internal states like "video is playing" or "server has processed request". Everything must be verifiable via URL, title, or DOM elements.
 - requires: array of prerequisite conditions (e.g. "youtube_open", "search_results_visible")
 - produces: array of conditions this task creates for downstream tasks
 

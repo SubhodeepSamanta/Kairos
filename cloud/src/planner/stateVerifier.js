@@ -17,12 +17,16 @@ export function verifyState({
   const browser =
     observation?.pageState || observation;
 
+  const activeTab = browser?.activeTab || observation?.activeTab;
+  const currentUrl = activeTab?.url || browser?.url || observation?.url;
+  const currentTitle = activeTab?.title || browser?.title || observation?.title;
+
   console.log(
     "task:",
     task
   );
 
-  if (!browser || (!browser.url && !browser.title)) {
+  if (!browser || (!currentUrl && !currentTitle)) {
     return null;
   }
 
@@ -39,6 +43,18 @@ export function verifyState({
     matchNavigation
   ];
 
+  // Create a normalized observation referencing the active tab context
+  const normalizedObservation = {
+    ...observation,
+    url: currentUrl,
+    title: currentTitle,
+    pageState: {
+      ...browser,
+      url: currentUrl,
+      title: currentTitle
+    }
+  };
+
   for (
     const matcher of matchers
   ) {
@@ -46,7 +62,7 @@ export function verifyState({
     const result =
       matcher(
         task,
-        observation
+        normalizedObservation
       );
 
     if (

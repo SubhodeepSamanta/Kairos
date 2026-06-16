@@ -1,6 +1,5 @@
 import {
-  matchAuthForm,
-  matchMediaLoaded
+  matchAuthForm
 } from "./eventMatchers.js";
 
 export function verifyEvents({
@@ -10,9 +9,8 @@ export function verifyEvents({
 
 const matchers = [
 
-  matchAuthForm,
+  matchAuthForm
 
-  matchMediaLoaded
 ];
 
   for (

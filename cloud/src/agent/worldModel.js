@@ -1,3 +1,17 @@
+import crypto from "crypto";
+
+export function computeStateHash(pageState) {
+  if (!pageState) return null;
+  const normalizedState = {
+    url: pageState.url || "",
+    title: pageState.title || "",
+    buttons: (pageState.buttons || []).map(b => ({ id: b.id, text: b.text, role: b.role, visible: b.visible })),
+    inputs: (pageState.inputs || []).map(i => ({ id: i.id, text: i.text, role: i.role, value: i.value })),
+    links: (pageState.links || []).map(l => ({ id: l.id, text: l.text, role: l.role })),
+  };
+  const str = JSON.stringify(normalizedState);
+  return crypto.createHash("sha256").update(str).digest("hex");
+}
 
 export function updateWorldModel(
   goal,
@@ -8,6 +22,21 @@ export function updateWorldModel(
     goal.world;
 
   if (!world) return;
+
+  if (observation?.pageState?.tabs) {
+    world.tabs = observation.pageState.tabs;
+  } else if (observation?.tabs) {
+    world.tabs = observation.tabs;
+  }
+
+  if (observation?.pageState?.activeTab) {
+    world.activeTab = observation.pageState.activeTab;
+  } else if (observation?.activeTab) {
+    world.activeTab = observation.activeTab;
+  }
+
+
+  const stateHash = computeStateHash(observation?.pageState);
 
   world.history.push({
     timestamp:
@@ -33,7 +62,8 @@ export function updateWorldModel(
       events:
         observation?.events || [],
       reason:
-        observation?.reason || null
+        observation?.reason || null,
+      stateHash
     }
   });
 
@@ -60,6 +90,10 @@ export function updateWorldModel(
       observation?.title;
   }
 
+  if (stateHash) {
+    world.lastStateHash = stateHash;
+  }
+
   // Record action outcomes and failures
   if (observation?.action) {
     world.lastAction = observation.action;
@@ -71,13 +105,22 @@ export function updateWorldModel(
       outcome = observation.reason || "failed";
     } else if (historyLen >= 2) {
       const prevObs = world.history[historyLen - 2]?.observation;
-      const prevUrl = prevObs?.url;
-      const prevTitle = prevObs?.title;
-      const currentUrl = observation.url || observation.pageState?.url;
-      const currentTitle = observation.title || observation.pageState?.title;
+      const prevHash = prevObs?.stateHash;
+      const currentHash = stateHash;
       
-      if (prevUrl === currentUrl && prevTitle === currentTitle) {
-        outcome = "page unchanged";
+      if (prevHash && currentHash) {
+        if (prevHash === currentHash) {
+          outcome = "page unchanged";
+        }
+      } else {
+        const prevUrl = prevObs?.url;
+        const prevTitle = prevObs?.title;
+        const currentUrl = observation.url || observation.pageState?.url;
+        const currentTitle = observation.title || observation.pageState?.title;
+        
+        if (prevUrl === currentUrl && prevTitle === currentTitle) {
+          outcome = "page unchanged";
+        }
       }
     }
     
@@ -137,6 +180,11 @@ export function addFinding(
     ...finding,
     discoveredAt: Date.now()
   });
+
+  if (goal.world.findings.length > 20) {
+    goal.world.findings = goal.world.findings.slice(-20);
+  }
+
 }
 
 export function addEntity(

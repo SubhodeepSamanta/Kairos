@@ -76,6 +76,7 @@ scroll
 screenshot
 extract_links
 extract_metadata
+extract_data: extracts specific text, table, or structured content. Params: { "query": "description of what to extract" }
 
 Rules:
 

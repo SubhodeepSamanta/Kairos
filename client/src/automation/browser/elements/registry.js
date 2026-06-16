@@ -1,40 +1,26 @@
-const elements =
-  new Map();
-
-let nextId = 1;
+const idToLocator = new Map();
 
 export function clearRegistry() {
-
-  elements.clear();
-
-  nextId = 1;
+  idToLocator.clear();
 }
 
-export function registerElement(
-  locator
-) {
-
-  const id =
-    nextId++;
-
-  elements.set(
-    id,
-    locator
-  );
-
-  return id;
+/**
+ * Stores the active Playwright locator for a given stable ID.
+ */
+export function registerElement(id, locator) {
+  const intId = parseInt(id, 10);
+  idToLocator.set(intId, locator);
+  return intId;
 }
 
-export function getElement(
-  id
-) {
-
-  return elements.get(id);
+export function getElement(id) {
+  return idToLocator.get(parseInt(id, 10));
 }
 
-export function hasElement(
-  id
-) {
+export function hasElement(id) {
+  return idToLocator.has(parseInt(id, 10));
+}
 
-  return elements.has(id);
+export function pruneRegistry() {
+  // Pruning of stale DOM references is handled naturally via clearRegistry on each page read
 }

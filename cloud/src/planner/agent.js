@@ -4,11 +4,14 @@ import { verifyGoal }
 from "./goalVerifier.js";
 import { verifyTask }
 from "./taskVerifier.js";
+import { llmCallCount, maxLlmCalls } from "../llm/provider.js";
 import {
   updateWorldModel,
   recordCompletedTask,
-  recordFailedTask
+  recordFailedTask,
+  addFinding
 } from "../agent/worldModel.js";
+import { extractDataFromPage } from "./extractor.js";
 import { isGoalImpossible }
   from "./failureVerifier.js";
   import {
@@ -74,12 +77,50 @@ function completeTask(
   );
 }
 
+function detectLoop(world) {
+  if (!world || !world.history || world.history.length < 3) return false;
+
+  const latestEntry = world.history[world.history.length - 1]?.observation;
+  const latestHash = latestEntry?.stateHash;
+  if (!latestHash) return false;
+
+  let occurrences = 0;
+  for (const entry of world.history) {
+    if (entry.observation?.stateHash === latestHash) {
+      occurrences++;
+    }
+  }
+
+  if (occurrences >= 3) {
+    return true;
+  }
+
+  const actionHistory = world.history
+    .map(h => ({
+      hash: h.observation?.stateHash,
+      actionType: h.observation?.action?.type,
+      actionParams: JSON.stringify(h.observation?.action?.params || {})
+    }))
+    .filter(h => h.hash && h.actionType);
+
+  if (actionHistory.length >= 4) {
+    const latest = actionHistory[actionHistory.length - 1];
+    for (let i = 0; i < actionHistory.length - 1; i++) {
+      const prev = actionHistory[i];
+      if (prev.hash === latest.hash && prev.actionType === latest.actionType && prev.actionParams === latest.actionParams) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
 export async function runAgent({
     goal,
     executePlan
 }) {
 
-    const MAX_RETRIES = 10;
 const intent =
   parseGoal(
     goal.objective
@@ -131,19 +172,48 @@ console.log(
         };
     }
 
-    for (
-        let attempt = 0;
-        attempt < MAX_RETRIES;
-        attempt++
-    ) {
+    const taskAttempts = {};
+    let totalActions = 0;
+    const MAX_TASK_RETRIES = 5;
+    const MAX_GOAL_ACTIONS = 30;
+
+    while (true) {
+        const currentTaskIndex = goal.currentTask;
+        taskAttempts[currentTaskIndex] = (taskAttempts[currentTaskIndex] || 0) + 1;
 
         console.log(
-            `Attempt ${attempt + 1}`
+            `Task ${currentTaskIndex + 1} Attempt ${taskAttempts[currentTaskIndex]} (Total Actions: ${totalActions}, LLM Calls: ${llmCallCount})`
         );
-goal.tasks[
-  goal.currentTask
-].status =
-  TASK_STATUS.RUNNING;
+
+        if (taskAttempts[currentTaskIndex] > MAX_TASK_RETRIES) {
+          console.log(`[BUDGET] Task ${currentTaskIndex} exceeded max retries of ${MAX_TASK_RETRIES}`);
+          return {
+            success: false,
+            reason: "task_retry_budget_exceeded"
+          };
+        }
+
+        totalActions += plan.actions.length;
+        if (totalActions > MAX_GOAL_ACTIONS) {
+          console.log(`[BUDGET] Goal exceeded max actions of ${MAX_GOAL_ACTIONS}`);
+          return {
+            success: false,
+            reason: "goal_action_budget_exceeded"
+          };
+        }
+
+        if (llmCallCount >= maxLlmCalls) {
+          console.log(`[BUDGET] Goal exceeded max LLM calls of ${maxLlmCalls}`);
+          return {
+            success: false,
+            reason: "llm_budget_exceeded"
+          };
+        }
+
+        goal.tasks[
+          goal.currentTask
+        ].status =
+          TASK_STATUS.RUNNING;
         const result =
             await executePlan(plan);
 
@@ -160,86 +230,100 @@ goal.tasks[
                 obs => !obs.success
             );
 
-        const observation =
-            failedObservation ||
-            observations[
-            observations.length - 1
-            ];
-            const compactObservations =
-  observations.map(obs => ({
-    success:
-      obs.success,
+        let activeObservation = failedObservation || observations[observations.length - 1];
+        let activeObservations = observations;
 
-    expected:
-      obs.expected,
+        let obsQuality = activeObservation?.pageState?.observationQuality;
+        if (obsQuality && obsQuality.score < 0.7) {
+          console.log(`[QUALITY] Low observation quality score: ${obsQuality.score}. Reasons: ${obsQuality.reasons.join(", ")}. Waiting and re-reading...`);
+          await new Promise(resolve => setTimeout(resolve, 1500));
+          
+          const readPlan = {
+            goalId: goal.id,
+            actions: [{ type: "read_ui", params: {} }]
+          };
+          const readResult = await executePlan(readPlan);
+          const readObsList = readResult.observations || [];
+          const readObs = readObsList[readObsList.length - 1];
+          if (readObs) {
+            activeObservation = readObs;
+            activeObservations = [...activeObservations, ...readObsList];
+          }
+        }
 
-    actual:
-      obs.actual,
+        const compactObservations = activeObservations.map(obs => ({
+          success: obs.success,
+          expected: obs.expected,
+          actual: obs.actual,
+          before: obs.before,
+          after: obs.after,
+          action: obs.action
+        }));
 
-    before:
-      obs.before,
+        setObservation(activeObservation);
+        updateWorldModel(goal, activeObservation);
 
-    after:
-      obs.after,
+        if (activeObservation?.action?.type === "extract_data" && activeObservation?.success) {
+          const pageText = activeObservation.pageState?.text || "";
+          const queryText = activeObservation.action.params?.query || "";
+          const sourceUrl = activeObservation.pageState?.url || "";
+          const sourceTitle = activeObservation.pageState?.title || "";
+          
+          console.log(`[EXTRACT] Extracting data for query: "${queryText}"...`);
+          const extractedData = await extractDataFromPage(pageText, queryText);
+          
+          addFinding(goal, {
+            query: queryText,
+            data: extractedData,
+            source: { url: sourceUrl, title: sourceTitle }
+          });
+          console.log(`[EXTRACT] Finding added to world model:`, JSON.stringify(extractedData));
+        }
 
-    action:
-      obs.action
-  }));
-            setObservation(
-  observation
-);
-updateWorldModel(
-  goal,
-  observation
-);
-console.log("WORLD:", {
-  history: goal.world?.history?.length || 0,
-  url: goal.world?.lastUrl,
-  title: goal.world?.lastTitle,
-  lastOutcome: goal.world?.lastOutcome
-});
-const compactObservation = {
-  success:
-    observation?.success,
+        console.log("WORLD:", {
+          history: goal.world?.history?.length || 0,
+          url: goal.world?.lastUrl,
+          title: goal.world?.lastTitle,
+          lastOutcome: goal.world?.lastOutcome,
+          lastStateHash: goal.world?.lastStateHash
+        });
 
-  expected:
-    observation?.expected,
+        if (detectLoop(goal.world)) {
+          console.log("[LOOP] State loop detected. Aborting execution.");
+          return {
+            success: false,
+            observation: activeObservation,
+            reason: "state_loop_detected"
+          };
+        }
 
-  actual:
-    observation?.actual,
+        const compactObservation = {
+          success: activeObservation?.success,
+          expected: activeObservation?.expected,
+          actual: activeObservation?.actual,
+          before: activeObservation?.before,
+          after: activeObservation?.after,
+          action: activeObservation?.action
+        };
 
-  before:
-    observation?.before,
-
-  after:
-    observation?.after,
-
-  action:
-    observation?.action
-};
-            console.log(
-  "OBSERVATION SUMMARY:",
-  JSON.stringify(
-    {
-      success:
-        observation?.success,
-      expected:
-        observation?.expected,
-      actual:
-        observation?.actual,
-      url:
-        observation?.url,
-      title:
-        observation?.title
-    },
-    null,
-    2
-  )
-);
+        console.log(
+          "OBSERVATION SUMMARY:",
+          JSON.stringify(
+            {
+              success: activeObservation?.success,
+              expected: activeObservation?.expected,
+              actual: activeObservation?.actual,
+              url: activeObservation?.url,
+              title: activeObservation?.title
+            },
+            null,
+            2
+          )
+        );
         console.log(
             "OBSERVATION:",
             JSON.stringify(
-                observation,
+                activeObservation,
                 null,
                 2
             )
@@ -270,14 +354,14 @@ const stateResult =
   verifyState({
     task:
       currentTask,
-    observation
+    observation: activeObservation
   });
 
 const eventResult =
   verifyEvents({
     task:
       currentTask,
-    observation
+    observation: activeObservation
   });
 
 console.log("STATE VERIFIED:", stateResult);
@@ -291,7 +375,7 @@ if (
   const finished =
     completeTask(
       goal,
-      observation
+      activeObservation
     );
 
   if (!finished) {
@@ -310,20 +394,19 @@ if (
     }
 
     setPlan(plan);
-    attempt = -1;
     continue;
   }
 
   return {
     success: true,
-    observation
+    observation: activeObservation
   };
 }
 
 // Fallback 2: Rule verifier
 const ruleResult =
   verifyByRules(
-    observation
+    activeObservation
   );
 
 console.log("RULE VERIFIED:", ruleResult);
@@ -335,7 +418,7 @@ if (
   const finished =
     completeTask(
       goal,
-      observation
+      activeObservation
     );
 
   if (!finished) {
@@ -354,13 +437,12 @@ if (
     }
 
     setPlan(plan);
-    attempt = -1;
     continue;
   }
 
   return {
     success: true,
-    observation
+    observation: activeObservation
   };
 }
 
@@ -368,7 +450,7 @@ if (
 const taskResult =
   await verifyTask({
     task: currentTask,
-    observation,
+    observation: activeObservation,
     world: goal.world
   });
 
@@ -381,7 +463,7 @@ if (taskResult.achieved) {
   const finished =
     completeTask(
       goal,
-      observation
+      activeObservation
     );
 
   if (!finished) {
@@ -400,81 +482,52 @@ if (taskResult.achieved) {
     }
 
     setPlan(plan);
-    attempt = -1;
     continue;
   }
 
   return {
     success: true,
-    observation
+    observation: activeObservation
   };
 }
 
-// Last resort: LLM goal verification
-const verification =
-await verifyGoal({
-  goal,
-  task:goal.tasks[goal.currentTask],
-  intent,
-  observation:compactObservation,
-  observations:compactObservations
-});
+// Last resort: LLM goal verification (Disabled per roadmap, re-enable Wave 3.10)
+const verification = { achieved: false };
 
   console.log(
-    "GOAL VERIFICATION:",
+    "GOAL VERIFICATION (DISABLED):",
     verification
   );
 
 if (
   verification.achieved
 ) {
-
   const finished =
     completeTask(
       goal,
-      observation
+      activeObservation
     );
 
   if (!finished) {
-
     plan =
       await createGoalPlan(
         goal
       );
 
     setPlan(plan);
-    attempt = -1;
     continue;
   }
 
   return {
     success: true,
-    observation
+    observation: activeObservation
   };
 }
 
   console.log(
     "Task verification failed — replanning for current task"
   );
-  
-  // Replanning for current task, attempt counter will increment
-  // We do NOT call completeTask or advance goal.currentTask.
 }
-
-        if (
-  attempt ===
-  MAX_RETRIES - 1
-) {
-
-  return {
-    success: false,
-    observation,
-    reason:
-      "goal_not_achieved"
-  };
-}
-
-
 
 const impossible =
   await isGoalImpossible({
@@ -489,11 +542,10 @@ console.log(
 );
 
 if (impossible.impossible) {
-
   return {
     success: false,
     reason: "goal_impossible",
-    observation
+    observation: activeObservation
   };
 }
 
@@ -505,8 +557,8 @@ const replanResponse =
   await createReplan({
     goal,
     previousPlan: plan,
-    observation,
-    observations
+    observation: compactObservation,
+    observations: compactObservations
   });
         plan =
             parsePlanResponse(
@@ -517,7 +569,6 @@ const replanResponse =
         if (
             plan.actions.length === 0
         ) {
-
             return {
                 success: false,
                 reason: "unable_to_replan"
