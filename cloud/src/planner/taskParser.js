@@ -29,8 +29,12 @@ Do not generate navigation steps.
 Generate semantic tasks only.
 
 Each task MUST include:
-- objective: a clear description of what this task must achieve
-- successCriteria: array of concrete, human-readable conditions that are directly observable on the page (e.g., "URL contains youtube.com/watch", "Search input contains react", "Page title contains Search", "Link with text 'Home' is visible"). NEVER use unobservable internal states like "video is playing" or "server has processed request". Everything must be verifiable via URL, title, or DOM elements.
+- objective: a clear description of what this task must achieve. If the goal involves multiple websites or tabs, decompose it into separate tasks for each tab or switch operation.
+- successCriteria: array of concrete, human-readable conditions that are directly observable on the page (e.g. "URL contains youtube.com/watch", "Search input contains react", "Page title contains Search", "Link with text 'Home' is visible").
+  CRITICAL RULES:
+  1. Never use unobservable states like "video is playing", "user logged in", "audio is active", "connection successful".
+  2. All success criteria MUST be verifiable using only: URL path fragments, page title substring, presence of specific DOM text, or the presence of specific buttons/inputs/links.
+  3. If a task switches tabs, include a criterion verifying that the active tab's URL/title matches the target site.
 - requires: array of prerequisite conditions (e.g. "youtube_open", "search_results_visible")
 - produces: array of conditions this task creates for downstream tasks
 

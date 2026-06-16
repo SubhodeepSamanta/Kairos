@@ -36,6 +36,12 @@ Strict Planning Rules:
 - If objective requires entering text (e.g., "Enter search query...", "Type...", "Fill..."), and an input exists:
   - You MUST return a TYPE action with the correct element id and text.
   - Do NOT return a READ_UI action when text entry is required.
+- Video Search Guidelines:
+  - Ignore Shorts: do not click elements containing duration labels under 1 minute or containing the word "Shorts".
+  - Prefer livestreams or long-duration (>1h) videos when requested: look for "LIVE", "livestream", or duration labels like "1:00:00" or similar, and click the matching video link.
+- Multi-Tab & Layout Rules:
+  - To open a second site in a separate tab, return "new_tab" first, then "navigate" to the target URL.
+  - Use "switch_tab" (with param "index") to switch between active tabs when tasks require switching or verifying multiple sites.
 - READ_UI is ONLY allowed when:
   - No page state exists (empty browser state).
   - Required elements are missing from the page state.

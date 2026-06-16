@@ -15,6 +15,7 @@ export function connectToCloud(url) {
 
     socket.on("open", () => {
       log("Connected to cloud");
+      socket.send(JSON.stringify({ type: "register_client" }));
     });
 
     socket.on("close", () => {

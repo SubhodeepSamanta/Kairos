@@ -62,11 +62,29 @@ export function matchFormFill(task, observation) {
   return null;
 }
 
-export function matchTabSwitch() {
+export function matchTabSwitch(task, observation) {
+  const action = observation?.action;
+  if (action?.type === "switch_tab" || action?.type === "new_tab" || action?.type === "close_tab") {
+    if (observation.success) {
+      return {
+        achieved: true,
+        reason: `Programmatic verification: Tab operation '${action.type}' succeeded.`
+      };
+    }
+  }
   return null;
 }
 
-export function matchReadPage() {
+export function matchReadPage(task, observation) {
+  const action = observation?.action;
+  if (action?.type === "read_ui" || action?.type === "extract_metadata" || action?.type === "extract_links" || action?.type === "extract_data") {
+    if (observation.success) {
+      return {
+        achieved: true,
+        reason: `Programmatic verification: Read/Extract operation '${action.type}' succeeded.`
+      };
+    }
+  }
   return null;
 }
 
