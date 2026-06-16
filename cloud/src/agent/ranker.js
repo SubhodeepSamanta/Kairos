@@ -58,18 +58,7 @@ const terms =
     (a,b) =>
       b.score - a.score
   );
-if (ranked.length === 0) {
-  return [];
-}
-const matched =
-  ranked.filter(
-    candidate =>
-      candidate.score > 0
-  );
-
-return matched.length
-  ? matched
-  : ranked.slice(0,15);
+  return ranked;
 }
 
 function scoreCandidate(
@@ -78,12 +67,15 @@ function scoreCandidate(
 ) {
 
   const text = [
-  candidate.text,
-  candidate.placeholder
-]
-.filter(Boolean)
-.join(" ")
-.toLowerCase();
+    candidate.text,
+    candidate.placeholder,
+    candidate.ariaLabel,
+    candidate.title,
+    candidate.name
+  ]
+  .filter(Boolean)
+  .join(" ")
+  .toLowerCase();
 
   let score = 0;
 
@@ -112,11 +104,17 @@ function scoreCandidate(
       score += 5;
     }
   }
-if (
-  candidate.category ===
-  "input"
-) {
-  score += 2;
-}
+
+  // Boost inputs and search elements semantically
+  if (
+    candidate.category ===
+    "input"
+  ) {
+    score += 2;
+  }
+  const textLower = text.toLowerCase();
+  if (textLower.includes("search") || textLower.includes("find") || textLower.includes("query")) {
+    score += 5;
+  }
   return score;
 }

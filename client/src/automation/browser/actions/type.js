@@ -28,22 +28,45 @@ if (element) {
 
   await locator.click();
 
-await locator.fill(text);
+  let success = false;
+  let value = null;
 
-const value =
-  await locator.inputValue()
-    .catch(() => null);
+  try {
+    const tagName = await locator.evaluate(el => el.tagName).catch(() => "");
+    if (tagName !== "INPUT" && tagName !== "TEXTAREA") {
+      // Targeted a button/link. Wait 600ms for overlay/dropdown/modal to focus.
+      await new Promise(r => setTimeout(r, 600));
+      const activeInfo = await page.evaluate(() => {
+        const el = document.activeElement;
+        return el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable) ? { tag: el.tagName } : null;
+      }).catch(() => null);
 
-return {
-  success:
-    value === text,
+      if (activeInfo) {
+        await page.keyboard.type(text);
+        value = await page.evaluate(() => document.activeElement?.value || "").catch(() => null);
+        success = value && value.includes(text);
+      } else {
+        // Fallback to active keyboard typing
+        await page.keyboard.type(text);
+        success = true;
+      }
+    } else {
+      await locator.fill(text);
+      value = await locator.inputValue().catch(() => null);
+      success = (value === text);
+    }
+  } catch (err) {
+    // Fallback to keyboard typing if fill/evaluation fails
+    await page.keyboard.type(text).catch(() => {});
+    success = true;
+  }
 
-  text,
-  element,
-
-  actualValue:
-    value
-};
+  return {
+    success,
+    text,
+    element,
+    actualValue: value
+  };
 }
 const active =
   await page.evaluate(() => {

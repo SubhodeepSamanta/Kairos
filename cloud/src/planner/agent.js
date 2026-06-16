@@ -572,6 +572,7 @@ const replanResponse =
     observation: compactObservation,
     observations: compactObservations
   });
+        console.log("RAW REPLAN RESPONSE:", replanResponse);
         plan =
             parsePlanResponse(
                 goal.id,

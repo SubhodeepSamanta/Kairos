@@ -2,11 +2,9 @@ import {
   matchNavigation,
   matchFormFill,
   matchTabSwitch,
-  matchReadPage
-} from "./stateMatchers.js";
-
-import {
-  matchEvents
+  matchReadPage,
+  matchEvents,
+  evaluateSuccessCriteria
 } from "./stateMatchers.js";
 
 export function verifyState({
@@ -30,19 +28,6 @@ export function verifyState({
     return null;
   }
 
-  const matchers = [
-
-    matchEvents,
-
-    matchFormFill,
-
-    matchTabSwitch,
-
-    matchReadPage,
-
-    matchNavigation
-  ];
-
   // Create a normalized observation referencing the active tab context
   const normalizedObservation = {
     ...observation,
@@ -54,6 +39,29 @@ export function verifyState({
       title: currentTitle
     }
   };
+
+  // 1. Evaluate successCriteria first if they exist
+  const criteriaResult = evaluateSuccessCriteria(task, normalizedObservation);
+  if (criteriaResult !== null) {
+    if (criteriaResult === true) {
+      return {
+        achieved: true,
+        reason: "Programmatic verification: All success criteria met."
+      };
+    } else {
+      // Criteria exist but not met yet
+      return null;
+    }
+  }
+
+  // 2. Fall back to action-based state matchers if no successCriteria are defined
+  const matchers = [
+    matchEvents,
+    matchFormFill,
+    matchTabSwitch,
+    matchReadPage,
+    matchNavigation
+  ];
 
   for (
     const matcher of matchers

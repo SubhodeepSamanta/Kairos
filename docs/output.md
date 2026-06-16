@@ -1,11 +1,11 @@
 # Kairos Cloud – Live Output
 
-> Monitor started at 2026-06-16T16:51:36.254Z
+> Monitor started at 2026-06-16T19:28:27.847Z
 
 ```
-[KAIROS] Server started at 2026-06-16T16:51:31.226Z
-[2026-06-16T16:51:31.233Z] [LOG] ◇ injected env (7) from .env [2m// tip: ⌘ suppress logs { quiet: true }[0m
-[2026-06-16T16:51:31.628Z] [ERROR] (node:10504) Warning: SECURITY WARNING: The SSL modes 'prefer', 'require', and 'verify-ca' are treated as aliases for 'verify-full'.
+[KAIROS] Server started at 2026-06-16T19:27:48.002Z
+[2026-06-16T19:27:48.020Z] [LOG] ◇ injected env (7) from .env [2m// tip: ◈ secrets for agents [www.dotenvx.com][0m
+[2026-06-16T19:27:48.891Z] [ERROR] (node:42404) Warning: SECURITY WARNING: The SSL modes 'prefer', 'require', and 'verify-ca' are treated as aliases for 'verify-full'.
 In the next major version (pg-connection-string v3.0.0 and pg v9.0.0), these modes will adopt standard libpq semantics, which have weaker security guarantees.
 
 To prepare for this change:
@@ -14,21 +14,34 @@ To prepare for this change:
 
 See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode definitions.
 (Use `node --trace-warnings ...` to show where the warning was created)
-[2026-06-16T16:51:33.512Z] [LOG] Database connected
-[2026-06-16T16:51:33.779Z] [LOG] [2026-06-16T16:51:33.779Z] WebSocket listening on 8080
-[2026-06-16T16:51:35.804Z] [LOG] [2026-06-16T16:51:35.803Z] A client connected to WebSocket
-[2026-06-16T16:51:35.807Z] [LOG] [2026-06-16T16:51:35.806Z] Automation client registered
-[2026-06-16T16:52:29.836Z] [LOG] [2026-06-16T16:52:29.835Z] A client connected to WebSocket
-[2026-06-16T16:52:29.838Z] [LOG] [2026-06-16T16:52:29.838Z] Connector registered: cli
-[2026-06-16T16:52:45.026Z] [LOG] [2026-06-16T16:52:45.026Z] Received goal: open youtube
-[2026-06-16T16:52:48.605Z] [LOG] [LLM] Trying askGroq
-[2026-06-16T16:52:48.606Z] [LOG] SYSTEM CHARS: 2216
-[2026-06-16T16:52:48.606Z] [LOG] USER CHARS: 12
-[2026-06-16T16:52:48.607Z] [LOG] TOTAL CHARS: 2228
-[2026-06-16T16:52:49.577Z] [LOG] [LLM] Success askGroq
-[2026-06-16T16:52:49.578Z] [LOG] TASK GRAPH: [
+[2026-06-16T19:27:50.980Z] [LOG] Database connected
+[2026-06-16T19:27:51.257Z] [LOG] [2026-06-16T19:27:51.256Z] WebSocket listening on 8080
+[2026-06-16T19:27:53.737Z] [LOG] [2026-06-16T19:27:53.737Z] A client connected to WebSocket
+[2026-06-16T19:27:53.740Z] [LOG] [2026-06-16T19:27:53.740Z] Automation client registered
+[2026-06-16T19:28:19.619Z] [LOG] [2026-06-16T19:28:19.618Z] A client connected to WebSocket
+[2026-06-16T19:28:19.622Z] [LOG] [2026-06-16T19:28:19.622Z] Connector registered: cli
+[2026-06-16T19:28:23.180Z] [LOG] [2026-06-16T19:28:23.180Z] Received goal: play lofi video on youtube
+[2026-06-16T19:28:23.182Z] [LOG] [LLM] Trying askGroq
+[2026-06-16T19:28:23.183Z] [LOG] SYSTEM CHARS: 377
+[2026-06-16T19:28:23.184Z] [LOG] USER CHARS: 26
+[2026-06-16T19:28:23.185Z] [LOG] TOTAL CHARS: 403
+[2026-06-16T19:28:23.642Z] [LOG] [LLM] Success askGroq
+[2026-06-16T19:28:26.220Z] [LOG] [LLM] Trying askGroq
+[2026-06-16T19:28:26.222Z] [LOG] SYSTEM CHARS: 2216
+[2026-06-16T19:28:26.222Z] [LOG] USER CHARS: 26
+[2026-06-16T19:28:26.223Z] [LOG] TOTAL CHARS: 2242
+[2026-06-16T19:28:26.322Z] [LOG] [LLM] Failed askGroq Groq failed: 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kv6gqdgyfm5ary83wd5n1pb8` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99922, Requested 710. Please try again in 9m6.048s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+
+[2026-06-16T19:28:26.323Z] [LOG] [LLM] Trying askOpenRouter
+[2026-06-16T19:28:26.324Z] [LOG] SYSTEM CHARS: 2216
+[2026-06-16T19:28:26.325Z] [LOG] USER CHARS: 26
+[2026-06-16T19:28:26.325Z] [LOG] TOTAL CHARS: 2242
+[2026-06-16T19:28:26.326Z] [LOG] [OpenRouter] Request started
+[2026-06-16T19:28:28.514Z] [LOG] [OpenRouter] Status: 200
+[2026-06-16T19:28:36.054Z] [LOG] [LLM] Success askOpenRouter
+[2026-06-16T19:28:36.056Z] [LOG] TASK GRAPH: [
   {
-    "id": "30ce023a-036c-4651-bfc5-23e27b0e3014",
+    "id": "dbb88e54-cbc0-4e49-9531-1dd5e924a6a9",
     "intent": null,
     "objective": "Open YouTube homepage",
     "target": null,
@@ -46,9315 +59,76 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
     "result": null,
     "currentStep": 0,
     "status": "pending",
-    "createdAt": "2026-06-16T16:52:49.577Z"
-  }
-]
-[2026-06-16T16:52:49.578Z] [LOG] INTENT: {
-  "type": "generic",
-  "action": null,
-  "target": "youtube",
-  "entities": [
-    "youtube"
-  ],
-  "constraints": {},
-  "confidence": 0,
-  "originalGoal": "open youtube"
-}
-[2026-06-16T16:52:49.823Z] [LOG] MEMORY CONTEXT:
- 
-[2026-06-16T16:52:49.824Z] [LOG] EMPTY BROWSER CONTEXT
-[2026-06-16T16:52:49.824Z] [LOG] CURRENT TASK: {
-  "id": "30ce023a-036c-4651-bfc5-23e27b0e3014",
-  "intent": null,
-  "objective": "Open YouTube homepage",
-  "target": null,
-  "context": {},
-  "dependsOn": [],
-  "successCriteria": [
-    "URL contains youtube.com",
-    "Page title contains YouTube"
-  ],
-  "requires": [],
-  "produces": [
-    "youtube_open"
-  ],
-  "plan": null,
-  "result": null,
-  "currentStep": 0,
-  "status": "pending",
-  "createdAt": "2026-06-16T16:52:49.577Z"
-}
-[2026-06-16T16:52:49.825Z] [LOG] BROWSER CONTEXT:
- 
-[2026-06-16T16:52:49.825Z] [LOG] MEMORY CHARS: 0
-[2026-06-16T16:52:49.826Z] [LOG] BROWSER CHARS: 0
-[2026-06-16T16:52:49.826Z] [LOG] SYSTEM PROMPT CHARS: 4000
-[2026-06-16T16:52:49.826Z] [LOG] SYSTEM CHARS: 4000
-[2026-06-16T16:52:49.827Z] [LOG] GOAL CHARS: 12
-[2026-06-16T16:52:49.827Z] [LOG] TOTAL CHARS: 4012
-[2026-06-16T16:52:49.827Z] [LOG] TASK: {
-  "id": "30ce023a-036c-4651-bfc5-23e27b0e3014",
-  "intent": null,
-  "objective": "Open YouTube homepage",
-  "target": null,
-  "context": {},
-  "dependsOn": [],
-  "successCriteria": [
-    "URL contains youtube.com",
-    "Page title contains YouTube"
-  ],
-  "requires": [],
-  "produces": [
-    "youtube_open"
-  ],
-  "plan": null,
-  "result": null,
-  "currentStep": 0,
-  "status": "pending",
-  "createdAt": "2026-06-16T16:52:49.577Z"
-}
-[2026-06-16T16:52:49.828Z] [LOG] [LLM] Trying askGroq
-[2026-06-16T16:52:49.828Z] [LOG] SYSTEM CHARS: 4000
-[2026-06-16T16:52:49.828Z] [LOG] USER CHARS: 384
-[2026-06-16T16:52:49.829Z] [LOG] TOTAL CHARS: 4384
-[2026-06-16T16:52:50.208Z] [LOG] [LLM] Success askGroq
-[2026-06-16T16:52:50.208Z] [LOG] PLANNER RESPONSE: ```json
-{
-  "actions": [
-    {
-      "type": "navigate",
-      "params": {
-        "url": "https://www.youtube.com"
-      }
-    }
-  ]
-}
-```
-[2026-06-16T16:52:50.209Z] [LOG] RAW LLM RESPONSE: ```json
-{
-  "actions": [
-    {
-      "type": "navigate",
-      "params": {
-        "url": "https://www.youtube.com"
-      }
-    }
-  ]
-}
-```
-[2026-06-16T16:52:50.209Z] [LOG] PARSED: {
-  "actions": [
-    {
-      "type": "navigate",
-      "params": {
-        "url": "https://www.youtube.com"
-      }
-    }
-  ]
-}
-[2026-06-16T16:52:50.210Z] [LOG] VALIDATED ACTIONS: [
-  {
-    "type": "navigate",
-    "params": {
-      "url": "https://www.youtube.com"
-    }
-  }
-]
-[2026-06-16T16:52:50.210Z] [LOG] VALIDATED ACTIONS: [
-  {
-    "type": "navigate",
-    "params": {
-      "url": "https://www.youtube.com"
-    }
-  }
-]
-[2026-06-16T16:52:50.211Z] [LOG] INITIAL PLAN: {
-  "goalId": "28ff0e8e-0387-40fe-9119-7a048931c371",
-  "actions": [
-    {
-      "type": "navigate",
-      "params": {
-        "url": "https://www.youtube.com"
-      }
-    }
-  ],
-  "createdAt": "2026-06-16T16:52:50.210Z"
-}
-[2026-06-16T16:52:50.211Z] [LOG] Task 1 Attempt 1 (Total Actions: 0, LLM Calls: 2)
-[2026-06-16T16:52:50.211Z] [LOG] 
-===== SENDING PLAN =====
-[2026-06-16T16:52:50.211Z] [LOG] {
-  "goalId": "28ff0e8e-0387-40fe-9119-7a048931c371",
-  "actions": [
-    {
-      "type": "navigate",
-      "params": {
-        "url": "https://www.youtube.com"
-      }
-    }
-  ],
-  "createdAt": "2026-06-16T16:52:50.210Z"
-}
-[2026-06-16T16:53:02.298Z] [LOG] [2026-06-16T16:53:02.297Z] Received: {
-  "type": "execution_result",
-  "observations": [
-    {
-      "success": true,
-      "expected": "page_loaded",
-      "actual": "https://www.youtube.com/",
-      "action": {
-        "type": "navigate",
-        "params": {
-          "url": "https://www.youtube.com"
-        }
-      },
-      "pageState": {
-        "success": true,
-        "title": "YouTube",
-        "url": "https://www.youtube.com/",
-        "buttons": [
-          {
-            "id": 4,
-            "text": "Skip navigation",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          }
-        ],
-        "inputs": [
-          {
-            "id": 6,
-            "text": "Search",
-            "value": "",
-            "role": "input",
-            "placeholder": "Search",
-            "visible": true,
-            "enabled": true
-          }
-        ],
-        "links": [
-          {
-            "id": 12,
-            "text": "Sign in",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 15,
-            "text": "Home",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 17,
-            "text": "Shorts",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 19,
-            "text": "Subscriptions",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 21,
-            "text": "You",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          }
-        ],
-        "forms": [
-          {
-            "id": 5,
-            "role": "form",
-            "action": "https://www.youtube.com/results",
-            "method": "get",
-            "visible": true
-          }
-        ],
-        "text": "IN Skip navigation Sign in Home Shorts Subscriptions You Try searching to get started Start watching videos to help us build a feed of videos you'll love.",
-        "tabs": [
-          {
-            "index": 0,
-            "title": "YouTube",
-            "url": "https://www.youtube.com/",
-            "active": true
-          }
-        ],
-        "activeTab": {
-          "index": 0,
-          "title": "YouTube",
-          "url": "https://www.youtube.com/",
-          "active": true
-        },
-        "observationQuality": {
-          "score": 1,
-          "reasons": []
-        }
-      },
-      "before": {
-        "url": null,
-        "title": null
-      },
-      "after": {
-        "url": "https://www.youtube.com/",
-        "title": "YouTube",
-        "tabCount": 1
-      },
-      "timestamp": "2026-06-16T16:53:02.295Z",
-      "events": [
-        "form_detected",
-        "links_detected",
-        "buttons_detected",
-        "content_loaded"
-      ]
-    }
-  ]
-}
-[2026-06-16T16:53:02.299Z] [LOG] EXECUTE RESULT: {
-  "type": "execution_result",
-  "observations": [
-    {
-      "success": true,
-      "expected": "page_loaded",
-      "actual": "https://www.youtube.com/",
-      "action": {
-        "type": "navigate",
-        "params": {
-          "url": "https://www.youtube.com"
-        }
-      },
-      "pageState": {
-        "success": true,
-        "title": "YouTube",
-        "url": "https://www.youtube.com/",
-        "buttons": [
-          {
-            "id": 4,
-            "text": "Skip navigation",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          }
-        ],
-        "inputs": [
-          {
-            "id": 6,
-            "text": "Search",
-            "value": "",
-            "role": "input",
-            "placeholder": "Search",
-            "visible": true,
-            "enabled": true
-          }
-        ],
-        "links": [
-          {
-            "id": 12,
-            "text": "Sign in",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 15,
-            "text": "Home",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 17,
-            "text": "Shorts",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 19,
-            "text": "Subscriptions",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 21,
-            "text": "You",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          }
-        ],
-        "forms": [
-          {
-            "id": 5,
-            "role": "form",
-            "action": "https://www.youtube.com/results",
-            "method": "get",
-            "visible": true
-          }
-        ],
-        "text": "IN Skip navigation Sign in Home Shorts Subscriptions You Try searching to get started Start watching videos to help us build a feed of videos you'll love.",
-        "tabs": [
-          {
-            "index": 0,
-            "title": "YouTube",
-            "url": "https://www.youtube.com/",
-            "active": true
-          }
-        ],
-        "activeTab": {
-          "index": 0,
-          "title": "YouTube",
-          "url": "https://www.youtube.com/",
-          "active": true
-        },
-        "observationQuality": {
-          "score": 1,
-          "reasons": []
-        }
-      },
-      "before": {
-        "url": null,
-        "title": null
-      },
-      "after": {
-        "url": "https://www.youtube.com/",
-        "title": "YouTube",
-        "tabCount": 1
-      },
-      "timestamp": "2026-06-16T16:53:02.295Z",
-      "events": [
-        "form_detected",
-        "links_detected",
-        "buttons_detected",
-        "content_loaded"
-      ]
-    }
-  ]
-}
-[2026-06-16T16:53:02.300Z] [LOG] WORLD: {
-  "history": 1,
-  "url": "https://www.youtube.com/",
-  "title": "YouTube",
-  "lastOutcome": "success",
-  "lastStateHash": "5342899f5f3225b42d94d1afe5b776401990d4996b9241907dc4aa09a1c1f6d9"
-}
-[2026-06-16T16:53:02.301Z] [LOG] OBSERVATION SUMMARY: {
-  "success": true,
-  "expected": "page_loaded",
-  "actual": "https://www.youtube.com/"
-}
-[2026-06-16T16:53:02.302Z] [LOG] OBSERVATION: {
-  "success": true,
-  "expected": "page_loaded",
-  "actual": "https://www.youtube.com/",
-  "action": {
-    "type": "navigate",
-    "params": {
-      "url": "https://www.youtube.com"
-    }
+    "createdAt": "2026-06-16T19:28:36.055Z"
   },
-  "pageState": {
-    "success": true,
-    "title": "YouTube",
-    "url": "https://www.youtube.com/",
-    "buttons": [
-      {
-        "id": 4,
-        "text": "Skip navigation",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      }
-    ],
-    "inputs": [
-      {
-        "id": 6,
-        "text": "Search",
-        "value": "",
-        "role": "input",
-        "placeholder": "Search",
-        "visible": true,
-        "enabled": true
-      }
-    ],
-    "links": [
-      {
-        "id": 12,
-        "text": "Sign in",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 15,
-        "text": "Home",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 17,
-        "text": "Shorts",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 19,
-        "text": "Subscriptions",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 21,
-        "text": "You",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      }
-    ],
-    "forms": [
-      {
-        "id": 5,
-        "role": "form",
-        "action": "https://www.youtube.com/results",
-        "method": "get",
-        "visible": true
-      }
-    ],
-    "text": "IN Skip navigation Sign in Home Shorts Subscriptions You Try searching to get started Start watching videos to help us build a feed of videos you'll love.",
-    "tabs": [
-      {
-        "index": 0,
-        "title": "YouTube",
-        "url": "https://www.youtube.com/",
-        "active": true
-      }
-    ],
-    "activeTab": {
-      "index": 0,
-      "title": "YouTube",
-      "url": "https://www.youtube.com/",
-      "active": true
-    },
-    "observationQuality": {
-      "score": 1,
-      "reasons": []
-    }
-  },
-  "before": {
-    "url": null,
-    "title": null
-  },
-  "after": {
-    "url": "https://www.youtube.com/",
-    "title": "YouTube",
-    "tabCount": 1
-  },
-  "timestamp": "2026-06-16T16:53:02.295Z",
-  "events": [
-    "form_detected",
-    "links_detected",
-    "buttons_detected",
-    "content_loaded"
-  ]
-}
-[2026-06-16T16:53:02.303Z] [LOG] VERIFYING TASK WITH CRITERIA: [
   {
-    "success": true,
-    "expected": "page_loaded",
-    "actual": "https://www.youtube.com/",
-    "action": {
-      "type": "navigate",
-      "params": {
-        "url": "https://www.youtube.com"
-      }
-    },
-    "pageState": {
-      "success": true,
-      "title": "YouTube",
-      "url": "https://www.youtube.com/",
-      "buttons": [
-        {
-          "id": 4,
-          "text": "Skip navigation",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        }
-      ],
-      "inputs": [
-        {
-          "id": 6,
-          "text": "Search",
-          "value": "",
-          "role": "input",
-          "placeholder": "Search",
-          "visible": true,
-          "enabled": true
-        }
-      ],
-      "links": [
-        {
-          "id": 12,
-          "text": "Sign in",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 15,
-          "text": "Home",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 17,
-          "text": "Shorts",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 19,
-          "text": "Subscriptions",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 21,
-          "text": "You",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        }
-      ],
-      "forms": [
-        {
-          "id": 5,
-          "role": "form",
-          "action": "https://www.youtube.com/results",
-          "method": "get",
-          "visible": true
-        }
-      ],
-      "text": "IN Skip navigation Sign in Home Shorts Subscriptions You Try searching to get started Start watching videos to help us build a feed of videos you'll love.",
-      "tabs": [
-        {
-          "index": 0,
-          "title": "YouTube",
-          "url": "https://www.youtube.com/",
-          "active": true
-        }
-      ],
-      "activeTab": {
-        "index": 0,
-        "title": "YouTube",
-        "url": "https://www.youtube.com/",
-        "active": true
-      },
-      "observationQuality": {
-        "score": 1,
-        "reasons": []
-      }
-    },
-    "before": {
-      "url": null,
-      "title": null
-    },
-    "after": {
-      "url": "https://www.youtube.com/",
-      "title": "YouTube",
-      "tabCount": 1
-    },
-    "timestamp": "2026-06-16T16:53:02.295Z",
-    "events": [
-      "form_detected",
-      "links_detected",
-      "buttons_detected",
-      "content_loaded"
-    ]
-  }
-]
-[2026-06-16T16:53:02.304Z] [LOG] task: {
-  "id": "30ce023a-036c-4651-bfc5-23e27b0e3014",
-  "intent": null,
-  "objective": "Open YouTube homepage",
-  "target": null,
-  "context": {},
-  "dependsOn": [],
-  "successCriteria": [
-    "URL contains youtube.com",
-    "Page title contains YouTube"
-  ],
-  "requires": [],
-  "produces": [
-    "youtube_open"
-  ],
-  "plan": null,
-  "result": null,
-  "currentStep": 0,
-  "status": "running",
-  "createdAt": "2026-06-16T16:52:49.577Z"
-}
-[2026-06-16T16:53:02.305Z] [LOG] STATE VERIFIED: {
-  "achieved": true,
-  "reason": "Programmatic verification: Successfully navigated to host youtube.com."
-}
-[2026-06-16T16:53:02.305Z] [LOG] EVENT VERIFIED: null
-[2026-06-16T16:53:02.305Z] [LOG] Programmatic state/event check confirmed achievement.
-
---- [Server Restarted at 2026-06-16T16:55:28.565Z] ---
-
-[KAIROS] Server started at 2026-06-16T16:51:31.226Z
-[2026-06-16T16:51:31.233Z] [LOG] ◇ injected env (7) from .env [2m// tip: ⌘ suppress logs { quiet: true }[0m
-[2026-06-16T16:51:31.628Z] [ERROR] (node:10504) Warning: SECURITY WARNING: The SSL modes 'prefer', 'require', and 'verify-ca' are treated as aliases for 'verify-full'.
-In the next major version (pg-connection-string v3.0.0 and pg v9.0.0), these modes will adopt standard libpq semantics, which have weaker security guarantees.
-
-To prepare for this change:
-- If you want the current behavior, explicitly use 'sslmode=verify-full'
-- If you want libpq compatibility now, use 'uselibpqcompat=true&sslmode=require'
-
-See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode definitions.
-(Use `node --trace-warnings ...` to show where the warning was created)
-[2026-06-16T16:51:33.512Z] [LOG] Database connected
-[2026-06-16T16:51:33.779Z] [LOG] [2026-06-16T16:51:33.779Z] WebSocket listening on 8080
-[2026-06-16T16:51:35.804Z] [LOG] [2026-06-16T16:51:35.803Z] A client connected to WebSocket
-[2026-06-16T16:51:35.807Z] [LOG] [2026-06-16T16:51:35.806Z] Automation client registered
-[2026-06-16T16:52:29.836Z] [LOG] [2026-06-16T16:52:29.835Z] A client connected to WebSocket
-[2026-06-16T16:52:29.838Z] [LOG] [2026-06-16T16:52:29.838Z] Connector registered: cli
-[2026-06-16T16:52:45.026Z] [LOG] [2026-06-16T16:52:45.026Z] Received goal: open youtube
-[2026-06-16T16:52:48.605Z] [LOG] [LLM] Trying askGroq
-[2026-06-16T16:52:48.606Z] [LOG] SYSTEM CHARS: 2216
-[2026-06-16T16:52:48.606Z] [LOG] USER CHARS: 12
-[2026-06-16T16:52:48.607Z] [LOG] TOTAL CHARS: 2228
-[2026-06-16T16:52:49.577Z] [LOG] [LLM] Success askGroq
-[2026-06-16T16:52:49.578Z] [LOG] TASK GRAPH: [
-  {
-    "id": "30ce023a-036c-4651-bfc5-23e27b0e3014",
+    "id": "c2411700-bec7-41bf-9891-01bd14263565",
     "intent": null,
-    "objective": "Open YouTube homepage",
+    "objective": "Search for lofi videos on YouTube",
     "target": null,
     "context": {},
     "dependsOn": [],
     "successCriteria": [
-      "URL contains youtube.com",
-      "Page title contains YouTube"
-    ],
-    "requires": [],
-    "produces": [
-      "youtube_open"
-    ],
-    "plan": null,
-    "result": null,
-    "currentStep": 0,
-    "status": "pending",
-    "createdAt": "2026-06-16T16:52:49.577Z"
-  }
-]
-[2026-06-16T16:52:49.578Z] [LOG] INTENT: {
-  "type": "generic",
-  "action": null,
-  "target": "youtube",
-  "entities": [
-    "youtube"
-  ],
-  "constraints": {},
-  "confidence": 0,
-  "originalGoal": "open youtube"
-}
-[2026-06-16T16:52:49.823Z] [LOG] MEMORY CONTEXT:
- 
-[2026-06-16T16:52:49.824Z] [LOG] EMPTY BROWSER CONTEXT
-[2026-06-16T16:52:49.824Z] [LOG] CURRENT TASK: {
-  "id": "30ce023a-036c-4651-bfc5-23e27b0e3014",
-  "intent": null,
-  "objective": "Open YouTube homepage",
-  "target": null,
-  "context": {},
-  "dependsOn": [],
-  "successCriteria": [
-    "URL contains youtube.com",
-    "Page title contains YouTube"
-  ],
-  "requires": [],
-  "produces": [
-    "youtube_open"
-  ],
-  "plan": null,
-  "result": null,
-  "currentStep": 0,
-  "status": "pending",
-  "createdAt": "2026-06-16T16:52:49.577Z"
-}
-[2026-06-16T16:52:49.825Z] [LOG] BROWSER CONTEXT:
- 
-[2026-06-16T16:52:49.825Z] [LOG] MEMORY CHARS: 0
-[2026-06-16T16:52:49.826Z] [LOG] BROWSER CHARS: 0
-[2026-06-16T16:52:49.826Z] [LOG] SYSTEM PROMPT CHARS: 4000
-[2026-06-16T16:52:49.826Z] [LOG] SYSTEM CHARS: 4000
-[2026-06-16T16:52:49.827Z] [LOG] GOAL CHARS: 12
-[2026-06-16T16:52:49.827Z] [LOG] TOTAL CHARS: 4012
-[2026-06-16T16:52:49.827Z] [LOG] TASK: {
-  "id": "30ce023a-036c-4651-bfc5-23e27b0e3014",
-  "intent": null,
-  "objective": "Open YouTube homepage",
-  "target": null,
-  "context": {},
-  "dependsOn": [],
-  "successCriteria": [
-    "URL contains youtube.com",
-    "Page title contains YouTube"
-  ],
-  "requires": [],
-  "produces": [
-    "youtube_open"
-  ],
-  "plan": null,
-  "result": null,
-  "currentStep": 0,
-  "status": "pending",
-  "createdAt": "2026-06-16T16:52:49.577Z"
-}
-[2026-06-16T16:52:49.828Z] [LOG] [LLM] Trying askGroq
-[2026-06-16T16:52:49.828Z] [LOG] SYSTEM CHARS: 4000
-[2026-06-16T16:52:49.828Z] [LOG] USER CHARS: 384
-[2026-06-16T16:52:49.829Z] [LOG] TOTAL CHARS: 4384
-[2026-06-16T16:52:50.208Z] [LOG] [LLM] Success askGroq
-[2026-06-16T16:52:50.208Z] [LOG] PLANNER RESPONSE: ```json
-{
-  "actions": [
-    {
-      "type": "navigate",
-      "params": {
-        "url": "https://www.youtube.com"
-      }
-    }
-  ]
-}
-```
-[2026-06-16T16:52:50.209Z] [LOG] RAW LLM RESPONSE: ```json
-{
-  "actions": [
-    {
-      "type": "navigate",
-      "params": {
-        "url": "https://www.youtube.com"
-      }
-    }
-  ]
-}
-```
-[2026-06-16T16:52:50.209Z] [LOG] PARSED: {
-  "actions": [
-    {
-      "type": "navigate",
-      "params": {
-        "url": "https://www.youtube.com"
-      }
-    }
-  ]
-}
-[2026-06-16T16:52:50.210Z] [LOG] VALIDATED ACTIONS: [
-  {
-    "type": "navigate",
-    "params": {
-      "url": "https://www.youtube.com"
-    }
-  }
-]
-[2026-06-16T16:52:50.210Z] [LOG] VALIDATED ACTIONS: [
-  {
-    "type": "navigate",
-    "params": {
-      "url": "https://www.youtube.com"
-    }
-  }
-]
-[2026-06-16T16:52:50.211Z] [LOG] INITIAL PLAN: {
-  "goalId": "28ff0e8e-0387-40fe-9119-7a048931c371",
-  "actions": [
-    {
-      "type": "navigate",
-      "params": {
-        "url": "https://www.youtube.com"
-      }
-    }
-  ],
-  "createdAt": "2026-06-16T16:52:50.210Z"
-}
-[2026-06-16T16:52:50.211Z] [LOG] Task 1 Attempt 1 (Total Actions: 0, LLM Calls: 2)
-[2026-06-16T16:52:50.211Z] [LOG] 
-===== SENDING PLAN =====
-[2026-06-16T16:52:50.211Z] [LOG] {
-  "goalId": "28ff0e8e-0387-40fe-9119-7a048931c371",
-  "actions": [
-    {
-      "type": "navigate",
-      "params": {
-        "url": "https://www.youtube.com"
-      }
-    }
-  ],
-  "createdAt": "2026-06-16T16:52:50.210Z"
-}
-[2026-06-16T16:53:02.298Z] [LOG] [2026-06-16T16:53:02.297Z] Received: {
-  "type": "execution_result",
-  "observations": [
-    {
-      "success": true,
-      "expected": "page_loaded",
-      "actual": "https://www.youtube.com/",
-      "action": {
-        "type": "navigate",
-        "params": {
-          "url": "https://www.youtube.com"
-        }
-      },
-      "pageState": {
-        "success": true,
-        "title": "YouTube",
-        "url": "https://www.youtube.com/",
-        "buttons": [
-          {
-            "id": 4,
-            "text": "Skip navigation",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          }
-        ],
-        "inputs": [
-          {
-            "id": 6,
-            "text": "Search",
-            "value": "",
-            "role": "input",
-            "placeholder": "Search",
-            "visible": true,
-            "enabled": true
-          }
-        ],
-        "links": [
-          {
-            "id": 12,
-            "text": "Sign in",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 15,
-            "text": "Home",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 17,
-            "text": "Shorts",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 19,
-            "text": "Subscriptions",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 21,
-            "text": "You",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          }
-        ],
-        "forms": [
-          {
-            "id": 5,
-            "role": "form",
-            "action": "https://www.youtube.com/results",
-            "method": "get",
-            "visible": true
-          }
-        ],
-        "text": "IN Skip navigation Sign in Home Shorts Subscriptions You Try searching to get started Start watching videos to help us build a feed of videos you'll love.",
-        "tabs": [
-          {
-            "index": 0,
-            "title": "YouTube",
-            "url": "https://www.youtube.com/",
-            "active": true
-          }
-        ],
-        "activeTab": {
-          "index": 0,
-          "title": "YouTube",
-          "url": "https://www.youtube.com/",
-          "active": true
-        },
-        "observationQuality": {
-          "score": 1,
-          "reasons": []
-        }
-      },
-      "before": {
-        "url": null,
-        "title": null
-      },
-      "after": {
-        "url": "https://www.youtube.com/",
-        "title": "YouTube",
-        "tabCount": 1
-      },
-      "timestamp": "2026-06-16T16:53:02.295Z",
-      "events": [
-        "form_detected",
-        "links_detected",
-        "buttons_detected",
-        "content_loaded"
-      ]
-    }
-  ]
-}
-[2026-06-16T16:53:02.299Z] [LOG] EXECUTE RESULT: {
-  "type": "execution_result",
-  "observations": [
-    {
-      "success": true,
-      "expected": "page_loaded",
-      "actual": "https://www.youtube.com/",
-      "action": {
-        "type": "navigate",
-        "params": {
-          "url": "https://www.youtube.com"
-        }
-      },
-      "pageState": {
-        "success": true,
-        "title": "YouTube",
-        "url": "https://www.youtube.com/",
-        "buttons": [
-          {
-            "id": 4,
-            "text": "Skip navigation",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          }
-        ],
-        "inputs": [
-          {
-            "id": 6,
-            "text": "Search",
-            "value": "",
-            "role": "input",
-            "placeholder": "Search",
-            "visible": true,
-            "enabled": true
-          }
-        ],
-        "links": [
-          {
-            "id": 12,
-            "text": "Sign in",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 15,
-            "text": "Home",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 17,
-            "text": "Shorts",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 19,
-            "text": "Subscriptions",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 21,
-            "text": "You",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          }
-        ],
-        "forms": [
-          {
-            "id": 5,
-            "role": "form",
-            "action": "https://www.youtube.com/results",
-            "method": "get",
-            "visible": true
-          }
-        ],
-        "text": "IN Skip navigation Sign in Home Shorts Subscriptions You Try searching to get started Start watching videos to help us build a feed of videos you'll love.",
-        "tabs": [
-          {
-            "index": 0,
-            "title": "YouTube",
-            "url": "https://www.youtube.com/",
-            "active": true
-          }
-        ],
-        "activeTab": {
-          "index": 0,
-          "title": "YouTube",
-          "url": "https://www.youtube.com/",
-          "active": true
-        },
-        "observationQuality": {
-          "score": 1,
-          "reasons": []
-        }
-      },
-      "before": {
-        "url": null,
-        "title": null
-      },
-      "after": {
-        "url": "https://www.youtube.com/",
-        "title": "YouTube",
-        "tabCount": 1
-      },
-      "timestamp": "2026-06-16T16:53:02.295Z",
-      "events": [
-        "form_detected",
-        "links_detected",
-        "buttons_detected",
-        "content_loaded"
-      ]
-    }
-  ]
-}
-[2026-06-16T16:53:02.300Z] [LOG] WORLD: {
-  "history": 1,
-  "url": "https://www.youtube.com/",
-  "title": "YouTube",
-  "lastOutcome": "success",
-  "lastStateHash": "5342899f5f3225b42d94d1afe5b776401990d4996b9241907dc4aa09a1c1f6d9"
-}
-[2026-06-16T16:53:02.301Z] [LOG] OBSERVATION SUMMARY: {
-  "success": true,
-  "expected": "page_loaded",
-  "actual": "https://www.youtube.com/"
-}
-[2026-06-16T16:53:02.302Z] [LOG] OBSERVATION: {
-  "success": true,
-  "expected": "page_loaded",
-  "actual": "https://www.youtube.com/",
-  "action": {
-    "type": "navigate",
-    "params": {
-      "url": "https://www.youtube.com"
-    }
-  },
-  "pageState": {
-    "success": true,
-    "title": "YouTube",
-    "url": "https://www.youtube.com/",
-    "buttons": [
-      {
-        "id": 4,
-        "text": "Skip navigation",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      }
-    ],
-    "inputs": [
-      {
-        "id": 6,
-        "text": "Search",
-        "value": "",
-        "role": "input",
-        "placeholder": "Search",
-        "visible": true,
-        "enabled": true
-      }
-    ],
-    "links": [
-      {
-        "id": 12,
-        "text": "Sign in",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 15,
-        "text": "Home",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 17,
-        "text": "Shorts",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 19,
-        "text": "Subscriptions",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 21,
-        "text": "You",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      }
-    ],
-    "forms": [
-      {
-        "id": 5,
-        "role": "form",
-        "action": "https://www.youtube.com/results",
-        "method": "get",
-        "visible": true
-      }
-    ],
-    "text": "IN Skip navigation Sign in Home Shorts Subscriptions You Try searching to get started Start watching videos to help us build a feed of videos you'll love.",
-    "tabs": [
-      {
-        "index": 0,
-        "title": "YouTube",
-        "url": "https://www.youtube.com/",
-        "active": true
-      }
-    ],
-    "activeTab": {
-      "index": 0,
-      "title": "YouTube",
-      "url": "https://www.youtube.com/",
-      "active": true
-    },
-    "observationQuality": {
-      "score": 1,
-      "reasons": []
-    }
-  },
-  "before": {
-    "url": null,
-    "title": null
-  },
-  "after": {
-    "url": "https://www.youtube.com/",
-    "title": "YouTube",
-    "tabCount": 1
-  },
-  "timestamp": "2026-06-16T16:53:02.295Z",
-  "events": [
-    "form_detected",
-    "links_detected",
-    "buttons_detected",
-    "content_loaded"
-  ]
-}
-[2026-06-16T16:53:02.303Z] [LOG] VERIFYING TASK WITH CRITERIA: [
-  {
-    "success": true,
-    "expected": "page_loaded",
-    "actual": "https://www.youtube.com/",
-    "action": {
-      "type": "navigate",
-      "params": {
-        "url": "https://www.youtube.com"
-      }
-    },
-    "pageState": {
-      "success": true,
-      "title": "YouTube",
-      "url": "https://www.youtube.com/",
-      "buttons": [
-        {
-          "id": 4,
-          "text": "Skip navigation",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        }
-      ],
-      "inputs": [
-        {
-          "id": 6,
-          "text": "Search",
-          "value": "",
-          "role": "input",
-          "placeholder": "Search",
-          "visible": true,
-          "enabled": true
-        }
-      ],
-      "links": [
-        {
-          "id": 12,
-          "text": "Sign in",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 15,
-          "text": "Home",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 17,
-          "text": "Shorts",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 19,
-          "text": "Subscriptions",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 21,
-          "text": "You",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        }
-      ],
-      "forms": [
-        {
-          "id": 5,
-          "role": "form",
-          "action": "https://www.youtube.com/results",
-          "method": "get",
-          "visible": true
-        }
-      ],
-      "text": "IN Skip navigation Sign in Home Shorts Subscriptions You Try searching to get started Start watching videos to help us build a feed of videos you'll love.",
-      "tabs": [
-        {
-          "index": 0,
-          "title": "YouTube",
-          "url": "https://www.youtube.com/",
-          "active": true
-        }
-      ],
-      "activeTab": {
-        "index": 0,
-        "title": "YouTube",
-        "url": "https://www.youtube.com/",
-        "active": true
-      },
-      "observationQuality": {
-        "score": 1,
-        "reasons": []
-      }
-    },
-    "before": {
-      "url": null,
-      "title": null
-    },
-    "after": {
-      "url": "https://www.youtube.com/",
-      "title": "YouTube",
-      "tabCount": 1
-    },
-    "timestamp": "2026-06-16T16:53:02.295Z",
-    "events": [
-      "form_detected",
-      "links_detected",
-      "buttons_detected",
-      "content_loaded"
-    ]
-  }
-]
-[2026-06-16T16:53:02.304Z] [LOG] task: {
-  "id": "30ce023a-036c-4651-bfc5-23e27b0e3014",
-  "intent": null,
-  "objective": "Open YouTube homepage",
-  "target": null,
-  "context": {},
-  "dependsOn": [],
-  "successCriteria": [
-    "URL contains youtube.com",
-    "Page title contains YouTube"
-  ],
-  "requires": [],
-  "produces": [
-    "youtube_open"
-  ],
-  "plan": null,
-  "result": null,
-  "currentStep": 0,
-  "status": "running",
-  "createdAt": "2026-06-16T16:52:49.577Z"
-}
-[2026-06-16T16:53:02.305Z] [LOG] STATE VERIFIED: {
-  "achieved": true,
-  "reason": "Programmatic verification: Successfully navigated to host youtube.com."
-}
-[2026-06-16T16:53:02.305Z] [LOG] EVENT VERIFIED: null
-[2026-06-16T16:53:02.305Z] [LOG] Programmatic state/event check confirmed achievement.
-[2026-06-16T16:55:48.912Z] [LOG] [2026-06-16T16:55:48.911Z] Received goal: open github
-[2026-06-16T16:55:52.281Z] [LOG] [LLM] Trying askGroq
-[2026-06-16T16:55:52.281Z] [LOG] SYSTEM CHARS: 2216
-[2026-06-16T16:55:52.282Z] [LOG] USER CHARS: 11
-[2026-06-16T16:55:52.282Z] [LOG] TOTAL CHARS: 2227
-[2026-06-16T16:55:52.673Z] [LOG] [LLM] Success askGroq
-[2026-06-16T16:55:52.674Z] [LOG] TASK GRAPH: [
-  {
-    "id": "b40fa81e-1b87-48ff-a454-6075456e02e8",
-    "intent": null,
-    "objective": "Open GitHub homepage",
-    "target": null,
-    "context": {},
-    "dependsOn": [],
-    "successCriteria": [
-      "URL contains github.com",
-      "Page title contains GitHub"
-    ],
-    "requires": [],
-    "produces": [
-      "github_open"
-    ],
-    "plan": null,
-    "result": null,
-    "currentStep": 0,
-    "status": "pending",
-    "createdAt": "2026-06-16T16:55:52.674Z"
-  }
-]
-[2026-06-16T16:55:52.674Z] [LOG] INTENT: {
-  "type": "generic",
-  "action": null,
-  "target": "github",
-  "entities": [
-    "github"
-  ],
-  "constraints": {},
-  "confidence": 0,
-  "originalGoal": "open github"
-}
-[2026-06-16T16:55:52.926Z] [LOG] MEMORY CONTEXT:
- 
-[2026-06-16T16:55:52.927Z] [LOG] CURRENT TASK: {
-  "id": "b40fa81e-1b87-48ff-a454-6075456e02e8",
-  "intent": null,
-  "objective": "Open GitHub homepage",
-  "target": null,
-  "context": {},
-  "dependsOn": [],
-  "successCriteria": [
-    "URL contains github.com",
-    "Page title contains GitHub"
-  ],
-  "requires": [],
-  "produces": [
-    "github_open"
-  ],
-  "plan": null,
-  "result": null,
-  "currentStep": 0,
-  "status": "pending",
-  "createdAt": "2026-06-16T16:55:52.674Z"
-}
-[2026-06-16T16:55:52.928Z] [LOG] BROWSER CONTEXT:
- URL:
-https://www.youtube.com/
-
-Title:
-YouTube
-
-Inputs:
-[6] Search
-
-Forms:
-[5] role: form, action: https://www.youtube.com/results, method: get
-
-
-[2026-06-16T16:55:52.928Z] [LOG] MEMORY CHARS: 0
-[2026-06-16T16:55:52.929Z] [LOG] BROWSER CHARS: 144
-[2026-06-16T16:55:52.929Z] [LOG] SYSTEM PROMPT CHARS: 4140
-[2026-06-16T16:55:52.929Z] [LOG] SYSTEM CHARS: 4140
-[2026-06-16T16:55:52.930Z] [LOG] GOAL CHARS: 11
-[2026-06-16T16:55:52.930Z] [LOG] TOTAL CHARS: 4151
-[2026-06-16T16:55:52.930Z] [LOG] TASK: {
-  "id": "b40fa81e-1b87-48ff-a454-6075456e02e8",
-  "intent": null,
-  "objective": "Open GitHub homepage",
-  "target": null,
-  "context": {},
-  "dependsOn": [],
-  "successCriteria": [
-    "URL contains github.com",
-    "Page title contains GitHub"
-  ],
-  "requires": [],
-  "produces": [
-    "github_open"
-  ],
-  "plan": null,
-  "result": null,
-  "currentStep": 0,
-  "status": "pending",
-  "createdAt": "2026-06-16T16:55:52.674Z"
-}
-[2026-06-16T16:55:52.931Z] [LOG] [LLM] Trying askGroq
-[2026-06-16T16:55:52.931Z] [LOG] SYSTEM CHARS: 4140
-[2026-06-16T16:55:52.931Z] [LOG] USER CHARS: 381
-[2026-06-16T16:55:52.932Z] [LOG] TOTAL CHARS: 4521
-[2026-06-16T16:55:53.018Z] [LOG] [LLM] Failed askGroq Groq failed: 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kv6gqdgyfm5ary83wd5n1pb8` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98921, Requested 1160. Please try again in 1m9.984s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
-
-[2026-06-16T16:55:53.018Z] [LOG] [LLM] Trying askOpenRouter
-[2026-06-16T16:55:53.019Z] [LOG] SYSTEM CHARS: 4140
-[2026-06-16T16:55:53.019Z] [LOG] USER CHARS: 381
-[2026-06-16T16:55:53.020Z] [LOG] TOTAL CHARS: 4521
-[2026-06-16T16:55:53.020Z] [LOG] [OpenRouter] Request started
-[2026-06-16T16:55:54.208Z] [LOG] [OpenRouter] Status: 200
-[2026-06-16T16:55:56.210Z] [LOG] [LLM] Success askOpenRouter
-[2026-06-16T16:55:56.210Z] [LOG] PLANNER RESPONSE: Since the browser state is empty, the first step is to navigate to the GitHub homepage. Here's the action:
-
-```json
-{
-  "actions": [
-    {
-      "type": "navigate",
-      "params": {
-        "url": "https://github.com"
-      }
-    }
-  ]
-}
-```
-[2026-06-16T16:55:56.211Z] [LOG] RAW LLM RESPONSE: Since the browser state is empty, the first step is to navigate to the GitHub homepage. Here's the action:
-
-```json
-{
-  "actions": [
-    {
-      "type": "navigate",
-      "params": {
-        "url": "https://github.com"
-      }
-    }
-  ]
-}
-```
-[2026-06-16T16:55:56.211Z] [LOG] PARSED: {
-  "actions": [
-    {
-      "type": "navigate",
-      "params": {
-        "url": "https://github.com"
-      }
-    }
-  ]
-}
-[2026-06-16T16:55:56.212Z] [LOG] VALIDATED ACTIONS: [
-  {
-    "type": "navigate",
-    "params": {
-      "url": "https://github.com"
-    }
-  }
-]
-[2026-06-16T16:55:56.212Z] [LOG] VALIDATED ACTIONS: [
-  {
-    "type": "navigate",
-    "params": {
-      "url": "https://github.com"
-    }
-  }
-]
-[2026-06-16T16:55:56.213Z] [LOG] INITIAL PLAN: {
-  "goalId": "bd9f9bab-ccc4-425f-8701-d78370e2cc33",
-  "actions": [
-    {
-      "type": "navigate",
-      "params": {
-        "url": "https://github.com"
-      }
-    }
-  ],
-  "createdAt": "2026-06-16T16:55:56.212Z"
-}
-[2026-06-16T16:55:56.213Z] [LOG] Task 1 Attempt 1 (Total Actions: 0, LLM Calls: 4)
-[2026-06-16T16:55:56.213Z] [LOG] 
-===== SENDING PLAN =====
-[2026-06-16T16:55:56.213Z] [LOG] {
-  "goalId": "bd9f9bab-ccc4-425f-8701-d78370e2cc33",
-  "actions": [
-    {
-      "type": "navigate",
-      "params": {
-        "url": "https://github.com"
-      }
-    }
-  ],
-  "createdAt": "2026-06-16T16:55:56.212Z"
-}
-[2026-06-16T16:56:00.649Z] [LOG] [2026-06-16T16:56:00.648Z] Received: {
-  "type": "execution_result",
-  "observations": [
-    {
-      "success": true,
-      "expected": "page_loaded",
-      "actual": "https://github.com/",
-      "action": {
-        "type": "navigate",
-        "params": {
-          "url": "https://github.com"
-        }
-      },
-      "pageState": {
-        "success": true,
-        "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-        "url": "https://github.com/",
-        "buttons": [
-          {
-            "id": 6,
-            "text": "Platform",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 23,
-            "text": "Solutions",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 39,
-            "text": "Resources",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 56,
-            "text": "Open Source",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 66,
-            "text": "Enterprise",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 99,
-            "text": "Sign up for GitHub",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 102,
-            "text": "Code",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 103,
-            "text": "Plan",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 104,
-            "text": "Collaborate",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 105,
-            "text": "Automate",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 106,
-            "text": "Secure",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 113,
-            "text": "Automate your path to production",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 115,
-            "text": "Code instantly from anywhere",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 117,
-            "text": "Keep momentum on the go",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 119,
-            "text": "Shape your toolchain",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 128,
-            "text": "Keep track of your tasks",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 130,
-            "text": "Share ideas and ask questions",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 132,
-            "text": "Review code changes together",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 134,
-            "text": "Fund open source projects",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 136,
-            "text": "By industry",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          }
-        ],
-        "inputs": [
-          {
-            "id": 98,
-            "text": "you@domain.com",
-            "value": "",
-            "role": "input",
-            "placeholder": "you@domain.com",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 146,
-            "text": "you@domain.com",
-            "value": "",
-            "role": "input",
-            "placeholder": "you@domain.com",
-            "visible": true,
-            "enabled": true
-          }
-        ],
-        "links": [
-          {
-            "id": 1,
-            "text": "Skip to content",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 71,
-            "text": "Pricing",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 90,
-            "text": "Sign in",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 91,
-            "text": "Sign up",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 100,
-            "text": "Try GitHub Copilot",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 110,
-            "text": "Explore GitHub Copilot",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 111,
-            "text": "Read customer story",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 112,
-            "text": "Read industry report",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 114,
-            "text": "Explore GitHub Actions",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 116,
-            "text": "Explore GitHub Codespaces",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 118,
-            "text": "Explore GitHub Mobile",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 120,
-            "text": "Explore GitHub Marketplace",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 121,
-            "text": "Explore GitHub Advanced Security",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 122,
-            "text": "Learn about GitHub Code Security",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 123,
-            "text": "Learn about Dependabot",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 124,
-            "text": "Learn about GitHub Secret Protection",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 125,
-            "text": "1",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 126,
-            "text": "1",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 127,
-            "text": "Explore GitHub Projects",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 129,
-            "text": "Explore GitHub Issues",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          }
-        ],
-        "forms": [
-          {
-            "id": 97,
-            "role": "form",
-            "action": "https://github.com/signup",
-            "method": "get",
-            "visible": true
-          },
-          {
-            "id": 145,
-            "role": "form",
-            "action": "https://github.com/signup",
-            "method": "get",
-            "visible": true
-          }
-        ],
-        "text": "Skip to content Navigation Menu Platform Solutions Resources Open Source Enterprise Pricing Sign in Sign up Mona the Octocat, Copilot, and Ducky float jubilantly upward from behind the GitHub product demo accompanied by a purple glow and a scattering of stars. The future of building happens together Tools and trends evolve, but collaboration endures. With GitHub, developers, agents, and code come together on one platform. Enter your email Sign up for GitHub Try GitHub Copilot GitHub features A demonstration animation of a code editor using GitHub Copilot Chat, where the user requests GitHub Copilot to refactor duplicated logic and extract it into a reusable function for a given code snippet. CodePlanCollaborateAutomateSecure Write, test, and fix code quickly with GitHub Copilot, from simple boilerplate to complex features. GITHUB CUSTOMERS Accelerate your entire workflow From your first line of code to final deployment, GitHub provides AI and automation tools to help you build and ship better software faster. A Copilot chat window with the 'Ask' mode enabled. The user switches from 'Ask' mode to 'Agent' mode from a dropdown menu, then sends the prompt 'Update the website to allow searching for running races by name.' Copilot analyzes the codebase, then explains the required edits for three files before generating them. Copilot then confirms completion and summarizes the implemented changes for the new functionality allowing users to search races by name and view paginated, filtered results. Your AI partner everywhere. Copilot is ready to work with you at each step of the software development lifecycle. Explore GitHub Copilot Duolingo boosts developer speed by 25% with GitHub Copilot Read customer story 2025 Gartner® Magic Quadrant™ for AI Code Assistants Read industry report Automate your path to production Ship faster with secure, reliable CI/CD. Explore GitHub Actions Code instantly from anywhere Launch a full, cloud-based development environment in seconds. Explo",
-        "tabs": [
-          {
-            "index": 0,
-            "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-            "url": "https://github.com/",
-            "active": true
-          }
-        ],
-        "activeTab": {
-          "index": 0,
-          "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-          "url": "https://github.com/",
-          "active": true
-        },
-        "observationQuality": {
-          "score": 1,
-          "reasons": []
-        }
-      },
-      "before": {
-        "url": "https://www.youtube.com/",
-        "title": "YouTube",
-        "tabCount": 1
-      },
-      "after": {
-        "url": "https://github.com/",
-        "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-        "tabCount": 1
-      },
-      "timestamp": "2026-06-16T16:56:00.644Z",
-      "events": [
-        "url_changed",
-        "content_changed",
-        "form_detected",
-        "links_detected",
-        "buttons_detected",
-        "content_loaded"
-      ]
-    }
-  ]
-}
-[2026-06-16T16:56:00.652Z] [LOG] EXECUTE RESULT: {
-  "type": "execution_result",
-  "observations": [
-    {
-      "success": true,
-      "expected": "page_loaded",
-      "actual": "https://github.com/",
-      "action": {
-        "type": "navigate",
-        "params": {
-          "url": "https://github.com"
-        }
-      },
-      "pageState": {
-        "success": true,
-        "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-        "url": "https://github.com/",
-        "buttons": [
-          {
-            "id": 6,
-            "text": "Platform",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 23,
-            "text": "Solutions",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 39,
-            "text": "Resources",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 56,
-            "text": "Open Source",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 66,
-            "text": "Enterprise",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 99,
-            "text": "Sign up for GitHub",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 102,
-            "text": "Code",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 103,
-            "text": "Plan",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 104,
-            "text": "Collaborate",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 105,
-            "text": "Automate",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 106,
-            "text": "Secure",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 113,
-            "text": "Automate your path to production",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 115,
-            "text": "Code instantly from anywhere",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 117,
-            "text": "Keep momentum on the go",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 119,
-            "text": "Shape your toolchain",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 128,
-            "text": "Keep track of your tasks",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 130,
-            "text": "Share ideas and ask questions",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 132,
-            "text": "Review code changes together",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 134,
-            "text": "Fund open source projects",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 136,
-            "text": "By industry",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          }
-        ],
-        "inputs": [
-          {
-            "id": 98,
-            "text": "you@domain.com",
-            "value": "",
-            "role": "input",
-            "placeholder": "you@domain.com",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 146,
-            "text": "you@domain.com",
-            "value": "",
-            "role": "input",
-            "placeholder": "you@domain.com",
-            "visible": true,
-            "enabled": true
-          }
-        ],
-        "links": [
-          {
-            "id": 1,
-            "text": "Skip to content",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 71,
-            "text": "Pricing",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 90,
-            "text": "Sign in",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 91,
-            "text": "Sign up",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 100,
-            "text": "Try GitHub Copilot",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 110,
-            "text": "Explore GitHub Copilot",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 111,
-            "text": "Read customer story",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 112,
-            "text": "Read industry report",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 114,
-            "text": "Explore GitHub Actions",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 116,
-            "text": "Explore GitHub Codespaces",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 118,
-            "text": "Explore GitHub Mobile",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 120,
-            "text": "Explore GitHub Marketplace",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 121,
-            "text": "Explore GitHub Advanced Security",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 122,
-            "text": "Learn about GitHub Code Security",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 123,
-            "text": "Learn about Dependabot",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 124,
-            "text": "Learn about GitHub Secret Protection",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 125,
-            "text": "1",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 126,
-            "text": "1",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 127,
-            "text": "Explore GitHub Projects",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 129,
-            "text": "Explore GitHub Issues",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          }
-        ],
-        "forms": [
-          {
-            "id": 97,
-            "role": "form",
-            "action": "https://github.com/signup",
-            "method": "get",
-            "visible": true
-          },
-          {
-            "id": 145,
-            "role": "form",
-            "action": "https://github.com/signup",
-            "method": "get",
-            "visible": true
-          }
-        ],
-        "text": "Skip to content Navigation Menu Platform Solutions Resources Open Source Enterprise Pricing Sign in Sign up Mona the Octocat, Copilot, and Ducky float jubilantly upward from behind the GitHub product demo accompanied by a purple glow and a scattering of stars. The future of building happens together Tools and trends evolve, but collaboration endures. With GitHub, developers, agents, and code come together on one platform. Enter your email Sign up for GitHub Try GitHub Copilot GitHub features A demonstration animation of a code editor using GitHub Copilot Chat, where the user requests GitHub Copilot to refactor duplicated logic and extract it into a reusable function for a given code snippet. CodePlanCollaborateAutomateSecure Write, test, and fix code quickly with GitHub Copilot, from simple boilerplate to complex features. GITHUB CUSTOMERS Accelerate your entire workflow From your first line of code to final deployment, GitHub provides AI and automation tools to help you build and ship better software faster. A Copilot chat window with the 'Ask' mode enabled. The user switches from 'Ask' mode to 'Agent' mode from a dropdown menu, then sends the prompt 'Update the website to allow searching for running races by name.' Copilot analyzes the codebase, then explains the required edits for three files before generating them. Copilot then confirms completion and summarizes the implemented changes for the new functionality allowing users to search races by name and view paginated, filtered results. Your AI partner everywhere. Copilot is ready to work with you at each step of the software development lifecycle. Explore GitHub Copilot Duolingo boosts developer speed by 25% with GitHub Copilot Read customer story 2025 Gartner® Magic Quadrant™ for AI Code Assistants Read industry report Automate your path to production Ship faster with secure, reliable CI/CD. Explore GitHub Actions Code instantly from anywhere Launch a full, cloud-based development environment in seconds. Explo",
-        "tabs": [
-          {
-            "index": 0,
-            "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-            "url": "https://github.com/",
-            "active": true
-          }
-        ],
-        "activeTab": {
-          "index": 0,
-          "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-          "url": "https://github.com/",
-          "active": true
-        },
-        "observationQuality": {
-          "score": 1,
-          "reasons": []
-        }
-      },
-      "before": {
-        "url": "https://www.youtube.com/",
-        "title": "YouTube",
-        "tabCount": 1
-      },
-      "after": {
-        "url": "https://github.com/",
-        "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-        "tabCount": 1
-      },
-      "timestamp": "2026-06-16T16:56:00.644Z",
-      "events": [
-        "url_changed",
-        "content_changed",
-        "form_detected",
-        "links_detected",
-        "buttons_detected",
-        "content_loaded"
-      ]
-    }
-  ]
-}
-[2026-06-16T16:56:00.652Z] [LOG] WORLD: {
-  "history": 1,
-  "url": "https://github.com/",
-  "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-  "lastOutcome": "success",
-  "lastStateHash": "5e553b4b4ec9019b3e8485dab39fbe5f4ecda9a1f6581f6cf0f8d02f8203e233"
-}
-[2026-06-16T16:56:00.653Z] [LOG] OBSERVATION SUMMARY: {
-  "success": true,
-  "expected": "page_loaded",
-  "actual": "https://github.com/"
-}
-[2026-06-16T16:56:00.655Z] [LOG] OBSERVATION: {
-  "success": true,
-  "expected": "page_loaded",
-  "actual": "https://github.com/",
-  "action": {
-    "type": "navigate",
-    "params": {
-      "url": "https://github.com"
-    }
-  },
-  "pageState": {
-    "success": true,
-    "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-    "url": "https://github.com/",
-    "buttons": [
-      {
-        "id": 6,
-        "text": "Platform",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 23,
-        "text": "Solutions",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 39,
-        "text": "Resources",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 56,
-        "text": "Open Source",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 66,
-        "text": "Enterprise",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 99,
-        "text": "Sign up for GitHub",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 102,
-        "text": "Code",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 103,
-        "text": "Plan",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 104,
-        "text": "Collaborate",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 105,
-        "text": "Automate",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 106,
-        "text": "Secure",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 113,
-        "text": "Automate your path to production",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 115,
-        "text": "Code instantly from anywhere",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 117,
-        "text": "Keep momentum on the go",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 119,
-        "text": "Shape your toolchain",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 128,
-        "text": "Keep track of your tasks",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 130,
-        "text": "Share ideas and ask questions",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 132,
-        "text": "Review code changes together",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 134,
-        "text": "Fund open source projects",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 136,
-        "text": "By industry",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      }
-    ],
-    "inputs": [
-      {
-        "id": 98,
-        "text": "you@domain.com",
-        "value": "",
-        "role": "input",
-        "placeholder": "you@domain.com",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 146,
-        "text": "you@domain.com",
-        "value": "",
-        "role": "input",
-        "placeholder": "you@domain.com",
-        "visible": true,
-        "enabled": true
-      }
-    ],
-    "links": [
-      {
-        "id": 1,
-        "text": "Skip to content",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 71,
-        "text": "Pricing",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 90,
-        "text": "Sign in",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 91,
-        "text": "Sign up",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 100,
-        "text": "Try GitHub Copilot",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 110,
-        "text": "Explore GitHub Copilot",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 111,
-        "text": "Read customer story",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 112,
-        "text": "Read industry report",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 114,
-        "text": "Explore GitHub Actions",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 116,
-        "text": "Explore GitHub Codespaces",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 118,
-        "text": "Explore GitHub Mobile",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 120,
-        "text": "Explore GitHub Marketplace",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 121,
-        "text": "Explore GitHub Advanced Security",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 122,
-        "text": "Learn about GitHub Code Security",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 123,
-        "text": "Learn about Dependabot",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 124,
-        "text": "Learn about GitHub Secret Protection",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 125,
-        "text": "1",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 126,
-        "text": "1",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 127,
-        "text": "Explore GitHub Projects",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 129,
-        "text": "Explore GitHub Issues",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      }
-    ],
-    "forms": [
-      {
-        "id": 97,
-        "role": "form",
-        "action": "https://github.com/signup",
-        "method": "get",
-        "visible": true
-      },
-      {
-        "id": 145,
-        "role": "form",
-        "action": "https://github.com/signup",
-        "method": "get",
-        "visible": true
-      }
-    ],
-    "text": "Skip to content Navigation Menu Platform Solutions Resources Open Source Enterprise Pricing Sign in Sign up Mona the Octocat, Copilot, and Ducky float jubilantly upward from behind the GitHub product demo accompanied by a purple glow and a scattering of stars. The future of building happens together Tools and trends evolve, but collaboration endures. With GitHub, developers, agents, and code come together on one platform. Enter your email Sign up for GitHub Try GitHub Copilot GitHub features A demonstration animation of a code editor using GitHub Copilot Chat, where the user requests GitHub Copilot to refactor duplicated logic and extract it into a reusable function for a given code snippet. CodePlanCollaborateAutomateSecure Write, test, and fix code quickly with GitHub Copilot, from simple boilerplate to complex features. GITHUB CUSTOMERS Accelerate your entire workflow From your first line of code to final deployment, GitHub provides AI and automation tools to help you build and ship better software faster. A Copilot chat window with the 'Ask' mode enabled. The user switches from 'Ask' mode to 'Agent' mode from a dropdown menu, then sends the prompt 'Update the website to allow searching for running races by name.' Copilot analyzes the codebase, then explains the required edits for three files before generating them. Copilot then confirms completion and summarizes the implemented changes for the new functionality allowing users to search races by name and view paginated, filtered results. Your AI partner everywhere. Copilot is ready to work with you at each step of the software development lifecycle. Explore GitHub Copilot Duolingo boosts developer speed by 25% with GitHub Copilot Read customer story 2025 Gartner® Magic Quadrant™ for AI Code Assistants Read industry report Automate your path to production Ship faster with secure, reliable CI/CD. Explore GitHub Actions Code instantly from anywhere Launch a full, cloud-based development environment in seconds. Explo",
-    "tabs": [
-      {
-        "index": 0,
-        "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-        "url": "https://github.com/",
-        "active": true
-      }
-    ],
-    "activeTab": {
-      "index": 0,
-      "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-      "url": "https://github.com/",
-      "active": true
-    },
-    "observationQuality": {
-      "score": 1,
-      "reasons": []
-    }
-  },
-  "before": {
-    "url": "https://www.youtube.com/",
-    "title": "YouTube",
-    "tabCount": 1
-  },
-  "after": {
-    "url": "https://github.com/",
-    "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-    "tabCount": 1
-  },
-  "timestamp": "2026-06-16T16:56:00.644Z",
-  "events": [
-    "url_changed",
-    "content_changed",
-    "form_detected",
-    "links_detected",
-    "buttons_detected",
-    "content_loaded"
-  ]
-}
-[2026-06-16T16:56:00.657Z] [LOG] VERIFYING TASK WITH CRITERIA: [
-  {
-    "success": true,
-    "expected": "page_loaded",
-    "actual": "https://github.com/",
-    "action": {
-      "type": "navigate",
-      "params": {
-        "url": "https://github.com"
-      }
-    },
-    "pageState": {
-      "success": true,
-      "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-      "url": "https://github.com/",
-      "buttons": [
-        {
-          "id": 6,
-          "text": "Platform",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 23,
-          "text": "Solutions",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 39,
-          "text": "Resources",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 56,
-          "text": "Open Source",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 66,
-          "text": "Enterprise",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 99,
-          "text": "Sign up for GitHub",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 102,
-          "text": "Code",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 103,
-          "text": "Plan",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 104,
-          "text": "Collaborate",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 105,
-          "text": "Automate",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 106,
-          "text": "Secure",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 113,
-          "text": "Automate your path to production",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 115,
-          "text": "Code instantly from anywhere",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 117,
-          "text": "Keep momentum on the go",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 119,
-          "text": "Shape your toolchain",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 128,
-          "text": "Keep track of your tasks",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 130,
-          "text": "Share ideas and ask questions",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 132,
-          "text": "Review code changes together",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 134,
-          "text": "Fund open source projects",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 136,
-          "text": "By industry",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        }
-      ],
-      "inputs": [
-        {
-          "id": 98,
-          "text": "you@domain.com",
-          "value": "",
-          "role": "input",
-          "placeholder": "you@domain.com",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 146,
-          "text": "you@domain.com",
-          "value": "",
-          "role": "input",
-          "placeholder": "you@domain.com",
-          "visible": true,
-          "enabled": true
-        }
-      ],
-      "links": [
-        {
-          "id": 1,
-          "text": "Skip to content",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 71,
-          "text": "Pricing",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 90,
-          "text": "Sign in",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 91,
-          "text": "Sign up",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 100,
-          "text": "Try GitHub Copilot",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 110,
-          "text": "Explore GitHub Copilot",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 111,
-          "text": "Read customer story",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 112,
-          "text": "Read industry report",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 114,
-          "text": "Explore GitHub Actions",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 116,
-          "text": "Explore GitHub Codespaces",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 118,
-          "text": "Explore GitHub Mobile",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 120,
-          "text": "Explore GitHub Marketplace",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 121,
-          "text": "Explore GitHub Advanced Security",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 122,
-          "text": "Learn about GitHub Code Security",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 123,
-          "text": "Learn about Dependabot",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 124,
-          "text": "Learn about GitHub Secret Protection",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 125,
-          "text": "1",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 126,
-          "text": "1",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 127,
-          "text": "Explore GitHub Projects",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 129,
-          "text": "Explore GitHub Issues",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        }
-      ],
-      "forms": [
-        {
-          "id": 97,
-          "role": "form",
-          "action": "https://github.com/signup",
-          "method": "get",
-          "visible": true
-        },
-        {
-          "id": 145,
-          "role": "form",
-          "action": "https://github.com/signup",
-          "method": "get",
-          "visible": true
-        }
-      ],
-      "text": "Skip to content Navigation Menu Platform Solutions Resources Open Source Enterprise Pricing Sign in Sign up Mona the Octocat, Copilot, and Ducky float jubilantly upward from behind the GitHub product demo accompanied by a purple glow and a scattering of stars. The future of building happens together Tools and trends evolve, but collaboration endures. With GitHub, developers, agents, and code come together on one platform. Enter your email Sign up for GitHub Try GitHub Copilot GitHub features A demonstration animation of a code editor using GitHub Copilot Chat, where the user requests GitHub Copilot to refactor duplicated logic and extract it into a reusable function for a given code snippet. CodePlanCollaborateAutomateSecure Write, test, and fix code quickly with GitHub Copilot, from simple boilerplate to complex features. GITHUB CUSTOMERS Accelerate your entire workflow From your first line of code to final deployment, GitHub provides AI and automation tools to help you build and ship better software faster. A Copilot chat window with the 'Ask' mode enabled. The user switches from 'Ask' mode to 'Agent' mode from a dropdown menu, then sends the prompt 'Update the website to allow searching for running races by name.' Copilot analyzes the codebase, then explains the required edits for three files before generating them. Copilot then confirms completion and summarizes the implemented changes for the new functionality allowing users to search races by name and view paginated, filtered results. Your AI partner everywhere. Copilot is ready to work with you at each step of the software development lifecycle. Explore GitHub Copilot Duolingo boosts developer speed by 25% with GitHub Copilot Read customer story 2025 Gartner® Magic Quadrant™ for AI Code Assistants Read industry report Automate your path to production Ship faster with secure, reliable CI/CD. Explore GitHub Actions Code instantly from anywhere Launch a full, cloud-based development environment in seconds. Explo",
-      "tabs": [
-        {
-          "index": 0,
-          "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-          "url": "https://github.com/",
-          "active": true
-        }
-      ],
-      "activeTab": {
-        "index": 0,
-        "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-        "url": "https://github.com/",
-        "active": true
-      },
-      "observationQuality": {
-        "score": 1,
-        "reasons": []
-      }
-    },
-    "before": {
-      "url": "https://www.youtube.com/",
-      "title": "YouTube",
-      "tabCount": 1
-    },
-    "after": {
-      "url": "https://github.com/",
-      "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-      "tabCount": 1
-    },
-    "timestamp": "2026-06-16T16:56:00.644Z",
-    "events": [
-      "url_changed",
-      "content_changed",
-      "form_detected",
-      "links_detected",
-      "buttons_detected",
-      "content_loaded"
-    ]
-  }
-]
-[2026-06-16T16:56:00.658Z] [LOG] task: {
-  "id": "b40fa81e-1b87-48ff-a454-6075456e02e8",
-  "intent": null,
-  "objective": "Open GitHub homepage",
-  "target": null,
-  "context": {},
-  "dependsOn": [],
-  "successCriteria": [
-    "URL contains github.com",
-    "Page title contains GitHub"
-  ],
-  "requires": [],
-  "produces": [
-    "github_open"
-  ],
-  "plan": null,
-  "result": null,
-  "currentStep": 0,
-  "status": "running",
-  "createdAt": "2026-06-16T16:55:52.674Z"
-}
-[2026-06-16T16:56:00.658Z] [LOG] STATE VERIFIED: {
-  "achieved": true,
-  "reason": "Programmatic verification: Successfully navigated to host github.com."
-}
-[2026-06-16T16:56:00.659Z] [LOG] EVENT VERIFIED: null
-[2026-06-16T16:56:00.659Z] [LOG] Programmatic state/event check confirmed achievement.
-
---- [Server Restarted at 2026-06-16T16:56:08.185Z] ---
-
-[KAIROS] Server started at 2026-06-16T16:51:31.226Z
-[2026-06-16T16:51:31.233Z] [LOG] ◇ injected env (7) from .env [2m// tip: ⌘ suppress logs { quiet: true }[0m
-[2026-06-16T16:51:31.628Z] [ERROR] (node:10504) Warning: SECURITY WARNING: The SSL modes 'prefer', 'require', and 'verify-ca' are treated as aliases for 'verify-full'.
-In the next major version (pg-connection-string v3.0.0 and pg v9.0.0), these modes will adopt standard libpq semantics, which have weaker security guarantees.
-
-To prepare for this change:
-- If you want the current behavior, explicitly use 'sslmode=verify-full'
-- If you want libpq compatibility now, use 'uselibpqcompat=true&sslmode=require'
-
-See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode definitions.
-(Use `node --trace-warnings ...` to show where the warning was created)
-[2026-06-16T16:51:33.512Z] [LOG] Database connected
-[2026-06-16T16:51:33.779Z] [LOG] [2026-06-16T16:51:33.779Z] WebSocket listening on 8080
-[2026-06-16T16:51:35.804Z] [LOG] [2026-06-16T16:51:35.803Z] A client connected to WebSocket
-[2026-06-16T16:51:35.807Z] [LOG] [2026-06-16T16:51:35.806Z] Automation client registered
-[2026-06-16T16:52:29.836Z] [LOG] [2026-06-16T16:52:29.835Z] A client connected to WebSocket
-[2026-06-16T16:52:29.838Z] [LOG] [2026-06-16T16:52:29.838Z] Connector registered: cli
-[2026-06-16T16:52:45.026Z] [LOG] [2026-06-16T16:52:45.026Z] Received goal: open youtube
-[2026-06-16T16:52:48.605Z] [LOG] [LLM] Trying askGroq
-[2026-06-16T16:52:48.606Z] [LOG] SYSTEM CHARS: 2216
-[2026-06-16T16:52:48.606Z] [LOG] USER CHARS: 12
-[2026-06-16T16:52:48.607Z] [LOG] TOTAL CHARS: 2228
-[2026-06-16T16:52:49.577Z] [LOG] [LLM] Success askGroq
-[2026-06-16T16:52:49.578Z] [LOG] TASK GRAPH: [
-  {
-    "id": "30ce023a-036c-4651-bfc5-23e27b0e3014",
-    "intent": null,
-    "objective": "Open YouTube homepage",
-    "target": null,
-    "context": {},
-    "dependsOn": [],
-    "successCriteria": [
-      "URL contains youtube.com",
-      "Page title contains YouTube"
-    ],
-    "requires": [],
-    "produces": [
-      "youtube_open"
-    ],
-    "plan": null,
-    "result": null,
-    "currentStep": 0,
-    "status": "pending",
-    "createdAt": "2026-06-16T16:52:49.577Z"
-  }
-]
-[2026-06-16T16:52:49.578Z] [LOG] INTENT: {
-  "type": "generic",
-  "action": null,
-  "target": "youtube",
-  "entities": [
-    "youtube"
-  ],
-  "constraints": {},
-  "confidence": 0,
-  "originalGoal": "open youtube"
-}
-[2026-06-16T16:52:49.823Z] [LOG] MEMORY CONTEXT:
- 
-[2026-06-16T16:52:49.824Z] [LOG] EMPTY BROWSER CONTEXT
-[2026-06-16T16:52:49.824Z] [LOG] CURRENT TASK: {
-  "id": "30ce023a-036c-4651-bfc5-23e27b0e3014",
-  "intent": null,
-  "objective": "Open YouTube homepage",
-  "target": null,
-  "context": {},
-  "dependsOn": [],
-  "successCriteria": [
-    "URL contains youtube.com",
-    "Page title contains YouTube"
-  ],
-  "requires": [],
-  "produces": [
-    "youtube_open"
-  ],
-  "plan": null,
-  "result": null,
-  "currentStep": 0,
-  "status": "pending",
-  "createdAt": "2026-06-16T16:52:49.577Z"
-}
-[2026-06-16T16:52:49.825Z] [LOG] BROWSER CONTEXT:
- 
-[2026-06-16T16:52:49.825Z] [LOG] MEMORY CHARS: 0
-[2026-06-16T16:52:49.826Z] [LOG] BROWSER CHARS: 0
-[2026-06-16T16:52:49.826Z] [LOG] SYSTEM PROMPT CHARS: 4000
-[2026-06-16T16:52:49.826Z] [LOG] SYSTEM CHARS: 4000
-[2026-06-16T16:52:49.827Z] [LOG] GOAL CHARS: 12
-[2026-06-16T16:52:49.827Z] [LOG] TOTAL CHARS: 4012
-[2026-06-16T16:52:49.827Z] [LOG] TASK: {
-  "id": "30ce023a-036c-4651-bfc5-23e27b0e3014",
-  "intent": null,
-  "objective": "Open YouTube homepage",
-  "target": null,
-  "context": {},
-  "dependsOn": [],
-  "successCriteria": [
-    "URL contains youtube.com",
-    "Page title contains YouTube"
-  ],
-  "requires": [],
-  "produces": [
-    "youtube_open"
-  ],
-  "plan": null,
-  "result": null,
-  "currentStep": 0,
-  "status": "pending",
-  "createdAt": "2026-06-16T16:52:49.577Z"
-}
-[2026-06-16T16:52:49.828Z] [LOG] [LLM] Trying askGroq
-[2026-06-16T16:52:49.828Z] [LOG] SYSTEM CHARS: 4000
-[2026-06-16T16:52:49.828Z] [LOG] USER CHARS: 384
-[2026-06-16T16:52:49.829Z] [LOG] TOTAL CHARS: 4384
-[2026-06-16T16:52:50.208Z] [LOG] [LLM] Success askGroq
-[2026-06-16T16:52:50.208Z] [LOG] PLANNER RESPONSE: ```json
-{
-  "actions": [
-    {
-      "type": "navigate",
-      "params": {
-        "url": "https://www.youtube.com"
-      }
-    }
-  ]
-}
-```
-[2026-06-16T16:52:50.209Z] [LOG] RAW LLM RESPONSE: ```json
-{
-  "actions": [
-    {
-      "type": "navigate",
-      "params": {
-        "url": "https://www.youtube.com"
-      }
-    }
-  ]
-}
-```
-[2026-06-16T16:52:50.209Z] [LOG] PARSED: {
-  "actions": [
-    {
-      "type": "navigate",
-      "params": {
-        "url": "https://www.youtube.com"
-      }
-    }
-  ]
-}
-[2026-06-16T16:52:50.210Z] [LOG] VALIDATED ACTIONS: [
-  {
-    "type": "navigate",
-    "params": {
-      "url": "https://www.youtube.com"
-    }
-  }
-]
-[2026-06-16T16:52:50.210Z] [LOG] VALIDATED ACTIONS: [
-  {
-    "type": "navigate",
-    "params": {
-      "url": "https://www.youtube.com"
-    }
-  }
-]
-[2026-06-16T16:52:50.211Z] [LOG] INITIAL PLAN: {
-  "goalId": "28ff0e8e-0387-40fe-9119-7a048931c371",
-  "actions": [
-    {
-      "type": "navigate",
-      "params": {
-        "url": "https://www.youtube.com"
-      }
-    }
-  ],
-  "createdAt": "2026-06-16T16:52:50.210Z"
-}
-[2026-06-16T16:52:50.211Z] [LOG] Task 1 Attempt 1 (Total Actions: 0, LLM Calls: 2)
-[2026-06-16T16:52:50.211Z] [LOG] 
-===== SENDING PLAN =====
-[2026-06-16T16:52:50.211Z] [LOG] {
-  "goalId": "28ff0e8e-0387-40fe-9119-7a048931c371",
-  "actions": [
-    {
-      "type": "navigate",
-      "params": {
-        "url": "https://www.youtube.com"
-      }
-    }
-  ],
-  "createdAt": "2026-06-16T16:52:50.210Z"
-}
-[2026-06-16T16:53:02.298Z] [LOG] [2026-06-16T16:53:02.297Z] Received: {
-  "type": "execution_result",
-  "observations": [
-    {
-      "success": true,
-      "expected": "page_loaded",
-      "actual": "https://www.youtube.com/",
-      "action": {
-        "type": "navigate",
-        "params": {
-          "url": "https://www.youtube.com"
-        }
-      },
-      "pageState": {
-        "success": true,
-        "title": "YouTube",
-        "url": "https://www.youtube.com/",
-        "buttons": [
-          {
-            "id": 4,
-            "text": "Skip navigation",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          }
-        ],
-        "inputs": [
-          {
-            "id": 6,
-            "text": "Search",
-            "value": "",
-            "role": "input",
-            "placeholder": "Search",
-            "visible": true,
-            "enabled": true
-          }
-        ],
-        "links": [
-          {
-            "id": 12,
-            "text": "Sign in",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 15,
-            "text": "Home",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 17,
-            "text": "Shorts",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 19,
-            "text": "Subscriptions",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 21,
-            "text": "You",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          }
-        ],
-        "forms": [
-          {
-            "id": 5,
-            "role": "form",
-            "action": "https://www.youtube.com/results",
-            "method": "get",
-            "visible": true
-          }
-        ],
-        "text": "IN Skip navigation Sign in Home Shorts Subscriptions You Try searching to get started Start watching videos to help us build a feed of videos you'll love.",
-        "tabs": [
-          {
-            "index": 0,
-            "title": "YouTube",
-            "url": "https://www.youtube.com/",
-            "active": true
-          }
-        ],
-        "activeTab": {
-          "index": 0,
-          "title": "YouTube",
-          "url": "https://www.youtube.com/",
-          "active": true
-        },
-        "observationQuality": {
-          "score": 1,
-          "reasons": []
-        }
-      },
-      "before": {
-        "url": null,
-        "title": null
-      },
-      "after": {
-        "url": "https://www.youtube.com/",
-        "title": "YouTube",
-        "tabCount": 1
-      },
-      "timestamp": "2026-06-16T16:53:02.295Z",
-      "events": [
-        "form_detected",
-        "links_detected",
-        "buttons_detected",
-        "content_loaded"
-      ]
-    }
-  ]
-}
-[2026-06-16T16:53:02.299Z] [LOG] EXECUTE RESULT: {
-  "type": "execution_result",
-  "observations": [
-    {
-      "success": true,
-      "expected": "page_loaded",
-      "actual": "https://www.youtube.com/",
-      "action": {
-        "type": "navigate",
-        "params": {
-          "url": "https://www.youtube.com"
-        }
-      },
-      "pageState": {
-        "success": true,
-        "title": "YouTube",
-        "url": "https://www.youtube.com/",
-        "buttons": [
-          {
-            "id": 4,
-            "text": "Skip navigation",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          }
-        ],
-        "inputs": [
-          {
-            "id": 6,
-            "text": "Search",
-            "value": "",
-            "role": "input",
-            "placeholder": "Search",
-            "visible": true,
-            "enabled": true
-          }
-        ],
-        "links": [
-          {
-            "id": 12,
-            "text": "Sign in",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 15,
-            "text": "Home",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 17,
-            "text": "Shorts",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 19,
-            "text": "Subscriptions",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 21,
-            "text": "You",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          }
-        ],
-        "forms": [
-          {
-            "id": 5,
-            "role": "form",
-            "action": "https://www.youtube.com/results",
-            "method": "get",
-            "visible": true
-          }
-        ],
-        "text": "IN Skip navigation Sign in Home Shorts Subscriptions You Try searching to get started Start watching videos to help us build a feed of videos you'll love.",
-        "tabs": [
-          {
-            "index": 0,
-            "title": "YouTube",
-            "url": "https://www.youtube.com/",
-            "active": true
-          }
-        ],
-        "activeTab": {
-          "index": 0,
-          "title": "YouTube",
-          "url": "https://www.youtube.com/",
-          "active": true
-        },
-        "observationQuality": {
-          "score": 1,
-          "reasons": []
-        }
-      },
-      "before": {
-        "url": null,
-        "title": null
-      },
-      "after": {
-        "url": "https://www.youtube.com/",
-        "title": "YouTube",
-        "tabCount": 1
-      },
-      "timestamp": "2026-06-16T16:53:02.295Z",
-      "events": [
-        "form_detected",
-        "links_detected",
-        "buttons_detected",
-        "content_loaded"
-      ]
-    }
-  ]
-}
-[2026-06-16T16:53:02.300Z] [LOG] WORLD: {
-  "history": 1,
-  "url": "https://www.youtube.com/",
-  "title": "YouTube",
-  "lastOutcome": "success",
-  "lastStateHash": "5342899f5f3225b42d94d1afe5b776401990d4996b9241907dc4aa09a1c1f6d9"
-}
-[2026-06-16T16:53:02.301Z] [LOG] OBSERVATION SUMMARY: {
-  "success": true,
-  "expected": "page_loaded",
-  "actual": "https://www.youtube.com/"
-}
-[2026-06-16T16:53:02.302Z] [LOG] OBSERVATION: {
-  "success": true,
-  "expected": "page_loaded",
-  "actual": "https://www.youtube.com/",
-  "action": {
-    "type": "navigate",
-    "params": {
-      "url": "https://www.youtube.com"
-    }
-  },
-  "pageState": {
-    "success": true,
-    "title": "YouTube",
-    "url": "https://www.youtube.com/",
-    "buttons": [
-      {
-        "id": 4,
-        "text": "Skip navigation",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      }
-    ],
-    "inputs": [
-      {
-        "id": 6,
-        "text": "Search",
-        "value": "",
-        "role": "input",
-        "placeholder": "Search",
-        "visible": true,
-        "enabled": true
-      }
-    ],
-    "links": [
-      {
-        "id": 12,
-        "text": "Sign in",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 15,
-        "text": "Home",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 17,
-        "text": "Shorts",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 19,
-        "text": "Subscriptions",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 21,
-        "text": "You",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      }
-    ],
-    "forms": [
-      {
-        "id": 5,
-        "role": "form",
-        "action": "https://www.youtube.com/results",
-        "method": "get",
-        "visible": true
-      }
-    ],
-    "text": "IN Skip navigation Sign in Home Shorts Subscriptions You Try searching to get started Start watching videos to help us build a feed of videos you'll love.",
-    "tabs": [
-      {
-        "index": 0,
-        "title": "YouTube",
-        "url": "https://www.youtube.com/",
-        "active": true
-      }
-    ],
-    "activeTab": {
-      "index": 0,
-      "title": "YouTube",
-      "url": "https://www.youtube.com/",
-      "active": true
-    },
-    "observationQuality": {
-      "score": 1,
-      "reasons": []
-    }
-  },
-  "before": {
-    "url": null,
-    "title": null
-  },
-  "after": {
-    "url": "https://www.youtube.com/",
-    "title": "YouTube",
-    "tabCount": 1
-  },
-  "timestamp": "2026-06-16T16:53:02.295Z",
-  "events": [
-    "form_detected",
-    "links_detected",
-    "buttons_detected",
-    "content_loaded"
-  ]
-}
-[2026-06-16T16:53:02.303Z] [LOG] VERIFYING TASK WITH CRITERIA: [
-  {
-    "success": true,
-    "expected": "page_loaded",
-    "actual": "https://www.youtube.com/",
-    "action": {
-      "type": "navigate",
-      "params": {
-        "url": "https://www.youtube.com"
-      }
-    },
-    "pageState": {
-      "success": true,
-      "title": "YouTube",
-      "url": "https://www.youtube.com/",
-      "buttons": [
-        {
-          "id": 4,
-          "text": "Skip navigation",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        }
-      ],
-      "inputs": [
-        {
-          "id": 6,
-          "text": "Search",
-          "value": "",
-          "role": "input",
-          "placeholder": "Search",
-          "visible": true,
-          "enabled": true
-        }
-      ],
-      "links": [
-        {
-          "id": 12,
-          "text": "Sign in",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 15,
-          "text": "Home",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 17,
-          "text": "Shorts",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 19,
-          "text": "Subscriptions",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 21,
-          "text": "You",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        }
-      ],
-      "forms": [
-        {
-          "id": 5,
-          "role": "form",
-          "action": "https://www.youtube.com/results",
-          "method": "get",
-          "visible": true
-        }
-      ],
-      "text": "IN Skip navigation Sign in Home Shorts Subscriptions You Try searching to get started Start watching videos to help us build a feed of videos you'll love.",
-      "tabs": [
-        {
-          "index": 0,
-          "title": "YouTube",
-          "url": "https://www.youtube.com/",
-          "active": true
-        }
-      ],
-      "activeTab": {
-        "index": 0,
-        "title": "YouTube",
-        "url": "https://www.youtube.com/",
-        "active": true
-      },
-      "observationQuality": {
-        "score": 1,
-        "reasons": []
-      }
-    },
-    "before": {
-      "url": null,
-      "title": null
-    },
-    "after": {
-      "url": "https://www.youtube.com/",
-      "title": "YouTube",
-      "tabCount": 1
-    },
-    "timestamp": "2026-06-16T16:53:02.295Z",
-    "events": [
-      "form_detected",
-      "links_detected",
-      "buttons_detected",
-      "content_loaded"
-    ]
-  }
-]
-[2026-06-16T16:53:02.304Z] [LOG] task: {
-  "id": "30ce023a-036c-4651-bfc5-23e27b0e3014",
-  "intent": null,
-  "objective": "Open YouTube homepage",
-  "target": null,
-  "context": {},
-  "dependsOn": [],
-  "successCriteria": [
-    "URL contains youtube.com",
-    "Page title contains YouTube"
-  ],
-  "requires": [],
-  "produces": [
-    "youtube_open"
-  ],
-  "plan": null,
-  "result": null,
-  "currentStep": 0,
-  "status": "running",
-  "createdAt": "2026-06-16T16:52:49.577Z"
-}
-[2026-06-16T16:53:02.305Z] [LOG] STATE VERIFIED: {
-  "achieved": true,
-  "reason": "Programmatic verification: Successfully navigated to host youtube.com."
-}
-[2026-06-16T16:53:02.305Z] [LOG] EVENT VERIFIED: null
-[2026-06-16T16:53:02.305Z] [LOG] Programmatic state/event check confirmed achievement.
-[2026-06-16T16:55:48.912Z] [LOG] [2026-06-16T16:55:48.911Z] Received goal: open github
-[2026-06-16T16:55:52.281Z] [LOG] [LLM] Trying askGroq
-[2026-06-16T16:55:52.281Z] [LOG] SYSTEM CHARS: 2216
-[2026-06-16T16:55:52.282Z] [LOG] USER CHARS: 11
-[2026-06-16T16:55:52.282Z] [LOG] TOTAL CHARS: 2227
-[2026-06-16T16:55:52.673Z] [LOG] [LLM] Success askGroq
-[2026-06-16T16:55:52.674Z] [LOG] TASK GRAPH: [
-  {
-    "id": "b40fa81e-1b87-48ff-a454-6075456e02e8",
-    "intent": null,
-    "objective": "Open GitHub homepage",
-    "target": null,
-    "context": {},
-    "dependsOn": [],
-    "successCriteria": [
-      "URL contains github.com",
-      "Page title contains GitHub"
-    ],
-    "requires": [],
-    "produces": [
-      "github_open"
-    ],
-    "plan": null,
-    "result": null,
-    "currentStep": 0,
-    "status": "pending",
-    "createdAt": "2026-06-16T16:55:52.674Z"
-  }
-]
-[2026-06-16T16:55:52.674Z] [LOG] INTENT: {
-  "type": "generic",
-  "action": null,
-  "target": "github",
-  "entities": [
-    "github"
-  ],
-  "constraints": {},
-  "confidence": 0,
-  "originalGoal": "open github"
-}
-[2026-06-16T16:55:52.926Z] [LOG] MEMORY CONTEXT:
- 
-[2026-06-16T16:55:52.927Z] [LOG] CURRENT TASK: {
-  "id": "b40fa81e-1b87-48ff-a454-6075456e02e8",
-  "intent": null,
-  "objective": "Open GitHub homepage",
-  "target": null,
-  "context": {},
-  "dependsOn": [],
-  "successCriteria": [
-    "URL contains github.com",
-    "Page title contains GitHub"
-  ],
-  "requires": [],
-  "produces": [
-    "github_open"
-  ],
-  "plan": null,
-  "result": null,
-  "currentStep": 0,
-  "status": "pending",
-  "createdAt": "2026-06-16T16:55:52.674Z"
-}
-[2026-06-16T16:55:52.928Z] [LOG] BROWSER CONTEXT:
- URL:
-https://www.youtube.com/
-
-Title:
-YouTube
-
-Inputs:
-[6] Search
-
-Forms:
-[5] role: form, action: https://www.youtube.com/results, method: get
-
-
-[2026-06-16T16:55:52.928Z] [LOG] MEMORY CHARS: 0
-[2026-06-16T16:55:52.929Z] [LOG] BROWSER CHARS: 144
-[2026-06-16T16:55:52.929Z] [LOG] SYSTEM PROMPT CHARS: 4140
-[2026-06-16T16:55:52.929Z] [LOG] SYSTEM CHARS: 4140
-[2026-06-16T16:55:52.930Z] [LOG] GOAL CHARS: 11
-[2026-06-16T16:55:52.930Z] [LOG] TOTAL CHARS: 4151
-[2026-06-16T16:55:52.930Z] [LOG] TASK: {
-  "id": "b40fa81e-1b87-48ff-a454-6075456e02e8",
-  "intent": null,
-  "objective": "Open GitHub homepage",
-  "target": null,
-  "context": {},
-  "dependsOn": [],
-  "successCriteria": [
-    "URL contains github.com",
-    "Page title contains GitHub"
-  ],
-  "requires": [],
-  "produces": [
-    "github_open"
-  ],
-  "plan": null,
-  "result": null,
-  "currentStep": 0,
-  "status": "pending",
-  "createdAt": "2026-06-16T16:55:52.674Z"
-}
-[2026-06-16T16:55:52.931Z] [LOG] [LLM] Trying askGroq
-[2026-06-16T16:55:52.931Z] [LOG] SYSTEM CHARS: 4140
-[2026-06-16T16:55:52.931Z] [LOG] USER CHARS: 381
-[2026-06-16T16:55:52.932Z] [LOG] TOTAL CHARS: 4521
-[2026-06-16T16:55:53.018Z] [LOG] [LLM] Failed askGroq Groq failed: 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kv6gqdgyfm5ary83wd5n1pb8` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98921, Requested 1160. Please try again in 1m9.984s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
-
-[2026-06-16T16:55:53.018Z] [LOG] [LLM] Trying askOpenRouter
-[2026-06-16T16:55:53.019Z] [LOG] SYSTEM CHARS: 4140
-[2026-06-16T16:55:53.019Z] [LOG] USER CHARS: 381
-[2026-06-16T16:55:53.020Z] [LOG] TOTAL CHARS: 4521
-[2026-06-16T16:55:53.020Z] [LOG] [OpenRouter] Request started
-[2026-06-16T16:55:54.208Z] [LOG] [OpenRouter] Status: 200
-[2026-06-16T16:55:56.210Z] [LOG] [LLM] Success askOpenRouter
-[2026-06-16T16:55:56.210Z] [LOG] PLANNER RESPONSE: Since the browser state is empty, the first step is to navigate to the GitHub homepage. Here's the action:
-
-```json
-{
-  "actions": [
-    {
-      "type": "navigate",
-      "params": {
-        "url": "https://github.com"
-      }
-    }
-  ]
-}
-```
-[2026-06-16T16:55:56.211Z] [LOG] RAW LLM RESPONSE: Since the browser state is empty, the first step is to navigate to the GitHub homepage. Here's the action:
-
-```json
-{
-  "actions": [
-    {
-      "type": "navigate",
-      "params": {
-        "url": "https://github.com"
-      }
-    }
-  ]
-}
-```
-[2026-06-16T16:55:56.211Z] [LOG] PARSED: {
-  "actions": [
-    {
-      "type": "navigate",
-      "params": {
-        "url": "https://github.com"
-      }
-    }
-  ]
-}
-[2026-06-16T16:55:56.212Z] [LOG] VALIDATED ACTIONS: [
-  {
-    "type": "navigate",
-    "params": {
-      "url": "https://github.com"
-    }
-  }
-]
-[2026-06-16T16:55:56.212Z] [LOG] VALIDATED ACTIONS: [
-  {
-    "type": "navigate",
-    "params": {
-      "url": "https://github.com"
-    }
-  }
-]
-[2026-06-16T16:55:56.213Z] [LOG] INITIAL PLAN: {
-  "goalId": "bd9f9bab-ccc4-425f-8701-d78370e2cc33",
-  "actions": [
-    {
-      "type": "navigate",
-      "params": {
-        "url": "https://github.com"
-      }
-    }
-  ],
-  "createdAt": "2026-06-16T16:55:56.212Z"
-}
-[2026-06-16T16:55:56.213Z] [LOG] Task 1 Attempt 1 (Total Actions: 0, LLM Calls: 4)
-[2026-06-16T16:55:56.213Z] [LOG] 
-===== SENDING PLAN =====
-[2026-06-16T16:55:56.213Z] [LOG] {
-  "goalId": "bd9f9bab-ccc4-425f-8701-d78370e2cc33",
-  "actions": [
-    {
-      "type": "navigate",
-      "params": {
-        "url": "https://github.com"
-      }
-    }
-  ],
-  "createdAt": "2026-06-16T16:55:56.212Z"
-}
-[2026-06-16T16:56:00.649Z] [LOG] [2026-06-16T16:56:00.648Z] Received: {
-  "type": "execution_result",
-  "observations": [
-    {
-      "success": true,
-      "expected": "page_loaded",
-      "actual": "https://github.com/",
-      "action": {
-        "type": "navigate",
-        "params": {
-          "url": "https://github.com"
-        }
-      },
-      "pageState": {
-        "success": true,
-        "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-        "url": "https://github.com/",
-        "buttons": [
-          {
-            "id": 6,
-            "text": "Platform",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 23,
-            "text": "Solutions",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 39,
-            "text": "Resources",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 56,
-            "text": "Open Source",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 66,
-            "text": "Enterprise",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 99,
-            "text": "Sign up for GitHub",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 102,
-            "text": "Code",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 103,
-            "text": "Plan",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 104,
-            "text": "Collaborate",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 105,
-            "text": "Automate",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 106,
-            "text": "Secure",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 113,
-            "text": "Automate your path to production",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 115,
-            "text": "Code instantly from anywhere",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 117,
-            "text": "Keep momentum on the go",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 119,
-            "text": "Shape your toolchain",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 128,
-            "text": "Keep track of your tasks",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 130,
-            "text": "Share ideas and ask questions",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 132,
-            "text": "Review code changes together",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 134,
-            "text": "Fund open source projects",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 136,
-            "text": "By industry",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          }
-        ],
-        "inputs": [
-          {
-            "id": 98,
-            "text": "you@domain.com",
-            "value": "",
-            "role": "input",
-            "placeholder": "you@domain.com",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 146,
-            "text": "you@domain.com",
-            "value": "",
-            "role": "input",
-            "placeholder": "you@domain.com",
-            "visible": true,
-            "enabled": true
-          }
-        ],
-        "links": [
-          {
-            "id": 1,
-            "text": "Skip to content",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 71,
-            "text": "Pricing",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 90,
-            "text": "Sign in",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 91,
-            "text": "Sign up",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 100,
-            "text": "Try GitHub Copilot",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 110,
-            "text": "Explore GitHub Copilot",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 111,
-            "text": "Read customer story",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 112,
-            "text": "Read industry report",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 114,
-            "text": "Explore GitHub Actions",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 116,
-            "text": "Explore GitHub Codespaces",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 118,
-            "text": "Explore GitHub Mobile",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 120,
-            "text": "Explore GitHub Marketplace",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 121,
-            "text": "Explore GitHub Advanced Security",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 122,
-            "text": "Learn about GitHub Code Security",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 123,
-            "text": "Learn about Dependabot",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 124,
-            "text": "Learn about GitHub Secret Protection",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 125,
-            "text": "1",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 126,
-            "text": "1",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 127,
-            "text": "Explore GitHub Projects",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 129,
-            "text": "Explore GitHub Issues",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          }
-        ],
-        "forms": [
-          {
-            "id": 97,
-            "role": "form",
-            "action": "https://github.com/signup",
-            "method": "get",
-            "visible": true
-          },
-          {
-            "id": 145,
-            "role": "form",
-            "action": "https://github.com/signup",
-            "method": "get",
-            "visible": true
-          }
-        ],
-        "text": "Skip to content Navigation Menu Platform Solutions Resources Open Source Enterprise Pricing Sign in Sign up Mona the Octocat, Copilot, and Ducky float jubilantly upward from behind the GitHub product demo accompanied by a purple glow and a scattering of stars. The future of building happens together Tools and trends evolve, but collaboration endures. With GitHub, developers, agents, and code come together on one platform. Enter your email Sign up for GitHub Try GitHub Copilot GitHub features A demonstration animation of a code editor using GitHub Copilot Chat, where the user requests GitHub Copilot to refactor duplicated logic and extract it into a reusable function for a given code snippet. CodePlanCollaborateAutomateSecure Write, test, and fix code quickly with GitHub Copilot, from simple boilerplate to complex features. GITHUB CUSTOMERS Accelerate your entire workflow From your first line of code to final deployment, GitHub provides AI and automation tools to help you build and ship better software faster. A Copilot chat window with the 'Ask' mode enabled. The user switches from 'Ask' mode to 'Agent' mode from a dropdown menu, then sends the prompt 'Update the website to allow searching for running races by name.' Copilot analyzes the codebase, then explains the required edits for three files before generating them. Copilot then confirms completion and summarizes the implemented changes for the new functionality allowing users to search races by name and view paginated, filtered results. Your AI partner everywhere. Copilot is ready to work with you at each step of the software development lifecycle. Explore GitHub Copilot Duolingo boosts developer speed by 25% with GitHub Copilot Read customer story 2025 Gartner® Magic Quadrant™ for AI Code Assistants Read industry report Automate your path to production Ship faster with secure, reliable CI/CD. Explore GitHub Actions Code instantly from anywhere Launch a full, cloud-based development environment in seconds. Explo",
-        "tabs": [
-          {
-            "index": 0,
-            "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-            "url": "https://github.com/",
-            "active": true
-          }
-        ],
-        "activeTab": {
-          "index": 0,
-          "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-          "url": "https://github.com/",
-          "active": true
-        },
-        "observationQuality": {
-          "score": 1,
-          "reasons": []
-        }
-      },
-      "before": {
-        "url": "https://www.youtube.com/",
-        "title": "YouTube",
-        "tabCount": 1
-      },
-      "after": {
-        "url": "https://github.com/",
-        "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-        "tabCount": 1
-      },
-      "timestamp": "2026-06-16T16:56:00.644Z",
-      "events": [
-        "url_changed",
-        "content_changed",
-        "form_detected",
-        "links_detected",
-        "buttons_detected",
-        "content_loaded"
-      ]
-    }
-  ]
-}
-[2026-06-16T16:56:00.652Z] [LOG] EXECUTE RESULT: {
-  "type": "execution_result",
-  "observations": [
-    {
-      "success": true,
-      "expected": "page_loaded",
-      "actual": "https://github.com/",
-      "action": {
-        "type": "navigate",
-        "params": {
-          "url": "https://github.com"
-        }
-      },
-      "pageState": {
-        "success": true,
-        "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-        "url": "https://github.com/",
-        "buttons": [
-          {
-            "id": 6,
-            "text": "Platform",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 23,
-            "text": "Solutions",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 39,
-            "text": "Resources",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 56,
-            "text": "Open Source",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 66,
-            "text": "Enterprise",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 99,
-            "text": "Sign up for GitHub",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 102,
-            "text": "Code",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 103,
-            "text": "Plan",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 104,
-            "text": "Collaborate",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 105,
-            "text": "Automate",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 106,
-            "text": "Secure",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 113,
-            "text": "Automate your path to production",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 115,
-            "text": "Code instantly from anywhere",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 117,
-            "text": "Keep momentum on the go",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 119,
-            "text": "Shape your toolchain",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 128,
-            "text": "Keep track of your tasks",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 130,
-            "text": "Share ideas and ask questions",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 132,
-            "text": "Review code changes together",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 134,
-            "text": "Fund open source projects",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 136,
-            "text": "By industry",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          }
-        ],
-        "inputs": [
-          {
-            "id": 98,
-            "text": "you@domain.com",
-            "value": "",
-            "role": "input",
-            "placeholder": "you@domain.com",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 146,
-            "text": "you@domain.com",
-            "value": "",
-            "role": "input",
-            "placeholder": "you@domain.com",
-            "visible": true,
-            "enabled": true
-          }
-        ],
-        "links": [
-          {
-            "id": 1,
-            "text": "Skip to content",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 71,
-            "text": "Pricing",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 90,
-            "text": "Sign in",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 91,
-            "text": "Sign up",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 100,
-            "text": "Try GitHub Copilot",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 110,
-            "text": "Explore GitHub Copilot",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 111,
-            "text": "Read customer story",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 112,
-            "text": "Read industry report",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 114,
-            "text": "Explore GitHub Actions",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 116,
-            "text": "Explore GitHub Codespaces",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 118,
-            "text": "Explore GitHub Mobile",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 120,
-            "text": "Explore GitHub Marketplace",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 121,
-            "text": "Explore GitHub Advanced Security",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 122,
-            "text": "Learn about GitHub Code Security",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 123,
-            "text": "Learn about Dependabot",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 124,
-            "text": "Learn about GitHub Secret Protection",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 125,
-            "text": "1",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 126,
-            "text": "1",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 127,
-            "text": "Explore GitHub Projects",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 129,
-            "text": "Explore GitHub Issues",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          }
-        ],
-        "forms": [
-          {
-            "id": 97,
-            "role": "form",
-            "action": "https://github.com/signup",
-            "method": "get",
-            "visible": true
-          },
-          {
-            "id": 145,
-            "role": "form",
-            "action": "https://github.com/signup",
-            "method": "get",
-            "visible": true
-          }
-        ],
-        "text": "Skip to content Navigation Menu Platform Solutions Resources Open Source Enterprise Pricing Sign in Sign up Mona the Octocat, Copilot, and Ducky float jubilantly upward from behind the GitHub product demo accompanied by a purple glow and a scattering of stars. The future of building happens together Tools and trends evolve, but collaboration endures. With GitHub, developers, agents, and code come together on one platform. Enter your email Sign up for GitHub Try GitHub Copilot GitHub features A demonstration animation of a code editor using GitHub Copilot Chat, where the user requests GitHub Copilot to refactor duplicated logic and extract it into a reusable function for a given code snippet. CodePlanCollaborateAutomateSecure Write, test, and fix code quickly with GitHub Copilot, from simple boilerplate to complex features. GITHUB CUSTOMERS Accelerate your entire workflow From your first line of code to final deployment, GitHub provides AI and automation tools to help you build and ship better software faster. A Copilot chat window with the 'Ask' mode enabled. The user switches from 'Ask' mode to 'Agent' mode from a dropdown menu, then sends the prompt 'Update the website to allow searching for running races by name.' Copilot analyzes the codebase, then explains the required edits for three files before generating them. Copilot then confirms completion and summarizes the implemented changes for the new functionality allowing users to search races by name and view paginated, filtered results. Your AI partner everywhere. Copilot is ready to work with you at each step of the software development lifecycle. Explore GitHub Copilot Duolingo boosts developer speed by 25% with GitHub Copilot Read customer story 2025 Gartner® Magic Quadrant™ for AI Code Assistants Read industry report Automate your path to production Ship faster with secure, reliable CI/CD. Explore GitHub Actions Code instantly from anywhere Launch a full, cloud-based development environment in seconds. Explo",
-        "tabs": [
-          {
-            "index": 0,
-            "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-            "url": "https://github.com/",
-            "active": true
-          }
-        ],
-        "activeTab": {
-          "index": 0,
-          "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-          "url": "https://github.com/",
-          "active": true
-        },
-        "observationQuality": {
-          "score": 1,
-          "reasons": []
-        }
-      },
-      "before": {
-        "url": "https://www.youtube.com/",
-        "title": "YouTube",
-        "tabCount": 1
-      },
-      "after": {
-        "url": "https://github.com/",
-        "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-        "tabCount": 1
-      },
-      "timestamp": "2026-06-16T16:56:00.644Z",
-      "events": [
-        "url_changed",
-        "content_changed",
-        "form_detected",
-        "links_detected",
-        "buttons_detected",
-        "content_loaded"
-      ]
-    }
-  ]
-}
-[2026-06-16T16:56:00.652Z] [LOG] WORLD: {
-  "history": 1,
-  "url": "https://github.com/",
-  "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-  "lastOutcome": "success",
-  "lastStateHash": "5e553b4b4ec9019b3e8485dab39fbe5f4ecda9a1f6581f6cf0f8d02f8203e233"
-}
-[2026-06-16T16:56:00.653Z] [LOG] OBSERVATION SUMMARY: {
-  "success": true,
-  "expected": "page_loaded",
-  "actual": "https://github.com/"
-}
-[2026-06-16T16:56:00.655Z] [LOG] OBSERVATION: {
-  "success": true,
-  "expected": "page_loaded",
-  "actual": "https://github.com/",
-  "action": {
-    "type": "navigate",
-    "params": {
-      "url": "https://github.com"
-    }
-  },
-  "pageState": {
-    "success": true,
-    "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-    "url": "https://github.com/",
-    "buttons": [
-      {
-        "id": 6,
-        "text": "Platform",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 23,
-        "text": "Solutions",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 39,
-        "text": "Resources",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 56,
-        "text": "Open Source",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 66,
-        "text": "Enterprise",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 99,
-        "text": "Sign up for GitHub",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 102,
-        "text": "Code",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 103,
-        "text": "Plan",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 104,
-        "text": "Collaborate",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 105,
-        "text": "Automate",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 106,
-        "text": "Secure",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 113,
-        "text": "Automate your path to production",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 115,
-        "text": "Code instantly from anywhere",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 117,
-        "text": "Keep momentum on the go",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 119,
-        "text": "Shape your toolchain",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 128,
-        "text": "Keep track of your tasks",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 130,
-        "text": "Share ideas and ask questions",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 132,
-        "text": "Review code changes together",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 134,
-        "text": "Fund open source projects",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 136,
-        "text": "By industry",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      }
-    ],
-    "inputs": [
-      {
-        "id": 98,
-        "text": "you@domain.com",
-        "value": "",
-        "role": "input",
-        "placeholder": "you@domain.com",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 146,
-        "text": "you@domain.com",
-        "value": "",
-        "role": "input",
-        "placeholder": "you@domain.com",
-        "visible": true,
-        "enabled": true
-      }
-    ],
-    "links": [
-      {
-        "id": 1,
-        "text": "Skip to content",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 71,
-        "text": "Pricing",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 90,
-        "text": "Sign in",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 91,
-        "text": "Sign up",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 100,
-        "text": "Try GitHub Copilot",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 110,
-        "text": "Explore GitHub Copilot",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 111,
-        "text": "Read customer story",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 112,
-        "text": "Read industry report",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 114,
-        "text": "Explore GitHub Actions",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 116,
-        "text": "Explore GitHub Codespaces",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 118,
-        "text": "Explore GitHub Mobile",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 120,
-        "text": "Explore GitHub Marketplace",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 121,
-        "text": "Explore GitHub Advanced Security",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 122,
-        "text": "Learn about GitHub Code Security",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 123,
-        "text": "Learn about Dependabot",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 124,
-        "text": "Learn about GitHub Secret Protection",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 125,
-        "text": "1",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 126,
-        "text": "1",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 127,
-        "text": "Explore GitHub Projects",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 129,
-        "text": "Explore GitHub Issues",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      }
-    ],
-    "forms": [
-      {
-        "id": 97,
-        "role": "form",
-        "action": "https://github.com/signup",
-        "method": "get",
-        "visible": true
-      },
-      {
-        "id": 145,
-        "role": "form",
-        "action": "https://github.com/signup",
-        "method": "get",
-        "visible": true
-      }
-    ],
-    "text": "Skip to content Navigation Menu Platform Solutions Resources Open Source Enterprise Pricing Sign in Sign up Mona the Octocat, Copilot, and Ducky float jubilantly upward from behind the GitHub product demo accompanied by a purple glow and a scattering of stars. The future of building happens together Tools and trends evolve, but collaboration endures. With GitHub, developers, agents, and code come together on one platform. Enter your email Sign up for GitHub Try GitHub Copilot GitHub features A demonstration animation of a code editor using GitHub Copilot Chat, where the user requests GitHub Copilot to refactor duplicated logic and extract it into a reusable function for a given code snippet. CodePlanCollaborateAutomateSecure Write, test, and fix code quickly with GitHub Copilot, from simple boilerplate to complex features. GITHUB CUSTOMERS Accelerate your entire workflow From your first line of code to final deployment, GitHub provides AI and automation tools to help you build and ship better software faster. A Copilot chat window with the 'Ask' mode enabled. The user switches from 'Ask' mode to 'Agent' mode from a dropdown menu, then sends the prompt 'Update the website to allow searching for running races by name.' Copilot analyzes the codebase, then explains the required edits for three files before generating them. Copilot then confirms completion and summarizes the implemented changes for the new functionality allowing users to search races by name and view paginated, filtered results. Your AI partner everywhere. Copilot is ready to work with you at each step of the software development lifecycle. Explore GitHub Copilot Duolingo boosts developer speed by 25% with GitHub Copilot Read customer story 2025 Gartner® Magic Quadrant™ for AI Code Assistants Read industry report Automate your path to production Ship faster with secure, reliable CI/CD. Explore GitHub Actions Code instantly from anywhere Launch a full, cloud-based development environment in seconds. Explo",
-    "tabs": [
-      {
-        "index": 0,
-        "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-        "url": "https://github.com/",
-        "active": true
-      }
-    ],
-    "activeTab": {
-      "index": 0,
-      "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-      "url": "https://github.com/",
-      "active": true
-    },
-    "observationQuality": {
-      "score": 1,
-      "reasons": []
-    }
-  },
-  "before": {
-    "url": "https://www.youtube.com/",
-    "title": "YouTube",
-    "tabCount": 1
-  },
-  "after": {
-    "url": "https://github.com/",
-    "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-    "tabCount": 1
-  },
-  "timestamp": "2026-06-16T16:56:00.644Z",
-  "events": [
-    "url_changed",
-    "content_changed",
-    "form_detected",
-    "links_detected",
-    "buttons_detected",
-    "content_loaded"
-  ]
-}
-[2026-06-16T16:56:00.657Z] [LOG] VERIFYING TASK WITH CRITERIA: [
-  {
-    "success": true,
-    "expected": "page_loaded",
-    "actual": "https://github.com/",
-    "action": {
-      "type": "navigate",
-      "params": {
-        "url": "https://github.com"
-      }
-    },
-    "pageState": {
-      "success": true,
-      "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-      "url": "https://github.com/",
-      "buttons": [
-        {
-          "id": 6,
-          "text": "Platform",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 23,
-          "text": "Solutions",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 39,
-          "text": "Resources",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 56,
-          "text": "Open Source",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 66,
-          "text": "Enterprise",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 99,
-          "text": "Sign up for GitHub",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 102,
-          "text": "Code",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 103,
-          "text": "Plan",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 104,
-          "text": "Collaborate",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 105,
-          "text": "Automate",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 106,
-          "text": "Secure",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 113,
-          "text": "Automate your path to production",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 115,
-          "text": "Code instantly from anywhere",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 117,
-          "text": "Keep momentum on the go",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 119,
-          "text": "Shape your toolchain",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 128,
-          "text": "Keep track of your tasks",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 130,
-          "text": "Share ideas and ask questions",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 132,
-          "text": "Review code changes together",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 134,
-          "text": "Fund open source projects",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 136,
-          "text": "By industry",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        }
-      ],
-      "inputs": [
-        {
-          "id": 98,
-          "text": "you@domain.com",
-          "value": "",
-          "role": "input",
-          "placeholder": "you@domain.com",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 146,
-          "text": "you@domain.com",
-          "value": "",
-          "role": "input",
-          "placeholder": "you@domain.com",
-          "visible": true,
-          "enabled": true
-        }
-      ],
-      "links": [
-        {
-          "id": 1,
-          "text": "Skip to content",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 71,
-          "text": "Pricing",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 90,
-          "text": "Sign in",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 91,
-          "text": "Sign up",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 100,
-          "text": "Try GitHub Copilot",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 110,
-          "text": "Explore GitHub Copilot",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 111,
-          "text": "Read customer story",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 112,
-          "text": "Read industry report",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 114,
-          "text": "Explore GitHub Actions",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 116,
-          "text": "Explore GitHub Codespaces",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 118,
-          "text": "Explore GitHub Mobile",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 120,
-          "text": "Explore GitHub Marketplace",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 121,
-          "text": "Explore GitHub Advanced Security",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 122,
-          "text": "Learn about GitHub Code Security",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 123,
-          "text": "Learn about Dependabot",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 124,
-          "text": "Learn about GitHub Secret Protection",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 125,
-          "text": "1",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 126,
-          "text": "1",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 127,
-          "text": "Explore GitHub Projects",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 129,
-          "text": "Explore GitHub Issues",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        }
-      ],
-      "forms": [
-        {
-          "id": 97,
-          "role": "form",
-          "action": "https://github.com/signup",
-          "method": "get",
-          "visible": true
-        },
-        {
-          "id": 145,
-          "role": "form",
-          "action": "https://github.com/signup",
-          "method": "get",
-          "visible": true
-        }
-      ],
-      "text": "Skip to content Navigation Menu Platform Solutions Resources Open Source Enterprise Pricing Sign in Sign up Mona the Octocat, Copilot, and Ducky float jubilantly upward from behind the GitHub product demo accompanied by a purple glow and a scattering of stars. The future of building happens together Tools and trends evolve, but collaboration endures. With GitHub, developers, agents, and code come together on one platform. Enter your email Sign up for GitHub Try GitHub Copilot GitHub features A demonstration animation of a code editor using GitHub Copilot Chat, where the user requests GitHub Copilot to refactor duplicated logic and extract it into a reusable function for a given code snippet. CodePlanCollaborateAutomateSecure Write, test, and fix code quickly with GitHub Copilot, from simple boilerplate to complex features. GITHUB CUSTOMERS Accelerate your entire workflow From your first line of code to final deployment, GitHub provides AI and automation tools to help you build and ship better software faster. A Copilot chat window with the 'Ask' mode enabled. The user switches from 'Ask' mode to 'Agent' mode from a dropdown menu, then sends the prompt 'Update the website to allow searching for running races by name.' Copilot analyzes the codebase, then explains the required edits for three files before generating them. Copilot then confirms completion and summarizes the implemented changes for the new functionality allowing users to search races by name and view paginated, filtered results. Your AI partner everywhere. Copilot is ready to work with you at each step of the software development lifecycle. Explore GitHub Copilot Duolingo boosts developer speed by 25% with GitHub Copilot Read customer story 2025 Gartner® Magic Quadrant™ for AI Code Assistants Read industry report Automate your path to production Ship faster with secure, reliable CI/CD. Explore GitHub Actions Code instantly from anywhere Launch a full, cloud-based development environment in seconds. Explo",
-      "tabs": [
-        {
-          "index": 0,
-          "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-          "url": "https://github.com/",
-          "active": true
-        }
-      ],
-      "activeTab": {
-        "index": 0,
-        "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-        "url": "https://github.com/",
-        "active": true
-      },
-      "observationQuality": {
-        "score": 1,
-        "reasons": []
-      }
-    },
-    "before": {
-      "url": "https://www.youtube.com/",
-      "title": "YouTube",
-      "tabCount": 1
-    },
-    "after": {
-      "url": "https://github.com/",
-      "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-      "tabCount": 1
-    },
-    "timestamp": "2026-06-16T16:56:00.644Z",
-    "events": [
-      "url_changed",
-      "content_changed",
-      "form_detected",
-      "links_detected",
-      "buttons_detected",
-      "content_loaded"
-    ]
-  }
-]
-[2026-06-16T16:56:00.658Z] [LOG] task: {
-  "id": "b40fa81e-1b87-48ff-a454-6075456e02e8",
-  "intent": null,
-  "objective": "Open GitHub homepage",
-  "target": null,
-  "context": {},
-  "dependsOn": [],
-  "successCriteria": [
-    "URL contains github.com",
-    "Page title contains GitHub"
-  ],
-  "requires": [],
-  "produces": [
-    "github_open"
-  ],
-  "plan": null,
-  "result": null,
-  "currentStep": 0,
-  "status": "running",
-  "createdAt": "2026-06-16T16:55:52.674Z"
-}
-[2026-06-16T16:56:00.658Z] [LOG] STATE VERIFIED: {
-  "achieved": true,
-  "reason": "Programmatic verification: Successfully navigated to host github.com."
-}
-[2026-06-16T16:56:00.659Z] [LOG] EVENT VERIFIED: null
-[2026-06-16T16:56:00.659Z] [LOG] Programmatic state/event check confirmed achievement.
-
---- [Server Restarted at 2026-06-16T16:56:12.253Z] ---
-
-[KAIROS] Server started at 2026-06-16T16:51:31.226Z
-[2026-06-16T16:51:31.233Z] [LOG] ◇ injected env (7) from .env [2m// tip: ⌘ suppress logs { quiet: true }[0m
-[2026-06-16T16:51:31.628Z] [ERROR] (node:10504) Warning: SECURITY WARNING: The SSL modes 'prefer', 'require', and 'verify-ca' are treated as aliases for 'verify-full'.
-In the next major version (pg-connection-string v3.0.0 and pg v9.0.0), these modes will adopt standard libpq semantics, which have weaker security guarantees.
-
-To prepare for this change:
-- If you want the current behavior, explicitly use 'sslmode=verify-full'
-- If you want libpq compatibility now, use 'uselibpqcompat=true&sslmode=require'
-
-See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode definitions.
-(Use `node --trace-warnings ...` to show where the warning was created)
-[2026-06-16T16:51:33.512Z] [LOG] Database connected
-[2026-06-16T16:51:33.779Z] [LOG] [2026-06-16T16:51:33.779Z] WebSocket listening on 8080
-[2026-06-16T16:51:35.804Z] [LOG] [2026-06-16T16:51:35.803Z] A client connected to WebSocket
-[2026-06-16T16:51:35.807Z] [LOG] [2026-06-16T16:51:35.806Z] Automation client registered
-[2026-06-16T16:52:29.836Z] [LOG] [2026-06-16T16:52:29.835Z] A client connected to WebSocket
-[2026-06-16T16:52:29.838Z] [LOG] [2026-06-16T16:52:29.838Z] Connector registered: cli
-[2026-06-16T16:52:45.026Z] [LOG] [2026-06-16T16:52:45.026Z] Received goal: open youtube
-[2026-06-16T16:52:48.605Z] [LOG] [LLM] Trying askGroq
-[2026-06-16T16:52:48.606Z] [LOG] SYSTEM CHARS: 2216
-[2026-06-16T16:52:48.606Z] [LOG] USER CHARS: 12
-[2026-06-16T16:52:48.607Z] [LOG] TOTAL CHARS: 2228
-[2026-06-16T16:52:49.577Z] [LOG] [LLM] Success askGroq
-[2026-06-16T16:52:49.578Z] [LOG] TASK GRAPH: [
-  {
-    "id": "30ce023a-036c-4651-bfc5-23e27b0e3014",
-    "intent": null,
-    "objective": "Open YouTube homepage",
-    "target": null,
-    "context": {},
-    "dependsOn": [],
-    "successCriteria": [
-      "URL contains youtube.com",
-      "Page title contains YouTube"
-    ],
-    "requires": [],
-    "produces": [
-      "youtube_open"
-    ],
-    "plan": null,
-    "result": null,
-    "currentStep": 0,
-    "status": "pending",
-    "createdAt": "2026-06-16T16:52:49.577Z"
-  }
-]
-[2026-06-16T16:52:49.578Z] [LOG] INTENT: {
-  "type": "generic",
-  "action": null,
-  "target": "youtube",
-  "entities": [
-    "youtube"
-  ],
-  "constraints": {},
-  "confidence": 0,
-  "originalGoal": "open youtube"
-}
-[2026-06-16T16:52:49.823Z] [LOG] MEMORY CONTEXT:
- 
-[2026-06-16T16:52:49.824Z] [LOG] EMPTY BROWSER CONTEXT
-[2026-06-16T16:52:49.824Z] [LOG] CURRENT TASK: {
-  "id": "30ce023a-036c-4651-bfc5-23e27b0e3014",
-  "intent": null,
-  "objective": "Open YouTube homepage",
-  "target": null,
-  "context": {},
-  "dependsOn": [],
-  "successCriteria": [
-    "URL contains youtube.com",
-    "Page title contains YouTube"
-  ],
-  "requires": [],
-  "produces": [
-    "youtube_open"
-  ],
-  "plan": null,
-  "result": null,
-  "currentStep": 0,
-  "status": "pending",
-  "createdAt": "2026-06-16T16:52:49.577Z"
-}
-[2026-06-16T16:52:49.825Z] [LOG] BROWSER CONTEXT:
- 
-[2026-06-16T16:52:49.825Z] [LOG] MEMORY CHARS: 0
-[2026-06-16T16:52:49.826Z] [LOG] BROWSER CHARS: 0
-[2026-06-16T16:52:49.826Z] [LOG] SYSTEM PROMPT CHARS: 4000
-[2026-06-16T16:52:49.826Z] [LOG] SYSTEM CHARS: 4000
-[2026-06-16T16:52:49.827Z] [LOG] GOAL CHARS: 12
-[2026-06-16T16:52:49.827Z] [LOG] TOTAL CHARS: 4012
-[2026-06-16T16:52:49.827Z] [LOG] TASK: {
-  "id": "30ce023a-036c-4651-bfc5-23e27b0e3014",
-  "intent": null,
-  "objective": "Open YouTube homepage",
-  "target": null,
-  "context": {},
-  "dependsOn": [],
-  "successCriteria": [
-    "URL contains youtube.com",
-    "Page title contains YouTube"
-  ],
-  "requires": [],
-  "produces": [
-    "youtube_open"
-  ],
-  "plan": null,
-  "result": null,
-  "currentStep": 0,
-  "status": "pending",
-  "createdAt": "2026-06-16T16:52:49.577Z"
-}
-[2026-06-16T16:52:49.828Z] [LOG] [LLM] Trying askGroq
-[2026-06-16T16:52:49.828Z] [LOG] SYSTEM CHARS: 4000
-[2026-06-16T16:52:49.828Z] [LOG] USER CHARS: 384
-[2026-06-16T16:52:49.829Z] [LOG] TOTAL CHARS: 4384
-[2026-06-16T16:52:50.208Z] [LOG] [LLM] Success askGroq
-[2026-06-16T16:52:50.208Z] [LOG] PLANNER RESPONSE: ```json
-{
-  "actions": [
-    {
-      "type": "navigate",
-      "params": {
-        "url": "https://www.youtube.com"
-      }
-    }
-  ]
-}
-```
-[2026-06-16T16:52:50.209Z] [LOG] RAW LLM RESPONSE: ```json
-{
-  "actions": [
-    {
-      "type": "navigate",
-      "params": {
-        "url": "https://www.youtube.com"
-      }
-    }
-  ]
-}
-```
-[2026-06-16T16:52:50.209Z] [LOG] PARSED: {
-  "actions": [
-    {
-      "type": "navigate",
-      "params": {
-        "url": "https://www.youtube.com"
-      }
-    }
-  ]
-}
-[2026-06-16T16:52:50.210Z] [LOG] VALIDATED ACTIONS: [
-  {
-    "type": "navigate",
-    "params": {
-      "url": "https://www.youtube.com"
-    }
-  }
-]
-[2026-06-16T16:52:50.210Z] [LOG] VALIDATED ACTIONS: [
-  {
-    "type": "navigate",
-    "params": {
-      "url": "https://www.youtube.com"
-    }
-  }
-]
-[2026-06-16T16:52:50.211Z] [LOG] INITIAL PLAN: {
-  "goalId": "28ff0e8e-0387-40fe-9119-7a048931c371",
-  "actions": [
-    {
-      "type": "navigate",
-      "params": {
-        "url": "https://www.youtube.com"
-      }
-    }
-  ],
-  "createdAt": "2026-06-16T16:52:50.210Z"
-}
-[2026-06-16T16:52:50.211Z] [LOG] Task 1 Attempt 1 (Total Actions: 0, LLM Calls: 2)
-[2026-06-16T16:52:50.211Z] [LOG] 
-===== SENDING PLAN =====
-[2026-06-16T16:52:50.211Z] [LOG] {
-  "goalId": "28ff0e8e-0387-40fe-9119-7a048931c371",
-  "actions": [
-    {
-      "type": "navigate",
-      "params": {
-        "url": "https://www.youtube.com"
-      }
-    }
-  ],
-  "createdAt": "2026-06-16T16:52:50.210Z"
-}
-[2026-06-16T16:53:02.298Z] [LOG] [2026-06-16T16:53:02.297Z] Received: {
-  "type": "execution_result",
-  "observations": [
-    {
-      "success": true,
-      "expected": "page_loaded",
-      "actual": "https://www.youtube.com/",
-      "action": {
-        "type": "navigate",
-        "params": {
-          "url": "https://www.youtube.com"
-        }
-      },
-      "pageState": {
-        "success": true,
-        "title": "YouTube",
-        "url": "https://www.youtube.com/",
-        "buttons": [
-          {
-            "id": 4,
-            "text": "Skip navigation",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          }
-        ],
-        "inputs": [
-          {
-            "id": 6,
-            "text": "Search",
-            "value": "",
-            "role": "input",
-            "placeholder": "Search",
-            "visible": true,
-            "enabled": true
-          }
-        ],
-        "links": [
-          {
-            "id": 12,
-            "text": "Sign in",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 15,
-            "text": "Home",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 17,
-            "text": "Shorts",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 19,
-            "text": "Subscriptions",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 21,
-            "text": "You",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          }
-        ],
-        "forms": [
-          {
-            "id": 5,
-            "role": "form",
-            "action": "https://www.youtube.com/results",
-            "method": "get",
-            "visible": true
-          }
-        ],
-        "text": "IN Skip navigation Sign in Home Shorts Subscriptions You Try searching to get started Start watching videos to help us build a feed of videos you'll love.",
-        "tabs": [
-          {
-            "index": 0,
-            "title": "YouTube",
-            "url": "https://www.youtube.com/",
-            "active": true
-          }
-        ],
-        "activeTab": {
-          "index": 0,
-          "title": "YouTube",
-          "url": "https://www.youtube.com/",
-          "active": true
-        },
-        "observationQuality": {
-          "score": 1,
-          "reasons": []
-        }
-      },
-      "before": {
-        "url": null,
-        "title": null
-      },
-      "after": {
-        "url": "https://www.youtube.com/",
-        "title": "YouTube",
-        "tabCount": 1
-      },
-      "timestamp": "2026-06-16T16:53:02.295Z",
-      "events": [
-        "form_detected",
-        "links_detected",
-        "buttons_detected",
-        "content_loaded"
-      ]
-    }
-  ]
-}
-[2026-06-16T16:53:02.299Z] [LOG] EXECUTE RESULT: {
-  "type": "execution_result",
-  "observations": [
-    {
-      "success": true,
-      "expected": "page_loaded",
-      "actual": "https://www.youtube.com/",
-      "action": {
-        "type": "navigate",
-        "params": {
-          "url": "https://www.youtube.com"
-        }
-      },
-      "pageState": {
-        "success": true,
-        "title": "YouTube",
-        "url": "https://www.youtube.com/",
-        "buttons": [
-          {
-            "id": 4,
-            "text": "Skip navigation",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          }
-        ],
-        "inputs": [
-          {
-            "id": 6,
-            "text": "Search",
-            "value": "",
-            "role": "input",
-            "placeholder": "Search",
-            "visible": true,
-            "enabled": true
-          }
-        ],
-        "links": [
-          {
-            "id": 12,
-            "text": "Sign in",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 15,
-            "text": "Home",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 17,
-            "text": "Shorts",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 19,
-            "text": "Subscriptions",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 21,
-            "text": "You",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          }
-        ],
-        "forms": [
-          {
-            "id": 5,
-            "role": "form",
-            "action": "https://www.youtube.com/results",
-            "method": "get",
-            "visible": true
-          }
-        ],
-        "text": "IN Skip navigation Sign in Home Shorts Subscriptions You Try searching to get started Start watching videos to help us build a feed of videos you'll love.",
-        "tabs": [
-          {
-            "index": 0,
-            "title": "YouTube",
-            "url": "https://www.youtube.com/",
-            "active": true
-          }
-        ],
-        "activeTab": {
-          "index": 0,
-          "title": "YouTube",
-          "url": "https://www.youtube.com/",
-          "active": true
-        },
-        "observationQuality": {
-          "score": 1,
-          "reasons": []
-        }
-      },
-      "before": {
-        "url": null,
-        "title": null
-      },
-      "after": {
-        "url": "https://www.youtube.com/",
-        "title": "YouTube",
-        "tabCount": 1
-      },
-      "timestamp": "2026-06-16T16:53:02.295Z",
-      "events": [
-        "form_detected",
-        "links_detected",
-        "buttons_detected",
-        "content_loaded"
-      ]
-    }
-  ]
-}
-[2026-06-16T16:53:02.300Z] [LOG] WORLD: {
-  "history": 1,
-  "url": "https://www.youtube.com/",
-  "title": "YouTube",
-  "lastOutcome": "success",
-  "lastStateHash": "5342899f5f3225b42d94d1afe5b776401990d4996b9241907dc4aa09a1c1f6d9"
-}
-[2026-06-16T16:53:02.301Z] [LOG] OBSERVATION SUMMARY: {
-  "success": true,
-  "expected": "page_loaded",
-  "actual": "https://www.youtube.com/"
-}
-[2026-06-16T16:53:02.302Z] [LOG] OBSERVATION: {
-  "success": true,
-  "expected": "page_loaded",
-  "actual": "https://www.youtube.com/",
-  "action": {
-    "type": "navigate",
-    "params": {
-      "url": "https://www.youtube.com"
-    }
-  },
-  "pageState": {
-    "success": true,
-    "title": "YouTube",
-    "url": "https://www.youtube.com/",
-    "buttons": [
-      {
-        "id": 4,
-        "text": "Skip navigation",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      }
-    ],
-    "inputs": [
-      {
-        "id": 6,
-        "text": "Search",
-        "value": "",
-        "role": "input",
-        "placeholder": "Search",
-        "visible": true,
-        "enabled": true
-      }
-    ],
-    "links": [
-      {
-        "id": 12,
-        "text": "Sign in",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 15,
-        "text": "Home",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 17,
-        "text": "Shorts",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 19,
-        "text": "Subscriptions",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 21,
-        "text": "You",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      }
-    ],
-    "forms": [
-      {
-        "id": 5,
-        "role": "form",
-        "action": "https://www.youtube.com/results",
-        "method": "get",
-        "visible": true
-      }
-    ],
-    "text": "IN Skip navigation Sign in Home Shorts Subscriptions You Try searching to get started Start watching videos to help us build a feed of videos you'll love.",
-    "tabs": [
-      {
-        "index": 0,
-        "title": "YouTube",
-        "url": "https://www.youtube.com/",
-        "active": true
-      }
-    ],
-    "activeTab": {
-      "index": 0,
-      "title": "YouTube",
-      "url": "https://www.youtube.com/",
-      "active": true
-    },
-    "observationQuality": {
-      "score": 1,
-      "reasons": []
-    }
-  },
-  "before": {
-    "url": null,
-    "title": null
-  },
-  "after": {
-    "url": "https://www.youtube.com/",
-    "title": "YouTube",
-    "tabCount": 1
-  },
-  "timestamp": "2026-06-16T16:53:02.295Z",
-  "events": [
-    "form_detected",
-    "links_detected",
-    "buttons_detected",
-    "content_loaded"
-  ]
-}
-[2026-06-16T16:53:02.303Z] [LOG] VERIFYING TASK WITH CRITERIA: [
-  {
-    "success": true,
-    "expected": "page_loaded",
-    "actual": "https://www.youtube.com/",
-    "action": {
-      "type": "navigate",
-      "params": {
-        "url": "https://www.youtube.com"
-      }
-    },
-    "pageState": {
-      "success": true,
-      "title": "YouTube",
-      "url": "https://www.youtube.com/",
-      "buttons": [
-        {
-          "id": 4,
-          "text": "Skip navigation",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        }
-      ],
-      "inputs": [
-        {
-          "id": 6,
-          "text": "Search",
-          "value": "",
-          "role": "input",
-          "placeholder": "Search",
-          "visible": true,
-          "enabled": true
-        }
-      ],
-      "links": [
-        {
-          "id": 12,
-          "text": "Sign in",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 15,
-          "text": "Home",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 17,
-          "text": "Shorts",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 19,
-          "text": "Subscriptions",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 21,
-          "text": "You",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        }
-      ],
-      "forms": [
-        {
-          "id": 5,
-          "role": "form",
-          "action": "https://www.youtube.com/results",
-          "method": "get",
-          "visible": true
-        }
-      ],
-      "text": "IN Skip navigation Sign in Home Shorts Subscriptions You Try searching to get started Start watching videos to help us build a feed of videos you'll love.",
-      "tabs": [
-        {
-          "index": 0,
-          "title": "YouTube",
-          "url": "https://www.youtube.com/",
-          "active": true
-        }
-      ],
-      "activeTab": {
-        "index": 0,
-        "title": "YouTube",
-        "url": "https://www.youtube.com/",
-        "active": true
-      },
-      "observationQuality": {
-        "score": 1,
-        "reasons": []
-      }
-    },
-    "before": {
-      "url": null,
-      "title": null
-    },
-    "after": {
-      "url": "https://www.youtube.com/",
-      "title": "YouTube",
-      "tabCount": 1
-    },
-    "timestamp": "2026-06-16T16:53:02.295Z",
-    "events": [
-      "form_detected",
-      "links_detected",
-      "buttons_detected",
-      "content_loaded"
-    ]
-  }
-]
-[2026-06-16T16:53:02.304Z] [LOG] task: {
-  "id": "30ce023a-036c-4651-bfc5-23e27b0e3014",
-  "intent": null,
-  "objective": "Open YouTube homepage",
-  "target": null,
-  "context": {},
-  "dependsOn": [],
-  "successCriteria": [
-    "URL contains youtube.com",
-    "Page title contains YouTube"
-  ],
-  "requires": [],
-  "produces": [
-    "youtube_open"
-  ],
-  "plan": null,
-  "result": null,
-  "currentStep": 0,
-  "status": "running",
-  "createdAt": "2026-06-16T16:52:49.577Z"
-}
-[2026-06-16T16:53:02.305Z] [LOG] STATE VERIFIED: {
-  "achieved": true,
-  "reason": "Programmatic verification: Successfully navigated to host youtube.com."
-}
-[2026-06-16T16:53:02.305Z] [LOG] EVENT VERIFIED: null
-[2026-06-16T16:53:02.305Z] [LOG] Programmatic state/event check confirmed achievement.
-[2026-06-16T16:55:48.912Z] [LOG] [2026-06-16T16:55:48.911Z] Received goal: open github
-[2026-06-16T16:55:52.281Z] [LOG] [LLM] Trying askGroq
-[2026-06-16T16:55:52.281Z] [LOG] SYSTEM CHARS: 2216
-[2026-06-16T16:55:52.282Z] [LOG] USER CHARS: 11
-[2026-06-16T16:55:52.282Z] [LOG] TOTAL CHARS: 2227
-[2026-06-16T16:55:52.673Z] [LOG] [LLM] Success askGroq
-[2026-06-16T16:55:52.674Z] [LOG] TASK GRAPH: [
-  {
-    "id": "b40fa81e-1b87-48ff-a454-6075456e02e8",
-    "intent": null,
-    "objective": "Open GitHub homepage",
-    "target": null,
-    "context": {},
-    "dependsOn": [],
-    "successCriteria": [
-      "URL contains github.com",
-      "Page title contains GitHub"
-    ],
-    "requires": [],
-    "produces": [
-      "github_open"
-    ],
-    "plan": null,
-    "result": null,
-    "currentStep": 0,
-    "status": "pending",
-    "createdAt": "2026-06-16T16:55:52.674Z"
-  }
-]
-[2026-06-16T16:55:52.674Z] [LOG] INTENT: {
-  "type": "generic",
-  "action": null,
-  "target": "github",
-  "entities": [
-    "github"
-  ],
-  "constraints": {},
-  "confidence": 0,
-  "originalGoal": "open github"
-}
-[2026-06-16T16:55:52.926Z] [LOG] MEMORY CONTEXT:
- 
-[2026-06-16T16:55:52.927Z] [LOG] CURRENT TASK: {
-  "id": "b40fa81e-1b87-48ff-a454-6075456e02e8",
-  "intent": null,
-  "objective": "Open GitHub homepage",
-  "target": null,
-  "context": {},
-  "dependsOn": [],
-  "successCriteria": [
-    "URL contains github.com",
-    "Page title contains GitHub"
-  ],
-  "requires": [],
-  "produces": [
-    "github_open"
-  ],
-  "plan": null,
-  "result": null,
-  "currentStep": 0,
-  "status": "pending",
-  "createdAt": "2026-06-16T16:55:52.674Z"
-}
-[2026-06-16T16:55:52.928Z] [LOG] BROWSER CONTEXT:
- URL:
-https://www.youtube.com/
-
-Title:
-YouTube
-
-Inputs:
-[6] Search
-
-Forms:
-[5] role: form, action: https://www.youtube.com/results, method: get
-
-
-[2026-06-16T16:55:52.928Z] [LOG] MEMORY CHARS: 0
-[2026-06-16T16:55:52.929Z] [LOG] BROWSER CHARS: 144
-[2026-06-16T16:55:52.929Z] [LOG] SYSTEM PROMPT CHARS: 4140
-[2026-06-16T16:55:52.929Z] [LOG] SYSTEM CHARS: 4140
-[2026-06-16T16:55:52.930Z] [LOG] GOAL CHARS: 11
-[2026-06-16T16:55:52.930Z] [LOG] TOTAL CHARS: 4151
-[2026-06-16T16:55:52.930Z] [LOG] TASK: {
-  "id": "b40fa81e-1b87-48ff-a454-6075456e02e8",
-  "intent": null,
-  "objective": "Open GitHub homepage",
-  "target": null,
-  "context": {},
-  "dependsOn": [],
-  "successCriteria": [
-    "URL contains github.com",
-    "Page title contains GitHub"
-  ],
-  "requires": [],
-  "produces": [
-    "github_open"
-  ],
-  "plan": null,
-  "result": null,
-  "currentStep": 0,
-  "status": "pending",
-  "createdAt": "2026-06-16T16:55:52.674Z"
-}
-[2026-06-16T16:55:52.931Z] [LOG] [LLM] Trying askGroq
-[2026-06-16T16:55:52.931Z] [LOG] SYSTEM CHARS: 4140
-[2026-06-16T16:55:52.931Z] [LOG] USER CHARS: 381
-[2026-06-16T16:55:52.932Z] [LOG] TOTAL CHARS: 4521
-[2026-06-16T16:55:53.018Z] [LOG] [LLM] Failed askGroq Groq failed: 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kv6gqdgyfm5ary83wd5n1pb8` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98921, Requested 1160. Please try again in 1m9.984s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
-
-[2026-06-16T16:55:53.018Z] [LOG] [LLM] Trying askOpenRouter
-[2026-06-16T16:55:53.019Z] [LOG] SYSTEM CHARS: 4140
-[2026-06-16T16:55:53.019Z] [LOG] USER CHARS: 381
-[2026-06-16T16:55:53.020Z] [LOG] TOTAL CHARS: 4521
-[2026-06-16T16:55:53.020Z] [LOG] [OpenRouter] Request started
-[2026-06-16T16:55:54.208Z] [LOG] [OpenRouter] Status: 200
-[2026-06-16T16:55:56.210Z] [LOG] [LLM] Success askOpenRouter
-[2026-06-16T16:55:56.210Z] [LOG] PLANNER RESPONSE: Since the browser state is empty, the first step is to navigate to the GitHub homepage. Here's the action:
-
-```json
-{
-  "actions": [
-    {
-      "type": "navigate",
-      "params": {
-        "url": "https://github.com"
-      }
-    }
-  ]
-}
-```
-[2026-06-16T16:55:56.211Z] [LOG] RAW LLM RESPONSE: Since the browser state is empty, the first step is to navigate to the GitHub homepage. Here's the action:
-
-```json
-{
-  "actions": [
-    {
-      "type": "navigate",
-      "params": {
-        "url": "https://github.com"
-      }
-    }
-  ]
-}
-```
-[2026-06-16T16:55:56.211Z] [LOG] PARSED: {
-  "actions": [
-    {
-      "type": "navigate",
-      "params": {
-        "url": "https://github.com"
-      }
-    }
-  ]
-}
-[2026-06-16T16:55:56.212Z] [LOG] VALIDATED ACTIONS: [
-  {
-    "type": "navigate",
-    "params": {
-      "url": "https://github.com"
-    }
-  }
-]
-[2026-06-16T16:55:56.212Z] [LOG] VALIDATED ACTIONS: [
-  {
-    "type": "navigate",
-    "params": {
-      "url": "https://github.com"
-    }
-  }
-]
-[2026-06-16T16:55:56.213Z] [LOG] INITIAL PLAN: {
-  "goalId": "bd9f9bab-ccc4-425f-8701-d78370e2cc33",
-  "actions": [
-    {
-      "type": "navigate",
-      "params": {
-        "url": "https://github.com"
-      }
-    }
-  ],
-  "createdAt": "2026-06-16T16:55:56.212Z"
-}
-[2026-06-16T16:55:56.213Z] [LOG] Task 1 Attempt 1 (Total Actions: 0, LLM Calls: 4)
-[2026-06-16T16:55:56.213Z] [LOG] 
-===== SENDING PLAN =====
-[2026-06-16T16:55:56.213Z] [LOG] {
-  "goalId": "bd9f9bab-ccc4-425f-8701-d78370e2cc33",
-  "actions": [
-    {
-      "type": "navigate",
-      "params": {
-        "url": "https://github.com"
-      }
-    }
-  ],
-  "createdAt": "2026-06-16T16:55:56.212Z"
-}
-[2026-06-16T16:56:00.649Z] [LOG] [2026-06-16T16:56:00.648Z] Received: {
-  "type": "execution_result",
-  "observations": [
-    {
-      "success": true,
-      "expected": "page_loaded",
-      "actual": "https://github.com/",
-      "action": {
-        "type": "navigate",
-        "params": {
-          "url": "https://github.com"
-        }
-      },
-      "pageState": {
-        "success": true,
-        "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-        "url": "https://github.com/",
-        "buttons": [
-          {
-            "id": 6,
-            "text": "Platform",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 23,
-            "text": "Solutions",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 39,
-            "text": "Resources",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 56,
-            "text": "Open Source",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 66,
-            "text": "Enterprise",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 99,
-            "text": "Sign up for GitHub",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 102,
-            "text": "Code",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 103,
-            "text": "Plan",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 104,
-            "text": "Collaborate",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 105,
-            "text": "Automate",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 106,
-            "text": "Secure",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 113,
-            "text": "Automate your path to production",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 115,
-            "text": "Code instantly from anywhere",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 117,
-            "text": "Keep momentum on the go",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 119,
-            "text": "Shape your toolchain",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 128,
-            "text": "Keep track of your tasks",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 130,
-            "text": "Share ideas and ask questions",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 132,
-            "text": "Review code changes together",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 134,
-            "text": "Fund open source projects",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 136,
-            "text": "By industry",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          }
-        ],
-        "inputs": [
-          {
-            "id": 98,
-            "text": "you@domain.com",
-            "value": "",
-            "role": "input",
-            "placeholder": "you@domain.com",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 146,
-            "text": "you@domain.com",
-            "value": "",
-            "role": "input",
-            "placeholder": "you@domain.com",
-            "visible": true,
-            "enabled": true
-          }
-        ],
-        "links": [
-          {
-            "id": 1,
-            "text": "Skip to content",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 71,
-            "text": "Pricing",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 90,
-            "text": "Sign in",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 91,
-            "text": "Sign up",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 100,
-            "text": "Try GitHub Copilot",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 110,
-            "text": "Explore GitHub Copilot",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 111,
-            "text": "Read customer story",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 112,
-            "text": "Read industry report",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 114,
-            "text": "Explore GitHub Actions",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 116,
-            "text": "Explore GitHub Codespaces",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 118,
-            "text": "Explore GitHub Mobile",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 120,
-            "text": "Explore GitHub Marketplace",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 121,
-            "text": "Explore GitHub Advanced Security",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 122,
-            "text": "Learn about GitHub Code Security",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 123,
-            "text": "Learn about Dependabot",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 124,
-            "text": "Learn about GitHub Secret Protection",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 125,
-            "text": "1",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 126,
-            "text": "1",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 127,
-            "text": "Explore GitHub Projects",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 129,
-            "text": "Explore GitHub Issues",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          }
-        ],
-        "forms": [
-          {
-            "id": 97,
-            "role": "form",
-            "action": "https://github.com/signup",
-            "method": "get",
-            "visible": true
-          },
-          {
-            "id": 145,
-            "role": "form",
-            "action": "https://github.com/signup",
-            "method": "get",
-            "visible": true
-          }
-        ],
-        "text": "Skip to content Navigation Menu Platform Solutions Resources Open Source Enterprise Pricing Sign in Sign up Mona the Octocat, Copilot, and Ducky float jubilantly upward from behind the GitHub product demo accompanied by a purple glow and a scattering of stars. The future of building happens together Tools and trends evolve, but collaboration endures. With GitHub, developers, agents, and code come together on one platform. Enter your email Sign up for GitHub Try GitHub Copilot GitHub features A demonstration animation of a code editor using GitHub Copilot Chat, where the user requests GitHub Copilot to refactor duplicated logic and extract it into a reusable function for a given code snippet. CodePlanCollaborateAutomateSecure Write, test, and fix code quickly with GitHub Copilot, from simple boilerplate to complex features. GITHUB CUSTOMERS Accelerate your entire workflow From your first line of code to final deployment, GitHub provides AI and automation tools to help you build and ship better software faster. A Copilot chat window with the 'Ask' mode enabled. The user switches from 'Ask' mode to 'Agent' mode from a dropdown menu, then sends the prompt 'Update the website to allow searching for running races by name.' Copilot analyzes the codebase, then explains the required edits for three files before generating them. Copilot then confirms completion and summarizes the implemented changes for the new functionality allowing users to search races by name and view paginated, filtered results. Your AI partner everywhere. Copilot is ready to work with you at each step of the software development lifecycle. Explore GitHub Copilot Duolingo boosts developer speed by 25% with GitHub Copilot Read customer story 2025 Gartner® Magic Quadrant™ for AI Code Assistants Read industry report Automate your path to production Ship faster with secure, reliable CI/CD. Explore GitHub Actions Code instantly from anywhere Launch a full, cloud-based development environment in seconds. Explo",
-        "tabs": [
-          {
-            "index": 0,
-            "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-            "url": "https://github.com/",
-            "active": true
-          }
-        ],
-        "activeTab": {
-          "index": 0,
-          "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-          "url": "https://github.com/",
-          "active": true
-        },
-        "observationQuality": {
-          "score": 1,
-          "reasons": []
-        }
-      },
-      "before": {
-        "url": "https://www.youtube.com/",
-        "title": "YouTube",
-        "tabCount": 1
-      },
-      "after": {
-        "url": "https://github.com/",
-        "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-        "tabCount": 1
-      },
-      "timestamp": "2026-06-16T16:56:00.644Z",
-      "events": [
-        "url_changed",
-        "content_changed",
-        "form_detected",
-        "links_detected",
-        "buttons_detected",
-        "content_loaded"
-      ]
-    }
-  ]
-}
-[2026-06-16T16:56:00.652Z] [LOG] EXECUTE RESULT: {
-  "type": "execution_result",
-  "observations": [
-    {
-      "success": true,
-      "expected": "page_loaded",
-      "actual": "https://github.com/",
-      "action": {
-        "type": "navigate",
-        "params": {
-          "url": "https://github.com"
-        }
-      },
-      "pageState": {
-        "success": true,
-        "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-        "url": "https://github.com/",
-        "buttons": [
-          {
-            "id": 6,
-            "text": "Platform",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 23,
-            "text": "Solutions",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 39,
-            "text": "Resources",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 56,
-            "text": "Open Source",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 66,
-            "text": "Enterprise",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 99,
-            "text": "Sign up for GitHub",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 102,
-            "text": "Code",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 103,
-            "text": "Plan",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 104,
-            "text": "Collaborate",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 105,
-            "text": "Automate",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 106,
-            "text": "Secure",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 113,
-            "text": "Automate your path to production",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 115,
-            "text": "Code instantly from anywhere",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 117,
-            "text": "Keep momentum on the go",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 119,
-            "text": "Shape your toolchain",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 128,
-            "text": "Keep track of your tasks",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 130,
-            "text": "Share ideas and ask questions",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 132,
-            "text": "Review code changes together",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 134,
-            "text": "Fund open source projects",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 136,
-            "text": "By industry",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          }
-        ],
-        "inputs": [
-          {
-            "id": 98,
-            "text": "you@domain.com",
-            "value": "",
-            "role": "input",
-            "placeholder": "you@domain.com",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 146,
-            "text": "you@domain.com",
-            "value": "",
-            "role": "input",
-            "placeholder": "you@domain.com",
-            "visible": true,
-            "enabled": true
-          }
-        ],
-        "links": [
-          {
-            "id": 1,
-            "text": "Skip to content",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 71,
-            "text": "Pricing",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 90,
-            "text": "Sign in",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 91,
-            "text": "Sign up",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 100,
-            "text": "Try GitHub Copilot",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 110,
-            "text": "Explore GitHub Copilot",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 111,
-            "text": "Read customer story",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 112,
-            "text": "Read industry report",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 114,
-            "text": "Explore GitHub Actions",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 116,
-            "text": "Explore GitHub Codespaces",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 118,
-            "text": "Explore GitHub Mobile",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 120,
-            "text": "Explore GitHub Marketplace",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 121,
-            "text": "Explore GitHub Advanced Security",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 122,
-            "text": "Learn about GitHub Code Security",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 123,
-            "text": "Learn about Dependabot",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 124,
-            "text": "Learn about GitHub Secret Protection",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 125,
-            "text": "1",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 126,
-            "text": "1",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 127,
-            "text": "Explore GitHub Projects",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 129,
-            "text": "Explore GitHub Issues",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          }
-        ],
-        "forms": [
-          {
-            "id": 97,
-            "role": "form",
-            "action": "https://github.com/signup",
-            "method": "get",
-            "visible": true
-          },
-          {
-            "id": 145,
-            "role": "form",
-            "action": "https://github.com/signup",
-            "method": "get",
-            "visible": true
-          }
-        ],
-        "text": "Skip to content Navigation Menu Platform Solutions Resources Open Source Enterprise Pricing Sign in Sign up Mona the Octocat, Copilot, and Ducky float jubilantly upward from behind the GitHub product demo accompanied by a purple glow and a scattering of stars. The future of building happens together Tools and trends evolve, but collaboration endures. With GitHub, developers, agents, and code come together on one platform. Enter your email Sign up for GitHub Try GitHub Copilot GitHub features A demonstration animation of a code editor using GitHub Copilot Chat, where the user requests GitHub Copilot to refactor duplicated logic and extract it into a reusable function for a given code snippet. CodePlanCollaborateAutomateSecure Write, test, and fix code quickly with GitHub Copilot, from simple boilerplate to complex features. GITHUB CUSTOMERS Accelerate your entire workflow From your first line of code to final deployment, GitHub provides AI and automation tools to help you build and ship better software faster. A Copilot chat window with the 'Ask' mode enabled. The user switches from 'Ask' mode to 'Agent' mode from a dropdown menu, then sends the prompt 'Update the website to allow searching for running races by name.' Copilot analyzes the codebase, then explains the required edits for three files before generating them. Copilot then confirms completion and summarizes the implemented changes for the new functionality allowing users to search races by name and view paginated, filtered results. Your AI partner everywhere. Copilot is ready to work with you at each step of the software development lifecycle. Explore GitHub Copilot Duolingo boosts developer speed by 25% with GitHub Copilot Read customer story 2025 Gartner® Magic Quadrant™ for AI Code Assistants Read industry report Automate your path to production Ship faster with secure, reliable CI/CD. Explore GitHub Actions Code instantly from anywhere Launch a full, cloud-based development environment in seconds. Explo",
-        "tabs": [
-          {
-            "index": 0,
-            "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-            "url": "https://github.com/",
-            "active": true
-          }
-        ],
-        "activeTab": {
-          "index": 0,
-          "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-          "url": "https://github.com/",
-          "active": true
-        },
-        "observationQuality": {
-          "score": 1,
-          "reasons": []
-        }
-      },
-      "before": {
-        "url": "https://www.youtube.com/",
-        "title": "YouTube",
-        "tabCount": 1
-      },
-      "after": {
-        "url": "https://github.com/",
-        "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-        "tabCount": 1
-      },
-      "timestamp": "2026-06-16T16:56:00.644Z",
-      "events": [
-        "url_changed",
-        "content_changed",
-        "form_detected",
-        "links_detected",
-        "buttons_detected",
-        "content_loaded"
-      ]
-    }
-  ]
-}
-[2026-06-16T16:56:00.652Z] [LOG] WORLD: {
-  "history": 1,
-  "url": "https://github.com/",
-  "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-  "lastOutcome": "success",
-  "lastStateHash": "5e553b4b4ec9019b3e8485dab39fbe5f4ecda9a1f6581f6cf0f8d02f8203e233"
-}
-[2026-06-16T16:56:00.653Z] [LOG] OBSERVATION SUMMARY: {
-  "success": true,
-  "expected": "page_loaded",
-  "actual": "https://github.com/"
-}
-[2026-06-16T16:56:00.655Z] [LOG] OBSERVATION: {
-  "success": true,
-  "expected": "page_loaded",
-  "actual": "https://github.com/",
-  "action": {
-    "type": "navigate",
-    "params": {
-      "url": "https://github.com"
-    }
-  },
-  "pageState": {
-    "success": true,
-    "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-    "url": "https://github.com/",
-    "buttons": [
-      {
-        "id": 6,
-        "text": "Platform",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 23,
-        "text": "Solutions",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 39,
-        "text": "Resources",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 56,
-        "text": "Open Source",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 66,
-        "text": "Enterprise",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 99,
-        "text": "Sign up for GitHub",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 102,
-        "text": "Code",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 103,
-        "text": "Plan",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 104,
-        "text": "Collaborate",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 105,
-        "text": "Automate",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 106,
-        "text": "Secure",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 113,
-        "text": "Automate your path to production",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 115,
-        "text": "Code instantly from anywhere",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 117,
-        "text": "Keep momentum on the go",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 119,
-        "text": "Shape your toolchain",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 128,
-        "text": "Keep track of your tasks",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 130,
-        "text": "Share ideas and ask questions",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 132,
-        "text": "Review code changes together",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 134,
-        "text": "Fund open source projects",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 136,
-        "text": "By industry",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      }
-    ],
-    "inputs": [
-      {
-        "id": 98,
-        "text": "you@domain.com",
-        "value": "",
-        "role": "input",
-        "placeholder": "you@domain.com",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 146,
-        "text": "you@domain.com",
-        "value": "",
-        "role": "input",
-        "placeholder": "you@domain.com",
-        "visible": true,
-        "enabled": true
-      }
-    ],
-    "links": [
-      {
-        "id": 1,
-        "text": "Skip to content",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 71,
-        "text": "Pricing",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 90,
-        "text": "Sign in",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 91,
-        "text": "Sign up",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 100,
-        "text": "Try GitHub Copilot",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 110,
-        "text": "Explore GitHub Copilot",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 111,
-        "text": "Read customer story",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 112,
-        "text": "Read industry report",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 114,
-        "text": "Explore GitHub Actions",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 116,
-        "text": "Explore GitHub Codespaces",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 118,
-        "text": "Explore GitHub Mobile",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 120,
-        "text": "Explore GitHub Marketplace",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 121,
-        "text": "Explore GitHub Advanced Security",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 122,
-        "text": "Learn about GitHub Code Security",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 123,
-        "text": "Learn about Dependabot",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 124,
-        "text": "Learn about GitHub Secret Protection",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 125,
-        "text": "1",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 126,
-        "text": "1",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 127,
-        "text": "Explore GitHub Projects",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 129,
-        "text": "Explore GitHub Issues",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      }
-    ],
-    "forms": [
-      {
-        "id": 97,
-        "role": "form",
-        "action": "https://github.com/signup",
-        "method": "get",
-        "visible": true
-      },
-      {
-        "id": 145,
-        "role": "form",
-        "action": "https://github.com/signup",
-        "method": "get",
-        "visible": true
-      }
-    ],
-    "text": "Skip to content Navigation Menu Platform Solutions Resources Open Source Enterprise Pricing Sign in Sign up Mona the Octocat, Copilot, and Ducky float jubilantly upward from behind the GitHub product demo accompanied by a purple glow and a scattering of stars. The future of building happens together Tools and trends evolve, but collaboration endures. With GitHub, developers, agents, and code come together on one platform. Enter your email Sign up for GitHub Try GitHub Copilot GitHub features A demonstration animation of a code editor using GitHub Copilot Chat, where the user requests GitHub Copilot to refactor duplicated logic and extract it into a reusable function for a given code snippet. CodePlanCollaborateAutomateSecure Write, test, and fix code quickly with GitHub Copilot, from simple boilerplate to complex features. GITHUB CUSTOMERS Accelerate your entire workflow From your first line of code to final deployment, GitHub provides AI and automation tools to help you build and ship better software faster. A Copilot chat window with the 'Ask' mode enabled. The user switches from 'Ask' mode to 'Agent' mode from a dropdown menu, then sends the prompt 'Update the website to allow searching for running races by name.' Copilot analyzes the codebase, then explains the required edits for three files before generating them. Copilot then confirms completion and summarizes the implemented changes for the new functionality allowing users to search races by name and view paginated, filtered results. Your AI partner everywhere. Copilot is ready to work with you at each step of the software development lifecycle. Explore GitHub Copilot Duolingo boosts developer speed by 25% with GitHub Copilot Read customer story 2025 Gartner® Magic Quadrant™ for AI Code Assistants Read industry report Automate your path to production Ship faster with secure, reliable CI/CD. Explore GitHub Actions Code instantly from anywhere Launch a full, cloud-based development environment in seconds. Explo",
-    "tabs": [
-      {
-        "index": 0,
-        "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-        "url": "https://github.com/",
-        "active": true
-      }
-    ],
-    "activeTab": {
-      "index": 0,
-      "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-      "url": "https://github.com/",
-      "active": true
-    },
-    "observationQuality": {
-      "score": 1,
-      "reasons": []
-    }
-  },
-  "before": {
-    "url": "https://www.youtube.com/",
-    "title": "YouTube",
-    "tabCount": 1
-  },
-  "after": {
-    "url": "https://github.com/",
-    "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-    "tabCount": 1
-  },
-  "timestamp": "2026-06-16T16:56:00.644Z",
-  "events": [
-    "url_changed",
-    "content_changed",
-    "form_detected",
-    "links_detected",
-    "buttons_detected",
-    "content_loaded"
-  ]
-}
-[2026-06-16T16:56:00.657Z] [LOG] VERIFYING TASK WITH CRITERIA: [
-  {
-    "success": true,
-    "expected": "page_loaded",
-    "actual": "https://github.com/",
-    "action": {
-      "type": "navigate",
-      "params": {
-        "url": "https://github.com"
-      }
-    },
-    "pageState": {
-      "success": true,
-      "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-      "url": "https://github.com/",
-      "buttons": [
-        {
-          "id": 6,
-          "text": "Platform",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 23,
-          "text": "Solutions",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 39,
-          "text": "Resources",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 56,
-          "text": "Open Source",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 66,
-          "text": "Enterprise",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 99,
-          "text": "Sign up for GitHub",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 102,
-          "text": "Code",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 103,
-          "text": "Plan",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 104,
-          "text": "Collaborate",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 105,
-          "text": "Automate",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 106,
-          "text": "Secure",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 113,
-          "text": "Automate your path to production",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 115,
-          "text": "Code instantly from anywhere",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 117,
-          "text": "Keep momentum on the go",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 119,
-          "text": "Shape your toolchain",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 128,
-          "text": "Keep track of your tasks",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 130,
-          "text": "Share ideas and ask questions",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 132,
-          "text": "Review code changes together",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 134,
-          "text": "Fund open source projects",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 136,
-          "text": "By industry",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        }
-      ],
-      "inputs": [
-        {
-          "id": 98,
-          "text": "you@domain.com",
-          "value": "",
-          "role": "input",
-          "placeholder": "you@domain.com",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 146,
-          "text": "you@domain.com",
-          "value": "",
-          "role": "input",
-          "placeholder": "you@domain.com",
-          "visible": true,
-          "enabled": true
-        }
-      ],
-      "links": [
-        {
-          "id": 1,
-          "text": "Skip to content",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 71,
-          "text": "Pricing",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 90,
-          "text": "Sign in",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 91,
-          "text": "Sign up",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 100,
-          "text": "Try GitHub Copilot",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 110,
-          "text": "Explore GitHub Copilot",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 111,
-          "text": "Read customer story",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 112,
-          "text": "Read industry report",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 114,
-          "text": "Explore GitHub Actions",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 116,
-          "text": "Explore GitHub Codespaces",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 118,
-          "text": "Explore GitHub Mobile",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 120,
-          "text": "Explore GitHub Marketplace",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 121,
-          "text": "Explore GitHub Advanced Security",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 122,
-          "text": "Learn about GitHub Code Security",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 123,
-          "text": "Learn about Dependabot",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 124,
-          "text": "Learn about GitHub Secret Protection",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 125,
-          "text": "1",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 126,
-          "text": "1",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 127,
-          "text": "Explore GitHub Projects",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 129,
-          "text": "Explore GitHub Issues",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        }
-      ],
-      "forms": [
-        {
-          "id": 97,
-          "role": "form",
-          "action": "https://github.com/signup",
-          "method": "get",
-          "visible": true
-        },
-        {
-          "id": 145,
-          "role": "form",
-          "action": "https://github.com/signup",
-          "method": "get",
-          "visible": true
-        }
-      ],
-      "text": "Skip to content Navigation Menu Platform Solutions Resources Open Source Enterprise Pricing Sign in Sign up Mona the Octocat, Copilot, and Ducky float jubilantly upward from behind the GitHub product demo accompanied by a purple glow and a scattering of stars. The future of building happens together Tools and trends evolve, but collaboration endures. With GitHub, developers, agents, and code come together on one platform. Enter your email Sign up for GitHub Try GitHub Copilot GitHub features A demonstration animation of a code editor using GitHub Copilot Chat, where the user requests GitHub Copilot to refactor duplicated logic and extract it into a reusable function for a given code snippet. CodePlanCollaborateAutomateSecure Write, test, and fix code quickly with GitHub Copilot, from simple boilerplate to complex features. GITHUB CUSTOMERS Accelerate your entire workflow From your first line of code to final deployment, GitHub provides AI and automation tools to help you build and ship better software faster. A Copilot chat window with the 'Ask' mode enabled. The user switches from 'Ask' mode to 'Agent' mode from a dropdown menu, then sends the prompt 'Update the website to allow searching for running races by name.' Copilot analyzes the codebase, then explains the required edits for three files before generating them. Copilot then confirms completion and summarizes the implemented changes for the new functionality allowing users to search races by name and view paginated, filtered results. Your AI partner everywhere. Copilot is ready to work with you at each step of the software development lifecycle. Explore GitHub Copilot Duolingo boosts developer speed by 25% with GitHub Copilot Read customer story 2025 Gartner® Magic Quadrant™ for AI Code Assistants Read industry report Automate your path to production Ship faster with secure, reliable CI/CD. Explore GitHub Actions Code instantly from anywhere Launch a full, cloud-based development environment in seconds. Explo",
-      "tabs": [
-        {
-          "index": 0,
-          "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-          "url": "https://github.com/",
-          "active": true
-        }
-      ],
-      "activeTab": {
-        "index": 0,
-        "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-        "url": "https://github.com/",
-        "active": true
-      },
-      "observationQuality": {
-        "score": 1,
-        "reasons": []
-      }
-    },
-    "before": {
-      "url": "https://www.youtube.com/",
-      "title": "YouTube",
-      "tabCount": 1
-    },
-    "after": {
-      "url": "https://github.com/",
-      "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-      "tabCount": 1
-    },
-    "timestamp": "2026-06-16T16:56:00.644Z",
-    "events": [
-      "url_changed",
-      "content_changed",
-      "form_detected",
-      "links_detected",
-      "buttons_detected",
-      "content_loaded"
-    ]
-  }
-]
-[2026-06-16T16:56:00.658Z] [LOG] task: {
-  "id": "b40fa81e-1b87-48ff-a454-6075456e02e8",
-  "intent": null,
-  "objective": "Open GitHub homepage",
-  "target": null,
-  "context": {},
-  "dependsOn": [],
-  "successCriteria": [
-    "URL contains github.com",
-    "Page title contains GitHub"
-  ],
-  "requires": [],
-  "produces": [
-    "github_open"
-  ],
-  "plan": null,
-  "result": null,
-  "currentStep": 0,
-  "status": "running",
-  "createdAt": "2026-06-16T16:55:52.674Z"
-}
-[2026-06-16T16:56:00.658Z] [LOG] STATE VERIFIED: {
-  "achieved": true,
-  "reason": "Programmatic verification: Successfully navigated to host github.com."
-}
-[2026-06-16T16:56:00.659Z] [LOG] EVENT VERIFIED: null
-[2026-06-16T16:56:00.659Z] [LOG] Programmatic state/event check confirmed achievement.
-[2026-06-16T16:56:29.087Z] [LOG] [2026-06-16T16:56:29.087Z] Received goal: open gmail
-[2026-06-16T16:56:31.254Z] [LOG] [LLM] Trying askGroq
-[2026-06-16T16:56:31.255Z] [LOG] SYSTEM CHARS: 2216
-[2026-06-16T16:56:31.255Z] [LOG] USER CHARS: 10
-[2026-06-16T16:56:31.256Z] [LOG] TOTAL CHARS: 2226
-[2026-06-16T16:56:31.833Z] [LOG] [LLM] Success askGroq
-[2026-06-16T16:56:31.833Z] [LOG] TASK GRAPH: [
-  {
-    "id": "06d3ec3c-d851-44a9-b887-a8e8478d9232",
-    "intent": null,
-    "objective": "Open Gmail login page",
-    "target": null,
-    "context": {},
-    "dependsOn": [],
-    "successCriteria": [
-      "URL contains mail.google.com",
-      "Page title contains Gmail"
-    ],
-    "requires": [],
-    "produces": [
-      "gmail_open"
-    ],
-    "plan": null,
-    "result": null,
-    "currentStep": 0,
-    "status": "pending",
-    "createdAt": "2026-06-16T16:56:31.833Z"
-  }
-]
-[2026-06-16T16:56:31.834Z] [LOG] INTENT: {
-  "type": "generic",
-  "action": null,
-  "target": "gmail",
-  "entities": [
-    "gmail"
-  ],
-  "constraints": {},
-  "confidence": 0,
-  "originalGoal": "open gmail"
-}
-[2026-06-16T16:56:32.137Z] [LOG] MEMORY CONTEXT:
- 
-[2026-06-16T16:56:32.138Z] [LOG] CURRENT TASK: {
-  "id": "06d3ec3c-d851-44a9-b887-a8e8478d9232",
-  "intent": null,
-  "objective": "Open Gmail login page",
-  "target": null,
-  "context": {},
-  "dependsOn": [],
-  "successCriteria": [
-    "URL contains mail.google.com",
-    "Page title contains Gmail"
-  ],
-  "requires": [],
-  "produces": [
-    "gmail_open"
-  ],
-  "plan": null,
-  "result": null,
-  "currentStep": 0,
-  "status": "pending",
-  "createdAt": "2026-06-16T16:56:31.833Z"
-}
-[2026-06-16T16:56:32.138Z] [LOG] BROWSER CONTEXT:
- URL:
-https://github.com/
-
-Title:
-GitHub · Change is constant. GitHub keeps you ahead. · GitHub
-
-Inputs:
-[98] you@domain.com
-[146] you@domain.com
-
-Forms:
-[97] role: form, action: https://github.com/signup, method: get
-[145] role: form, action: https://github.com/signup, method: get
-
-
-[2026-06-16T16:56:32.139Z] [LOG] MEMORY CHARS: 0
-[2026-06-16T16:56:32.139Z] [LOG] BROWSER CHARS: 283
-[2026-06-16T16:56:32.139Z] [LOG] SYSTEM PROMPT CHARS: 4283
-[2026-06-16T16:56:32.140Z] [LOG] SYSTEM CHARS: 4283
-[2026-06-16T16:56:32.140Z] [LOG] GOAL CHARS: 10
-[2026-06-16T16:56:32.140Z] [LOG] TOTAL CHARS: 4293
-[2026-06-16T16:56:32.141Z] [LOG] TASK: {
-  "id": "06d3ec3c-d851-44a9-b887-a8e8478d9232",
-  "intent": null,
-  "objective": "Open Gmail login page",
-  "target": null,
-  "context": {},
-  "dependsOn": [],
-  "successCriteria": [
-    "URL contains mail.google.com",
-    "Page title contains Gmail"
-  ],
-  "requires": [],
-  "produces": [
-    "gmail_open"
-  ],
-  "plan": null,
-  "result": null,
-  "currentStep": 0,
-  "status": "pending",
-  "createdAt": "2026-06-16T16:56:31.833Z"
-}
-[2026-06-16T16:56:32.141Z] [LOG] [LLM] Trying askGroq
-[2026-06-16T16:56:32.141Z] [LOG] SYSTEM CHARS: 4283
-[2026-06-16T16:56:32.142Z] [LOG] USER CHARS: 386
-[2026-06-16T16:56:32.142Z] [LOG] TOTAL CHARS: 4669
-[2026-06-16T16:56:32.231Z] [LOG] [LLM] Failed askGroq Groq failed: 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kv6gqdgyfm5ary83wd5n1pb8` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99463, Requested 1261. Please try again in 10m25.536s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
-
-[2026-06-16T16:56:32.232Z] [LOG] [LLM] Trying askOpenRouter
-[2026-06-16T16:56:32.232Z] [LOG] SYSTEM CHARS: 4283
-[2026-06-16T16:56:32.233Z] [LOG] USER CHARS: 386
-[2026-06-16T16:56:32.233Z] [LOG] TOTAL CHARS: 4669
-[2026-06-16T16:56:32.233Z] [LOG] [OpenRouter] Request started
-[2026-06-16T16:56:33.806Z] [LOG] [OpenRouter] Status: 200
-[2026-06-16T16:56:35.002Z] [LOG] [LLM] Success askOpenRouter
-[2026-06-16T16:56:35.002Z] [LOG] PLANNER RESPONSE: ```json
-{
-  "actions": [
-    {
-      "type": "navigate",
-      "params": {
-        "url": "https://mail.google.com"
-      }
-    }
-  ]
-}
-```
-[2026-06-16T16:56:35.003Z] [LOG] RAW LLM RESPONSE: ```json
-{
-  "actions": [
-    {
-      "type": "navigate",
-      "params": {
-        "url": "https://mail.google.com"
-      }
-    }
-  ]
-}
-```
-[2026-06-16T16:56:35.003Z] [LOG] PARSED: {
-  "actions": [
-    {
-      "type": "navigate",
-      "params": {
-        "url": "https://mail.google.com"
-      }
-    }
-  ]
-}
-[2026-06-16T16:56:35.003Z] [LOG] VALIDATED ACTIONS: [
-  {
-    "type": "navigate",
-    "params": {
-      "url": "https://mail.google.com"
-    }
-  }
-]
-[2026-06-16T16:56:35.004Z] [LOG] VALIDATED ACTIONS: [
-  {
-    "type": "navigate",
-    "params": {
-      "url": "https://mail.google.com"
-    }
-  }
-]
-[2026-06-16T16:56:35.004Z] [LOG] INITIAL PLAN: {
-  "goalId": "20b59287-d454-4e4b-9d7e-a9969714b2f8",
-  "actions": [
-    {
-      "type": "navigate",
-      "params": {
-        "url": "https://mail.google.com"
-      }
-    }
-  ],
-  "createdAt": "2026-06-16T16:56:35.004Z"
-}
-[2026-06-16T16:56:35.004Z] [LOG] Task 1 Attempt 1 (Total Actions: 0, LLM Calls: 6)
-[2026-06-16T16:56:35.005Z] [LOG] 
-===== SENDING PLAN =====
-[2026-06-16T16:56:35.005Z] [LOG] {
-  "goalId": "20b59287-d454-4e4b-9d7e-a9969714b2f8",
-  "actions": [
-    {
-      "type": "navigate",
-      "params": {
-        "url": "https://mail.google.com"
-      }
-    }
-  ],
-  "createdAt": "2026-06-16T16:56:35.004Z"
-}
-[2026-06-16T16:56:44.660Z] [LOG] [2026-06-16T16:56:44.659Z] Received: {
-  "type": "execution_result",
-  "observations": [
-    {
-      "success": true,
-      "expected": "page_loaded",
-      "actual": "https://workspace.google.com/intl/en-US/gmail/",
-      "action": {
-        "type": "navigate",
-        "params": {
-          "url": "https://mail.google.com"
-        }
-      },
-      "pageState": {
-        "success": true,
-        "title": "Gmail: Secure, AI-Powered Email for Everyone | Google Workspace",
-        "url": "https://workspace.google.com/intl/en-US/gmail/",
-        "buttons": [
-          {
-            "id": 19,
-            "text": "Expand all",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          }
-        ],
-        "inputs": [],
-        "links": [
-          {
-            "id": 1,
-            "text": "Gmail",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 2,
-            "text": "Skip to main content",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 3,
-            "text": "For work",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 5,
-            "text": "Sign in",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 8,
-            "text": "Learn more",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 13,
-            "text": "For work",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 17,
-            "text": "business",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 18,
-            "text": "Learn more",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 22,
-            "text": "Help Center",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 25,
-            "text": "For work",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 26,
-            "text": "Blog",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 33,
-            "text": "Privacy",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 34,
-            "text": "Terms",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 35,
-            "text": "About Google",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 36,
-            "text": "Google Products",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 37,
-            "text": "Help",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 39,
-            "text": "Help",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 40,
-            "text": "Bahasa Indonesia",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 41,
-            "text": "Čeština",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 42,
-            "text": "Dansk",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          }
-        ],
-        "forms": [
-          {
-            "id": 9,
-            "role": "form",
-            "action": "https://workspace.google.com/intl/en-US/gmail/",
-            "method": "dialog",
-            "visible": true
-          }
-        ],
-        "text": "Gmail Skip to main content For work Sign in Create an account New: Gmail is entering the Gemini era Learn more AI-powered email for everyone Secure, smart and easy-to-use email, used by billions, now enhanced with Gemini. Create an account For work Gemini in Gmail With Gemini in Gmail, you get a personal, proactive inbox assistant that helps you respond quickly in your own voice, get things done faster, and turn information into answers without the digging. Write better emails with the help of AI Gemini in Gmail saves you time drafting or polishing emails, and suggested replies help you reply in one click, in your voice. Get caught up on email threads fast Ask Gemini to search your inbox Email that’s secure, private, and puts you in control We never use your Gmail content for any ads purposes Gmail uses industry-leading encryption for all messages you receive and send. We never use your Gmail content to personalize ads. Gmail keeps over a billion people safe every day The most advanced phishing protections available Best-in-class controls over emails you send Get more done with Gmail Stay connected and get organized Start a Chat, jump into a video call with Meet, or collaborate in a Doc, all right from Gmail. Get more done faster Never forget to reply Gmail is better on the app Express yourself with emojis Emoji reactions are a fast and fun way to reply to emails, only available with the Gmail app. Find your emails faster Switch between accounts Bring the best of Gmail to your device Works with other tools Gmail works great with desktop clients like Microsoft Outlook, Apple Mail and Mozilla Thunderbird, including contact and event sync. Stay productive, even offline Gmail offline lets you read, reply, delete, and search your Gmail messages when you’re not connected to the internet. Experience Gmail on any device Enjoy the ease and simplicity of Gmail, wherever you are. Gmail is now part of Google Workspace Collaborate faster, from any device, anytime, all in one pla",
-        "tabs": [
-          {
-            "index": 0,
-            "title": "Gmail: Secure, AI-Powered Email for Everyone | Google Workspace",
-            "url": "https://workspace.google.com/intl/en-US/gmail/",
-            "active": true
-          }
-        ],
-        "activeTab": {
-          "index": 0,
-          "title": "Gmail: Secure, AI-Powered Email for Everyone | Google Workspace",
-          "url": "https://workspace.google.com/intl/en-US/gmail/",
-          "active": true
-        },
-        "observationQuality": {
-          "score": 1,
-          "reasons": []
-        }
-      },
-      "before": {
-        "url": "https://github.com/",
-        "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-        "tabCount": 1
-      },
-      "after": {
-        "url": "https://workspace.google.com/intl/en-US/gmail/",
-        "title": "Gmail: Secure, AI-Powered Email for Everyone | Google Workspace",
-        "tabCount": 1
-      },
-      "timestamp": "2026-06-16T16:56:44.657Z",
-      "events": [
-        "url_changed",
-        "content_changed",
-        "links_detected",
-        "buttons_detected",
-        "content_loaded"
-      ]
-    }
-  ]
-}
-[2026-06-16T16:56:44.662Z] [LOG] EXECUTE RESULT: {
-  "type": "execution_result",
-  "observations": [
-    {
-      "success": true,
-      "expected": "page_loaded",
-      "actual": "https://workspace.google.com/intl/en-US/gmail/",
-      "action": {
-        "type": "navigate",
-        "params": {
-          "url": "https://mail.google.com"
-        }
-      },
-      "pageState": {
-        "success": true,
-        "title": "Gmail: Secure, AI-Powered Email for Everyone | Google Workspace",
-        "url": "https://workspace.google.com/intl/en-US/gmail/",
-        "buttons": [
-          {
-            "id": 19,
-            "text": "Expand all",
-            "role": "button",
-            "visible": true,
-            "enabled": true
-          }
-        ],
-        "inputs": [],
-        "links": [
-          {
-            "id": 1,
-            "text": "Gmail",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 2,
-            "text": "Skip to main content",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 3,
-            "text": "For work",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 5,
-            "text": "Sign in",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 8,
-            "text": "Learn more",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 13,
-            "text": "For work",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 17,
-            "text": "business",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 18,
-            "text": "Learn more",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 22,
-            "text": "Help Center",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 25,
-            "text": "For work",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 26,
-            "text": "Blog",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 33,
-            "text": "Privacy",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 34,
-            "text": "Terms",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 35,
-            "text": "About Google",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 36,
-            "text": "Google Products",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 37,
-            "text": "Help",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 39,
-            "text": "Help",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 40,
-            "text": "Bahasa Indonesia",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 41,
-            "text": "Čeština",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          },
-          {
-            "id": 42,
-            "text": "Dansk",
-            "role": "link",
-            "visible": true,
-            "enabled": true
-          }
-        ],
-        "forms": [
-          {
-            "id": 9,
-            "role": "form",
-            "action": "https://workspace.google.com/intl/en-US/gmail/",
-            "method": "dialog",
-            "visible": true
-          }
-        ],
-        "text": "Gmail Skip to main content For work Sign in Create an account New: Gmail is entering the Gemini era Learn more AI-powered email for everyone Secure, smart and easy-to-use email, used by billions, now enhanced with Gemini. Create an account For work Gemini in Gmail With Gemini in Gmail, you get a personal, proactive inbox assistant that helps you respond quickly in your own voice, get things done faster, and turn information into answers without the digging. Write better emails with the help of AI Gemini in Gmail saves you time drafting or polishing emails, and suggested replies help you reply in one click, in your voice. Get caught up on email threads fast Ask Gemini to search your inbox Email that’s secure, private, and puts you in control We never use your Gmail content for any ads purposes Gmail uses industry-leading encryption for all messages you receive and send. We never use your Gmail content to personalize ads. Gmail keeps over a billion people safe every day The most advanced phishing protections available Best-in-class controls over emails you send Get more done with Gmail Stay connected and get organized Start a Chat, jump into a video call with Meet, or collaborate in a Doc, all right from Gmail. Get more done faster Never forget to reply Gmail is better on the app Express yourself with emojis Emoji reactions are a fast and fun way to reply to emails, only available with the Gmail app. Find your emails faster Switch between accounts Bring the best of Gmail to your device Works with other tools Gmail works great with desktop clients like Microsoft Outlook, Apple Mail and Mozilla Thunderbird, including contact and event sync. Stay productive, even offline Gmail offline lets you read, reply, delete, and search your Gmail messages when you’re not connected to the internet. Experience Gmail on any device Enjoy the ease and simplicity of Gmail, wherever you are. Gmail is now part of Google Workspace Collaborate faster, from any device, anytime, all in one pla",
-        "tabs": [
-          {
-            "index": 0,
-            "title": "Gmail: Secure, AI-Powered Email for Everyone | Google Workspace",
-            "url": "https://workspace.google.com/intl/en-US/gmail/",
-            "active": true
-          }
-        ],
-        "activeTab": {
-          "index": 0,
-          "title": "Gmail: Secure, AI-Powered Email for Everyone | Google Workspace",
-          "url": "https://workspace.google.com/intl/en-US/gmail/",
-          "active": true
-        },
-        "observationQuality": {
-          "score": 1,
-          "reasons": []
-        }
-      },
-      "before": {
-        "url": "https://github.com/",
-        "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-        "tabCount": 1
-      },
-      "after": {
-        "url": "https://workspace.google.com/intl/en-US/gmail/",
-        "title": "Gmail: Secure, AI-Powered Email for Everyone | Google Workspace",
-        "tabCount": 1
-      },
-      "timestamp": "2026-06-16T16:56:44.657Z",
-      "events": [
-        "url_changed",
-        "content_changed",
-        "links_detected",
-        "buttons_detected",
-        "content_loaded"
-      ]
-    }
-  ]
-}
-[2026-06-16T16:56:44.662Z] [LOG] WORLD: {
-  "history": 1,
-  "url": "https://workspace.google.com/intl/en-US/gmail/",
-  "title": "Gmail: Secure, AI-Powered Email for Everyone | Google Workspace",
-  "lastOutcome": "success",
-  "lastStateHash": "91c6a94847f4057f482e67c2eb4fabbb340e89160584d4a0f5b7a10674dce551"
-}
-[2026-06-16T16:56:44.663Z] [LOG] OBSERVATION SUMMARY: {
-  "success": true,
-  "expected": "page_loaded",
-  "actual": "https://workspace.google.com/intl/en-US/gmail/"
-}
-[2026-06-16T16:56:44.664Z] [LOG] OBSERVATION: {
-  "success": true,
-  "expected": "page_loaded",
-  "actual": "https://workspace.google.com/intl/en-US/gmail/",
-  "action": {
-    "type": "navigate",
-    "params": {
-      "url": "https://mail.google.com"
-    }
-  },
-  "pageState": {
-    "success": true,
-    "title": "Gmail: Secure, AI-Powered Email for Everyone | Google Workspace",
-    "url": "https://workspace.google.com/intl/en-US/gmail/",
-    "buttons": [
-      {
-        "id": 19,
-        "text": "Expand all",
-        "role": "button",
-        "visible": true,
-        "enabled": true
-      }
-    ],
-    "inputs": [],
-    "links": [
-      {
-        "id": 1,
-        "text": "Gmail",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 2,
-        "text": "Skip to main content",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 3,
-        "text": "For work",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 5,
-        "text": "Sign in",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 8,
-        "text": "Learn more",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 13,
-        "text": "For work",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 17,
-        "text": "business",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 18,
-        "text": "Learn more",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 22,
-        "text": "Help Center",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 25,
-        "text": "For work",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 26,
-        "text": "Blog",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 33,
-        "text": "Privacy",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 34,
-        "text": "Terms",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 35,
-        "text": "About Google",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 36,
-        "text": "Google Products",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 37,
-        "text": "Help",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 39,
-        "text": "Help",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 40,
-        "text": "Bahasa Indonesia",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 41,
-        "text": "Čeština",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      },
-      {
-        "id": 42,
-        "text": "Dansk",
-        "role": "link",
-        "visible": true,
-        "enabled": true
-      }
-    ],
-    "forms": [
-      {
-        "id": 9,
-        "role": "form",
-        "action": "https://workspace.google.com/intl/en-US/gmail/",
-        "method": "dialog",
-        "visible": true
-      }
-    ],
-    "text": "Gmail Skip to main content For work Sign in Create an account New: Gmail is entering the Gemini era Learn more AI-powered email for everyone Secure, smart and easy-to-use email, used by billions, now enhanced with Gemini. Create an account For work Gemini in Gmail With Gemini in Gmail, you get a personal, proactive inbox assistant that helps you respond quickly in your own voice, get things done faster, and turn information into answers without the digging. Write better emails with the help of AI Gemini in Gmail saves you time drafting or polishing emails, and suggested replies help you reply in one click, in your voice. Get caught up on email threads fast Ask Gemini to search your inbox Email that’s secure, private, and puts you in control We never use your Gmail content for any ads purposes Gmail uses industry-leading encryption for all messages you receive and send. We never use your Gmail content to personalize ads. Gmail keeps over a billion people safe every day The most advanced phishing protections available Best-in-class controls over emails you send Get more done with Gmail Stay connected and get organized Start a Chat, jump into a video call with Meet, or collaborate in a Doc, all right from Gmail. Get more done faster Never forget to reply Gmail is better on the app Express yourself with emojis Emoji reactions are a fast and fun way to reply to emails, only available with the Gmail app. Find your emails faster Switch between accounts Bring the best of Gmail to your device Works with other tools Gmail works great with desktop clients like Microsoft Outlook, Apple Mail and Mozilla Thunderbird, including contact and event sync. Stay productive, even offline Gmail offline lets you read, reply, delete, and search your Gmail messages when you’re not connected to the internet. Experience Gmail on any device Enjoy the ease and simplicity of Gmail, wherever you are. Gmail is now part of Google Workspace Collaborate faster, from any device, anytime, all in one pla",
-    "tabs": [
-      {
-        "index": 0,
-        "title": "Gmail: Secure, AI-Powered Email for Everyone | Google Workspace",
-        "url": "https://workspace.google.com/intl/en-US/gmail/",
-        "active": true
-      }
-    ],
-    "activeTab": {
-      "index": 0,
-      "title": "Gmail: Secure, AI-Powered Email for Everyone | Google Workspace",
-      "url": "https://workspace.google.com/intl/en-US/gmail/",
-      "active": true
-    },
-    "observationQuality": {
-      "score": 1,
-      "reasons": []
-    }
-  },
-  "before": {
-    "url": "https://github.com/",
-    "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-    "tabCount": 1
-  },
-  "after": {
-    "url": "https://workspace.google.com/intl/en-US/gmail/",
-    "title": "Gmail: Secure, AI-Powered Email for Everyone | Google Workspace",
-    "tabCount": 1
-  },
-  "timestamp": "2026-06-16T16:56:44.657Z",
-  "events": [
-    "url_changed",
-    "content_changed",
-    "links_detected",
-    "buttons_detected",
-    "content_loaded"
-  ]
-}
-[2026-06-16T16:56:44.665Z] [LOG] VERIFYING TASK WITH CRITERIA: [
-  {
-    "success": true,
-    "expected": "page_loaded",
-    "actual": "https://workspace.google.com/intl/en-US/gmail/",
-    "action": {
-      "type": "navigate",
-      "params": {
-        "url": "https://mail.google.com"
-      }
-    },
-    "pageState": {
-      "success": true,
-      "title": "Gmail: Secure, AI-Powered Email for Everyone | Google Workspace",
-      "url": "https://workspace.google.com/intl/en-US/gmail/",
-      "buttons": [
-        {
-          "id": 19,
-          "text": "Expand all",
-          "role": "button",
-          "visible": true,
-          "enabled": true
-        }
-      ],
-      "inputs": [],
-      "links": [
-        {
-          "id": 1,
-          "text": "Gmail",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 2,
-          "text": "Skip to main content",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 3,
-          "text": "For work",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 5,
-          "text": "Sign in",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 8,
-          "text": "Learn more",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 13,
-          "text": "For work",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 17,
-          "text": "business",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 18,
-          "text": "Learn more",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 22,
-          "text": "Help Center",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 25,
-          "text": "For work",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 26,
-          "text": "Blog",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 33,
-          "text": "Privacy",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 34,
-          "text": "Terms",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 35,
-          "text": "About Google",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 36,
-          "text": "Google Products",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 37,
-          "text": "Help",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 39,
-          "text": "Help",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 40,
-          "text": "Bahasa Indonesia",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 41,
-          "text": "Čeština",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        },
-        {
-          "id": 42,
-          "text": "Dansk",
-          "role": "link",
-          "visible": true,
-          "enabled": true
-        }
-      ],
-      "forms": [
-        {
-          "id": 9,
-          "role": "form",
-          "action": "https://workspace.google.com/intl/en-US/gmail/",
-          "method": "dialog",
-          "visible": true
-        }
-      ],
-      "text": "Gmail Skip to main content For work Sign in Create an account New: Gmail is entering the Gemini era Learn more AI-powered email for everyone Secure, smart and easy-to-use email, used by billions, now enhanced with Gemini. Create an account For work Gemini in Gmail With Gemini in Gmail, you get a personal, proactive inbox assistant that helps you respond quickly in your own voice, get things done faster, and turn information into answers without the digging. Write better emails with the help of AI Gemini in Gmail saves you time drafting or polishing emails, and suggested replies help you reply in one click, in your voice. Get caught up on email threads fast Ask Gemini to search your inbox Email that’s secure, private, and puts you in control We never use your Gmail content for any ads purposes Gmail uses industry-leading encryption for all messages you receive and send. We never use your Gmail content to personalize ads. Gmail keeps over a billion people safe every day The most advanced phishing protections available Best-in-class controls over emails you send Get more done with Gmail Stay connected and get organized Start a Chat, jump into a video call with Meet, or collaborate in a Doc, all right from Gmail. Get more done faster Never forget to reply Gmail is better on the app Express yourself with emojis Emoji reactions are a fast and fun way to reply to emails, only available with the Gmail app. Find your emails faster Switch between accounts Bring the best of Gmail to your device Works with other tools Gmail works great with desktop clients like Microsoft Outlook, Apple Mail and Mozilla Thunderbird, including contact and event sync. Stay productive, even offline Gmail offline lets you read, reply, delete, and search your Gmail messages when you’re not connected to the internet. Experience Gmail on any device Enjoy the ease and simplicity of Gmail, wherever you are. Gmail is now part of Google Workspace Collaborate faster, from any device, anytime, all in one pla",
-      "tabs": [
-        {
-          "index": 0,
-          "title": "Gmail: Secure, AI-Powered Email for Everyone | Google Workspace",
-          "url": "https://workspace.google.com/intl/en-US/gmail/",
-          "active": true
-        }
-      ],
-      "activeTab": {
-        "index": 0,
-        "title": "Gmail: Secure, AI-Powered Email for Everyone | Google Workspace",
-        "url": "https://workspace.google.com/intl/en-US/gmail/",
-        "active": true
-      },
-      "observationQuality": {
-        "score": 1,
-        "reasons": []
-      }
-    },
-    "before": {
-      "url": "https://github.com/",
-      "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
-      "tabCount": 1
-    },
-    "after": {
-      "url": "https://workspace.google.com/intl/en-US/gmail/",
-      "title": "Gmail: Secure, AI-Powered Email for Everyone | Google Workspace",
-      "tabCount": 1
-    },
-    "timestamp": "2026-06-16T16:56:44.657Z",
-    "events": [
-      "url_changed",
-      "content_changed",
-      "links_detected",
-      "buttons_detected",
-      "content_loaded"
-    ]
-  }
-]
-[2026-06-16T16:56:44.666Z] [LOG] task: {
-  "id": "06d3ec3c-d851-44a9-b887-a8e8478d9232",
-  "intent": null,
-  "objective": "Open Gmail login page",
-  "target": null,
-  "context": {},
-  "dependsOn": [],
-  "successCriteria": [
-    "URL contains mail.google.com",
-    "Page title contains Gmail"
-  ],
-  "requires": [],
-  "produces": [
-    "gmail_open"
-  ],
-  "plan": null,
-  "result": null,
-  "currentStep": 0,
-  "status": "running",
-  "createdAt": "2026-06-16T16:56:31.833Z"
-}
-[2026-06-16T16:56:44.666Z] [LOG] STATE VERIFIED: null
-[2026-06-16T16:56:44.667Z] [LOG] EVENT VERIFIED: null
-[2026-06-16T16:56:44.667Z] [LOG] RULE VERIFIED: {
-  "achieved": true
-}
-[2026-06-16T16:56:44.668Z] [LOG] Rule check confirmed achievement.
-
---- [Server Restarted at 2026-06-16T16:56:54.388Z] ---
-
-[2026-06-16T16:58:39.398Z] [LOG] [2026-06-16T16:58:39.397Z] Received goal: hi
-[2026-06-16T16:58:39.398Z] [LOG] [LLM] Trying askGroq
-[2026-06-16T16:58:39.399Z] [LOG] SYSTEM CHARS: 377
-[2026-06-16T16:58:39.399Z] [LOG] USER CHARS: 2
-[2026-06-16T16:58:39.399Z] [LOG] TOTAL CHARS: 379
-[2026-06-16T16:58:39.749Z] [LOG] [LLM] Success askGroq
-[2026-06-16T16:58:43.215Z] [LOG] [LLM] Trying askGroq
-[2026-06-16T16:58:43.216Z] [LOG] SYSTEM CHARS: 100
-[2026-06-16T16:58:43.217Z] [LOG] USER CHARS: 2
-[2026-06-16T16:58:43.217Z] [LOG] TOTAL CHARS: 102
-[2026-06-16T16:58:43.396Z] [LOG] [LLM] Success askGroq
-[2026-06-16T16:58:55.063Z] [LOG] [2026-06-16T16:58:55.063Z] Received goal: today was okayish how was yours
-[2026-06-16T16:58:55.063Z] [LOG] [LLM] Trying askGroq
-[2026-06-16T16:58:55.064Z] [LOG] SYSTEM CHARS: 377
-[2026-06-16T16:58:55.064Z] [LOG] USER CHARS: 31
-[2026-06-16T16:58:55.065Z] [LOG] TOTAL CHARS: 408
-[2026-06-16T16:58:55.472Z] [LOG] [LLM] Success askGroq
-
---- [Server Restarted at 2026-06-16T16:59:01.710Z] ---
-
-[KAIROS] Server started at 2026-06-16T16:59:01.626Z
-[2026-06-16T16:59:01.632Z] [LOG] ◇ injected env (7) from .env [2m// tip: ⌘ override existing { override: true }[0m
-
---- [Server Restarted at 2026-06-16T16:59:02.732Z] ---
-
-[KAIROS] Server started at 2026-06-16T16:59:02.633Z
-[2026-06-16T16:59:02.640Z] [LOG] ◇ injected env (7) from .env [2m// tip: ⌘ enable debugging { debug: true }[0m
-[2026-06-16T16:59:03.070Z] [ERROR] (node:45580) Warning: SECURITY WARNING: The SSL modes 'prefer', 'require', and 'verify-ca' are treated as aliases for 'verify-full'.
-In the next major version (pg-connection-string v3.0.0 and pg v9.0.0), these modes will adopt standard libpq semantics, which have weaker security guarantees.
-
-To prepare for this change:
-- If you want the current behavior, explicitly use 'sslmode=verify-full'
-- If you want libpq compatibility now, use 'uselibpqcompat=true&sslmode=require'
-
-See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode definitions.
-(Use `node --trace-warnings ...` to show where the warning was created)
-
---- [Server Restarted at 2026-06-16T16:59:03.759Z] ---
-
-[KAIROS] Server started at 2026-06-16T16:59:03.411Z
-[2026-06-16T16:59:03.419Z] [LOG] ◇ injected env (7) from .env [2m// tip: ⌘ suppress logs { quiet: true }[0m
-[2026-06-16T16:59:03.869Z] [ERROR] (node:20516) Warning: SECURITY WARNING: The SSL modes 'prefer', 'require', and 'verify-ca' are treated as aliases for 'verify-full'.
-In the next major version (pg-connection-string v3.0.0 and pg v9.0.0), these modes will adopt standard libpq semantics, which have weaker security guarantees.
-
-To prepare for this change:
-- If you want the current behavior, explicitly use 'sslmode=verify-full'
-- If you want libpq compatibility now, use 'uselibpqcompat=true&sslmode=require'
-
-See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode definitions.
-(Use `node --trace-warnings ...` to show where the warning was created)
-[2026-06-16T16:59:06.146Z] [LOG] Database connected
-[2026-06-16T16:59:06.411Z] [LOG] [2026-06-16T16:59:06.411Z] WebSocket listening on 8080
-[2026-06-16T16:59:07.539Z] [LOG] [2026-06-16T16:59:07.539Z] A client connected to WebSocket
-[2026-06-16T16:59:07.541Z] [LOG] [2026-06-16T16:59:07.541Z] Automation client registered
-
---- [Server Restarted at 2026-06-16T17:00:25.632Z] ---
-
-[2026-06-16T17:00:53.897Z] [LOG] [2026-06-16T17:00:53.897Z] A client connected to WebSocket
-[2026-06-16T17:00:53.900Z] [LOG] [2026-06-16T17:00:53.900Z] Connector registered: cli
-[2026-06-16T17:00:56.854Z] [LOG] [2026-06-16T17:00:56.853Z] Received goal: search youtube for lofi
-[2026-06-16T17:00:59.502Z] [LOG] [LLM] Trying askGroq
-[2026-06-16T17:00:59.503Z] [LOG] SYSTEM CHARS: 2216
-[2026-06-16T17:00:59.504Z] [LOG] USER CHARS: 23
-[2026-06-16T17:00:59.504Z] [LOG] TOTAL CHARS: 2239
-[2026-06-16T17:00:59.791Z] [LOG] [LLM] Failed askGroq Groq failed: 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kv6gqdgyfm5ary83wd5n1pb8` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99550, Requested 587. Please try again in 1m58.368s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
-
-[2026-06-16T17:00:59.792Z] [LOG] [LLM] Trying askOpenRouter
-[2026-06-16T17:00:59.793Z] [LOG] SYSTEM CHARS: 2216
-[2026-06-16T17:00:59.793Z] [LOG] USER CHARS: 23
-[2026-06-16T17:00:59.793Z] [LOG] TOTAL CHARS: 2239
-[2026-06-16T17:00:59.794Z] [LOG] [OpenRouter] Request started
-[2026-06-16T17:01:00.765Z] [LOG] [OpenRouter] Status: 200
-[2026-06-16T17:01:07.559Z] [LOG] [LLM] Success askOpenRouter
-[2026-06-16T17:01:07.560Z] [LOG] TASK GRAPH: [
-  {
-    "id": "06d0ae64-64a5-4b1e-88dc-db5d4de9fe17",
-    "intent": null,
-    "objective": "Open YouTube homepage",
-    "target": null,
-    "context": {},
-    "dependsOn": [],
-    "successCriteria": [
-      "URL contains youtube.com",
-      "Page title contains YouTube"
-    ],
-    "requires": [],
-    "produces": [
-      "youtube_open"
-    ],
-    "plan": null,
-    "result": null,
-    "currentStep": 0,
-    "status": "pending",
-    "createdAt": "2026-06-16T17:01:07.559Z"
-  },
-  {
-    "id": "222f8fe2-9ba6-4ecc-8186-b082b46e19bb",
-    "intent": null,
-    "objective": "Enter search query 'lofi' on YouTube",
-    "target": null,
-    "context": {},
-    "dependsOn": [],
-    "successCriteria": [
-      "Search input contains lofi"
+      "Search input contains lofi",
+      "Search results are visible",
+      "Results relate to lofi music or videos"
     ],
     "requires": [
       "youtube_open"
     ],
     "produces": [
-      "search_query_entered"
+      "lofi_search_results_visible"
     ],
     "plan": null,
     "result": null,
     "currentStep": 0,
     "status": "pending",
-    "createdAt": "2026-06-16T17:01:07.559Z"
+    "createdAt": "2026-06-16T19:28:36.055Z"
   },
   {
-    "id": "924813fc-4e5e-4721-9320-779dd5da428f",
+    "id": "c682cbd2-292f-4fde-9454-39c2f5b37ec8",
     "intent": null,
-    "objective": "Submit search query 'lofi' on YouTube",
+    "objective": "Open a lofi video from search results",
     "target": null,
     "context": {},
     "dependsOn": [],
     "successCriteria": [
-      "URL contains youtube.com/results",
-      "Page title contains lofi"
+      "URL contains youtube.com/watch",
+      "Page title contains lofi",
+      "Video player is visible"
     ],
     "requires": [
-      "search_query_entered"
+      "lofi_search_results_visible"
     ],
     "produces": [
-      "search_results_visible"
+      "lofi_video_open"
     ],
     "plan": null,
     "result": null,
     "currentStep": 0,
     "status": "pending",
-    "createdAt": "2026-06-16T17:01:07.559Z"
+    "createdAt": "2026-06-16T19:28:36.055Z"
   }
 ]
-[2026-06-16T17:01:07.560Z] [LOG] INTENT: {
-  "type": "search",
-  "action": "search",
+[2026-06-16T19:28:36.057Z] [LOG] INTENT: {
+  "type": "media",
+  "action": "play",
   "target": null,
   "entities": [
-    "youtube",
-    "lofi"
+    "play",
+    "lofi",
+    "video",
+    "youtube"
   ],
   "constraints": {},
   "confidence": 1,
-  "originalGoal": "search youtube for lofi"
+  "originalGoal": "play lofi video on youtube"
 }
-[2026-06-16T17:01:07.819Z] [LOG] MEMORY CONTEXT:
+[2026-06-16T19:28:36.499Z] [LOG] MEMORY CONTEXT:
  
-[2026-06-16T17:01:07.820Z] [LOG] EMPTY BROWSER CONTEXT
-[2026-06-16T17:01:07.820Z] [LOG] CURRENT TASK: {
-  "id": "06d0ae64-64a5-4b1e-88dc-db5d4de9fe17",
+[2026-06-16T19:28:36.501Z] [LOG] EMPTY BROWSER CONTEXT
+[2026-06-16T19:28:36.502Z] [LOG] CURRENT TASK: {
+  "id": "dbb88e54-cbc0-4e49-9531-1dd5e924a6a9",
   "intent": null,
   "objective": "Open YouTube homepage",
   "target": null,
@@ -9372,18 +146,18 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
   "result": null,
   "currentStep": 0,
   "status": "pending",
-  "createdAt": "2026-06-16T17:01:07.559Z"
+  "createdAt": "2026-06-16T19:28:36.055Z"
 }
-[2026-06-16T17:01:07.820Z] [LOG] BROWSER CONTEXT:
+[2026-06-16T19:28:36.502Z] [LOG] BROWSER CONTEXT:
  
-[2026-06-16T17:01:07.821Z] [LOG] MEMORY CHARS: 0
-[2026-06-16T17:01:07.821Z] [LOG] BROWSER CHARS: 0
-[2026-06-16T17:01:07.821Z] [LOG] SYSTEM PROMPT CHARS: 4000
-[2026-06-16T17:01:07.822Z] [LOG] SYSTEM CHARS: 4000
-[2026-06-16T17:01:07.822Z] [LOG] GOAL CHARS: 23
-[2026-06-16T17:01:07.822Z] [LOG] TOTAL CHARS: 4023
-[2026-06-16T17:01:07.823Z] [LOG] TASK: {
-  "id": "06d0ae64-64a5-4b1e-88dc-db5d4de9fe17",
+[2026-06-16T19:28:36.503Z] [LOG] MEMORY CHARS: 0
+[2026-06-16T19:28:36.503Z] [LOG] BROWSER CHARS: 0
+[2026-06-16T19:28:36.504Z] [LOG] SYSTEM PROMPT CHARS: 4244
+[2026-06-16T19:28:36.506Z] [LOG] SYSTEM CHARS: 4244
+[2026-06-16T19:28:36.507Z] [LOG] GOAL CHARS: 26
+[2026-06-16T19:28:36.508Z] [LOG] TOTAL CHARS: 4270
+[2026-06-16T19:28:36.508Z] [LOG] TASK: {
+  "id": "dbb88e54-cbc0-4e49-9531-1dd5e924a6a9",
   "intent": null,
   "objective": "Open YouTube homepage",
   "target": null,
@@ -9401,22 +175,22 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
   "result": null,
   "currentStep": 0,
   "status": "pending",
-  "createdAt": "2026-06-16T17:01:07.559Z"
+  "createdAt": "2026-06-16T19:28:36.055Z"
 }
-[2026-06-16T17:01:07.823Z] [LOG] [LLM] Trying askGroq
-[2026-06-16T17:01:07.823Z] [LOG] SYSTEM CHARS: 4000
-[2026-06-16T17:01:07.823Z] [LOG] USER CHARS: 384
-[2026-06-16T17:01:07.824Z] [LOG] TOTAL CHARS: 4384
-[2026-06-16T17:01:08.065Z] [LOG] [LLM] Failed askGroq Groq failed: 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kv6gqdgyfm5ary83wd5n1pb8` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99540, Requested 1137. Please try again in 9m44.928s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+[2026-06-16T19:28:36.509Z] [LOG] [LLM] Trying askGroq
+[2026-06-16T19:28:36.510Z] [LOG] SYSTEM CHARS: 4244
+[2026-06-16T19:28:36.511Z] [LOG] USER CHARS: 384
+[2026-06-16T19:28:36.513Z] [LOG] TOTAL CHARS: 4628
+[2026-06-16T19:28:36.830Z] [LOG] [LLM] Failed askGroq Groq failed: 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kv6gqdgyfm5ary83wd5n1pb8` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99910, Requested 1184. Please try again in 15m45.216s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
 
-[2026-06-16T17:01:08.066Z] [LOG] [LLM] Trying askOpenRouter
-[2026-06-16T17:01:08.066Z] [LOG] SYSTEM CHARS: 4000
-[2026-06-16T17:01:08.066Z] [LOG] USER CHARS: 384
-[2026-06-16T17:01:08.067Z] [LOG] TOTAL CHARS: 4384
-[2026-06-16T17:01:08.067Z] [LOG] [OpenRouter] Request started
-[2026-06-16T17:01:08.426Z] [LOG] [OpenRouter] Status: 200
-[2026-06-16T17:01:10.253Z] [LOG] [LLM] Success askOpenRouter
-[2026-06-16T17:01:10.254Z] [LOG] PLANNER RESPONSE: ```json
+[2026-06-16T19:28:36.857Z] [LOG] [LLM] Trying askOpenRouter
+[2026-06-16T19:28:36.858Z] [LOG] SYSTEM CHARS: 4244
+[2026-06-16T19:28:36.859Z] [LOG] USER CHARS: 384
+[2026-06-16T19:28:36.860Z] [LOG] TOTAL CHARS: 4628
+[2026-06-16T19:28:36.860Z] [LOG] [OpenRouter] Request started
+[2026-06-16T19:28:37.834Z] [LOG] [OpenRouter] Status: 200
+[2026-06-16T19:28:38.647Z] [LOG] [LLM] Success askOpenRouter
+[2026-06-16T19:28:38.648Z] [LOG] PLANNER RESPONSE: ```json
 {
   "actions": [
     {
@@ -9428,7 +202,7 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
   ]
 }
 ```
-[2026-06-16T17:01:10.254Z] [LOG] RAW LLM RESPONSE: ```json
+[2026-06-16T19:28:38.649Z] [LOG] RAW LLM RESPONSE: ```json
 {
   "actions": [
     {
@@ -9440,7 +214,7 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
   ]
 }
 ```
-[2026-06-16T17:01:10.255Z] [LOG] PARSED: {
+[2026-06-16T19:28:38.650Z] [LOG] PARSED: {
   "actions": [
     {
       "type": "navigate",
@@ -9450,7 +224,7 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
     }
   ]
 }
-[2026-06-16T17:01:10.255Z] [LOG] VALIDATED ACTIONS: [
+[2026-06-16T19:28:38.651Z] [LOG] VALIDATED ACTIONS: [
   {
     "type": "navigate",
     "params": {
@@ -9458,7 +232,7 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
     }
   }
 ]
-[2026-06-16T17:01:10.255Z] [LOG] VALIDATED ACTIONS: [
+[2026-06-16T19:28:38.652Z] [LOG] VALIDATED ACTIONS: [
   {
     "type": "navigate",
     "params": {
@@ -9466,8 +240,8 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
     }
   }
 ]
-[2026-06-16T17:01:10.256Z] [LOG] INITIAL PLAN: {
-  "goalId": "b3e3fbdf-b401-47fb-8b60-efacdc916ff8",
+[2026-06-16T19:28:38.653Z] [LOG] INITIAL PLAN: {
+  "goalId": "0a65c70f-dfb0-4d95-b481-73d5d47e1195",
   "actions": [
     {
       "type": "navigate",
@@ -9476,13 +250,13 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
       }
     }
   ],
-  "createdAt": "2026-06-16T17:01:10.256Z"
+  "createdAt": "2026-06-16T19:28:38.653Z"
 }
-[2026-06-16T17:01:10.256Z] [LOG] Task 1 Attempt 1 (Total Actions: 0, LLM Calls: 2)
-[2026-06-16T17:01:10.256Z] [LOG] 
+[2026-06-16T19:28:38.654Z] [LOG] Task 1 Attempt 1 (Total Actions: 0, LLM Calls: 3)
+[2026-06-16T19:28:38.655Z] [LOG] 
 ===== SENDING PLAN =====
-[2026-06-16T17:01:10.257Z] [LOG] {
-  "goalId": "b3e3fbdf-b401-47fb-8b60-efacdc916ff8",
+[2026-06-16T19:28:38.657Z] [LOG] {
+  "goalId": "0a65c70f-dfb0-4d95-b481-73d5d47e1195",
   "actions": [
     {
       "type": "navigate",
@@ -9491,9 +265,9 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
       }
     }
   ],
-  "createdAt": "2026-06-16T17:01:10.256Z"
+  "createdAt": "2026-06-16T19:28:38.653Z"
 }
-[2026-06-16T17:01:15.583Z] [LOG] [2026-06-16T17:01:15.582Z] Received: {
+[2026-06-16T19:28:42.767Z] [LOG] [2026-06-16T19:28:42.765Z] Received: {
   "type": "execution_result",
   "observations": [
     {
@@ -9512,9 +286,57 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
         "url": "https://www.youtube.com/",
         "buttons": [
           {
+            "id": 2,
+            "text": "Guide",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Guide",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
             "id": 4,
             "text": "Skip navigation",
             "role": "button",
+            "type": "submit",
+            "ariaLabel": "Skip navigation",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 7,
+            "text": "Search",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Search",
+            "title": "Search",
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 9,
+            "text": "Search with your voice",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Search with your voice",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 11,
+            "text": "Settings",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Settings",
+            "title": null,
+            "name": null,
             "visible": true,
             "enabled": true
           }
@@ -9525,16 +347,43 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
             "text": "Search",
             "value": "",
             "role": "input",
+            "type": "text",
             "placeholder": "Search",
+            "ariaLabel": null,
+            "name": "search_query",
+            "title": null,
             "visible": true,
             "enabled": true
           }
         ],
         "links": [
           {
+            "id": 3,
+            "text": "YouTube Home",
+            "role": "link",
+            "href": "/",
+            "ariaLabel": null,
+            "title": "YouTube Home",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 10,
+            "text": "link",
+            "role": "link",
+            "href": null,
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
             "id": 12,
             "text": "Sign in",
             "role": "link",
+            "href": "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3Dhttps%253A%252F%252Fwww.youtube.com%252F&hl=en&ec=65620",
+            "ariaLabel": "Sign in",
+            "title": null,
             "visible": true,
             "enabled": true
           },
@@ -9542,6 +391,9 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
             "id": 15,
             "text": "Home",
             "role": "link",
+            "href": "/",
+            "ariaLabel": "Home",
+            "title": "Home",
             "visible": true,
             "enabled": true
           },
@@ -9549,6 +401,9 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
             "id": 17,
             "text": "Shorts",
             "role": "link",
+            "href": "/shorts/",
+            "ariaLabel": "Shorts",
+            "title": "Shorts",
             "visible": true,
             "enabled": true
           },
@@ -9556,6 +411,9 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
             "id": 19,
             "text": "Subscriptions",
             "role": "link",
+            "href": "/feed/subscriptions",
+            "ariaLabel": "Subscriptions",
+            "title": "Subscriptions",
             "visible": true,
             "enabled": true
           },
@@ -9563,6 +421,9 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
             "id": 21,
             "text": "You",
             "role": "link",
+            "href": "/feed/you",
+            "ariaLabel": "You",
+            "title": "You",
             "visible": true,
             "enabled": true
           }
@@ -9597,8 +458,8 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
         }
       },
       "before": {
-        "url": "https://workspace.google.com/intl/en-US/gmail/",
-        "title": "Gmail: Secure, AI-Powered Email for Everyone | Google Workspace",
+        "url": "https://www.youtube.com/",
+        "title": "YouTube",
         "tabCount": 1
       },
       "after": {
@@ -9606,10 +467,8 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
         "title": "YouTube",
         "tabCount": 1
       },
-      "timestamp": "2026-06-16T17:01:15.581Z",
+      "timestamp": "2026-06-16T19:28:42.762Z",
       "events": [
-        "url_changed",
-        "content_changed",
         "form_detected",
         "links_detected",
         "buttons_detected",
@@ -9618,7 +477,7 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
     }
   ]
 }
-[2026-06-16T17:01:15.584Z] [LOG] EXECUTE RESULT: {
+[2026-06-16T19:28:42.771Z] [LOG] EXECUTE RESULT: {
   "type": "execution_result",
   "observations": [
     {
@@ -9637,9 +496,57 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
         "url": "https://www.youtube.com/",
         "buttons": [
           {
+            "id": 2,
+            "text": "Guide",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Guide",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
             "id": 4,
             "text": "Skip navigation",
             "role": "button",
+            "type": "submit",
+            "ariaLabel": "Skip navigation",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 7,
+            "text": "Search",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Search",
+            "title": "Search",
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 9,
+            "text": "Search with your voice",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Search with your voice",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 11,
+            "text": "Settings",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Settings",
+            "title": null,
+            "name": null,
             "visible": true,
             "enabled": true
           }
@@ -9650,16 +557,43 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
             "text": "Search",
             "value": "",
             "role": "input",
+            "type": "text",
             "placeholder": "Search",
+            "ariaLabel": null,
+            "name": "search_query",
+            "title": null,
             "visible": true,
             "enabled": true
           }
         ],
         "links": [
           {
+            "id": 3,
+            "text": "YouTube Home",
+            "role": "link",
+            "href": "/",
+            "ariaLabel": null,
+            "title": "YouTube Home",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 10,
+            "text": "link",
+            "role": "link",
+            "href": null,
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
             "id": 12,
             "text": "Sign in",
             "role": "link",
+            "href": "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3Dhttps%253A%252F%252Fwww.youtube.com%252F&hl=en&ec=65620",
+            "ariaLabel": "Sign in",
+            "title": null,
             "visible": true,
             "enabled": true
           },
@@ -9667,6 +601,9 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
             "id": 15,
             "text": "Home",
             "role": "link",
+            "href": "/",
+            "ariaLabel": "Home",
+            "title": "Home",
             "visible": true,
             "enabled": true
           },
@@ -9674,6 +611,9 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
             "id": 17,
             "text": "Shorts",
             "role": "link",
+            "href": "/shorts/",
+            "ariaLabel": "Shorts",
+            "title": "Shorts",
             "visible": true,
             "enabled": true
           },
@@ -9681,6 +621,9 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
             "id": 19,
             "text": "Subscriptions",
             "role": "link",
+            "href": "/feed/subscriptions",
+            "ariaLabel": "Subscriptions",
+            "title": "Subscriptions",
             "visible": true,
             "enabled": true
           },
@@ -9688,6 +631,9 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
             "id": 21,
             "text": "You",
             "role": "link",
+            "href": "/feed/you",
+            "ariaLabel": "You",
+            "title": "You",
             "visible": true,
             "enabled": true
           }
@@ -9722,8 +668,8 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
         }
       },
       "before": {
-        "url": "https://workspace.google.com/intl/en-US/gmail/",
-        "title": "Gmail: Secure, AI-Powered Email for Everyone | Google Workspace",
+        "url": "https://www.youtube.com/",
+        "title": "YouTube",
         "tabCount": 1
       },
       "after": {
@@ -9731,10 +677,8 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
         "title": "YouTube",
         "tabCount": 1
       },
-      "timestamp": "2026-06-16T17:01:15.581Z",
+      "timestamp": "2026-06-16T19:28:42.762Z",
       "events": [
-        "url_changed",
-        "content_changed",
         "form_detected",
         "links_detected",
         "buttons_detected",
@@ -9743,19 +687,19 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
     }
   ]
 }
-[2026-06-16T17:01:15.585Z] [LOG] WORLD: {
+[2026-06-16T19:28:42.773Z] [LOG] WORLD: {
   "history": 1,
   "url": "https://www.youtube.com/",
   "title": "YouTube",
   "lastOutcome": "success",
-  "lastStateHash": "5342899f5f3225b42d94d1afe5b776401990d4996b9241907dc4aa09a1c1f6d9"
+  "lastStateHash": "761c15a7a26b4f13c12e7e9c1bd4fee378a9d6688ccfd31d1d3b62ca0696d62b"
 }
-[2026-06-16T17:01:15.586Z] [LOG] OBSERVATION SUMMARY: {
+[2026-06-16T19:28:42.774Z] [LOG] OBSERVATION SUMMARY: {
   "success": true,
   "expected": "page_loaded",
   "actual": "https://www.youtube.com/"
 }
-[2026-06-16T17:01:15.587Z] [LOG] OBSERVATION: {
+[2026-06-16T19:28:42.778Z] [LOG] OBSERVATION: {
   "success": true,
   "expected": "page_loaded",
   "actual": "https://www.youtube.com/",
@@ -9771,9 +715,57 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
     "url": "https://www.youtube.com/",
     "buttons": [
       {
+        "id": 2,
+        "text": "Guide",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Guide",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
         "id": 4,
         "text": "Skip navigation",
         "role": "button",
+        "type": "submit",
+        "ariaLabel": "Skip navigation",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 7,
+        "text": "Search",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Search",
+        "title": "Search",
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 9,
+        "text": "Search with your voice",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Search with your voice",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 11,
+        "text": "Settings",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Settings",
+        "title": null,
+        "name": null,
         "visible": true,
         "enabled": true
       }
@@ -9784,16 +776,43 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
         "text": "Search",
         "value": "",
         "role": "input",
+        "type": "text",
         "placeholder": "Search",
+        "ariaLabel": null,
+        "name": "search_query",
+        "title": null,
         "visible": true,
         "enabled": true
       }
     ],
     "links": [
       {
+        "id": 3,
+        "text": "YouTube Home",
+        "role": "link",
+        "href": "/",
+        "ariaLabel": null,
+        "title": "YouTube Home",
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 10,
+        "text": "link",
+        "role": "link",
+        "href": null,
+        "ariaLabel": null,
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
         "id": 12,
         "text": "Sign in",
         "role": "link",
+        "href": "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3Dhttps%253A%252F%252Fwww.youtube.com%252F&hl=en&ec=65620",
+        "ariaLabel": "Sign in",
+        "title": null,
         "visible": true,
         "enabled": true
       },
@@ -9801,6 +820,9 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
         "id": 15,
         "text": "Home",
         "role": "link",
+        "href": "/",
+        "ariaLabel": "Home",
+        "title": "Home",
         "visible": true,
         "enabled": true
       },
@@ -9808,6 +830,9 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
         "id": 17,
         "text": "Shorts",
         "role": "link",
+        "href": "/shorts/",
+        "ariaLabel": "Shorts",
+        "title": "Shorts",
         "visible": true,
         "enabled": true
       },
@@ -9815,6 +840,9 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
         "id": 19,
         "text": "Subscriptions",
         "role": "link",
+        "href": "/feed/subscriptions",
+        "ariaLabel": "Subscriptions",
+        "title": "Subscriptions",
         "visible": true,
         "enabled": true
       },
@@ -9822,6 +850,9 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
         "id": 21,
         "text": "You",
         "role": "link",
+        "href": "/feed/you",
+        "ariaLabel": "You",
+        "title": "You",
         "visible": true,
         "enabled": true
       }
@@ -9856,8 +887,8 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
     }
   },
   "before": {
-    "url": "https://workspace.google.com/intl/en-US/gmail/",
-    "title": "Gmail: Secure, AI-Powered Email for Everyone | Google Workspace",
+    "url": "https://www.youtube.com/",
+    "title": "YouTube",
     "tabCount": 1
   },
   "after": {
@@ -9865,17 +896,15 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
     "title": "YouTube",
     "tabCount": 1
   },
-  "timestamp": "2026-06-16T17:01:15.581Z",
+  "timestamp": "2026-06-16T19:28:42.762Z",
   "events": [
-    "url_changed",
-    "content_changed",
     "form_detected",
     "links_detected",
     "buttons_detected",
     "content_loaded"
   ]
 }
-[2026-06-16T17:01:15.588Z] [LOG] VERIFYING TASK WITH CRITERIA: [
+[2026-06-16T19:28:42.781Z] [LOG] VERIFYING TASK WITH CRITERIA: [
   {
     "success": true,
     "expected": "page_loaded",
@@ -9892,9 +921,57 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
       "url": "https://www.youtube.com/",
       "buttons": [
         {
+          "id": 2,
+          "text": "Guide",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Guide",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
           "id": 4,
           "text": "Skip navigation",
           "role": "button",
+          "type": "submit",
+          "ariaLabel": "Skip navigation",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 7,
+          "text": "Search",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Search",
+          "title": "Search",
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 9,
+          "text": "Search with your voice",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Search with your voice",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 11,
+          "text": "Settings",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Settings",
+          "title": null,
+          "name": null,
           "visible": true,
           "enabled": true
         }
@@ -9905,16 +982,43 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
           "text": "Search",
           "value": "",
           "role": "input",
+          "type": "text",
           "placeholder": "Search",
+          "ariaLabel": null,
+          "name": "search_query",
+          "title": null,
           "visible": true,
           "enabled": true
         }
       ],
       "links": [
         {
+          "id": 3,
+          "text": "YouTube Home",
+          "role": "link",
+          "href": "/",
+          "ariaLabel": null,
+          "title": "YouTube Home",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 10,
+          "text": "link",
+          "role": "link",
+          "href": null,
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
           "id": 12,
           "text": "Sign in",
           "role": "link",
+          "href": "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3Dhttps%253A%252F%252Fwww.youtube.com%252F&hl=en&ec=65620",
+          "ariaLabel": "Sign in",
+          "title": null,
           "visible": true,
           "enabled": true
         },
@@ -9922,6 +1026,9 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
           "id": 15,
           "text": "Home",
           "role": "link",
+          "href": "/",
+          "ariaLabel": "Home",
+          "title": "Home",
           "visible": true,
           "enabled": true
         },
@@ -9929,6 +1036,9 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
           "id": 17,
           "text": "Shorts",
           "role": "link",
+          "href": "/shorts/",
+          "ariaLabel": "Shorts",
+          "title": "Shorts",
           "visible": true,
           "enabled": true
         },
@@ -9936,6 +1046,9 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
           "id": 19,
           "text": "Subscriptions",
           "role": "link",
+          "href": "/feed/subscriptions",
+          "ariaLabel": "Subscriptions",
+          "title": "Subscriptions",
           "visible": true,
           "enabled": true
         },
@@ -9943,6 +1056,9 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
           "id": 21,
           "text": "You",
           "role": "link",
+          "href": "/feed/you",
+          "ariaLabel": "You",
+          "title": "You",
           "visible": true,
           "enabled": true
         }
@@ -9977,8 +1093,8 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
       }
     },
     "before": {
-      "url": "https://workspace.google.com/intl/en-US/gmail/",
-      "title": "Gmail: Secure, AI-Powered Email for Everyone | Google Workspace",
+      "url": "https://www.youtube.com/",
+      "title": "YouTube",
       "tabCount": 1
     },
     "after": {
@@ -9986,10 +1102,8 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
       "title": "YouTube",
       "tabCount": 1
     },
-    "timestamp": "2026-06-16T17:01:15.581Z",
+    "timestamp": "2026-06-16T19:28:42.762Z",
     "events": [
-      "url_changed",
-      "content_changed",
       "form_detected",
       "links_detected",
       "buttons_detected",
@@ -9997,8 +1111,8 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
     ]
   }
 ]
-[2026-06-16T17:01:15.589Z] [LOG] task: {
-  "id": "06d0ae64-64a5-4b1e-88dc-db5d4de9fe17",
+[2026-06-16T19:28:42.783Z] [LOG] task: {
+  "id": "dbb88e54-cbc0-4e49-9531-1dd5e924a6a9",
   "intent": null,
   "objective": "Open YouTube homepage",
   "target": null,
@@ -10016,39 +1130,41 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
   "result": null,
   "currentStep": 0,
   "status": "running",
-  "createdAt": "2026-06-16T17:01:07.559Z"
+  "createdAt": "2026-06-16T19:28:36.055Z"
 }
-[2026-06-16T17:01:15.590Z] [LOG] STATE VERIFIED: {
+[2026-06-16T19:28:42.785Z] [LOG] STATE VERIFIED: {
   "achieved": true,
-  "reason": "Programmatic verification: Successfully navigated to host youtube.com."
+  "reason": "Programmatic verification: All success criteria met."
 }
-[2026-06-16T17:01:15.590Z] [LOG] EVENT VERIFIED: null
-[2026-06-16T17:01:15.591Z] [LOG] Programmatic state/event check confirmed achievement.
-[2026-06-16T17:01:15.884Z] [LOG] MEMORY CONTEXT:
+[2026-06-16T19:28:42.786Z] [LOG] EVENT VERIFIED: null
+[2026-06-16T19:28:42.787Z] [LOG] Programmatic state/event check confirmed achievement.
+[2026-06-16T19:28:43.078Z] [LOG] MEMORY CONTEXT:
  
-[2026-06-16T17:01:15.885Z] [LOG] CURRENT TASK: {
-  "id": "222f8fe2-9ba6-4ecc-8186-b082b46e19bb",
+[2026-06-16T19:28:43.080Z] [LOG] CURRENT TASK: {
+  "id": "c2411700-bec7-41bf-9891-01bd14263565",
   "intent": null,
-  "objective": "Enter search query 'lofi' on YouTube",
+  "objective": "Search for lofi videos on YouTube",
   "target": null,
   "context": {},
   "dependsOn": [],
   "successCriteria": [
-    "Search input contains lofi"
+    "Search input contains lofi",
+    "Search results are visible",
+    "Results relate to lofi music or videos"
   ],
   "requires": [
     "youtube_open"
   ],
   "produces": [
-    "search_query_entered"
+    "lofi_search_results_visible"
   ],
   "plan": null,
   "result": null,
   "currentStep": 0,
   "status": "pending",
-  "createdAt": "2026-06-16T17:01:07.559Z"
+  "createdAt": "2026-06-16T19:28:36.055Z"
 }
-[2026-06-16T17:01:15.886Z] [LOG] BROWSER CONTEXT:
+[2026-06-16T19:28:43.081Z] [LOG] BROWSER CONTEXT:
  URL:
 https://www.youtube.com/
 
@@ -10056,54 +1172,72 @@ Title:
 YouTube
 
 Inputs:
-[6] Search
+[6] Search (type: "text", placeholder: "Search", name: "search_query")
+
+Buttons:
+[7] Search (type: "submit", ariaLabel: "Search", title: "Search")
+[9] Search with your voice (type: "submit", ariaLabel: "Search with your voice")
+[2] Guide (type: "submit", ariaLabel: "Guide")
+[4] Skip navigation (type: "submit", ariaLabel: "Skip navigation")
+[11] Settings (type: "submit", ariaLabel: "Settings")
+
+Links:
+[3] YouTube Home (href: "/", title: "YouTube Home")
+[10] link
+[12] Sign in (href: "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3Dhttps%253A%252F%252Fwww.youtube.com%252F&hl=en&ec=65620", ariaLabel: "Sign in")
+[15] Home (href: "/", ariaLabel: "Home", title: "Home")
+[17] Shorts (href: "/shorts/", ariaLabel: "Shorts", title: "Shorts")
+[19] Subscriptions (href: "/feed/subscriptions", ariaLabel: "Subscriptions", title: "Subscriptions")
+[21] You (href: "/feed/you", ariaLabel: "You", title: "You")
 
 Forms:
 [5] role: form, action: https://www.youtube.com/results, method: get
 
 
-[2026-06-16T17:01:15.886Z] [LOG] MEMORY CHARS: 0
-[2026-06-16T17:01:15.887Z] [LOG] BROWSER CHARS: 144
-[2026-06-16T17:01:15.887Z] [LOG] SYSTEM PROMPT CHARS: 4343
-[2026-06-16T17:01:15.887Z] [LOG] SYSTEM CHARS: 4343
-[2026-06-16T17:01:15.888Z] [LOG] GOAL CHARS: 23
-[2026-06-16T17:01:15.888Z] [LOG] TOTAL CHARS: 4366
-[2026-06-16T17:01:15.888Z] [LOG] TASK: {
-  "id": "222f8fe2-9ba6-4ecc-8186-b082b46e19bb",
+[2026-06-16T19:28:43.082Z] [LOG] MEMORY CHARS: 0
+[2026-06-16T19:28:43.083Z] [LOG] BROWSER CHARS: 1178
+[2026-06-16T19:28:43.084Z] [LOG] SYSTEM PROMPT CHARS: 5705
+[2026-06-16T19:28:43.085Z] [LOG] SYSTEM CHARS: 5705
+[2026-06-16T19:28:43.086Z] [LOG] GOAL CHARS: 26
+[2026-06-16T19:28:43.087Z] [LOG] TOTAL CHARS: 5731
+[2026-06-16T19:28:43.088Z] [LOG] TASK: {
+  "id": "c2411700-bec7-41bf-9891-01bd14263565",
   "intent": null,
-  "objective": "Enter search query 'lofi' on YouTube",
+  "objective": "Search for lofi videos on YouTube",
   "target": null,
   "context": {},
   "dependsOn": [],
   "successCriteria": [
-    "Search input contains lofi"
+    "Search input contains lofi",
+    "Search results are visible",
+    "Results relate to lofi music or videos"
   ],
   "requires": [
     "youtube_open"
   ],
   "produces": [
-    "search_query_entered"
+    "lofi_search_results_visible"
   ],
   "plan": null,
   "result": null,
   "currentStep": 0,
   "status": "pending",
-  "createdAt": "2026-06-16T17:01:07.559Z"
+  "createdAt": "2026-06-16T19:28:36.055Z"
 }
-[2026-06-16T17:01:15.889Z] [LOG] [LLM] Trying askGroq
-[2026-06-16T17:01:15.889Z] [LOG] SYSTEM CHARS: 4343
-[2026-06-16T17:01:15.889Z] [LOG] USER CHARS: 486
-[2026-06-16T17:01:15.890Z] [LOG] TOTAL CHARS: 4829
-[2026-06-16T17:01:16.066Z] [LOG] [LLM] Failed askGroq Groq failed: 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kv6gqdgyfm5ary83wd5n1pb8` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99531, Requested 1302. Please try again in 11m59.712s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+[2026-06-16T19:28:43.090Z] [LOG] [LLM] Trying askGroq
+[2026-06-16T19:28:43.091Z] [LOG] SYSTEM CHARS: 5705
+[2026-06-16T19:28:43.092Z] [LOG] USER CHARS: 567
+[2026-06-16T19:28:43.092Z] [LOG] TOTAL CHARS: 6272
+[2026-06-16T19:28:43.309Z] [LOG] [LLM] Failed askGroq Groq failed: 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kv6gqdgyfm5ary83wd5n1pb8` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99903, Requested 1668. Please try again in 22m37.343999999s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
 
-[2026-06-16T17:01:16.067Z] [LOG] [LLM] Trying askOpenRouter
-[2026-06-16T17:01:16.068Z] [LOG] SYSTEM CHARS: 4343
-[2026-06-16T17:01:16.068Z] [LOG] USER CHARS: 486
-[2026-06-16T17:01:16.068Z] [LOG] TOTAL CHARS: 4829
-[2026-06-16T17:01:16.069Z] [LOG] [OpenRouter] Request started
-[2026-06-16T17:01:16.993Z] [LOG] [OpenRouter] Status: 200
-[2026-06-16T17:01:18.290Z] [LOG] [LLM] Success askOpenRouter
-[2026-06-16T17:01:18.290Z] [LOG] PLANNER RESPONSE: ```json
+[2026-06-16T19:28:43.310Z] [LOG] [LLM] Trying askOpenRouter
+[2026-06-16T19:28:43.311Z] [LOG] SYSTEM CHARS: 5705
+[2026-06-16T19:28:43.312Z] [LOG] USER CHARS: 567
+[2026-06-16T19:28:43.313Z] [LOG] TOTAL CHARS: 6272
+[2026-06-16T19:28:43.314Z] [LOG] [OpenRouter] Request started
+[2026-06-16T19:28:44.317Z] [LOG] [OpenRouter] Status: 200
+[2026-06-16T19:28:45.646Z] [LOG] [LLM] Success askOpenRouter
+[2026-06-16T19:28:45.647Z] [LOG] PLANNER RESPONSE: ```json
 {
   "actions": [
     {
@@ -10113,7 +1247,7 @@ Forms:
   ]
 }
 ```
-[2026-06-16T17:01:18.291Z] [LOG] RAW LLM RESPONSE: ```json
+[2026-06-16T19:28:45.648Z] [LOG] RAW LLM RESPONSE: ```json
 {
   "actions": [
     {
@@ -10123,7 +1257,7 @@ Forms:
   ]
 }
 ```
-[2026-06-16T17:01:18.291Z] [LOG] PARSED: {
+[2026-06-16T19:28:45.649Z] [LOG] PARSED: {
   "actions": [
     {
       "type": "read_ui",
@@ -10131,32 +1265,32 @@ Forms:
     }
   ]
 }
-[2026-06-16T17:01:18.292Z] [LOG] VALIDATED ACTIONS: [
+[2026-06-16T19:28:45.649Z] [LOG] VALIDATED ACTIONS: [
   {
     "type": "read_ui",
     "params": {}
   }
 ]
-[2026-06-16T17:01:18.292Z] [LOG] VALIDATED ACTIONS: [
+[2026-06-16T19:28:45.650Z] [LOG] VALIDATED ACTIONS: [
   {
     "type": "read_ui",
     "params": {}
   }
 ]
-[2026-06-16T17:01:18.292Z] [LOG] Task 2 Attempt 1 (Total Actions: 1, LLM Calls: 3)
-[2026-06-16T17:01:18.292Z] [LOG] 
+[2026-06-16T19:28:45.652Z] [LOG] Task 2 Attempt 1 (Total Actions: 1, LLM Calls: 4)
+[2026-06-16T19:28:45.653Z] [LOG] 
 ===== SENDING PLAN =====
-[2026-06-16T17:01:18.293Z] [LOG] {
-  "goalId": "b3e3fbdf-b401-47fb-8b60-efacdc916ff8",
+[2026-06-16T19:28:45.654Z] [LOG] {
+  "goalId": "0a65c70f-dfb0-4d95-b481-73d5d47e1195",
   "actions": [
     {
       "type": "read_ui",
       "params": {}
     }
   ],
-  "createdAt": "2026-06-16T17:01:18.292Z"
+  "createdAt": "2026-06-16T19:28:45.651Z"
 }
-[2026-06-16T17:01:18.474Z] [LOG] [2026-06-16T17:01:18.473Z] Received: {
+[2026-06-16T19:28:46.126Z] [LOG] [2026-06-16T19:28:46.123Z] Received: {
   "type": "execution_result",
   "observations": [
     {
@@ -10169,9 +1303,57 @@ Forms:
         "url": "https://www.youtube.com/",
         "buttons": [
           {
+            "id": 2,
+            "text": "Guide",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Guide",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
             "id": 4,
             "text": "Skip navigation",
             "role": "button",
+            "type": "submit",
+            "ariaLabel": "Skip navigation",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 7,
+            "text": "Search",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Search",
+            "title": "Search",
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 9,
+            "text": "Search with your voice",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Search with your voice",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 11,
+            "text": "Settings",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Settings",
+            "title": null,
+            "name": null,
             "visible": true,
             "enabled": true
           }
@@ -10182,16 +1364,43 @@ Forms:
             "text": "Search",
             "value": "",
             "role": "input",
+            "type": "text",
             "placeholder": "Search",
+            "ariaLabel": null,
+            "name": "search_query",
+            "title": null,
             "visible": true,
             "enabled": true
           }
         ],
         "links": [
           {
+            "id": 3,
+            "text": "YouTube Home",
+            "role": "link",
+            "href": "/",
+            "ariaLabel": null,
+            "title": "YouTube Home",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 10,
+            "text": "link",
+            "role": "link",
+            "href": null,
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
             "id": 12,
             "text": "Sign in",
             "role": "link",
+            "href": "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3Dhttps%253A%252F%252Fwww.youtube.com%252F&hl=en&ec=65620",
+            "ariaLabel": "Sign in",
+            "title": null,
             "visible": true,
             "enabled": true
           },
@@ -10199,6 +1408,9 @@ Forms:
             "id": 15,
             "text": "Home",
             "role": "link",
+            "href": "/",
+            "ariaLabel": "Home",
+            "title": "Home",
             "visible": true,
             "enabled": true
           },
@@ -10206,6 +1418,9 @@ Forms:
             "id": 17,
             "text": "Shorts",
             "role": "link",
+            "href": "/shorts/",
+            "ariaLabel": "Shorts",
+            "title": "Shorts",
             "visible": true,
             "enabled": true
           },
@@ -10213,6 +1428,9 @@ Forms:
             "id": 19,
             "text": "Subscriptions",
             "role": "link",
+            "href": "/feed/subscriptions",
+            "ariaLabel": "Subscriptions",
+            "title": "Subscriptions",
             "visible": true,
             "enabled": true
           },
@@ -10220,6 +1438,9 @@ Forms:
             "id": 21,
             "text": "You",
             "role": "link",
+            "href": "/feed/you",
+            "ariaLabel": "You",
+            "title": "You",
             "visible": true,
             "enabled": true
           }
@@ -10267,9 +1488,57 @@ Forms:
       "url": "https://www.youtube.com/",
       "buttons": [
         {
+          "id": 2,
+          "text": "Guide",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Guide",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
           "id": 4,
           "text": "Skip navigation",
           "role": "button",
+          "type": "submit",
+          "ariaLabel": "Skip navigation",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 7,
+          "text": "Search",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Search",
+          "title": "Search",
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 9,
+          "text": "Search with your voice",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Search with your voice",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 11,
+          "text": "Settings",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Settings",
+          "title": null,
+          "name": null,
           "visible": true,
           "enabled": true
         }
@@ -10280,16 +1549,43 @@ Forms:
           "text": "Search",
           "value": "",
           "role": "input",
+          "type": "text",
           "placeholder": "Search",
+          "ariaLabel": null,
+          "name": "search_query",
+          "title": null,
           "visible": true,
           "enabled": true
         }
       ],
       "links": [
         {
+          "id": 3,
+          "text": "YouTube Home",
+          "role": "link",
+          "href": "/",
+          "ariaLabel": null,
+          "title": "YouTube Home",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 10,
+          "text": "link",
+          "role": "link",
+          "href": null,
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
           "id": 12,
           "text": "Sign in",
           "role": "link",
+          "href": "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3Dhttps%253A%252F%252Fwww.youtube.com%252F&hl=en&ec=65620",
+          "ariaLabel": "Sign in",
+          "title": null,
           "visible": true,
           "enabled": true
         },
@@ -10297,6 +1593,9 @@ Forms:
           "id": 15,
           "text": "Home",
           "role": "link",
+          "href": "/",
+          "ariaLabel": "Home",
+          "title": "Home",
           "visible": true,
           "enabled": true
         },
@@ -10304,6 +1603,9 @@ Forms:
           "id": 17,
           "text": "Shorts",
           "role": "link",
+          "href": "/shorts/",
+          "ariaLabel": "Shorts",
+          "title": "Shorts",
           "visible": true,
           "enabled": true
         },
@@ -10311,6 +1613,9 @@ Forms:
           "id": 19,
           "text": "Subscriptions",
           "role": "link",
+          "href": "/feed/subscriptions",
+          "ariaLabel": "Subscriptions",
+          "title": "Subscriptions",
           "visible": true,
           "enabled": true
         },
@@ -10318,6 +1623,9 @@ Forms:
           "id": 21,
           "text": "You",
           "role": "link",
+          "href": "/feed/you",
+          "ariaLabel": "You",
+          "title": "You",
           "visible": true,
           "enabled": true
         }
@@ -10327,12 +1635,12 @@ Forms:
         "type": "read_ui",
         "params": {}
       },
-      "timestamp": "2026-06-16T17:01:18.471Z",
+      "timestamp": "2026-06-16T19:28:46.119Z",
       "events": []
     }
   ]
 }
-[2026-06-16T17:01:18.475Z] [LOG] EXECUTE RESULT: {
+[2026-06-16T19:28:46.129Z] [LOG] EXECUTE RESULT: {
   "type": "execution_result",
   "observations": [
     {
@@ -10345,9 +1653,57 @@ Forms:
         "url": "https://www.youtube.com/",
         "buttons": [
           {
+            "id": 2,
+            "text": "Guide",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Guide",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
             "id": 4,
             "text": "Skip navigation",
             "role": "button",
+            "type": "submit",
+            "ariaLabel": "Skip navigation",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 7,
+            "text": "Search",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Search",
+            "title": "Search",
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 9,
+            "text": "Search with your voice",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Search with your voice",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 11,
+            "text": "Settings",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Settings",
+            "title": null,
+            "name": null,
             "visible": true,
             "enabled": true
           }
@@ -10358,16 +1714,43 @@ Forms:
             "text": "Search",
             "value": "",
             "role": "input",
+            "type": "text",
             "placeholder": "Search",
+            "ariaLabel": null,
+            "name": "search_query",
+            "title": null,
             "visible": true,
             "enabled": true
           }
         ],
         "links": [
           {
+            "id": 3,
+            "text": "YouTube Home",
+            "role": "link",
+            "href": "/",
+            "ariaLabel": null,
+            "title": "YouTube Home",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 10,
+            "text": "link",
+            "role": "link",
+            "href": null,
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
             "id": 12,
             "text": "Sign in",
             "role": "link",
+            "href": "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3Dhttps%253A%252F%252Fwww.youtube.com%252F&hl=en&ec=65620",
+            "ariaLabel": "Sign in",
+            "title": null,
             "visible": true,
             "enabled": true
           },
@@ -10375,6 +1758,9 @@ Forms:
             "id": 15,
             "text": "Home",
             "role": "link",
+            "href": "/",
+            "ariaLabel": "Home",
+            "title": "Home",
             "visible": true,
             "enabled": true
           },
@@ -10382,6 +1768,9 @@ Forms:
             "id": 17,
             "text": "Shorts",
             "role": "link",
+            "href": "/shorts/",
+            "ariaLabel": "Shorts",
+            "title": "Shorts",
             "visible": true,
             "enabled": true
           },
@@ -10389,6 +1778,9 @@ Forms:
             "id": 19,
             "text": "Subscriptions",
             "role": "link",
+            "href": "/feed/subscriptions",
+            "ariaLabel": "Subscriptions",
+            "title": "Subscriptions",
             "visible": true,
             "enabled": true
           },
@@ -10396,6 +1788,9 @@ Forms:
             "id": 21,
             "text": "You",
             "role": "link",
+            "href": "/feed/you",
+            "ariaLabel": "You",
+            "title": "You",
             "visible": true,
             "enabled": true
           }
@@ -10443,9 +1838,57 @@ Forms:
       "url": "https://www.youtube.com/",
       "buttons": [
         {
+          "id": 2,
+          "text": "Guide",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Guide",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
           "id": 4,
           "text": "Skip navigation",
           "role": "button",
+          "type": "submit",
+          "ariaLabel": "Skip navigation",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 7,
+          "text": "Search",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Search",
+          "title": "Search",
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 9,
+          "text": "Search with your voice",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Search with your voice",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 11,
+          "text": "Settings",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Settings",
+          "title": null,
+          "name": null,
           "visible": true,
           "enabled": true
         }
@@ -10456,16 +1899,43 @@ Forms:
           "text": "Search",
           "value": "",
           "role": "input",
+          "type": "text",
           "placeholder": "Search",
+          "ariaLabel": null,
+          "name": "search_query",
+          "title": null,
           "visible": true,
           "enabled": true
         }
       ],
       "links": [
         {
+          "id": 3,
+          "text": "YouTube Home",
+          "role": "link",
+          "href": "/",
+          "ariaLabel": null,
+          "title": "YouTube Home",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 10,
+          "text": "link",
+          "role": "link",
+          "href": null,
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
           "id": 12,
           "text": "Sign in",
           "role": "link",
+          "href": "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3Dhttps%253A%252F%252Fwww.youtube.com%252F&hl=en&ec=65620",
+          "ariaLabel": "Sign in",
+          "title": null,
           "visible": true,
           "enabled": true
         },
@@ -10473,6 +1943,9 @@ Forms:
           "id": 15,
           "text": "Home",
           "role": "link",
+          "href": "/",
+          "ariaLabel": "Home",
+          "title": "Home",
           "visible": true,
           "enabled": true
         },
@@ -10480,6 +1953,9 @@ Forms:
           "id": 17,
           "text": "Shorts",
           "role": "link",
+          "href": "/shorts/",
+          "ariaLabel": "Shorts",
+          "title": "Shorts",
           "visible": true,
           "enabled": true
         },
@@ -10487,6 +1963,9 @@ Forms:
           "id": 19,
           "text": "Subscriptions",
           "role": "link",
+          "href": "/feed/subscriptions",
+          "ariaLabel": "Subscriptions",
+          "title": "Subscriptions",
           "visible": true,
           "enabled": true
         },
@@ -10494,6 +1973,9 @@ Forms:
           "id": 21,
           "text": "You",
           "role": "link",
+          "href": "/feed/you",
+          "ariaLabel": "You",
+          "title": "You",
           "visible": true,
           "enabled": true
         }
@@ -10503,26 +1985,26 @@ Forms:
         "type": "read_ui",
         "params": {}
       },
-      "timestamp": "2026-06-16T17:01:18.471Z",
+      "timestamp": "2026-06-16T19:28:46.119Z",
       "events": []
     }
   ]
 }
-[2026-06-16T17:01:18.476Z] [LOG] WORLD: {
+[2026-06-16T19:28:46.132Z] [LOG] WORLD: {
   "history": 2,
   "url": "https://www.youtube.com/",
   "title": "YouTube",
   "lastOutcome": "page unchanged",
-  "lastStateHash": "5342899f5f3225b42d94d1afe5b776401990d4996b9241907dc4aa09a1c1f6d9"
+  "lastStateHash": "761c15a7a26b4f13c12e7e9c1bd4fee378a9d6688ccfd31d1d3b62ca0696d62b"
 }
-[2026-06-16T17:01:18.476Z] [LOG] OBSERVATION SUMMARY: {
+[2026-06-16T19:28:46.133Z] [LOG] OBSERVATION SUMMARY: {
   "success": true,
   "expected": "page_read",
   "actual": "YouTube",
   "url": "https://www.youtube.com/",
   "title": "YouTube"
 }
-[2026-06-16T17:01:18.477Z] [LOG] OBSERVATION: {
+[2026-06-16T19:28:46.137Z] [LOG] OBSERVATION: {
   "success": true,
   "expected": "page_read",
   "actual": "YouTube",
@@ -10532,9 +2014,57 @@ Forms:
     "url": "https://www.youtube.com/",
     "buttons": [
       {
+        "id": 2,
+        "text": "Guide",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Guide",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
         "id": 4,
         "text": "Skip navigation",
         "role": "button",
+        "type": "submit",
+        "ariaLabel": "Skip navigation",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 7,
+        "text": "Search",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Search",
+        "title": "Search",
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 9,
+        "text": "Search with your voice",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Search with your voice",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 11,
+        "text": "Settings",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Settings",
+        "title": null,
+        "name": null,
         "visible": true,
         "enabled": true
       }
@@ -10545,16 +2075,43 @@ Forms:
         "text": "Search",
         "value": "",
         "role": "input",
+        "type": "text",
         "placeholder": "Search",
+        "ariaLabel": null,
+        "name": "search_query",
+        "title": null,
         "visible": true,
         "enabled": true
       }
     ],
     "links": [
       {
+        "id": 3,
+        "text": "YouTube Home",
+        "role": "link",
+        "href": "/",
+        "ariaLabel": null,
+        "title": "YouTube Home",
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 10,
+        "text": "link",
+        "role": "link",
+        "href": null,
+        "ariaLabel": null,
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
         "id": 12,
         "text": "Sign in",
         "role": "link",
+        "href": "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3Dhttps%253A%252F%252Fwww.youtube.com%252F&hl=en&ec=65620",
+        "ariaLabel": "Sign in",
+        "title": null,
         "visible": true,
         "enabled": true
       },
@@ -10562,6 +2119,9 @@ Forms:
         "id": 15,
         "text": "Home",
         "role": "link",
+        "href": "/",
+        "ariaLabel": "Home",
+        "title": "Home",
         "visible": true,
         "enabled": true
       },
@@ -10569,6 +2129,9 @@ Forms:
         "id": 17,
         "text": "Shorts",
         "role": "link",
+        "href": "/shorts/",
+        "ariaLabel": "Shorts",
+        "title": "Shorts",
         "visible": true,
         "enabled": true
       },
@@ -10576,6 +2139,9 @@ Forms:
         "id": 19,
         "text": "Subscriptions",
         "role": "link",
+        "href": "/feed/subscriptions",
+        "ariaLabel": "Subscriptions",
+        "title": "Subscriptions",
         "visible": true,
         "enabled": true
       },
@@ -10583,6 +2149,9 @@ Forms:
         "id": 21,
         "text": "You",
         "role": "link",
+        "href": "/feed/you",
+        "ariaLabel": "You",
+        "title": "You",
         "visible": true,
         "enabled": true
       }
@@ -10630,9 +2199,57 @@ Forms:
   "url": "https://www.youtube.com/",
   "buttons": [
     {
+      "id": 2,
+      "text": "Guide",
+      "role": "button",
+      "type": "submit",
+      "ariaLabel": "Guide",
+      "title": null,
+      "name": null,
+      "visible": true,
+      "enabled": true
+    },
+    {
       "id": 4,
       "text": "Skip navigation",
       "role": "button",
+      "type": "submit",
+      "ariaLabel": "Skip navigation",
+      "title": null,
+      "name": null,
+      "visible": true,
+      "enabled": true
+    },
+    {
+      "id": 7,
+      "text": "Search",
+      "role": "button",
+      "type": "submit",
+      "ariaLabel": "Search",
+      "title": "Search",
+      "name": null,
+      "visible": true,
+      "enabled": true
+    },
+    {
+      "id": 9,
+      "text": "Search with your voice",
+      "role": "button",
+      "type": "submit",
+      "ariaLabel": "Search with your voice",
+      "title": null,
+      "name": null,
+      "visible": true,
+      "enabled": true
+    },
+    {
+      "id": 11,
+      "text": "Settings",
+      "role": "button",
+      "type": "submit",
+      "ariaLabel": "Settings",
+      "title": null,
+      "name": null,
       "visible": true,
       "enabled": true
     }
@@ -10643,16 +2260,43 @@ Forms:
       "text": "Search",
       "value": "",
       "role": "input",
+      "type": "text",
       "placeholder": "Search",
+      "ariaLabel": null,
+      "name": "search_query",
+      "title": null,
       "visible": true,
       "enabled": true
     }
   ],
   "links": [
     {
+      "id": 3,
+      "text": "YouTube Home",
+      "role": "link",
+      "href": "/",
+      "ariaLabel": null,
+      "title": "YouTube Home",
+      "visible": true,
+      "enabled": true
+    },
+    {
+      "id": 10,
+      "text": "link",
+      "role": "link",
+      "href": null,
+      "ariaLabel": null,
+      "title": null,
+      "visible": true,
+      "enabled": true
+    },
+    {
       "id": 12,
       "text": "Sign in",
       "role": "link",
+      "href": "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3Dhttps%253A%252F%252Fwww.youtube.com%252F&hl=en&ec=65620",
+      "ariaLabel": "Sign in",
+      "title": null,
       "visible": true,
       "enabled": true
     },
@@ -10660,6 +2304,9 @@ Forms:
       "id": 15,
       "text": "Home",
       "role": "link",
+      "href": "/",
+      "ariaLabel": "Home",
+      "title": "Home",
       "visible": true,
       "enabled": true
     },
@@ -10667,6 +2314,9 @@ Forms:
       "id": 17,
       "text": "Shorts",
       "role": "link",
+      "href": "/shorts/",
+      "ariaLabel": "Shorts",
+      "title": "Shorts",
       "visible": true,
       "enabled": true
     },
@@ -10674,6 +2324,9 @@ Forms:
       "id": 19,
       "text": "Subscriptions",
       "role": "link",
+      "href": "/feed/subscriptions",
+      "ariaLabel": "Subscriptions",
+      "title": "Subscriptions",
       "visible": true,
       "enabled": true
     },
@@ -10681,6 +2334,9 @@ Forms:
       "id": 21,
       "text": "You",
       "role": "link",
+      "href": "/feed/you",
+      "ariaLabel": "You",
+      "title": "You",
       "visible": true,
       "enabled": true
     }
@@ -10690,10 +2346,10 @@ Forms:
     "type": "read_ui",
     "params": {}
   },
-  "timestamp": "2026-06-16T17:01:18.471Z",
+  "timestamp": "2026-06-16T19:28:46.119Z",
   "events": []
 }
-[2026-06-16T17:01:18.478Z] [LOG] VERIFYING TASK WITH CRITERIA: [
+[2026-06-16T19:28:46.142Z] [LOG] VERIFYING TASK WITH CRITERIA: [
   {
     "success": true,
     "expected": "page_read",
@@ -10704,9 +2360,57 @@ Forms:
       "url": "https://www.youtube.com/",
       "buttons": [
         {
+          "id": 2,
+          "text": "Guide",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Guide",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
           "id": 4,
           "text": "Skip navigation",
           "role": "button",
+          "type": "submit",
+          "ariaLabel": "Skip navigation",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 7,
+          "text": "Search",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Search",
+          "title": "Search",
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 9,
+          "text": "Search with your voice",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Search with your voice",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 11,
+          "text": "Settings",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Settings",
+          "title": null,
+          "name": null,
           "visible": true,
           "enabled": true
         }
@@ -10717,16 +2421,43 @@ Forms:
           "text": "Search",
           "value": "",
           "role": "input",
+          "type": "text",
           "placeholder": "Search",
+          "ariaLabel": null,
+          "name": "search_query",
+          "title": null,
           "visible": true,
           "enabled": true
         }
       ],
       "links": [
         {
+          "id": 3,
+          "text": "YouTube Home",
+          "role": "link",
+          "href": "/",
+          "ariaLabel": null,
+          "title": "YouTube Home",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 10,
+          "text": "link",
+          "role": "link",
+          "href": null,
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
           "id": 12,
           "text": "Sign in",
           "role": "link",
+          "href": "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3Dhttps%253A%252F%252Fwww.youtube.com%252F&hl=en&ec=65620",
+          "ariaLabel": "Sign in",
+          "title": null,
           "visible": true,
           "enabled": true
         },
@@ -10734,6 +2465,9 @@ Forms:
           "id": 15,
           "text": "Home",
           "role": "link",
+          "href": "/",
+          "ariaLabel": "Home",
+          "title": "Home",
           "visible": true,
           "enabled": true
         },
@@ -10741,6 +2475,9 @@ Forms:
           "id": 17,
           "text": "Shorts",
           "role": "link",
+          "href": "/shorts/",
+          "ariaLabel": "Shorts",
+          "title": "Shorts",
           "visible": true,
           "enabled": true
         },
@@ -10748,6 +2485,9 @@ Forms:
           "id": 19,
           "text": "Subscriptions",
           "role": "link",
+          "href": "/feed/subscriptions",
+          "ariaLabel": "Subscriptions",
+          "title": "Subscriptions",
           "visible": true,
           "enabled": true
         },
@@ -10755,6 +2495,9 @@ Forms:
           "id": 21,
           "text": "You",
           "role": "link",
+          "href": "/feed/you",
+          "ariaLabel": "You",
+          "title": "You",
           "visible": true,
           "enabled": true
         }
@@ -10802,9 +2545,57 @@ Forms:
     "url": "https://www.youtube.com/",
     "buttons": [
       {
+        "id": 2,
+        "text": "Guide",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Guide",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
         "id": 4,
         "text": "Skip navigation",
         "role": "button",
+        "type": "submit",
+        "ariaLabel": "Skip navigation",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 7,
+        "text": "Search",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Search",
+        "title": "Search",
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 9,
+        "text": "Search with your voice",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Search with your voice",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 11,
+        "text": "Settings",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Settings",
+        "title": null,
+        "name": null,
         "visible": true,
         "enabled": true
       }
@@ -10815,16 +2606,43 @@ Forms:
         "text": "Search",
         "value": "",
         "role": "input",
+        "type": "text",
         "placeholder": "Search",
+        "ariaLabel": null,
+        "name": "search_query",
+        "title": null,
         "visible": true,
         "enabled": true
       }
     ],
     "links": [
       {
+        "id": 3,
+        "text": "YouTube Home",
+        "role": "link",
+        "href": "/",
+        "ariaLabel": null,
+        "title": "YouTube Home",
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 10,
+        "text": "link",
+        "role": "link",
+        "href": null,
+        "ariaLabel": null,
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
         "id": 12,
         "text": "Sign in",
         "role": "link",
+        "href": "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3Dhttps%253A%252F%252Fwww.youtube.com%252F&hl=en&ec=65620",
+        "ariaLabel": "Sign in",
+        "title": null,
         "visible": true,
         "enabled": true
       },
@@ -10832,6 +2650,9 @@ Forms:
         "id": 15,
         "text": "Home",
         "role": "link",
+        "href": "/",
+        "ariaLabel": "Home",
+        "title": "Home",
         "visible": true,
         "enabled": true
       },
@@ -10839,6 +2660,9 @@ Forms:
         "id": 17,
         "text": "Shorts",
         "role": "link",
+        "href": "/shorts/",
+        "ariaLabel": "Shorts",
+        "title": "Shorts",
         "visible": true,
         "enabled": true
       },
@@ -10846,6 +2670,9 @@ Forms:
         "id": 19,
         "text": "Subscriptions",
         "role": "link",
+        "href": "/feed/subscriptions",
+        "ariaLabel": "Subscriptions",
+        "title": "Subscriptions",
         "visible": true,
         "enabled": true
       },
@@ -10853,6 +2680,9 @@ Forms:
         "id": 21,
         "text": "You",
         "role": "link",
+        "href": "/feed/you",
+        "ariaLabel": "You",
+        "title": "You",
         "visible": true,
         "enabled": true
       }
@@ -10862,64 +2692,115 @@ Forms:
       "type": "read_ui",
       "params": {}
     },
-    "timestamp": "2026-06-16T17:01:18.471Z",
+    "timestamp": "2026-06-16T19:28:46.119Z",
     "events": []
   }
 ]
-[2026-06-16T17:01:18.479Z] [LOG] task: {
-  "id": "222f8fe2-9ba6-4ecc-8186-b082b46e19bb",
+[2026-06-16T19:28:46.144Z] [LOG] task: {
+  "id": "c2411700-bec7-41bf-9891-01bd14263565",
   "intent": null,
-  "objective": "Enter search query 'lofi' on YouTube",
+  "objective": "Search for lofi videos on YouTube",
   "target": null,
   "context": {},
   "dependsOn": [],
   "successCriteria": [
-    "Search input contains lofi"
+    "Search input contains lofi",
+    "Search results are visible",
+    "Results relate to lofi music or videos"
   ],
   "requires": [
     "youtube_open"
   ],
   "produces": [
-    "search_query_entered"
+    "lofi_search_results_visible"
   ],
   "plan": null,
   "result": null,
   "currentStep": 0,
   "status": "running",
-  "createdAt": "2026-06-16T17:01:07.559Z"
+  "createdAt": "2026-06-16T19:28:36.055Z"
 }
-[2026-06-16T17:01:18.479Z] [LOG] STATE VERIFIED: {
-  "achieved": true,
-  "reason": "Programmatic verification: Read/Extract operation 'read_ui' succeeded."
+[2026-06-16T19:28:46.145Z] [LOG] STATE VERIFIED: null
+[2026-06-16T19:28:46.146Z] [LOG] EVENT VERIFIED: null
+[2026-06-16T19:28:46.147Z] [LOG] RULE VERIFIED: null
+[2026-06-16T19:28:46.148Z] [LOG] [LLM] Trying askGroq
+[2026-06-16T19:28:46.149Z] [LOG] SYSTEM CHARS: 1787
+[2026-06-16T19:28:46.150Z] [LOG] USER CHARS: 4769
+[2026-06-16T19:28:46.152Z] [LOG] TOTAL CHARS: 6556
+[2026-06-16T19:28:46.240Z] [LOG] [LLM] Failed askGroq Groq failed: 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kv6gqdgyfm5ary83wd5n1pb8` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99899, Requested 1926. Please try again in 26m16.8s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+
+[2026-06-16T19:28:46.241Z] [LOG] [LLM] Trying askOpenRouter
+[2026-06-16T19:28:46.243Z] [LOG] SYSTEM CHARS: 1787
+[2026-06-16T19:28:46.244Z] [LOG] USER CHARS: 4769
+[2026-06-16T19:28:46.246Z] [LOG] TOTAL CHARS: 6556
+[2026-06-16T19:28:46.247Z] [LOG] [OpenRouter] Request started
+[2026-06-16T19:28:46.745Z] [LOG] [OpenRouter] Status: 200
+[2026-06-16T19:28:59.589Z] [LOG] [LLM] Success askOpenRouter
+[2026-06-16T19:28:59.590Z] [LOG] LLM TASK VERIFICATION: {
+  "achieved": false,
+  "confidence": 0,
+  "reason": "No evidence of search input containing 'lofi', no visible search results, and no results related to lofi music or videos.",
+  "criteriaResults": [
+    {
+      "criterion": "Search input contains lofi",
+      "met": false
+    },
+    {
+      "criterion": "Search results are visible",
+      "met": false
+    },
+    {
+      "criterion": "Results relate to lofi music or videos",
+      "met": false
+    }
+  ]
 }
-[2026-06-16T17:01:18.480Z] [LOG] EVENT VERIFIED: null
-[2026-06-16T17:01:18.480Z] [LOG] Programmatic state/event check confirmed achievement.
-[2026-06-16T17:01:18.777Z] [LOG] MEMORY CONTEXT:
- 
-[2026-06-16T17:01:18.778Z] [LOG] CURRENT TASK: {
-  "id": "924813fc-4e5e-4721-9320-779dd5da428f",
+[2026-06-16T19:28:59.591Z] [LOG] GOAL VERIFICATION (DISABLED): {
+  "achieved": false
+}
+[2026-06-16T19:28:59.592Z] [LOG] Task verification failed — replanning for current task
+[2026-06-16T19:28:59.593Z] [LOG] [LLM] Trying askGroq
+[2026-06-16T19:28:59.594Z] [LOG] SYSTEM CHARS: 298
+[2026-06-16T19:28:59.594Z] [LOG] USER CHARS: 294
+[2026-06-16T19:28:59.597Z] [LOG] TOTAL CHARS: 592
+[2026-06-16T19:28:59.795Z] [LOG] [LLM] Failed askGroq Groq failed: 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kv6gqdgyfm5ary83wd5n1pb8` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99883, Requested 359. Please try again in 3m29.088s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+
+[2026-06-16T19:28:59.796Z] [LOG] [LLM] Trying askOpenRouter
+[2026-06-16T19:28:59.797Z] [LOG] SYSTEM CHARS: 298
+[2026-06-16T19:28:59.798Z] [LOG] USER CHARS: 294
+[2026-06-16T19:28:59.799Z] [LOG] TOTAL CHARS: 592
+[2026-06-16T19:28:59.799Z] [LOG] [OpenRouter] Request started
+[2026-06-16T19:29:00.299Z] [LOG] [OpenRouter] Status: 200
+[2026-06-16T19:29:00.631Z] [LOG] [LLM] Success askOpenRouter
+[2026-06-16T19:29:00.633Z] [LOG] IMPOSSIBLE CHECK: {
+  "impossible": false
+}
+[2026-06-16T19:29:00.634Z] [LOG] Replanning...
+[2026-06-16T19:29:00.635Z] [LOG] REPLAN TASK: {
+  "id": "c2411700-bec7-41bf-9891-01bd14263565",
   "intent": null,
-  "objective": "Submit search query 'lofi' on YouTube",
+  "objective": "Search for lofi videos on YouTube",
   "target": null,
   "context": {},
   "dependsOn": [],
   "successCriteria": [
-    "URL contains youtube.com/results",
-    "Page title contains lofi"
+    "Search input contains lofi",
+    "Search results are visible",
+    "Results relate to lofi music or videos"
   ],
   "requires": [
-    "search_query_entered"
+    "youtube_open"
   ],
   "produces": [
-    "search_results_visible"
+    "lofi_search_results_visible"
   ],
   "plan": null,
   "result": null,
   "currentStep": 0,
-  "status": "pending",
-  "createdAt": "2026-06-16T17:01:07.559Z"
+  "status": "running",
+  "createdAt": "2026-06-16T19:28:36.055Z"
 }
-[2026-06-16T17:01:18.779Z] [LOG] BROWSER CONTEXT:
+[2026-06-16T19:29:04.673Z] [LOG] REPLAN BROWSER CONTEXT:
  URL:
 https://www.youtube.com/
 
@@ -10927,127 +2808,3788 @@ Title:
 YouTube
 
 Inputs:
-[6] Search
+[6] Search (type: "text", placeholder: "Search", name: "search_query")
+
+Buttons:
+[7] Search (type: "submit", ariaLabel: "Search", title: "Search")
+[9] Search with your voice (type: "submit", ariaLabel: "Search with your voice")
+[2] Guide (type: "submit", ariaLabel: "Guide")
+[4] Skip navigation (type: "submit", ariaLabel: "Skip navigation")
+[11] Settings (type: "submit", ariaLabel: "Settings")
+
+Links:
+[3] YouTube Home (href: "/", title: "YouTube Home")
+[10] link
+[12] Sign in (href: "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3Dhttps%253A%252F%252Fwww.youtube.com%252F&hl=en&ec=65620", ariaLabel: "Sign in")
+[15] Home (href: "/", ariaLabel: "Home", title: "Home")
+[17] Shorts (href: "/shorts/", ariaLabel: "Shorts", title: "Shorts")
+[19] Subscriptions (href: "/feed/subscriptions", ariaLabel: "Subscriptions", title: "Subscriptions")
+[21] You (href: "/feed/you", ariaLabel: "You", title: "You")
 
 Forms:
 [5] role: form, action: https://www.youtube.com/results, method: get
 
 
-[2026-06-16T17:01:18.779Z] [LOG] MEMORY CHARS: 0
-[2026-06-16T17:01:18.779Z] [LOG] BROWSER CHARS: 144
-[2026-06-16T17:01:18.780Z] [LOG] SYSTEM PROMPT CHARS: 4449
-[2026-06-16T17:01:18.780Z] [LOG] SYSTEM CHARS: 4449
-[2026-06-16T17:01:18.780Z] [LOG] GOAL CHARS: 23
-[2026-06-16T17:01:18.781Z] [LOG] TOTAL CHARS: 4472
-[2026-06-16T17:01:18.781Z] [LOG] TASK: {
-  "id": "924813fc-4e5e-4721-9320-779dd5da428f",
+[2026-06-16T19:29:04.674Z] [LOG] SYSTEM CHARS: 5724
+[2026-06-16T19:29:04.675Z] [LOG] GOAL CHARS: 26
+[2026-06-16T19:29:04.675Z] [LOG] TOTAL CHARS: 5750
+[2026-06-16T19:29:04.676Z] [LOG] [LLM] Trying askGroq
+[2026-06-16T19:29:04.677Z] [LOG] SYSTEM CHARS: 5724
+[2026-06-16T19:29:04.677Z] [LOG] USER CHARS: 2101
+[2026-06-16T19:29:04.679Z] [LOG] TOTAL CHARS: 7825
+[2026-06-16T19:29:04.857Z] [LOG] [LLM] Failed askGroq Groq failed: 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kv6gqdgyfm5ary83wd5n1pb8` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99878, Requested 2288. Please try again in 31m11.424s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+
+[2026-06-16T19:29:04.859Z] [LOG] [LLM] Trying askOpenRouter
+[2026-06-16T19:29:04.860Z] [LOG] SYSTEM CHARS: 5724
+[2026-06-16T19:29:04.861Z] [LOG] USER CHARS: 2101
+[2026-06-16T19:29:04.862Z] [LOG] TOTAL CHARS: 7825
+[2026-06-16T19:29:04.862Z] [LOG] [OpenRouter] Request started
+[2026-06-16T19:29:05.883Z] [LOG] [OpenRouter] Status: 200
+[2026-06-16T19:29:07.811Z] [LOG] [LLM] Success askOpenRouter
+[2026-06-16T19:29:07.812Z] [LOG] RAW REPLAN RESPONSE: {
+  "actions": [
+    {
+      "type": "type",
+      "params": {
+        "element": 6,
+        "text": "lofi"
+      }
+    }
+  ]
+}
+[2026-06-16T19:29:07.813Z] [LOG] PARSED: {
+  "actions": [
+    {
+      "type": "type",
+      "params": {
+        "element": 6,
+        "text": "lofi"
+      }
+    }
+  ]
+}
+[2026-06-16T19:29:07.814Z] [LOG] VALIDATED ACTIONS: [
+  {
+    "type": "type",
+    "params": {
+      "element": 6,
+      "text": "lofi"
+    }
+  }
+]
+[2026-06-16T19:29:07.814Z] [LOG] VALIDATED ACTIONS: [
+  {
+    "type": "type",
+    "params": {
+      "element": 6,
+      "text": "lofi"
+    }
+  }
+]
+[2026-06-16T19:29:07.815Z] [LOG] NEW PLAN: {
+  "goalId": "0a65c70f-dfb0-4d95-b481-73d5d47e1195",
+  "actions": [
+    {
+      "type": "type",
+      "params": {
+        "element": 6,
+        "text": "lofi"
+      }
+    }
+  ],
+  "createdAt": "2026-06-16T19:29:07.815Z"
+}
+[2026-06-16T19:29:07.816Z] [LOG] Task 2 Attempt 2 (Total Actions: 2, LLM Calls: 7)
+[2026-06-16T19:29:07.817Z] [LOG] 
+===== SENDING PLAN =====
+[2026-06-16T19:29:07.818Z] [LOG] {
+  "goalId": "0a65c70f-dfb0-4d95-b481-73d5d47e1195",
+  "actions": [
+    {
+      "type": "type",
+      "params": {
+        "element": 6,
+        "text": "lofi"
+      }
+    }
+  ],
+  "createdAt": "2026-06-16T19:29:07.815Z"
+}
+[2026-06-16T19:29:09.034Z] [LOG] [2026-06-16T19:29:09.031Z] Received: {
+  "type": "execution_result",
+  "observations": [
+    {
+      "success": true,
+      "expected": "text_typed",
+      "actual": "lofi",
+      "element": 6,
+      "pageState": {
+        "success": true,
+        "title": "YouTube",
+        "url": "https://www.youtube.com/",
+        "buttons": [
+          {
+            "id": 2,
+            "text": "Guide",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Guide",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 4,
+            "text": "Skip navigation",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Skip navigation",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 78,
+            "text": "Clear search query",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Clear search query",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 7,
+            "text": "Search",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Search",
+            "title": "Search",
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 79,
+            "text": "Report search predictions",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": null,
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 9,
+            "text": "Search with your voice",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Search with your voice",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 11,
+            "text": "Settings",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Settings",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          }
+        ],
+        "inputs": [
+          {
+            "id": 6,
+            "text": "Search",
+            "value": "lofi",
+            "role": "input",
+            "type": "text",
+            "placeholder": "Search",
+            "ariaLabel": null,
+            "name": "search_query",
+            "title": null,
+            "visible": true,
+            "enabled": true
+          }
+        ],
+        "links": [
+          {
+            "id": 3,
+            "text": "YouTube Home",
+            "role": "link",
+            "href": "/",
+            "ariaLabel": null,
+            "title": "YouTube Home",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 10,
+            "text": "link",
+            "role": "link",
+            "href": null,
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 12,
+            "text": "Sign in",
+            "role": "link",
+            "href": "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3Dhttps%253A%252F%252Fwww.youtube.com%252F&hl=en&ec=65620",
+            "ariaLabel": "Sign in",
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 15,
+            "text": "Home",
+            "role": "link",
+            "href": "/",
+            "ariaLabel": "Home",
+            "title": "Home",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 17,
+            "text": "Shorts",
+            "role": "link",
+            "href": "/shorts/",
+            "ariaLabel": "Shorts",
+            "title": "Shorts",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 19,
+            "text": "Subscriptions",
+            "role": "link",
+            "href": "/feed/subscriptions",
+            "ariaLabel": "Subscriptions",
+            "title": "Subscriptions",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 21,
+            "text": "You",
+            "role": "link",
+            "href": "/feed/you",
+            "ariaLabel": "You",
+            "title": "You",
+            "visible": true,
+            "enabled": true
+          }
+        ],
+        "forms": [
+          {
+            "id": 5,
+            "role": "form",
+            "action": "https://www.youtube.com/results",
+            "method": "get",
+            "visible": true
+          }
+        ],
+        "text": "IN Skip navigation lofi songs lofi songs hindi lofi music lofi lofi hip hop lofi hip hop no lyrics lofi sad songs lofi hip hop music lofi songs bhojpuri lofi love song lofi girl lofi songs mashup lofi mix song lofi song slowed reverb Report search predictions Sign in Home Shorts Subscriptions You Try searching to get started Start watching videos to help us build a feed of videos you'll love.",
+        "tabs": [
+          {
+            "index": 0,
+            "title": "YouTube",
+            "url": "https://www.youtube.com/",
+            "active": true
+          }
+        ],
+        "activeTab": {
+          "index": 0,
+          "title": "YouTube",
+          "url": "https://www.youtube.com/",
+          "active": true
+        },
+        "observationQuality": {
+          "score": 1,
+          "reasons": []
+        }
+      },
+      "before": {
+        "url": "https://www.youtube.com/",
+        "title": "YouTube",
+        "tabCount": 1
+      },
+      "after": {
+        "url": "https://www.youtube.com/",
+        "title": "YouTube",
+        "tabCount": 1
+      },
+      "action": {
+        "type": "type",
+        "params": {
+          "element": 6,
+          "text": "lofi"
+        }
+      },
+      "timestamp": "2026-06-16T19:29:09.028Z",
+      "events": [
+        "form_detected",
+        "links_detected",
+        "buttons_detected",
+        "content_loaded"
+      ]
+    }
+  ]
+}
+[2026-06-16T19:29:09.037Z] [LOG] EXECUTE RESULT: {
+  "type": "execution_result",
+  "observations": [
+    {
+      "success": true,
+      "expected": "text_typed",
+      "actual": "lofi",
+      "element": 6,
+      "pageState": {
+        "success": true,
+        "title": "YouTube",
+        "url": "https://www.youtube.com/",
+        "buttons": [
+          {
+            "id": 2,
+            "text": "Guide",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Guide",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 4,
+            "text": "Skip navigation",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Skip navigation",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 78,
+            "text": "Clear search query",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Clear search query",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 7,
+            "text": "Search",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Search",
+            "title": "Search",
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 79,
+            "text": "Report search predictions",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": null,
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 9,
+            "text": "Search with your voice",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Search with your voice",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 11,
+            "text": "Settings",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Settings",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          }
+        ],
+        "inputs": [
+          {
+            "id": 6,
+            "text": "Search",
+            "value": "lofi",
+            "role": "input",
+            "type": "text",
+            "placeholder": "Search",
+            "ariaLabel": null,
+            "name": "search_query",
+            "title": null,
+            "visible": true,
+            "enabled": true
+          }
+        ],
+        "links": [
+          {
+            "id": 3,
+            "text": "YouTube Home",
+            "role": "link",
+            "href": "/",
+            "ariaLabel": null,
+            "title": "YouTube Home",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 10,
+            "text": "link",
+            "role": "link",
+            "href": null,
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 12,
+            "text": "Sign in",
+            "role": "link",
+            "href": "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3Dhttps%253A%252F%252Fwww.youtube.com%252F&hl=en&ec=65620",
+            "ariaLabel": "Sign in",
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 15,
+            "text": "Home",
+            "role": "link",
+            "href": "/",
+            "ariaLabel": "Home",
+            "title": "Home",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 17,
+            "text": "Shorts",
+            "role": "link",
+            "href": "/shorts/",
+            "ariaLabel": "Shorts",
+            "title": "Shorts",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 19,
+            "text": "Subscriptions",
+            "role": "link",
+            "href": "/feed/subscriptions",
+            "ariaLabel": "Subscriptions",
+            "title": "Subscriptions",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 21,
+            "text": "You",
+            "role": "link",
+            "href": "/feed/you",
+            "ariaLabel": "You",
+            "title": "You",
+            "visible": true,
+            "enabled": true
+          }
+        ],
+        "forms": [
+          {
+            "id": 5,
+            "role": "form",
+            "action": "https://www.youtube.com/results",
+            "method": "get",
+            "visible": true
+          }
+        ],
+        "text": "IN Skip navigation lofi songs lofi songs hindi lofi music lofi lofi hip hop lofi hip hop no lyrics lofi sad songs lofi hip hop music lofi songs bhojpuri lofi love song lofi girl lofi songs mashup lofi mix song lofi song slowed reverb Report search predictions Sign in Home Shorts Subscriptions You Try searching to get started Start watching videos to help us build a feed of videos you'll love.",
+        "tabs": [
+          {
+            "index": 0,
+            "title": "YouTube",
+            "url": "https://www.youtube.com/",
+            "active": true
+          }
+        ],
+        "activeTab": {
+          "index": 0,
+          "title": "YouTube",
+          "url": "https://www.youtube.com/",
+          "active": true
+        },
+        "observationQuality": {
+          "score": 1,
+          "reasons": []
+        }
+      },
+      "before": {
+        "url": "https://www.youtube.com/",
+        "title": "YouTube",
+        "tabCount": 1
+      },
+      "after": {
+        "url": "https://www.youtube.com/",
+        "title": "YouTube",
+        "tabCount": 1
+      },
+      "action": {
+        "type": "type",
+        "params": {
+          "element": 6,
+          "text": "lofi"
+        }
+      },
+      "timestamp": "2026-06-16T19:29:09.028Z",
+      "events": [
+        "form_detected",
+        "links_detected",
+        "buttons_detected",
+        "content_loaded"
+      ]
+    }
+  ]
+}
+[2026-06-16T19:29:09.038Z] [LOG] WORLD: {
+  "history": 3,
+  "url": "https://www.youtube.com/",
+  "title": "YouTube",
+  "lastOutcome": "success",
+  "lastStateHash": "5b0adbe92d6f246a1a26fc70eb60a81611836207d1c85e4f36b0d6af9045df27"
+}
+[2026-06-16T19:29:09.039Z] [LOG] OBSERVATION SUMMARY: {
+  "success": true,
+  "expected": "text_typed",
+  "actual": "lofi"
+}
+[2026-06-16T19:29:09.042Z] [LOG] OBSERVATION: {
+  "success": true,
+  "expected": "text_typed",
+  "actual": "lofi",
+  "element": 6,
+  "pageState": {
+    "success": true,
+    "title": "YouTube",
+    "url": "https://www.youtube.com/",
+    "buttons": [
+      {
+        "id": 2,
+        "text": "Guide",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Guide",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 4,
+        "text": "Skip navigation",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Skip navigation",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 78,
+        "text": "Clear search query",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Clear search query",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 7,
+        "text": "Search",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Search",
+        "title": "Search",
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 79,
+        "text": "Report search predictions",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": null,
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 9,
+        "text": "Search with your voice",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Search with your voice",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 11,
+        "text": "Settings",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Settings",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      }
+    ],
+    "inputs": [
+      {
+        "id": 6,
+        "text": "Search",
+        "value": "lofi",
+        "role": "input",
+        "type": "text",
+        "placeholder": "Search",
+        "ariaLabel": null,
+        "name": "search_query",
+        "title": null,
+        "visible": true,
+        "enabled": true
+      }
+    ],
+    "links": [
+      {
+        "id": 3,
+        "text": "YouTube Home",
+        "role": "link",
+        "href": "/",
+        "ariaLabel": null,
+        "title": "YouTube Home",
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 10,
+        "text": "link",
+        "role": "link",
+        "href": null,
+        "ariaLabel": null,
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 12,
+        "text": "Sign in",
+        "role": "link",
+        "href": "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3Dhttps%253A%252F%252Fwww.youtube.com%252F&hl=en&ec=65620",
+        "ariaLabel": "Sign in",
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 15,
+        "text": "Home",
+        "role": "link",
+        "href": "/",
+        "ariaLabel": "Home",
+        "title": "Home",
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 17,
+        "text": "Shorts",
+        "role": "link",
+        "href": "/shorts/",
+        "ariaLabel": "Shorts",
+        "title": "Shorts",
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 19,
+        "text": "Subscriptions",
+        "role": "link",
+        "href": "/feed/subscriptions",
+        "ariaLabel": "Subscriptions",
+        "title": "Subscriptions",
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 21,
+        "text": "You",
+        "role": "link",
+        "href": "/feed/you",
+        "ariaLabel": "You",
+        "title": "You",
+        "visible": true,
+        "enabled": true
+      }
+    ],
+    "forms": [
+      {
+        "id": 5,
+        "role": "form",
+        "action": "https://www.youtube.com/results",
+        "method": "get",
+        "visible": true
+      }
+    ],
+    "text": "IN Skip navigation lofi songs lofi songs hindi lofi music lofi lofi hip hop lofi hip hop no lyrics lofi sad songs lofi hip hop music lofi songs bhojpuri lofi love song lofi girl lofi songs mashup lofi mix song lofi song slowed reverb Report search predictions Sign in Home Shorts Subscriptions You Try searching to get started Start watching videos to help us build a feed of videos you'll love.",
+    "tabs": [
+      {
+        "index": 0,
+        "title": "YouTube",
+        "url": "https://www.youtube.com/",
+        "active": true
+      }
+    ],
+    "activeTab": {
+      "index": 0,
+      "title": "YouTube",
+      "url": "https://www.youtube.com/",
+      "active": true
+    },
+    "observationQuality": {
+      "score": 1,
+      "reasons": []
+    }
+  },
+  "before": {
+    "url": "https://www.youtube.com/",
+    "title": "YouTube",
+    "tabCount": 1
+  },
+  "after": {
+    "url": "https://www.youtube.com/",
+    "title": "YouTube",
+    "tabCount": 1
+  },
+  "action": {
+    "type": "type",
+    "params": {
+      "element": 6,
+      "text": "lofi"
+    }
+  },
+  "timestamp": "2026-06-16T19:29:09.028Z",
+  "events": [
+    "form_detected",
+    "links_detected",
+    "buttons_detected",
+    "content_loaded"
+  ]
+}
+[2026-06-16T19:29:09.045Z] [LOG] VERIFYING TASK WITH CRITERIA: [
+  {
+    "success": true,
+    "expected": "text_typed",
+    "actual": "lofi",
+    "element": 6,
+    "pageState": {
+      "success": true,
+      "title": "YouTube",
+      "url": "https://www.youtube.com/",
+      "buttons": [
+        {
+          "id": 2,
+          "text": "Guide",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Guide",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 4,
+          "text": "Skip navigation",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Skip navigation",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 78,
+          "text": "Clear search query",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Clear search query",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 7,
+          "text": "Search",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Search",
+          "title": "Search",
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 79,
+          "text": "Report search predictions",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": null,
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 9,
+          "text": "Search with your voice",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Search with your voice",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 11,
+          "text": "Settings",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Settings",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        }
+      ],
+      "inputs": [
+        {
+          "id": 6,
+          "text": "Search",
+          "value": "lofi",
+          "role": "input",
+          "type": "text",
+          "placeholder": "Search",
+          "ariaLabel": null,
+          "name": "search_query",
+          "title": null,
+          "visible": true,
+          "enabled": true
+        }
+      ],
+      "links": [
+        {
+          "id": 3,
+          "text": "YouTube Home",
+          "role": "link",
+          "href": "/",
+          "ariaLabel": null,
+          "title": "YouTube Home",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 10,
+          "text": "link",
+          "role": "link",
+          "href": null,
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 12,
+          "text": "Sign in",
+          "role": "link",
+          "href": "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3Dhttps%253A%252F%252Fwww.youtube.com%252F&hl=en&ec=65620",
+          "ariaLabel": "Sign in",
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 15,
+          "text": "Home",
+          "role": "link",
+          "href": "/",
+          "ariaLabel": "Home",
+          "title": "Home",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 17,
+          "text": "Shorts",
+          "role": "link",
+          "href": "/shorts/",
+          "ariaLabel": "Shorts",
+          "title": "Shorts",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 19,
+          "text": "Subscriptions",
+          "role": "link",
+          "href": "/feed/subscriptions",
+          "ariaLabel": "Subscriptions",
+          "title": "Subscriptions",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 21,
+          "text": "You",
+          "role": "link",
+          "href": "/feed/you",
+          "ariaLabel": "You",
+          "title": "You",
+          "visible": true,
+          "enabled": true
+        }
+      ],
+      "forms": [
+        {
+          "id": 5,
+          "role": "form",
+          "action": "https://www.youtube.com/results",
+          "method": "get",
+          "visible": true
+        }
+      ],
+      "text": "IN Skip navigation lofi songs lofi songs hindi lofi music lofi lofi hip hop lofi hip hop no lyrics lofi sad songs lofi hip hop music lofi songs bhojpuri lofi love song lofi girl lofi songs mashup lofi mix song lofi song slowed reverb Report search predictions Sign in Home Shorts Subscriptions You Try searching to get started Start watching videos to help us build a feed of videos you'll love.",
+      "tabs": [
+        {
+          "index": 0,
+          "title": "YouTube",
+          "url": "https://www.youtube.com/",
+          "active": true
+        }
+      ],
+      "activeTab": {
+        "index": 0,
+        "title": "YouTube",
+        "url": "https://www.youtube.com/",
+        "active": true
+      },
+      "observationQuality": {
+        "score": 1,
+        "reasons": []
+      }
+    },
+    "before": {
+      "url": "https://www.youtube.com/",
+      "title": "YouTube",
+      "tabCount": 1
+    },
+    "after": {
+      "url": "https://www.youtube.com/",
+      "title": "YouTube",
+      "tabCount": 1
+    },
+    "action": {
+      "type": "type",
+      "params": {
+        "element": 6,
+        "text": "lofi"
+      }
+    },
+    "timestamp": "2026-06-16T19:29:09.028Z",
+    "events": [
+      "form_detected",
+      "links_detected",
+      "buttons_detected",
+      "content_loaded"
+    ]
+  }
+]
+[2026-06-16T19:29:09.048Z] [LOG] task: {
+  "id": "c2411700-bec7-41bf-9891-01bd14263565",
   "intent": null,
-  "objective": "Submit search query 'lofi' on YouTube",
+  "objective": "Search for lofi videos on YouTube",
   "target": null,
   "context": {},
   "dependsOn": [],
   "successCriteria": [
-    "URL contains youtube.com/results",
-    "Page title contains lofi"
+    "Search input contains lofi",
+    "Search results are visible",
+    "Results relate to lofi music or videos"
   ],
   "requires": [
-    "search_query_entered"
+    "youtube_open"
   ],
   "produces": [
-    "search_results_visible"
+    "lofi_search_results_visible"
+  ],
+  "plan": null,
+  "result": null,
+  "currentStep": 0,
+  "status": "running",
+  "createdAt": "2026-06-16T19:28:36.055Z"
+}
+[2026-06-16T19:29:09.049Z] [LOG] STATE VERIFIED: null
+[2026-06-16T19:29:09.050Z] [LOG] EVENT VERIFIED: null
+[2026-06-16T19:29:09.051Z] [LOG] RULE VERIFIED: null
+[2026-06-16T19:29:09.051Z] [LOG] [LLM] Trying askGroq
+[2026-06-16T19:29:09.052Z] [LOG] SYSTEM CHARS: 1787
+[2026-06-16T19:29:09.053Z] [LOG] USER CHARS: 5310
+[2026-06-16T19:29:09.054Z] [LOG] TOTAL CHARS: 7097
+[2026-06-16T19:29:09.229Z] [LOG] [LLM] Failed askGroq Groq failed: 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kv6gqdgyfm5ary83wd5n1pb8` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99873, Requested 2059. Please try again in 27m49.248s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+
+[2026-06-16T19:29:09.229Z] [LOG] [LLM] Trying askOpenRouter
+[2026-06-16T19:29:09.230Z] [LOG] SYSTEM CHARS: 1787
+[2026-06-16T19:29:09.231Z] [LOG] USER CHARS: 5310
+[2026-06-16T19:29:09.232Z] [LOG] TOTAL CHARS: 7097
+[2026-06-16T19:29:09.233Z] [LOG] [OpenRouter] Request started
+[2026-06-16T19:29:09.921Z] [LOG] [OpenRouter] Status: 200
+[2026-06-16T19:29:24.238Z] [LOG] [LLM] Success askOpenRouter
+[2026-06-16T19:29:24.239Z] [LOG] LLM TASK VERIFICATION: {
+  "achieved": true,
+  "confidence": 1,
+  "reason": "The search input field contains the text 'lofi', and the visible text on the page includes relevant search results such as 'lofi songs', 'lofi music', and 'lofi hip hop'. The form action is also set to 'https://www.youtube.com/results', indicating a search query has been submitted.",
+  "criteriaResults": [
+    {
+      "criterion": "Search input contains lofi",
+      "met": true
+    },
+    {
+      "criterion": "Search results are visible",
+      "met": true
+    },
+    {
+      "criterion": "Results relate to lofi music or videos",
+      "met": true
+    }
+  ]
+}
+[2026-06-16T19:29:26.151Z] [LOG] MEMORY CONTEXT:
+ 
+[2026-06-16T19:29:26.152Z] [LOG] CURRENT TASK: {
+  "id": "c682cbd2-292f-4fde-9454-39c2f5b37ec8",
+  "intent": null,
+  "objective": "Open a lofi video from search results",
+  "target": null,
+  "context": {},
+  "dependsOn": [],
+  "successCriteria": [
+    "URL contains youtube.com/watch",
+    "Page title contains lofi",
+    "Video player is visible"
+  ],
+  "requires": [
+    "lofi_search_results_visible"
+  ],
+  "produces": [
+    "lofi_video_open"
   ],
   "plan": null,
   "result": null,
   "currentStep": 0,
   "status": "pending",
-  "createdAt": "2026-06-16T17:01:07.559Z"
+  "createdAt": "2026-06-16T19:28:36.055Z"
 }
-[2026-06-16T17:01:18.781Z] [LOG] [LLM] Trying askGroq
-[2026-06-16T17:01:18.782Z] [LOG] SYSTEM CHARS: 4449
-[2026-06-16T17:01:18.782Z] [LOG] USER CHARS: 489
-[2026-06-16T17:01:18.782Z] [LOG] TOTAL CHARS: 4938
-[2026-06-16T17:01:19.069Z] [LOG] [LLM] Failed askGroq Groq failed: 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kv6gqdgyfm5ary83wd5n1pb8` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99527, Requested 1322. Please try again in 12m13.536s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+[2026-06-16T19:29:26.153Z] [LOG] BROWSER CONTEXT:
+ URL:
+https://www.youtube.com/
 
-[2026-06-16T17:01:19.070Z] [LOG] [LLM] Trying askOpenRouter
-[2026-06-16T17:01:19.070Z] [LOG] SYSTEM CHARS: 4449
-[2026-06-16T17:01:19.071Z] [LOG] USER CHARS: 489
-[2026-06-16T17:01:19.071Z] [LOG] TOTAL CHARS: 4938
-[2026-06-16T17:01:19.071Z] [LOG] [OpenRouter] Request started
-[2026-06-16T17:01:19.797Z] [LOG] [OpenRouter] Status: 200
-[2026-06-16T17:01:22.682Z] [LOG] [LLM] Success askOpenRouter
-[2026-06-16T17:01:22.683Z] [LOG] PLANNER RESPONSE: Since the last action was "read_ui" and the page remains unchanged, we should choose a different action. Given the task is to submit a search query 'lofi' on YouTube and the current browser state does not contain any inputs or forms, we first need to ensure we have the correct elements to interact with. However, since the task explicitly mentions submitting a search query and the browser state provided does not reflect the presence of a search input or form which is typically present on the YouTube homepage, it seems there might be a discrepancy between the expected and actual state of the page. 
+Title:
+YouTube
 
-Given this, the most appropriate next step would be to navigate to the YouTube homepage to ensure we have the search functionality available, but since we are already on the YouTube homepage according to the URL, the next logical step is to refresh the page to ensure we have the most current version of the page, including any elements that might be missing from our current view.
+Inputs:
+[6] Search (type: "text", placeholder: "Search", name: "search_query", value: "lofi")
 
+Buttons:
+[78] Clear search query (type: "submit", ariaLabel: "Clear search query")
+[7] Search (type: "submit", ariaLabel: "Search", title: "Search")
+[79] Report search predictions (type: "submit")
+[9] Search with your voice (type: "submit", ariaLabel: "Search with your voice")
+[2] Guide (type: "submit", ariaLabel: "Guide")
+[4] Skip navigation (type: "submit", ariaLabel: "Skip navigation")
+[11] Settings (type: "submit", ariaLabel: "Settings")
+
+Links:
+[3] YouTube Home (href: "/", title: "YouTube Home")
+[10] link
+[12] Sign in (href: "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3Dhttps%253A%252F%252Fwww.youtube.com%252F&hl=en&ec=65620", ariaLabel: "Sign in")
+[15] Home (href: "/", ariaLabel: "Home", title: "Home")
+[17] Shorts (href: "/shorts/", ariaLabel: "Shorts", title: "Shorts")
+[19] Subscriptions (href: "/feed/subscriptions", ariaLabel: "Subscriptions", title: "Subscriptions")
+[21] You (href: "/feed/you", ariaLabel: "You", title: "You")
+
+Forms:
+[5] role: form, action: https://www.youtube.com/results, method: get
+
+
+[2026-06-16T19:29:26.154Z] [LOG] MEMORY CHARS: 0
+[2026-06-16T19:29:26.154Z] [LOG] BROWSER CHARS: 1315
+[2026-06-16T19:29:26.155Z] [LOG] SYSTEM PROMPT CHARS: 5905
+[2026-06-16T19:29:26.156Z] [LOG] SYSTEM CHARS: 5905
+[2026-06-16T19:29:26.158Z] [LOG] GOAL CHARS: 26
+[2026-06-16T19:29:26.159Z] [LOG] TOTAL CHARS: 5931
+[2026-06-16T19:29:26.160Z] [LOG] TASK: {
+  "id": "c682cbd2-292f-4fde-9454-39c2f5b37ec8",
+  "intent": null,
+  "objective": "Open a lofi video from search results",
+  "target": null,
+  "context": {},
+  "dependsOn": [],
+  "successCriteria": [
+    "URL contains youtube.com/watch",
+    "Page title contains lofi",
+    "Video player is visible"
+  ],
+  "requires": [
+    "lofi_search_results_visible"
+  ],
+  "produces": [
+    "lofi_video_open"
+  ],
+  "plan": null,
+  "result": null,
+  "currentStep": 0,
+  "status": "pending",
+  "createdAt": "2026-06-16T19:28:36.055Z"
+}
+[2026-06-16T19:29:26.161Z] [LOG] [LLM] Trying askGroq
+[2026-06-16T19:29:26.161Z] [LOG] SYSTEM CHARS: 5905
+[2026-06-16T19:29:26.162Z] [LOG] USER CHARS: 556
+[2026-06-16T19:29:26.163Z] [LOG] TOTAL CHARS: 6461
+[2026-06-16T19:29:26.382Z] [LOG] [LLM] Failed askGroq Groq failed: 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kv6gqdgyfm5ary83wd5n1pb8` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99853, Requested 1916. Please try again in 25m28.416s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+
+[2026-06-16T19:29:26.383Z] [LOG] [LLM] Trying askOpenRouter
+[2026-06-16T19:29:26.383Z] [LOG] SYSTEM CHARS: 5905
+[2026-06-16T19:29:26.384Z] [LOG] USER CHARS: 556
+[2026-06-16T19:29:26.385Z] [LOG] TOTAL CHARS: 6461
+[2026-06-16T19:29:26.385Z] [LOG] [OpenRouter] Request started
+[2026-06-16T19:29:26.985Z] [LOG] [OpenRouter] Status: 200
+[2026-06-16T19:29:40.282Z] [LOG] [LLM] Success askOpenRouter
+[2026-06-16T19:29:40.283Z] [LOG] PLANNER RESPONSE: To move closer to the objective of opening a lofi video from search results, given that the last action was typing "lofi" into the search bar and the current browser state does not reflect any search results, the next logical step is to submit the search query. Since the browser state provided does not list any elements (inputs, buttons, links, forms) which seems to be an incomplete representation, we'll proceed with the assumption that a search submission is necessary and typically involves clicking a search button or pressing enter.
+
+Given the typical structure of YouTube and the fact that we've just typed "lofi" into what would be the search bar, the most direct action to get search results would be to submit that search query. However, without a specific search button or form listed in the provided browser state, and adhering strictly to the format and rules provided, the action should ideally reference an existing element. Since no elements are listed, and we cannot invent them, the next best step under normal circumstances would be to refresh the page or read the UI to hopefully get an updated state that includes the search bar and button. But, considering the objective and the action that just occurred (typing "lofi"), the most logical step in a real-world scenario would be to press the enter key to submit the search query, assuming the input field is focused after typing.
+
+Thus, considering the constraints and aiming to follow the rules as closely as possible while also attempting to make progress towards the objective:
+
+```json
 {
   "actions": [
     {
-      "type": "refresh",
-      "params": {}
+      "type": "press_key",
+      "params": {
+        "key": "Enter"
+      }
     }
   ]
 }
-[2026-06-16T17:01:22.683Z] [LOG] RAW LLM RESPONSE: Since the last action was "read_ui" and the page remains unchanged, we should choose a different action. Given the task is to submit a search query 'lofi' on YouTube and the current browser state does not contain any inputs or forms, we first need to ensure we have the correct elements to interact with. However, since the task explicitly mentions submitting a search query and the browser state provided does not reflect the presence of a search input or form which is typically present on the YouTube homepage, it seems there might be a discrepancy between the expected and actual state of the page. 
+```
+[2026-06-16T19:29:40.284Z] [LOG] RAW LLM RESPONSE: To move closer to the objective of opening a lofi video from search results, given that the last action was typing "lofi" into the search bar and the current browser state does not reflect any search results, the next logical step is to submit the search query. Since the browser state provided does not list any elements (inputs, buttons, links, forms) which seems to be an incomplete representation, we'll proceed with the assumption that a search submission is necessary and typically involves clicking a search button or pressing enter.
 
-Given this, the most appropriate next step would be to navigate to the YouTube homepage to ensure we have the search functionality available, but since we are already on the YouTube homepage according to the URL, the next logical step is to refresh the page to ensure we have the most current version of the page, including any elements that might be missing from our current view.
+Given the typical structure of YouTube and the fact that we've just typed "lofi" into what would be the search bar, the most direct action to get search results would be to submit that search query. However, without a specific search button or form listed in the provided browser state, and adhering strictly to the format and rules provided, the action should ideally reference an existing element. Since no elements are listed, and we cannot invent them, the next best step under normal circumstances would be to refresh the page or read the UI to hopefully get an updated state that includes the search bar and button. But, considering the objective and the action that just occurred (typing "lofi"), the most logical step in a real-world scenario would be to press the enter key to submit the search query, assuming the input field is focused after typing.
 
+Thus, considering the constraints and aiming to follow the rules as closely as possible while also attempting to make progress towards the objective:
+
+```json
 {
   "actions": [
     {
-      "type": "refresh",
-      "params": {}
+      "type": "press_key",
+      "params": {
+        "key": "Enter"
+      }
     }
   ]
 }
-[2026-06-16T17:01:22.684Z] [LOG] PARSED: {
+```
+[2026-06-16T19:29:40.285Z] [LOG] PARSED: {
   "actions": [
     {
-      "type": "refresh",
-      "params": {}
+      "type": "press_key",
+      "params": {
+        "key": "Enter"
+      }
     }
   ]
 }
-[2026-06-16T17:01:22.684Z] [LOG] VALIDATED ACTIONS: [
+[2026-06-16T19:29:40.286Z] [LOG] VALIDATED ACTIONS: [
   {
-    "type": "refresh",
-    "params": {}
+    "type": "press_key",
+    "params": {
+      "key": "Enter"
+    }
   }
 ]
-[2026-06-16T17:01:22.684Z] [LOG] VALIDATED ACTIONS: [
+[2026-06-16T19:29:40.287Z] [LOG] VALIDATED ACTIONS: [
   {
-    "type": "refresh",
-    "params": {}
+    "type": "press_key",
+    "params": {
+      "key": "Enter"
+    }
   }
 ]
-[2026-06-16T17:01:22.685Z] [LOG] Task 3 Attempt 1 (Total Actions: 2, LLM Calls: 4)
-[2026-06-16T17:01:22.685Z] [LOG] 
+[2026-06-16T19:29:40.288Z] [LOG] Task 3 Attempt 1 (Total Actions: 3, LLM Calls: 9)
+[2026-06-16T19:29:40.289Z] [LOG] 
 ===== SENDING PLAN =====
-[2026-06-16T17:01:22.686Z] [LOG] {
-  "goalId": "b3e3fbdf-b401-47fb-8b60-efacdc916ff8",
+[2026-06-16T19:29:40.291Z] [LOG] {
+  "goalId": "0a65c70f-dfb0-4d95-b481-73d5d47e1195",
   "actions": [
     {
-      "type": "refresh",
+      "type": "press_key",
+      "params": {
+        "key": "Enter"
+      }
+    }
+  ],
+  "createdAt": "2026-06-16T19:29:40.288Z"
+}
+[2026-06-16T19:29:49.256Z] [LOG] [2026-06-16T19:29:49.250Z] Received: {
+  "type": "execution_result",
+  "observations": [
+    {
+      "success": true,
+      "expected": "key_pressed",
+      "actual": "Enter",
+      "key": "Enter",
+      "pageState": {
+        "success": true,
+        "title": "lofi - YouTube",
+        "url": "https://www.youtube.com/results?search_query=lofi",
+        "buttons": [
+          {
+            "id": 2,
+            "text": "Guide",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Guide",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 4,
+            "text": "Skip navigation",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Skip navigation",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 78,
+            "text": "Clear search query",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Clear search query",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 7,
+            "text": "Search",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Search",
+            "title": "Search",
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 9,
+            "text": "Search with your voice",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Search with your voice",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 11,
+            "text": "Settings",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Settings",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 81,
+            "text": "All",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": null,
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 82,
+            "text": "Shorts",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": null,
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 83,
+            "text": "Unwatched",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": null,
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 84,
+            "text": "Watched",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": null,
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 85,
+            "text": "Videos",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": null,
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 86,
+            "text": "Recently uploaded",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": null,
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 87,
+            "text": "Live",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": null,
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 89,
+            "text": "Filters",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Search filters",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 92,
+            "text": "More actions",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "More actions",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 95,
+            "text": "More actions",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "More actions",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 98,
+            "text": "More actions",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "More actions",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 101,
+            "text": "More actions",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "More actions",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 104,
+            "text": "More actions",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "More actions",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 109,
+            "text": "More actions",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "More actions",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          }
+        ],
+        "inputs": [
+          {
+            "id": 6,
+            "text": "Search",
+            "value": "lofi",
+            "role": "input",
+            "type": "text",
+            "placeholder": "Search",
+            "ariaLabel": null,
+            "name": "search_query",
+            "title": null,
+            "visible": true,
+            "enabled": true
+          }
+        ],
+        "links": [
+          {
+            "id": 3,
+            "text": "YouTube Home",
+            "role": "link",
+            "href": "/",
+            "ariaLabel": null,
+            "title": "YouTube Home",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 10,
+            "text": "link",
+            "role": "link",
+            "href": null,
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 12,
+            "text": "Sign in",
+            "role": "link",
+            "href": "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3D%252Fresults%253Fsearch_query%253Dlofi&hl=en&ec=65620",
+            "ariaLabel": "Sign in",
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 15,
+            "text": "Home",
+            "role": "link",
+            "href": "/",
+            "ariaLabel": "Home",
+            "title": "Home",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 17,
+            "text": "Shorts",
+            "role": "link",
+            "href": "/shorts/",
+            "ariaLabel": "Shorts",
+            "title": "Shorts",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 19,
+            "text": "Subscriptions",
+            "role": "link",
+            "href": "/feed/subscriptions",
+            "ariaLabel": "Subscriptions",
+            "title": "Subscriptions",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 21,
+            "text": "You",
+            "role": "link",
+            "href": "/feed/you",
+            "ariaLabel": "You",
+            "title": "You",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 90,
+            "text": "link",
+            "role": "link",
+            "href": "/shorts/ADUTUY2Gff0",
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 91,
+            "text": "Anxiety(lyrics)✨ #lofi #music #song #lyrics",
+            "role": "link",
+            "href": "/shorts/ADUTUY2Gff0",
+            "ariaLabel": null,
+            "title": "Anxiety(lyrics)✨ #lofi #music #song #lyrics",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 93,
+            "text": "link",
+            "role": "link",
+            "href": "/shorts/LweetCoCFHA",
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 94,
+            "text": "Dil Ka Jo Haal Hai  | Besharam | Ranbir Kapoor | Shreya Ghoshal || LOFI JUKEBOX",
+            "role": "link",
+            "href": "/shorts/LweetCoCFHA",
+            "ariaLabel": null,
+            "title": "Dil Ka Jo Haal Hai  | Besharam | Ranbir Kapoor | Shreya Ghoshal || LOFI JUKEBOX",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 96,
+            "text": "link",
+            "role": "link",
+            "href": "/shorts/28ufM37HoWA",
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 97,
+            "text": "Lofi Beats – Chill Vibes for Study, Relax, & Focus",
+            "role": "link",
+            "href": "/shorts/28ufM37HoWA",
+            "ariaLabel": null,
+            "title": "Lofi Beats – Chill Vibes for Study, Relax, & Focus",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 99,
+            "text": "link",
+            "role": "link",
+            "href": "/shorts/u5xviTjyh6w",
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 100,
+            "text": "90s Lofi Songs || best hindi song #music",
+            "role": "link",
+            "href": "/shorts/u5xviTjyh6w",
+            "ariaLabel": null,
+            "title": "90s Lofi Songs || best hindi song #music",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 102,
+            "text": "link",
+            "role": "link",
+            "href": "/shorts/axb1HFlJBOA",
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 103,
+            "text": "MIND RELAX LOVE SONG 💕 | MIND RELAX LOFI MASHUP | LOVE MASHUP SONG 🎧",
+            "role": "link",
+            "href": "/shorts/axb1HFlJBOA",
+            "ariaLabel": null,
+            "title": "MIND RELAX LOVE SONG 💕 | MIND RELAX LOFI MASHUP | LOVE MASHUP SONG 🎧",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 107,
+            "text": "link",
+            "role": "link",
+            "href": "/shorts/GbFcvvEabkg",
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 108,
+            "text": "💘TRENDING| INSTAGRAM LOFI MASHUP| SLOWED+REVERBED | MIND FRESH LOFI SONG | LOFI SONGS",
+            "role": "link",
+            "href": "/shorts/GbFcvvEabkg",
+            "ariaLabel": null,
+            "title": "💘TRENDING| INSTAGRAM LOFI MASHUP| SLOWED+REVERBED | MIND FRESH LOFI SONG | LOFI SONGS",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 110,
+            "text": "link",
+            "role": "link",
+            "href": "/shorts/ystOcPaMBLw",
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          }
+        ],
+        "forms": [
+          {
+            "id": 5,
+            "role": "form",
+            "action": "https://www.youtube.com/results",
+            "method": "get",
+            "visible": true
+          }
+        ],
+        "text": "IN Skip navigation Sign in Home Shorts Subscriptions You All Shorts Unwatched Watched Videos Recently uploaded Live Filters Shorts Anxiety(lyrics)✨ #lofi #music #song #lyrics 961K views Dil Ka Jo Haal Hai | Besharam | Ranbir Kapoor | Shreya Ghoshal || LOFI JUKEBOX 834K views Lofi Beats – Chill Vibes for Study, Relax, & Focus 825K views 90s Lofi Songs || best hindi song #music 967K views MIND RELAX LOVE SONG 💕 | MIND RELAX LOFI MASHUP | LOVE MASHUP SONG 🎧 553K views Shorts 💘TRENDING| INSTAGRAM LOFI MASHUP| SLOWED+REVERBED | MIND FRESH LOFI SONG | LOFI SONGS 1.5M views Tum Se hi (slowed+reverb) | Jab We Met | Kareena , Shahid Kapoor | Mohit Chauhan || LOFI JUKEBOX 2.3M views chhapra ke boss lofi | slowed trending bhojpuri songs | छपरा के बॉस lofi mix 1.1M views New How’s Exam Studying Going? 🌙 Deep Lofi Beats for Late Night Focus on the channel 1.4K views Paro - Aditya Rikhari | Arish #lyrics #music #song #arish #aesthetic #lofi #fyp #trending 1.6M views Pal - Arijit Singh & Shreya Ghoshal jalebi Song | Slowed and Reverb Lofi Mix #arijitsingh #lofi # 110K views Night Lofi Songs | Mashup | Feel Relax & Sleep | Slowed+Reverb | Hindi Lofi Vibes #lofi #bollywood 515K views Top 5 Best Lofi Iconic Songs 2025 HM LO-FI 🎶 #iconicsong #lofisong #hmlofi #shortsfeed 423K views Tera chehra ❤️🥀 Aesthetic edit | Lyrical video | #shorts #status #music #lofi #edit #lyrics 610K views Lo-Fi Chords - Lofi Piano Chords - Chill Chords 1M views Show more People also search for Grunge Dubstep Chill-out music Jazz Ambient music Hip-hop culture Popular music Rock and roll Classical music House music Sitaare (Slowed + Reverb) | Arijit Singh | Amitabh Bhattacharya | Ikkis | Sad Vibes | SSR Lofi 817K views 3 months ago SSR Lofi Sitaare (Slowed + Reverb) | Arijit Singh | Amitabh Bhattacharya | Ikkis | Sad Vibes | SSR Lofi Use Headphone For Better ... lofi hip hop radio 📚 beats to relax/study to Lofi Girl Listen on Spotify, Apple music and more → https://link.lofigirl.com/m/music | Lofi Girl",
+        "tabs": [
+          {
+            "index": 0,
+            "title": "lofi - YouTube",
+            "url": "https://www.youtube.com/results?search_query=lofi",
+            "active": true
+          }
+        ],
+        "activeTab": {
+          "index": 0,
+          "title": "lofi - YouTube",
+          "url": "https://www.youtube.com/results?search_query=lofi",
+          "active": true
+        },
+        "observationQuality": {
+          "score": 1,
+          "reasons": []
+        }
+      },
+      "before": {
+        "url": "https://www.youtube.com/",
+        "title": "YouTube",
+        "tabCount": 1
+      },
+      "after": {
+        "url": "https://www.youtube.com/results?search_query=lofi",
+        "title": "lofi - YouTube",
+        "tabCount": 1
+      },
+      "action": {
+        "type": "press_key",
+        "params": {
+          "key": "Enter"
+        }
+      },
+      "timestamp": "2026-06-16T19:29:49.243Z",
+      "events": [
+        "url_changed",
+        "content_changed",
+        "form_detected",
+        "links_detected",
+        "buttons_detected",
+        "content_loaded",
+        "enter_pressed"
+      ]
+    }
+  ]
+}
+[2026-06-16T19:29:49.263Z] [LOG] EXECUTE RESULT: {
+  "type": "execution_result",
+  "observations": [
+    {
+      "success": true,
+      "expected": "key_pressed",
+      "actual": "Enter",
+      "key": "Enter",
+      "pageState": {
+        "success": true,
+        "title": "lofi - YouTube",
+        "url": "https://www.youtube.com/results?search_query=lofi",
+        "buttons": [
+          {
+            "id": 2,
+            "text": "Guide",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Guide",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 4,
+            "text": "Skip navigation",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Skip navigation",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 78,
+            "text": "Clear search query",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Clear search query",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 7,
+            "text": "Search",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Search",
+            "title": "Search",
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 9,
+            "text": "Search with your voice",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Search with your voice",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 11,
+            "text": "Settings",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Settings",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 81,
+            "text": "All",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": null,
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 82,
+            "text": "Shorts",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": null,
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 83,
+            "text": "Unwatched",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": null,
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 84,
+            "text": "Watched",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": null,
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 85,
+            "text": "Videos",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": null,
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 86,
+            "text": "Recently uploaded",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": null,
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 87,
+            "text": "Live",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": null,
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 89,
+            "text": "Filters",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Search filters",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 92,
+            "text": "More actions",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "More actions",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 95,
+            "text": "More actions",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "More actions",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 98,
+            "text": "More actions",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "More actions",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 101,
+            "text": "More actions",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "More actions",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 104,
+            "text": "More actions",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "More actions",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 109,
+            "text": "More actions",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "More actions",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          }
+        ],
+        "inputs": [
+          {
+            "id": 6,
+            "text": "Search",
+            "value": "lofi",
+            "role": "input",
+            "type": "text",
+            "placeholder": "Search",
+            "ariaLabel": null,
+            "name": "search_query",
+            "title": null,
+            "visible": true,
+            "enabled": true
+          }
+        ],
+        "links": [
+          {
+            "id": 3,
+            "text": "YouTube Home",
+            "role": "link",
+            "href": "/",
+            "ariaLabel": null,
+            "title": "YouTube Home",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 10,
+            "text": "link",
+            "role": "link",
+            "href": null,
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 12,
+            "text": "Sign in",
+            "role": "link",
+            "href": "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3D%252Fresults%253Fsearch_query%253Dlofi&hl=en&ec=65620",
+            "ariaLabel": "Sign in",
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 15,
+            "text": "Home",
+            "role": "link",
+            "href": "/",
+            "ariaLabel": "Home",
+            "title": "Home",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 17,
+            "text": "Shorts",
+            "role": "link",
+            "href": "/shorts/",
+            "ariaLabel": "Shorts",
+            "title": "Shorts",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 19,
+            "text": "Subscriptions",
+            "role": "link",
+            "href": "/feed/subscriptions",
+            "ariaLabel": "Subscriptions",
+            "title": "Subscriptions",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 21,
+            "text": "You",
+            "role": "link",
+            "href": "/feed/you",
+            "ariaLabel": "You",
+            "title": "You",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 90,
+            "text": "link",
+            "role": "link",
+            "href": "/shorts/ADUTUY2Gff0",
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 91,
+            "text": "Anxiety(lyrics)✨ #lofi #music #song #lyrics",
+            "role": "link",
+            "href": "/shorts/ADUTUY2Gff0",
+            "ariaLabel": null,
+            "title": "Anxiety(lyrics)✨ #lofi #music #song #lyrics",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 93,
+            "text": "link",
+            "role": "link",
+            "href": "/shorts/LweetCoCFHA",
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 94,
+            "text": "Dil Ka Jo Haal Hai  | Besharam | Ranbir Kapoor | Shreya Ghoshal || LOFI JUKEBOX",
+            "role": "link",
+            "href": "/shorts/LweetCoCFHA",
+            "ariaLabel": null,
+            "title": "Dil Ka Jo Haal Hai  | Besharam | Ranbir Kapoor | Shreya Ghoshal || LOFI JUKEBOX",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 96,
+            "text": "link",
+            "role": "link",
+            "href": "/shorts/28ufM37HoWA",
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 97,
+            "text": "Lofi Beats – Chill Vibes for Study, Relax, & Focus",
+            "role": "link",
+            "href": "/shorts/28ufM37HoWA",
+            "ariaLabel": null,
+            "title": "Lofi Beats – Chill Vibes for Study, Relax, & Focus",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 99,
+            "text": "link",
+            "role": "link",
+            "href": "/shorts/u5xviTjyh6w",
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 100,
+            "text": "90s Lofi Songs || best hindi song #music",
+            "role": "link",
+            "href": "/shorts/u5xviTjyh6w",
+            "ariaLabel": null,
+            "title": "90s Lofi Songs || best hindi song #music",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 102,
+            "text": "link",
+            "role": "link",
+            "href": "/shorts/axb1HFlJBOA",
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 103,
+            "text": "MIND RELAX LOVE SONG 💕 | MIND RELAX LOFI MASHUP | LOVE MASHUP SONG 🎧",
+            "role": "link",
+            "href": "/shorts/axb1HFlJBOA",
+            "ariaLabel": null,
+            "title": "MIND RELAX LOVE SONG 💕 | MIND RELAX LOFI MASHUP | LOVE MASHUP SONG 🎧",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 107,
+            "text": "link",
+            "role": "link",
+            "href": "/shorts/GbFcvvEabkg",
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 108,
+            "text": "💘TRENDING| INSTAGRAM LOFI MASHUP| SLOWED+REVERBED | MIND FRESH LOFI SONG | LOFI SONGS",
+            "role": "link",
+            "href": "/shorts/GbFcvvEabkg",
+            "ariaLabel": null,
+            "title": "💘TRENDING| INSTAGRAM LOFI MASHUP| SLOWED+REVERBED | MIND FRESH LOFI SONG | LOFI SONGS",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 110,
+            "text": "link",
+            "role": "link",
+            "href": "/shorts/ystOcPaMBLw",
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          }
+        ],
+        "forms": [
+          {
+            "id": 5,
+            "role": "form",
+            "action": "https://www.youtube.com/results",
+            "method": "get",
+            "visible": true
+          }
+        ],
+        "text": "IN Skip navigation Sign in Home Shorts Subscriptions You All Shorts Unwatched Watched Videos Recently uploaded Live Filters Shorts Anxiety(lyrics)✨ #lofi #music #song #lyrics 961K views Dil Ka Jo Haal Hai | Besharam | Ranbir Kapoor | Shreya Ghoshal || LOFI JUKEBOX 834K views Lofi Beats – Chill Vibes for Study, Relax, & Focus 825K views 90s Lofi Songs || best hindi song #music 967K views MIND RELAX LOVE SONG 💕 | MIND RELAX LOFI MASHUP | LOVE MASHUP SONG 🎧 553K views Shorts 💘TRENDING| INSTAGRAM LOFI MASHUP| SLOWED+REVERBED | MIND FRESH LOFI SONG | LOFI SONGS 1.5M views Tum Se hi (slowed+reverb) | Jab We Met | Kareena , Shahid Kapoor | Mohit Chauhan || LOFI JUKEBOX 2.3M views chhapra ke boss lofi | slowed trending bhojpuri songs | छपरा के बॉस lofi mix 1.1M views New How’s Exam Studying Going? 🌙 Deep Lofi Beats for Late Night Focus on the channel 1.4K views Paro - Aditya Rikhari | Arish #lyrics #music #song #arish #aesthetic #lofi #fyp #trending 1.6M views Pal - Arijit Singh & Shreya Ghoshal jalebi Song | Slowed and Reverb Lofi Mix #arijitsingh #lofi # 110K views Night Lofi Songs | Mashup | Feel Relax & Sleep | Slowed+Reverb | Hindi Lofi Vibes #lofi #bollywood 515K views Top 5 Best Lofi Iconic Songs 2025 HM LO-FI 🎶 #iconicsong #lofisong #hmlofi #shortsfeed 423K views Tera chehra ❤️🥀 Aesthetic edit | Lyrical video | #shorts #status #music #lofi #edit #lyrics 610K views Lo-Fi Chords - Lofi Piano Chords - Chill Chords 1M views Show more People also search for Grunge Dubstep Chill-out music Jazz Ambient music Hip-hop culture Popular music Rock and roll Classical music House music Sitaare (Slowed + Reverb) | Arijit Singh | Amitabh Bhattacharya | Ikkis | Sad Vibes | SSR Lofi 817K views 3 months ago SSR Lofi Sitaare (Slowed + Reverb) | Arijit Singh | Amitabh Bhattacharya | Ikkis | Sad Vibes | SSR Lofi Use Headphone For Better ... lofi hip hop radio 📚 beats to relax/study to Lofi Girl Listen on Spotify, Apple music and more → https://link.lofigirl.com/m/music | Lofi Girl",
+        "tabs": [
+          {
+            "index": 0,
+            "title": "lofi - YouTube",
+            "url": "https://www.youtube.com/results?search_query=lofi",
+            "active": true
+          }
+        ],
+        "activeTab": {
+          "index": 0,
+          "title": "lofi - YouTube",
+          "url": "https://www.youtube.com/results?search_query=lofi",
+          "active": true
+        },
+        "observationQuality": {
+          "score": 1,
+          "reasons": []
+        }
+      },
+      "before": {
+        "url": "https://www.youtube.com/",
+        "title": "YouTube",
+        "tabCount": 1
+      },
+      "after": {
+        "url": "https://www.youtube.com/results?search_query=lofi",
+        "title": "lofi - YouTube",
+        "tabCount": 1
+      },
+      "action": {
+        "type": "press_key",
+        "params": {
+          "key": "Enter"
+        }
+      },
+      "timestamp": "2026-06-16T19:29:49.243Z",
+      "events": [
+        "url_changed",
+        "content_changed",
+        "form_detected",
+        "links_detected",
+        "buttons_detected",
+        "content_loaded",
+        "enter_pressed"
+      ]
+    }
+  ]
+}
+[2026-06-16T19:29:49.264Z] [LOG] WORLD: {
+  "history": 4,
+  "url": "https://www.youtube.com/results?search_query=lofi",
+  "title": "lofi - YouTube",
+  "lastOutcome": "success",
+  "lastStateHash": "480ec00a3dd961dd20e6d095840485fe3e4c49be09a20cd56f93e8c05dd0a140"
+}
+[2026-06-16T19:29:49.265Z] [LOG] OBSERVATION SUMMARY: {
+  "success": true,
+  "expected": "key_pressed",
+  "actual": "Enter"
+}
+[2026-06-16T19:29:49.271Z] [LOG] OBSERVATION: {
+  "success": true,
+  "expected": "key_pressed",
+  "actual": "Enter",
+  "key": "Enter",
+  "pageState": {
+    "success": true,
+    "title": "lofi - YouTube",
+    "url": "https://www.youtube.com/results?search_query=lofi",
+    "buttons": [
+      {
+        "id": 2,
+        "text": "Guide",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Guide",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 4,
+        "text": "Skip navigation",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Skip navigation",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 78,
+        "text": "Clear search query",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Clear search query",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 7,
+        "text": "Search",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Search",
+        "title": "Search",
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 9,
+        "text": "Search with your voice",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Search with your voice",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 11,
+        "text": "Settings",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Settings",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 81,
+        "text": "All",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": null,
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 82,
+        "text": "Shorts",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": null,
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 83,
+        "text": "Unwatched",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": null,
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 84,
+        "text": "Watched",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": null,
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 85,
+        "text": "Videos",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": null,
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 86,
+        "text": "Recently uploaded",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": null,
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 87,
+        "text": "Live",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": null,
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 89,
+        "text": "Filters",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Search filters",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 92,
+        "text": "More actions",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "More actions",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 95,
+        "text": "More actions",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "More actions",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 98,
+        "text": "More actions",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "More actions",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 101,
+        "text": "More actions",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "More actions",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 104,
+        "text": "More actions",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "More actions",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 109,
+        "text": "More actions",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "More actions",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      }
+    ],
+    "inputs": [
+      {
+        "id": 6,
+        "text": "Search",
+        "value": "lofi",
+        "role": "input",
+        "type": "text",
+        "placeholder": "Search",
+        "ariaLabel": null,
+        "name": "search_query",
+        "title": null,
+        "visible": true,
+        "enabled": true
+      }
+    ],
+    "links": [
+      {
+        "id": 3,
+        "text": "YouTube Home",
+        "role": "link",
+        "href": "/",
+        "ariaLabel": null,
+        "title": "YouTube Home",
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 10,
+        "text": "link",
+        "role": "link",
+        "href": null,
+        "ariaLabel": null,
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 12,
+        "text": "Sign in",
+        "role": "link",
+        "href": "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3D%252Fresults%253Fsearch_query%253Dlofi&hl=en&ec=65620",
+        "ariaLabel": "Sign in",
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 15,
+        "text": "Home",
+        "role": "link",
+        "href": "/",
+        "ariaLabel": "Home",
+        "title": "Home",
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 17,
+        "text": "Shorts",
+        "role": "link",
+        "href": "/shorts/",
+        "ariaLabel": "Shorts",
+        "title": "Shorts",
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 19,
+        "text": "Subscriptions",
+        "role": "link",
+        "href": "/feed/subscriptions",
+        "ariaLabel": "Subscriptions",
+        "title": "Subscriptions",
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 21,
+        "text": "You",
+        "role": "link",
+        "href": "/feed/you",
+        "ariaLabel": "You",
+        "title": "You",
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 90,
+        "text": "link",
+        "role": "link",
+        "href": "/shorts/ADUTUY2Gff0",
+        "ariaLabel": null,
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 91,
+        "text": "Anxiety(lyrics)✨ #lofi #music #song #lyrics",
+        "role": "link",
+        "href": "/shorts/ADUTUY2Gff0",
+        "ariaLabel": null,
+        "title": "Anxiety(lyrics)✨ #lofi #music #song #lyrics",
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 93,
+        "text": "link",
+        "role": "link",
+        "href": "/shorts/LweetCoCFHA",
+        "ariaLabel": null,
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 94,
+        "text": "Dil Ka Jo Haal Hai  | Besharam | Ranbir Kapoor | Shreya Ghoshal || LOFI JUKEBOX",
+        "role": "link",
+        "href": "/shorts/LweetCoCFHA",
+        "ariaLabel": null,
+        "title": "Dil Ka Jo Haal Hai  | Besharam | Ranbir Kapoor | Shreya Ghoshal || LOFI JUKEBOX",
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 96,
+        "text": "link",
+        "role": "link",
+        "href": "/shorts/28ufM37HoWA",
+        "ariaLabel": null,
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 97,
+        "text": "Lofi Beats – Chill Vibes for Study, Relax, & Focus",
+        "role": "link",
+        "href": "/shorts/28ufM37HoWA",
+        "ariaLabel": null,
+        "title": "Lofi Beats – Chill Vibes for Study, Relax, & Focus",
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 99,
+        "text": "link",
+        "role": "link",
+        "href": "/shorts/u5xviTjyh6w",
+        "ariaLabel": null,
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 100,
+        "text": "90s Lofi Songs || best hindi song #music",
+        "role": "link",
+        "href": "/shorts/u5xviTjyh6w",
+        "ariaLabel": null,
+        "title": "90s Lofi Songs || best hindi song #music",
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 102,
+        "text": "link",
+        "role": "link",
+        "href": "/shorts/axb1HFlJBOA",
+        "ariaLabel": null,
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 103,
+        "text": "MIND RELAX LOVE SONG 💕 | MIND RELAX LOFI MASHUP | LOVE MASHUP SONG 🎧",
+        "role": "link",
+        "href": "/shorts/axb1HFlJBOA",
+        "ariaLabel": null,
+        "title": "MIND RELAX LOVE SONG 💕 | MIND RELAX LOFI MASHUP | LOVE MASHUP SONG 🎧",
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 107,
+        "text": "link",
+        "role": "link",
+        "href": "/shorts/GbFcvvEabkg",
+        "ariaLabel": null,
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 108,
+        "text": "💘TRENDING| INSTAGRAM LOFI MASHUP| SLOWED+REVERBED | MIND FRESH LOFI SONG | LOFI SONGS",
+        "role": "link",
+        "href": "/shorts/GbFcvvEabkg",
+        "ariaLabel": null,
+        "title": "💘TRENDING| INSTAGRAM LOFI MASHUP| SLOWED+REVERBED | MIND FRESH LOFI SONG | LOFI SONGS",
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 110,
+        "text": "link",
+        "role": "link",
+        "href": "/shorts/ystOcPaMBLw",
+        "ariaLabel": null,
+        "title": null,
+        "visible": true,
+        "enabled": true
+      }
+    ],
+    "forms": [
+      {
+        "id": 5,
+        "role": "form",
+        "action": "https://www.youtube.com/results",
+        "method": "get",
+        "visible": true
+      }
+    ],
+    "text": "IN Skip navigation Sign in Home Shorts Subscriptions You All Shorts Unwatched Watched Videos Recently uploaded Live Filters Shorts Anxiety(lyrics)✨ #lofi #music #song #lyrics 961K views Dil Ka Jo Haal Hai | Besharam | Ranbir Kapoor | Shreya Ghoshal || LOFI JUKEBOX 834K views Lofi Beats – Chill Vibes for Study, Relax, & Focus 825K views 90s Lofi Songs || best hindi song #music 967K views MIND RELAX LOVE SONG 💕 | MIND RELAX LOFI MASHUP | LOVE MASHUP SONG 🎧 553K views Shorts 💘TRENDING| INSTAGRAM LOFI MASHUP| SLOWED+REVERBED | MIND FRESH LOFI SONG | LOFI SONGS 1.5M views Tum Se hi (slowed+reverb) | Jab We Met | Kareena , Shahid Kapoor | Mohit Chauhan || LOFI JUKEBOX 2.3M views chhapra ke boss lofi | slowed trending bhojpuri songs | छपरा के बॉस lofi mix 1.1M views New How’s Exam Studying Going? 🌙 Deep Lofi Beats for Late Night Focus on the channel 1.4K views Paro - Aditya Rikhari | Arish #lyrics #music #song #arish #aesthetic #lofi #fyp #trending 1.6M views Pal - Arijit Singh & Shreya Ghoshal jalebi Song | Slowed and Reverb Lofi Mix #arijitsingh #lofi # 110K views Night Lofi Songs | Mashup | Feel Relax & Sleep | Slowed+Reverb | Hindi Lofi Vibes #lofi #bollywood 515K views Top 5 Best Lofi Iconic Songs 2025 HM LO-FI 🎶 #iconicsong #lofisong #hmlofi #shortsfeed 423K views Tera chehra ❤️🥀 Aesthetic edit | Lyrical video | #shorts #status #music #lofi #edit #lyrics 610K views Lo-Fi Chords - Lofi Piano Chords - Chill Chords 1M views Show more People also search for Grunge Dubstep Chill-out music Jazz Ambient music Hip-hop culture Popular music Rock and roll Classical music House music Sitaare (Slowed + Reverb) | Arijit Singh | Amitabh Bhattacharya | Ikkis | Sad Vibes | SSR Lofi 817K views 3 months ago SSR Lofi Sitaare (Slowed + Reverb) | Arijit Singh | Amitabh Bhattacharya | Ikkis | Sad Vibes | SSR Lofi Use Headphone For Better ... lofi hip hop radio 📚 beats to relax/study to Lofi Girl Listen on Spotify, Apple music and more → https://link.lofigirl.com/m/music | Lofi Girl",
+    "tabs": [
+      {
+        "index": 0,
+        "title": "lofi - YouTube",
+        "url": "https://www.youtube.com/results?search_query=lofi",
+        "active": true
+      }
+    ],
+    "activeTab": {
+      "index": 0,
+      "title": "lofi - YouTube",
+      "url": "https://www.youtube.com/results?search_query=lofi",
+      "active": true
+    },
+    "observationQuality": {
+      "score": 1,
+      "reasons": []
+    }
+  },
+  "before": {
+    "url": "https://www.youtube.com/",
+    "title": "YouTube",
+    "tabCount": 1
+  },
+  "after": {
+    "url": "https://www.youtube.com/results?search_query=lofi",
+    "title": "lofi - YouTube",
+    "tabCount": 1
+  },
+  "action": {
+    "type": "press_key",
+    "params": {
+      "key": "Enter"
+    }
+  },
+  "timestamp": "2026-06-16T19:29:49.243Z",
+  "events": [
+    "url_changed",
+    "content_changed",
+    "form_detected",
+    "links_detected",
+    "buttons_detected",
+    "content_loaded",
+    "enter_pressed"
+  ]
+}
+[2026-06-16T19:29:49.277Z] [LOG] VERIFYING TASK WITH CRITERIA: [
+  {
+    "success": true,
+    "expected": "key_pressed",
+    "actual": "Enter",
+    "key": "Enter",
+    "pageState": {
+      "success": true,
+      "title": "lofi - YouTube",
+      "url": "https://www.youtube.com/results?search_query=lofi",
+      "buttons": [
+        {
+          "id": 2,
+          "text": "Guide",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Guide",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 4,
+          "text": "Skip navigation",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Skip navigation",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 78,
+          "text": "Clear search query",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Clear search query",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 7,
+          "text": "Search",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Search",
+          "title": "Search",
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 9,
+          "text": "Search with your voice",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Search with your voice",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 11,
+          "text": "Settings",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Settings",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 81,
+          "text": "All",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": null,
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 82,
+          "text": "Shorts",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": null,
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 83,
+          "text": "Unwatched",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": null,
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 84,
+          "text": "Watched",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": null,
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 85,
+          "text": "Videos",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": null,
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 86,
+          "text": "Recently uploaded",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": null,
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 87,
+          "text": "Live",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": null,
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 89,
+          "text": "Filters",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Search filters",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 92,
+          "text": "More actions",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "More actions",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 95,
+          "text": "More actions",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "More actions",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 98,
+          "text": "More actions",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "More actions",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 101,
+          "text": "More actions",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "More actions",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 104,
+          "text": "More actions",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "More actions",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 109,
+          "text": "More actions",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "More actions",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        }
+      ],
+      "inputs": [
+        {
+          "id": 6,
+          "text": "Search",
+          "value": "lofi",
+          "role": "input",
+          "type": "text",
+          "placeholder": "Search",
+          "ariaLabel": null,
+          "name": "search_query",
+          "title": null,
+          "visible": true,
+          "enabled": true
+        }
+      ],
+      "links": [
+        {
+          "id": 3,
+          "text": "YouTube Home",
+          "role": "link",
+          "href": "/",
+          "ariaLabel": null,
+          "title": "YouTube Home",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 10,
+          "text": "link",
+          "role": "link",
+          "href": null,
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 12,
+          "text": "Sign in",
+          "role": "link",
+          "href": "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3D%252Fresults%253Fsearch_query%253Dlofi&hl=en&ec=65620",
+          "ariaLabel": "Sign in",
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 15,
+          "text": "Home",
+          "role": "link",
+          "href": "/",
+          "ariaLabel": "Home",
+          "title": "Home",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 17,
+          "text": "Shorts",
+          "role": "link",
+          "href": "/shorts/",
+          "ariaLabel": "Shorts",
+          "title": "Shorts",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 19,
+          "text": "Subscriptions",
+          "role": "link",
+          "href": "/feed/subscriptions",
+          "ariaLabel": "Subscriptions",
+          "title": "Subscriptions",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 21,
+          "text": "You",
+          "role": "link",
+          "href": "/feed/you",
+          "ariaLabel": "You",
+          "title": "You",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 90,
+          "text": "link",
+          "role": "link",
+          "href": "/shorts/ADUTUY2Gff0",
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 91,
+          "text": "Anxiety(lyrics)✨ #lofi #music #song #lyrics",
+          "role": "link",
+          "href": "/shorts/ADUTUY2Gff0",
+          "ariaLabel": null,
+          "title": "Anxiety(lyrics)✨ #lofi #music #song #lyrics",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 93,
+          "text": "link",
+          "role": "link",
+          "href": "/shorts/LweetCoCFHA",
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 94,
+          "text": "Dil Ka Jo Haal Hai  | Besharam | Ranbir Kapoor | Shreya Ghoshal || LOFI JUKEBOX",
+          "role": "link",
+          "href": "/shorts/LweetCoCFHA",
+          "ariaLabel": null,
+          "title": "Dil Ka Jo Haal Hai  | Besharam | Ranbir Kapoor | Shreya Ghoshal || LOFI JUKEBOX",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 96,
+          "text": "link",
+          "role": "link",
+          "href": "/shorts/28ufM37HoWA",
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 97,
+          "text": "Lofi Beats – Chill Vibes for Study, Relax, & Focus",
+          "role": "link",
+          "href": "/shorts/28ufM37HoWA",
+          "ariaLabel": null,
+          "title": "Lofi Beats – Chill Vibes for Study, Relax, & Focus",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 99,
+          "text": "link",
+          "role": "link",
+          "href": "/shorts/u5xviTjyh6w",
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 100,
+          "text": "90s Lofi Songs || best hindi song #music",
+          "role": "link",
+          "href": "/shorts/u5xviTjyh6w",
+          "ariaLabel": null,
+          "title": "90s Lofi Songs || best hindi song #music",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 102,
+          "text": "link",
+          "role": "link",
+          "href": "/shorts/axb1HFlJBOA",
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 103,
+          "text": "MIND RELAX LOVE SONG 💕 | MIND RELAX LOFI MASHUP | LOVE MASHUP SONG 🎧",
+          "role": "link",
+          "href": "/shorts/axb1HFlJBOA",
+          "ariaLabel": null,
+          "title": "MIND RELAX LOVE SONG 💕 | MIND RELAX LOFI MASHUP | LOVE MASHUP SONG 🎧",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 107,
+          "text": "link",
+          "role": "link",
+          "href": "/shorts/GbFcvvEabkg",
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 108,
+          "text": "💘TRENDING| INSTAGRAM LOFI MASHUP| SLOWED+REVERBED | MIND FRESH LOFI SONG | LOFI SONGS",
+          "role": "link",
+          "href": "/shorts/GbFcvvEabkg",
+          "ariaLabel": null,
+          "title": "💘TRENDING| INSTAGRAM LOFI MASHUP| SLOWED+REVERBED | MIND FRESH LOFI SONG | LOFI SONGS",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 110,
+          "text": "link",
+          "role": "link",
+          "href": "/shorts/ystOcPaMBLw",
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        }
+      ],
+      "forms": [
+        {
+          "id": 5,
+          "role": "form",
+          "action": "https://www.youtube.com/results",
+          "method": "get",
+          "visible": true
+        }
+      ],
+      "text": "IN Skip navigation Sign in Home Shorts Subscriptions You All Shorts Unwatched Watched Videos Recently uploaded Live Filters Shorts Anxiety(lyrics)✨ #lofi #music #song #lyrics 961K views Dil Ka Jo Haal Hai | Besharam | Ranbir Kapoor | Shreya Ghoshal || LOFI JUKEBOX 834K views Lofi Beats – Chill Vibes for Study, Relax, & Focus 825K views 90s Lofi Songs || best hindi song #music 967K views MIND RELAX LOVE SONG 💕 | MIND RELAX LOFI MASHUP | LOVE MASHUP SONG 🎧 553K views Shorts 💘TRENDING| INSTAGRAM LOFI MASHUP| SLOWED+REVERBED | MIND FRESH LOFI SONG | LOFI SONGS 1.5M views Tum Se hi (slowed+reverb) | Jab We Met | Kareena , Shahid Kapoor | Mohit Chauhan || LOFI JUKEBOX 2.3M views chhapra ke boss lofi | slowed trending bhojpuri songs | छपरा के बॉस lofi mix 1.1M views New How’s Exam Studying Going? 🌙 Deep Lofi Beats for Late Night Focus on the channel 1.4K views Paro - Aditya Rikhari | Arish #lyrics #music #song #arish #aesthetic #lofi #fyp #trending 1.6M views Pal - Arijit Singh & Shreya Ghoshal jalebi Song | Slowed and Reverb Lofi Mix #arijitsingh #lofi # 110K views Night Lofi Songs | Mashup | Feel Relax & Sleep | Slowed+Reverb | Hindi Lofi Vibes #lofi #bollywood 515K views Top 5 Best Lofi Iconic Songs 2025 HM LO-FI 🎶 #iconicsong #lofisong #hmlofi #shortsfeed 423K views Tera chehra ❤️🥀 Aesthetic edit | Lyrical video | #shorts #status #music #lofi #edit #lyrics 610K views Lo-Fi Chords - Lofi Piano Chords - Chill Chords 1M views Show more People also search for Grunge Dubstep Chill-out music Jazz Ambient music Hip-hop culture Popular music Rock and roll Classical music House music Sitaare (Slowed + Reverb) | Arijit Singh | Amitabh Bhattacharya | Ikkis | Sad Vibes | SSR Lofi 817K views 3 months ago SSR Lofi Sitaare (Slowed + Reverb) | Arijit Singh | Amitabh Bhattacharya | Ikkis | Sad Vibes | SSR Lofi Use Headphone For Better ... lofi hip hop radio 📚 beats to relax/study to Lofi Girl Listen on Spotify, Apple music and more → https://link.lofigirl.com/m/music | Lofi Girl",
+      "tabs": [
+        {
+          "index": 0,
+          "title": "lofi - YouTube",
+          "url": "https://www.youtube.com/results?search_query=lofi",
+          "active": true
+        }
+      ],
+      "activeTab": {
+        "index": 0,
+        "title": "lofi - YouTube",
+        "url": "https://www.youtube.com/results?search_query=lofi",
+        "active": true
+      },
+      "observationQuality": {
+        "score": 1,
+        "reasons": []
+      }
+    },
+    "before": {
+      "url": "https://www.youtube.com/",
+      "title": "YouTube",
+      "tabCount": 1
+    },
+    "after": {
+      "url": "https://www.youtube.com/results?search_query=lofi",
+      "title": "lofi - YouTube",
+      "tabCount": 1
+    },
+    "action": {
+      "type": "press_key",
+      "params": {
+        "key": "Enter"
+      }
+    },
+    "timestamp": "2026-06-16T19:29:49.243Z",
+    "events": [
+      "url_changed",
+      "content_changed",
+      "form_detected",
+      "links_detected",
+      "buttons_detected",
+      "content_loaded",
+      "enter_pressed"
+    ]
+  }
+]
+[2026-06-16T19:29:49.279Z] [LOG] task: {
+  "id": "c682cbd2-292f-4fde-9454-39c2f5b37ec8",
+  "intent": null,
+  "objective": "Open a lofi video from search results",
+  "target": null,
+  "context": {},
+  "dependsOn": [],
+  "successCriteria": [
+    "URL contains youtube.com/watch",
+    "Page title contains lofi",
+    "Video player is visible"
+  ],
+  "requires": [
+    "lofi_search_results_visible"
+  ],
+  "produces": [
+    "lofi_video_open"
+  ],
+  "plan": null,
+  "result": null,
+  "currentStep": 0,
+  "status": "running",
+  "createdAt": "2026-06-16T19:28:36.055Z"
+}
+[2026-06-16T19:29:49.280Z] [LOG] STATE VERIFIED: null
+[2026-06-16T19:29:49.280Z] [LOG] EVENT VERIFIED: null
+[2026-06-16T19:29:49.281Z] [LOG] RULE VERIFIED: null
+[2026-06-16T19:29:49.283Z] [LOG] [LLM] Trying askGroq
+[2026-06-16T19:29:49.284Z] [LOG] SYSTEM CHARS: 1787
+[2026-06-16T19:29:49.284Z] [LOG] USER CHARS: 13799
+[2026-06-16T19:29:49.285Z] [LOG] TOTAL CHARS: 15586
+[2026-06-16T19:29:49.552Z] [LOG] [LLM] Failed askGroq Groq failed: 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kv6gqdgyfm5ary83wd5n1pb8` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99826, Requested 4452. Please try again in 1h1m36.192s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+
+[2026-06-16T19:29:49.553Z] [LOG] [LLM] Trying askOpenRouter
+[2026-06-16T19:29:49.554Z] [LOG] SYSTEM CHARS: 1787
+[2026-06-16T19:29:49.555Z] [LOG] USER CHARS: 13799
+[2026-06-16T19:29:49.556Z] [LOG] TOTAL CHARS: 15586
+[2026-06-16T19:29:49.556Z] [LOG] [OpenRouter] Request started
+[2026-06-16T19:29:51.598Z] [LOG] [OpenRouter] Status: 200
+[2026-06-16T19:29:57.842Z] [LOG] [LLM] Success askOpenRouter
+[2026-06-16T19:29:57.843Z] [LOG] LLM TASK VERIFICATION: {
+  "achieved": false,
+  "confidence": 1,
+  "reason": "The URL does not contain 'youtube.com/watch' and there's no evidence of a video player being visible.",
+  "criteriaResults": [
+    {
+      "criterion": "URL contains youtube.com/watch",
+      "met": false
+    },
+    {
+      "criterion": "Page title contains lofi",
+      "met": true
+    },
+    {
+      "criterion": "Video player is visible",
+      "met": false
+    }
+  ]
+}
+[2026-06-16T19:29:57.844Z] [LOG] GOAL VERIFICATION (DISABLED): {
+  "achieved": false
+}
+[2026-06-16T19:29:57.845Z] [LOG] Task verification failed — replanning for current task
+[2026-06-16T19:29:57.845Z] [LOG] [LLM] Trying askGroq
+[2026-06-16T19:29:57.846Z] [LOG] SYSTEM CHARS: 298
+[2026-06-16T19:29:57.847Z] [LOG] USER CHARS: 490
+[2026-06-16T19:29:57.848Z] [LOG] TOTAL CHARS: 788
+[2026-06-16T19:29:58.034Z] [LOG] [LLM] Failed askGroq Groq failed: 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kv6gqdgyfm5ary83wd5n1pb8` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99816, Requested 411. Please try again in 3m16.128s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+
+[2026-06-16T19:29:58.035Z] [LOG] [LLM] Trying askOpenRouter
+[2026-06-16T19:29:58.042Z] [LOG] SYSTEM CHARS: 298
+[2026-06-16T19:29:58.049Z] [LOG] USER CHARS: 490
+[2026-06-16T19:29:58.053Z] [LOG] TOTAL CHARS: 788
+[2026-06-16T19:29:58.057Z] [LOG] [OpenRouter] Request started
+[2026-06-16T19:29:58.672Z] [LOG] [OpenRouter] Status: 200
+[2026-06-16T19:29:58.926Z] [LOG] [LLM] Success askOpenRouter
+[2026-06-16T19:29:58.928Z] [LOG] IMPOSSIBLE CHECK: {
+  "impossible": false
+}
+[2026-06-16T19:29:58.928Z] [LOG] Replanning...
+[2026-06-16T19:29:58.929Z] [LOG] REPLAN TASK: {
+  "id": "c682cbd2-292f-4fde-9454-39c2f5b37ec8",
+  "intent": null,
+  "objective": "Open a lofi video from search results",
+  "target": null,
+  "context": {},
+  "dependsOn": [],
+  "successCriteria": [
+    "URL contains youtube.com/watch",
+    "Page title contains lofi",
+    "Video player is visible"
+  ],
+  "requires": [
+    "lofi_search_results_visible"
+  ],
+  "produces": [
+    "lofi_video_open"
+  ],
+  "plan": null,
+  "result": null,
+  "currentStep": 0,
+  "status": "running",
+  "createdAt": "2026-06-16T19:28:36.055Z"
+}
+[2026-06-16T19:30:01.582Z] [LOG] REPLAN BROWSER CONTEXT:
+ URL:
+https://www.youtube.com/results?search_query=lofi
+
+Title:
+lofi - YouTube
+
+Inputs:
+[6] Search (type: "text", placeholder: "Search", name: "search_query", value: "lofi")
+
+Buttons:
+[78] Clear search query (type: "submit", ariaLabel: "Clear search query")
+[7] Search (type: "submit", ariaLabel: "Search", title: "Search")
+[9] Search with your voice (type: "submit", ariaLabel: "Search with your voice")
+[89] Filters (type: "submit", ariaLabel: "Search filters")
+[2] Guide (type: "submit", ariaLabel: "Guide")
+[4] Skip navigation (type: "submit", ariaLabel: "Skip navigation")
+[11] Settings (type: "submit", ariaLabel: "Settings")
+[81] All (type: "submit")
+[82] Shorts (type: "submit")
+[83] Unwatched (type: "submit")
+[84] Watched (type: "submit")
+[85] Videos (type: "submit")
+[86] Recently uploaded (type: "submit")
+[87] Live (type: "submit")
+[92] More actions (type: "submit", ariaLabel: "More actions")
+[95] More actions (type: "submit", ariaLabel: "More actions")
+[98] More actions (type: "submit", ariaLabel: "More actions")
+[101] More actions (type: "submit", ariaLabel: "More actions")
+[104] More actions (type: "submit", ariaLabel: "More actions")
+[109] More actions (type: "submit", ariaLabel: "More actions")
+
+Links:
+[3] YouTube Home (href: "/", title: "YouTube Home")
+[10] link
+[12] Sign in (href: "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3D%252Fresults%253Fsearch_query%253Dlofi&hl=en&ec=65620", ariaLabel: "Sign in")
+[15] Home (href: "/", ariaLabel: "Home", title: "Home")
+[17] Shorts (href: "/shorts/", ariaLabel: "Shorts", title: "Shorts")
+[19] Subscriptions (href: "/feed/subscriptions", ariaLabel: "Subscriptions", title: "Subscriptions")
+[21] You (href: "/feed/you", ariaLabel: "You", title: "You")
+[90] link (href: "/shorts/ADUTUY2Gff0")
+[91] Anxiety(lyrics)✨ #lofi #music #song #lyrics (href: "/shorts/ADUTUY2Gff0", title: "Anxiety(lyrics)✨ #lofi #music #song #lyrics")
+[93] link (href: "/shorts/LweetCoCFHA")
+[94] Dil Ka Jo Haal Hai  | Besharam | Ranbir Kapoor | Shreya Ghoshal || LOFI JUKEBOX (href: "/shorts/LweetCoCFHA", title: "Dil Ka Jo Haal Hai  | Besharam | Ranbir Kapoor | Shreya Ghoshal || LOFI JUKEBOX")
+[96] link (href: "/shorts/28ufM37HoWA")
+[97] Lofi Beats – Chill Vibes for Study, Relax, & Focus (href: "/shorts/28ufM37HoWA", title: "Lofi Beats – Chill Vibes for Study, Relax, & Focus")
+[99] link (href: "/shorts/u5xviTjyh6w")
+[100] 90s Lofi Songs || best hindi song #music (href: "/shorts/u5xviTjyh6w", title: "90s Lofi Songs || best hindi song #music")
+[102] link (href: "/shorts/axb1HFlJBOA")
+[103] MIND RELAX LOVE SONG 💕 | MIND RELAX LOFI MASHUP | LOVE MASHUP SONG 🎧 (href: "/shorts/axb1HFlJBOA", title: "MIND RELAX LOVE SONG 💕 | MIND RELAX LOFI MASHUP | LOVE MASHUP SONG 🎧")
+[107] link (href: "/shorts/GbFcvvEabkg")
+[108] 💘TRENDING| INSTAGRAM LOFI MASHUP| SLOWED+REVERBED | MIND FRESH LOFI SONG | LOFI SONGS (href: "/shorts/GbFcvvEabkg", title: "💘TRENDING| INSTAGRAM LOFI MASHUP| SLOWED+REVERBED | MIND FRESH LOFI SONG | LOFI SONGS")
+[110] link (href: "/shorts/ystOcPaMBLw")
+
+Forms:
+[5] role: form, action: https://www.youtube.com/results, method: get
+
+
+[2026-06-16T19:30:01.583Z] [LOG] SYSTEM CHARS: 7863
+[2026-06-16T19:30:01.584Z] [LOG] GOAL CHARS: 26
+[2026-06-16T19:30:01.585Z] [LOG] TOTAL CHARS: 7889
+[2026-06-16T19:30:01.585Z] [LOG] [LLM] Trying askGroq
+[2026-06-16T19:30:01.586Z] [LOG] SYSTEM CHARS: 7863
+[2026-06-16T19:30:01.587Z] [LOG] USER CHARS: 2722
+[2026-06-16T19:30:01.588Z] [LOG] TOTAL CHARS: 10585
+[2026-06-16T19:30:01.679Z] [LOG] [LLM] Failed askGroq Groq failed: 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kv6gqdgyfm5ary83wd5n1pb8` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99812, Requested 3108. Please try again in 42m2.88s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+
+[2026-06-16T19:30:01.680Z] [LOG] [LLM] Trying askOpenRouter
+[2026-06-16T19:30:01.681Z] [LOG] SYSTEM CHARS: 7863
+[2026-06-16T19:30:01.682Z] [LOG] USER CHARS: 2722
+[2026-06-16T19:30:01.682Z] [LOG] TOTAL CHARS: 10585
+[2026-06-16T19:30:01.683Z] [LOG] [OpenRouter] Request started
+[2026-06-16T19:30:02.441Z] [LOG] [OpenRouter] Status: 200
+[2026-06-16T19:30:11.346Z] [LOG] [LLM] Success askOpenRouter
+[2026-06-16T19:30:11.347Z] [LOG] RAW REPLAN RESPONSE: {
+  "actions": [
+    {
+      "type": "read_ui",
+      "params": {}
+    }
+  ]
+}
+[2026-06-16T19:30:11.348Z] [LOG] PARSED: {
+  "actions": [
+    {
+      "type": "read_ui",
+      "params": {}
+    }
+  ]
+}
+[2026-06-16T19:30:11.349Z] [LOG] VALIDATED ACTIONS: [
+  {
+    "type": "read_ui",
+    "params": {}
+  }
+]
+[2026-06-16T19:30:11.349Z] [LOG] VALIDATED ACTIONS: [
+  {
+    "type": "read_ui",
+    "params": {}
+  }
+]
+[2026-06-16T19:30:11.351Z] [LOG] NEW PLAN: {
+  "goalId": "0a65c70f-dfb0-4d95-b481-73d5d47e1195",
+  "actions": [
+    {
+      "type": "read_ui",
       "params": {}
     }
   ],
-  "createdAt": "2026-06-16T17:01:22.685Z"
+  "createdAt": "2026-06-16T19:30:11.350Z"
 }
-[2026-06-16T17:01:25.580Z] [LOG] [2026-06-16T17:01:25.579Z] Received: {
+[2026-06-16T19:30:11.352Z] [LOG] Task 3 Attempt 2 (Total Actions: 4, LLM Calls: 12)
+[2026-06-16T19:30:11.353Z] [LOG] 
+===== SENDING PLAN =====
+[2026-06-16T19:30:11.354Z] [LOG] {
+  "goalId": "0a65c70f-dfb0-4d95-b481-73d5d47e1195",
+  "actions": [
+    {
+      "type": "read_ui",
+      "params": {}
+    }
+  ],
+  "createdAt": "2026-06-16T19:30:11.350Z"
+}
+[2026-06-16T19:30:20.889Z] [LOG] [2026-06-16T19:30:20.881Z] Received: {
   "type": "execution_result",
   "observations": [
     {
       "success": true,
-      "expected": "page_refreshed",
-      "actual": "https://www.youtube.com/",
+      "expected": "page_read",
+      "actual": "lofi - YouTube",
       "pageState": {
         "success": true,
-        "title": "YouTube",
-        "url": "https://www.youtube.com/",
+        "title": "lofi - YouTube",
+        "url": "https://www.youtube.com/results?search_query=lofi",
         "buttons": [
+          {
+            "id": 2,
+            "text": "Guide",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Guide",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
           {
             "id": 4,
             "text": "Skip navigation",
             "role": "button",
+            "type": "submit",
+            "ariaLabel": "Skip navigation",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 78,
+            "text": "Clear search query",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Clear search query",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 7,
+            "text": "Search",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Search",
+            "title": "Search",
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 9,
+            "text": "Search with your voice",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Search with your voice",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 11,
+            "text": "Settings",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Settings",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 81,
+            "text": "All",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": null,
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 82,
+            "text": "Shorts",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": null,
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 83,
+            "text": "Unwatched",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": null,
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 84,
+            "text": "Watched",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": null,
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 85,
+            "text": "Videos",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": null,
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 86,
+            "text": "Recently uploaded",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": null,
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 87,
+            "text": "Live",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": null,
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 89,
+            "text": "Filters",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Search filters",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 92,
+            "text": "More actions",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "More actions",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 95,
+            "text": "More actions",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "More actions",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 98,
+            "text": "More actions",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "More actions",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 101,
+            "text": "More actions",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "More actions",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 104,
+            "text": "More actions",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "More actions",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 109,
+            "text": "More actions",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "More actions",
+            "title": null,
+            "name": null,
             "visible": true,
             "enabled": true
           }
@@ -11056,18 +6598,45 @@ Given this, the most appropriate next step would be to navigate to the YouTube h
           {
             "id": 6,
             "text": "Search",
-            "value": "",
+            "value": "lofi",
             "role": "input",
+            "type": "text",
             "placeholder": "Search",
+            "ariaLabel": null,
+            "name": "search_query",
+            "title": null,
             "visible": true,
             "enabled": true
           }
         ],
         "links": [
           {
+            "id": 3,
+            "text": "YouTube Home",
+            "role": "link",
+            "href": "/",
+            "ariaLabel": null,
+            "title": "YouTube Home",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 10,
+            "text": "link",
+            "role": "link",
+            "href": null,
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
             "id": 12,
             "text": "Sign in",
             "role": "link",
+            "href": "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3D%252Fresults%253Fsearch_query%253Dlofi&hl=en&ec=65620",
+            "ariaLabel": "Sign in",
+            "title": null,
             "visible": true,
             "enabled": true
           },
@@ -11075,6 +6644,9 @@ Given this, the most appropriate next step would be to navigate to the YouTube h
             "id": 15,
             "text": "Home",
             "role": "link",
+            "href": "/",
+            "ariaLabel": "Home",
+            "title": "Home",
             "visible": true,
             "enabled": true
           },
@@ -11082,6 +6654,9 @@ Given this, the most appropriate next step would be to navigate to the YouTube h
             "id": 17,
             "text": "Shorts",
             "role": "link",
+            "href": "/shorts/",
+            "ariaLabel": "Shorts",
+            "title": "Shorts",
             "visible": true,
             "enabled": true
           },
@@ -11089,6 +6664,9 @@ Given this, the most appropriate next step would be to navigate to the YouTube h
             "id": 19,
             "text": "Subscriptions",
             "role": "link",
+            "href": "/feed/subscriptions",
+            "ariaLabel": "Subscriptions",
+            "title": "Subscriptions",
             "visible": true,
             "enabled": true
           },
@@ -11096,6 +6674,139 @@ Given this, the most appropriate next step would be to navigate to the YouTube h
             "id": 21,
             "text": "You",
             "role": "link",
+            "href": "/feed/you",
+            "ariaLabel": "You",
+            "title": "You",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 90,
+            "text": "link",
+            "role": "link",
+            "href": "/shorts/ADUTUY2Gff0",
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 91,
+            "text": "Anxiety(lyrics)✨ #lofi #music #song #lyrics",
+            "role": "link",
+            "href": "/shorts/ADUTUY2Gff0",
+            "ariaLabel": null,
+            "title": "Anxiety(lyrics)✨ #lofi #music #song #lyrics",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 93,
+            "text": "link",
+            "role": "link",
+            "href": "/shorts/LweetCoCFHA",
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 94,
+            "text": "Dil Ka Jo Haal Hai  | Besharam | Ranbir Kapoor | Shreya Ghoshal || LOFI JUKEBOX",
+            "role": "link",
+            "href": "/shorts/LweetCoCFHA",
+            "ariaLabel": null,
+            "title": "Dil Ka Jo Haal Hai  | Besharam | Ranbir Kapoor | Shreya Ghoshal || LOFI JUKEBOX",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 96,
+            "text": "link",
+            "role": "link",
+            "href": "/shorts/28ufM37HoWA",
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 97,
+            "text": "Lofi Beats – Chill Vibes for Study, Relax, & Focus",
+            "role": "link",
+            "href": "/shorts/28ufM37HoWA",
+            "ariaLabel": null,
+            "title": "Lofi Beats – Chill Vibes for Study, Relax, & Focus",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 99,
+            "text": "link",
+            "role": "link",
+            "href": "/shorts/u5xviTjyh6w",
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 100,
+            "text": "90s Lofi Songs || best hindi song #music",
+            "role": "link",
+            "href": "/shorts/u5xviTjyh6w",
+            "ariaLabel": null,
+            "title": "90s Lofi Songs || best hindi song #music",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 102,
+            "text": "link",
+            "role": "link",
+            "href": "/shorts/axb1HFlJBOA",
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 103,
+            "text": "MIND RELAX LOVE SONG 💕 | MIND RELAX LOFI MASHUP | LOVE MASHUP SONG 🎧",
+            "role": "link",
+            "href": "/shorts/axb1HFlJBOA",
+            "ariaLabel": null,
+            "title": "MIND RELAX LOVE SONG 💕 | MIND RELAX LOFI MASHUP | LOVE MASHUP SONG 🎧",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 107,
+            "text": "link",
+            "role": "link",
+            "href": "/shorts/GbFcvvEabkg",
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 108,
+            "text": "💘TRENDING| INSTAGRAM LOFI MASHUP| SLOWED+REVERBED | MIND FRESH LOFI SONG | LOFI SONGS",
+            "role": "link",
+            "href": "/shorts/GbFcvvEabkg",
+            "ariaLabel": null,
+            "title": "💘TRENDING| INSTAGRAM LOFI MASHUP| SLOWED+REVERBED | MIND FRESH LOFI SONG | LOFI SONGS",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 110,
+            "text": "link",
+            "role": "link",
+            "href": "/shorts/ystOcPaMBLw",
+            "ariaLabel": null,
+            "title": null,
             "visible": true,
             "enabled": true
           }
@@ -11109,66 +6820,716 @@ Given this, the most appropriate next step would be to navigate to the YouTube h
             "visible": true
           }
         ],
-        "text": "IN Skip navigation Sign in Home Shorts Subscriptions You Try searching to get started Start watching videos to help us build a feed of videos you'll love.",
+        "text": "IN Skip navigation Sign in Home Shorts Subscriptions You All Shorts Unwatched Watched Videos Recently uploaded Live Filters Shorts Anxiety(lyrics)✨ #lofi #music #song #lyrics 961K views Dil Ka Jo Haal Hai | Besharam | Ranbir Kapoor | Shreya Ghoshal || LOFI JUKEBOX 834K views Lofi Beats – Chill Vibes for Study, Relax, & Focus 825K views 90s Lofi Songs || best hindi song #music 967K views MIND RELAX LOVE SONG 💕 | MIND RELAX LOFI MASHUP | LOVE MASHUP SONG 🎧 553K views Shorts 💘TRENDING| INSTAGRAM LOFI MASHUP| SLOWED+REVERBED | MIND FRESH LOFI SONG | LOFI SONGS 1.5M views Tum Se hi (slowed+reverb) | Jab We Met | Kareena , Shahid Kapoor | Mohit Chauhan || LOFI JUKEBOX 2.3M views chhapra ke boss lofi | slowed trending bhojpuri songs | छपरा के बॉस lofi mix 1.1M views New How’s Exam Studying Going? 🌙 Deep Lofi Beats for Late Night Focus on the channel 1.4K views Paro - Aditya Rikhari | Arish #lyrics #music #song #arish #aesthetic #lofi #fyp #trending 1.6M views Pal - Arijit Singh & Shreya Ghoshal jalebi Song | Slowed and Reverb Lofi Mix #arijitsingh #lofi # 110K views Night Lofi Songs | Mashup | Feel Relax & Sleep | Slowed+Reverb | Hindi Lofi Vibes #lofi #bollywood 515K views Top 5 Best Lofi Iconic Songs 2025 HM LO-FI 🎶 #iconicsong #lofisong #hmlofi #shortsfeed 423K views Tera chehra ❤️🥀 Aesthetic edit | Lyrical video | #shorts #status #music #lofi #edit #lyrics 610K views Lo-Fi Chords - Lofi Piano Chords - Chill Chords 1M views Show more People also search for Grunge Dubstep Chill-out music Jazz Ambient music Hip-hop culture Popular music Rock and roll Classical music House music Sitaare (Slowed + Reverb) | Arijit Singh | Amitabh Bhattacharya | Ikkis | Sad Vibes | SSR Lofi 817K views 3 months ago SSR Lofi Sitaare (Slowed + Reverb) | Arijit Singh | Amitabh Bhattacharya | Ikkis | Sad Vibes | SSR Lofi Use Headphone For Better ... lofi hip hop radio 📚 beats to relax/study to Lofi Girl Listen on Spotify, Apple music and more → https://link.lofigirl.com/m/music | Lofi Girl",
         "tabs": [
           {
             "index": 0,
-            "title": "YouTube",
-            "url": "https://www.youtube.com/",
+            "title": "lofi - YouTube",
+            "url": "https://www.youtube.com/results?search_query=lofi",
             "active": true
           }
         ],
         "activeTab": {
           "index": 0,
-          "title": "YouTube",
-          "url": "https://www.youtube.com/",
+          "title": "lofi - YouTube",
+          "url": "https://www.youtube.com/results?search_query=lofi",
           "active": true
         },
         "observationQuality": {
           "score": 1,
           "reasons": []
+        },
+        "before": {
+          "url": "https://www.youtube.com/results?search_query=lofi",
+          "title": "lofi - YouTube",
+          "tabCount": 1
+        },
+        "after": {
+          "url": "https://www.youtube.com/results?search_query=lofi",
+          "title": "lofi - YouTube",
+          "tabCount": 1
         }
       },
-      "before": {
-        "url": "https://www.youtube.com/",
-        "title": "YouTube",
-        "tabCount": 1
-      },
-      "after": {
-        "url": "https://www.youtube.com/",
-        "title": "YouTube",
-        "tabCount": 1
-      },
+      "title": "lofi - YouTube",
+      "url": "https://www.youtube.com/results?search_query=lofi",
+      "buttons": [
+        {
+          "id": 2,
+          "text": "Guide",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Guide",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 4,
+          "text": "Skip navigation",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Skip navigation",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 78,
+          "text": "Clear search query",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Clear search query",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 7,
+          "text": "Search",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Search",
+          "title": "Search",
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 9,
+          "text": "Search with your voice",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Search with your voice",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 11,
+          "text": "Settings",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Settings",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 81,
+          "text": "All",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": null,
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 82,
+          "text": "Shorts",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": null,
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 83,
+          "text": "Unwatched",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": null,
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 84,
+          "text": "Watched",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": null,
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 85,
+          "text": "Videos",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": null,
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 86,
+          "text": "Recently uploaded",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": null,
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 87,
+          "text": "Live",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": null,
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 89,
+          "text": "Filters",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Search filters",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 92,
+          "text": "More actions",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "More actions",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 95,
+          "text": "More actions",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "More actions",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 98,
+          "text": "More actions",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "More actions",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 101,
+          "text": "More actions",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "More actions",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 104,
+          "text": "More actions",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "More actions",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 109,
+          "text": "More actions",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "More actions",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        }
+      ],
+      "inputs": [
+        {
+          "id": 6,
+          "text": "Search",
+          "value": "lofi",
+          "role": "input",
+          "type": "text",
+          "placeholder": "Search",
+          "ariaLabel": null,
+          "name": "search_query",
+          "title": null,
+          "visible": true,
+          "enabled": true
+        }
+      ],
+      "links": [
+        {
+          "id": 3,
+          "text": "YouTube Home",
+          "role": "link",
+          "href": "/",
+          "ariaLabel": null,
+          "title": "YouTube Home",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 10,
+          "text": "link",
+          "role": "link",
+          "href": null,
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 12,
+          "text": "Sign in",
+          "role": "link",
+          "href": "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3D%252Fresults%253Fsearch_query%253Dlofi&hl=en&ec=65620",
+          "ariaLabel": "Sign in",
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 15,
+          "text": "Home",
+          "role": "link",
+          "href": "/",
+          "ariaLabel": "Home",
+          "title": "Home",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 17,
+          "text": "Shorts",
+          "role": "link",
+          "href": "/shorts/",
+          "ariaLabel": "Shorts",
+          "title": "Shorts",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 19,
+          "text": "Subscriptions",
+          "role": "link",
+          "href": "/feed/subscriptions",
+          "ariaLabel": "Subscriptions",
+          "title": "Subscriptions",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 21,
+          "text": "You",
+          "role": "link",
+          "href": "/feed/you",
+          "ariaLabel": "You",
+          "title": "You",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 90,
+          "text": "link",
+          "role": "link",
+          "href": "/shorts/ADUTUY2Gff0",
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 91,
+          "text": "Anxiety(lyrics)✨ #lofi #music #song #lyrics",
+          "role": "link",
+          "href": "/shorts/ADUTUY2Gff0",
+          "ariaLabel": null,
+          "title": "Anxiety(lyrics)✨ #lofi #music #song #lyrics",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 93,
+          "text": "link",
+          "role": "link",
+          "href": "/shorts/LweetCoCFHA",
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 94,
+          "text": "Dil Ka Jo Haal Hai  | Besharam | Ranbir Kapoor | Shreya Ghoshal || LOFI JUKEBOX",
+          "role": "link",
+          "href": "/shorts/LweetCoCFHA",
+          "ariaLabel": null,
+          "title": "Dil Ka Jo Haal Hai  | Besharam | Ranbir Kapoor | Shreya Ghoshal || LOFI JUKEBOX",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 96,
+          "text": "link",
+          "role": "link",
+          "href": "/shorts/28ufM37HoWA",
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 97,
+          "text": "Lofi Beats – Chill Vibes for Study, Relax, & Focus",
+          "role": "link",
+          "href": "/shorts/28ufM37HoWA",
+          "ariaLabel": null,
+          "title": "Lofi Beats – Chill Vibes for Study, Relax, & Focus",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 99,
+          "text": "link",
+          "role": "link",
+          "href": "/shorts/u5xviTjyh6w",
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 100,
+          "text": "90s Lofi Songs || best hindi song #music",
+          "role": "link",
+          "href": "/shorts/u5xviTjyh6w",
+          "ariaLabel": null,
+          "title": "90s Lofi Songs || best hindi song #music",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 102,
+          "text": "link",
+          "role": "link",
+          "href": "/shorts/axb1HFlJBOA",
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 103,
+          "text": "MIND RELAX LOVE SONG 💕 | MIND RELAX LOFI MASHUP | LOVE MASHUP SONG 🎧",
+          "role": "link",
+          "href": "/shorts/axb1HFlJBOA",
+          "ariaLabel": null,
+          "title": "MIND RELAX LOVE SONG 💕 | MIND RELAX LOFI MASHUP | LOVE MASHUP SONG 🎧",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 107,
+          "text": "link",
+          "role": "link",
+          "href": "/shorts/GbFcvvEabkg",
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 108,
+          "text": "💘TRENDING| INSTAGRAM LOFI MASHUP| SLOWED+REVERBED | MIND FRESH LOFI SONG | LOFI SONGS",
+          "role": "link",
+          "href": "/shorts/GbFcvvEabkg",
+          "ariaLabel": null,
+          "title": "💘TRENDING| INSTAGRAM LOFI MASHUP| SLOWED+REVERBED | MIND FRESH LOFI SONG | LOFI SONGS",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 110,
+          "text": "link",
+          "role": "link",
+          "href": "/shorts/ystOcPaMBLw",
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        }
+      ],
+      "text": "IN Skip navigation Sign in Home Shorts Subscriptions You All Shorts Unwatched Watched Videos Recently uploaded Live Filters Shorts Anxiety(lyrics)✨ #lofi #music #song #lyrics 961K views Dil Ka Jo Haal Hai | Besharam | Ranbir Kapoor | Shreya Ghoshal || LOFI JUKEBOX 834K views Lofi Beats – Chill Vibes for Study, Relax, & Focus 825K views 90s Lofi Songs || best hindi song #music 967K views MIND RELAX LOVE SONG 💕 | MIND RELAX LOFI MASHUP | LOVE MASHUP SONG 🎧 553K views Shorts 💘TRENDING| INSTAGRAM LOFI MASHUP| SLOWED+REVERBED | MIND FRESH LOFI SONG | LOFI SONGS 1.5M views Tum Se hi (slowed+reverb) | Jab We Met | Kareena , Shahid Kapoor | Mohit Chauhan || LOFI JUKEBOX 2.3M views chhapra ke boss lofi | slowed trending bhojpuri songs | छपरा के बॉस lofi mix 1.1M views New How’s Exam Studying Going? 🌙 Deep Lofi Beats for Late Night Focus on the channel 1.4K views Paro - Aditya Rikhari | Arish #lyrics #music #song #arish #aesthetic #lofi #fyp #trending 1.6M views Pal - Arijit Singh & Shreya Ghoshal jalebi Song | Slowed and Reverb Lofi Mix #arijitsingh #lofi # 110K views Night Lofi Songs | Mashup | Feel Relax & Sleep | Slowed+Reverb | Hindi Lofi Vibes #lofi #bollywood 515K views Top 5 Best Lofi Iconic Songs 2025 HM LO-FI 🎶 #iconicsong #lofisong #hmlofi #shortsfeed 423K views Tera chehra ❤️🥀 Aesthetic edit | Lyrical video | #shorts #status #music #lofi #edit #lyrics 610K views Lo-Fi Chords - Lofi Piano Chords - Chill Chords 1M views Show more People also search for Grunge Dubstep Chill-out music Jazz Ambient music Hip-hop culture Popular music Rock and roll Classical music House music Sitaare (Slowed + Reverb) | Arijit Singh | Amitabh Bhattacharya | Ikkis | Sad Vibes | SSR Lofi 817K views 3 months ago SSR Lofi Sitaare (Slowed + Reverb) | Arijit Singh | Amitabh Bhattacharya | Ikkis | Sad Vibes | SSR Lofi Use Headphone For Better ... lofi hip hop radio 📚 beats to relax/study to Lofi Girl Listen on Spotify, Apple music and more → https://link.lofigirl.com/m/music | Lofi Girl",
       "action": {
-        "type": "refresh",
+        "type": "read_ui",
         "params": {}
       },
-      "timestamp": "2026-06-16T17:01:25.578Z",
-      "events": [
-        "form_detected",
-        "links_detected",
-        "buttons_detected",
-        "content_loaded"
-      ]
+      "timestamp": "2026-06-16T19:30:20.871Z",
+      "events": []
     }
   ]
 }
-[2026-06-16T17:01:25.581Z] [LOG] EXECUTE RESULT: {
+[2026-06-16T19:30:20.901Z] [LOG] EXECUTE RESULT: {
   "type": "execution_result",
   "observations": [
     {
       "success": true,
-      "expected": "page_refreshed",
-      "actual": "https://www.youtube.com/",
+      "expected": "page_read",
+      "actual": "lofi - YouTube",
       "pageState": {
         "success": true,
-        "title": "YouTube",
-        "url": "https://www.youtube.com/",
+        "title": "lofi - YouTube",
+        "url": "https://www.youtube.com/results?search_query=lofi",
         "buttons": [
+          {
+            "id": 2,
+            "text": "Guide",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Guide",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
           {
             "id": 4,
             "text": "Skip navigation",
             "role": "button",
+            "type": "submit",
+            "ariaLabel": "Skip navigation",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 78,
+            "text": "Clear search query",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Clear search query",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 7,
+            "text": "Search",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Search",
+            "title": "Search",
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 9,
+            "text": "Search with your voice",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Search with your voice",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 11,
+            "text": "Settings",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Settings",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 81,
+            "text": "All",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": null,
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 82,
+            "text": "Shorts",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": null,
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 83,
+            "text": "Unwatched",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": null,
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 84,
+            "text": "Watched",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": null,
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 85,
+            "text": "Videos",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": null,
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 86,
+            "text": "Recently uploaded",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": null,
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 87,
+            "text": "Live",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": null,
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 89,
+            "text": "Filters",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Search filters",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 92,
+            "text": "More actions",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "More actions",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 95,
+            "text": "More actions",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "More actions",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 98,
+            "text": "More actions",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "More actions",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 101,
+            "text": "More actions",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "More actions",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 104,
+            "text": "More actions",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "More actions",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 109,
+            "text": "More actions",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "More actions",
+            "title": null,
+            "name": null,
             "visible": true,
             "enabled": true
           }
@@ -11177,18 +7538,45 @@ Given this, the most appropriate next step would be to navigate to the YouTube h
           {
             "id": 6,
             "text": "Search",
-            "value": "",
+            "value": "lofi",
             "role": "input",
+            "type": "text",
             "placeholder": "Search",
+            "ariaLabel": null,
+            "name": "search_query",
+            "title": null,
             "visible": true,
             "enabled": true
           }
         ],
         "links": [
           {
+            "id": 3,
+            "text": "YouTube Home",
+            "role": "link",
+            "href": "/",
+            "ariaLabel": null,
+            "title": "YouTube Home",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 10,
+            "text": "link",
+            "role": "link",
+            "href": null,
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
             "id": 12,
             "text": "Sign in",
             "role": "link",
+            "href": "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3D%252Fresults%253Fsearch_query%253Dlofi&hl=en&ec=65620",
+            "ariaLabel": "Sign in",
+            "title": null,
             "visible": true,
             "enabled": true
           },
@@ -11196,6 +7584,9 @@ Given this, the most appropriate next step would be to navigate to the YouTube h
             "id": 15,
             "text": "Home",
             "role": "link",
+            "href": "/",
+            "ariaLabel": "Home",
+            "title": "Home",
             "visible": true,
             "enabled": true
           },
@@ -11203,6 +7594,9 @@ Given this, the most appropriate next step would be to navigate to the YouTube h
             "id": 17,
             "text": "Shorts",
             "role": "link",
+            "href": "/shorts/",
+            "ariaLabel": "Shorts",
+            "title": "Shorts",
             "visible": true,
             "enabled": true
           },
@@ -11210,6 +7604,9 @@ Given this, the most appropriate next step would be to navigate to the YouTube h
             "id": 19,
             "text": "Subscriptions",
             "role": "link",
+            "href": "/feed/subscriptions",
+            "ariaLabel": "Subscriptions",
+            "title": "Subscriptions",
             "visible": true,
             "enabled": true
           },
@@ -11217,6 +7614,139 @@ Given this, the most appropriate next step would be to navigate to the YouTube h
             "id": 21,
             "text": "You",
             "role": "link",
+            "href": "/feed/you",
+            "ariaLabel": "You",
+            "title": "You",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 90,
+            "text": "link",
+            "role": "link",
+            "href": "/shorts/ADUTUY2Gff0",
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 91,
+            "text": "Anxiety(lyrics)✨ #lofi #music #song #lyrics",
+            "role": "link",
+            "href": "/shorts/ADUTUY2Gff0",
+            "ariaLabel": null,
+            "title": "Anxiety(lyrics)✨ #lofi #music #song #lyrics",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 93,
+            "text": "link",
+            "role": "link",
+            "href": "/shorts/LweetCoCFHA",
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 94,
+            "text": "Dil Ka Jo Haal Hai  | Besharam | Ranbir Kapoor | Shreya Ghoshal || LOFI JUKEBOX",
+            "role": "link",
+            "href": "/shorts/LweetCoCFHA",
+            "ariaLabel": null,
+            "title": "Dil Ka Jo Haal Hai  | Besharam | Ranbir Kapoor | Shreya Ghoshal || LOFI JUKEBOX",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 96,
+            "text": "link",
+            "role": "link",
+            "href": "/shorts/28ufM37HoWA",
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 97,
+            "text": "Lofi Beats – Chill Vibes for Study, Relax, & Focus",
+            "role": "link",
+            "href": "/shorts/28ufM37HoWA",
+            "ariaLabel": null,
+            "title": "Lofi Beats – Chill Vibes for Study, Relax, & Focus",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 99,
+            "text": "link",
+            "role": "link",
+            "href": "/shorts/u5xviTjyh6w",
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 100,
+            "text": "90s Lofi Songs || best hindi song #music",
+            "role": "link",
+            "href": "/shorts/u5xviTjyh6w",
+            "ariaLabel": null,
+            "title": "90s Lofi Songs || best hindi song #music",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 102,
+            "text": "link",
+            "role": "link",
+            "href": "/shorts/axb1HFlJBOA",
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 103,
+            "text": "MIND RELAX LOVE SONG 💕 | MIND RELAX LOFI MASHUP | LOVE MASHUP SONG 🎧",
+            "role": "link",
+            "href": "/shorts/axb1HFlJBOA",
+            "ariaLabel": null,
+            "title": "MIND RELAX LOVE SONG 💕 | MIND RELAX LOFI MASHUP | LOVE MASHUP SONG 🎧",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 107,
+            "text": "link",
+            "role": "link",
+            "href": "/shorts/GbFcvvEabkg",
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 108,
+            "text": "💘TRENDING| INSTAGRAM LOFI MASHUP| SLOWED+REVERBED | MIND FRESH LOFI SONG | LOFI SONGS",
+            "role": "link",
+            "href": "/shorts/GbFcvvEabkg",
+            "ariaLabel": null,
+            "title": "💘TRENDING| INSTAGRAM LOFI MASHUP| SLOWED+REVERBED | MIND FRESH LOFI SONG | LOFI SONGS",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 110,
+            "text": "link",
+            "role": "link",
+            "href": "/shorts/ystOcPaMBLw",
+            "ariaLabel": null,
+            "title": null,
             "visible": true,
             "enabled": true
           }
@@ -11230,55 +7760,6953 @@ Given this, the most appropriate next step would be to navigate to the YouTube h
             "visible": true
           }
         ],
-        "text": "IN Skip navigation Sign in Home Shorts Subscriptions You Try searching to get started Start watching videos to help us build a feed of videos you'll love.",
+        "text": "IN Skip navigation Sign in Home Shorts Subscriptions You All Shorts Unwatched Watched Videos Recently uploaded Live Filters Shorts Anxiety(lyrics)✨ #lofi #music #song #lyrics 961K views Dil Ka Jo Haal Hai | Besharam | Ranbir Kapoor | Shreya Ghoshal || LOFI JUKEBOX 834K views Lofi Beats – Chill Vibes for Study, Relax, & Focus 825K views 90s Lofi Songs || best hindi song #music 967K views MIND RELAX LOVE SONG 💕 | MIND RELAX LOFI MASHUP | LOVE MASHUP SONG 🎧 553K views Shorts 💘TRENDING| INSTAGRAM LOFI MASHUP| SLOWED+REVERBED | MIND FRESH LOFI SONG | LOFI SONGS 1.5M views Tum Se hi (slowed+reverb) | Jab We Met | Kareena , Shahid Kapoor | Mohit Chauhan || LOFI JUKEBOX 2.3M views chhapra ke boss lofi | slowed trending bhojpuri songs | छपरा के बॉस lofi mix 1.1M views New How’s Exam Studying Going? 🌙 Deep Lofi Beats for Late Night Focus on the channel 1.4K views Paro - Aditya Rikhari | Arish #lyrics #music #song #arish #aesthetic #lofi #fyp #trending 1.6M views Pal - Arijit Singh & Shreya Ghoshal jalebi Song | Slowed and Reverb Lofi Mix #arijitsingh #lofi # 110K views Night Lofi Songs | Mashup | Feel Relax & Sleep | Slowed+Reverb | Hindi Lofi Vibes #lofi #bollywood 515K views Top 5 Best Lofi Iconic Songs 2025 HM LO-FI 🎶 #iconicsong #lofisong #hmlofi #shortsfeed 423K views Tera chehra ❤️🥀 Aesthetic edit | Lyrical video | #shorts #status #music #lofi #edit #lyrics 610K views Lo-Fi Chords - Lofi Piano Chords - Chill Chords 1M views Show more People also search for Grunge Dubstep Chill-out music Jazz Ambient music Hip-hop culture Popular music Rock and roll Classical music House music Sitaare (Slowed + Reverb) | Arijit Singh | Amitabh Bhattacharya | Ikkis | Sad Vibes | SSR Lofi 817K views 3 months ago SSR Lofi Sitaare (Slowed + Reverb) | Arijit Singh | Amitabh Bhattacharya | Ikkis | Sad Vibes | SSR Lofi Use Headphone For Better ... lofi hip hop radio 📚 beats to relax/study to Lofi Girl Listen on Spotify, Apple music and more → https://link.lofigirl.com/m/music | Lofi Girl",
         "tabs": [
           {
             "index": 0,
-            "title": "YouTube",
-            "url": "https://www.youtube.com/",
+            "title": "lofi - YouTube",
+            "url": "https://www.youtube.com/results?search_query=lofi",
             "active": true
           }
         ],
         "activeTab": {
           "index": 0,
-          "title": "YouTube",
-          "url": "https://www.youtube.com/",
+          "title": "lofi - YouTube",
+          "url": "https://www.youtube.com/results?search_query=lofi",
           "active": true
         },
         "observationQuality": {
           "score": 1,
           "reasons": []
+        },
+        "before": {
+          "url": "https://www.youtube.com/results?search_query=lofi",
+          "title": "lofi - YouTube",
+          "tabCount": 1
+        },
+        "after": {
+          "url": "https://www.youtube.com/results?search_query=lofi",
+          "title": "lofi - YouTube",
+          "tabCount": 1
         }
       },
-      "before": {
-        "url": "https://www.youtube.com/",
-        "title": "YouTube",
-        "tabCount": 1
-      },
-      "after": {
-        "url": "https://www.youtube.com/",
-        "title": "YouTube",
-        "tabCount": 1
-      },
+      "title": "lofi - YouTube",
+      "url": "https://www.youtube.com/results?search_query=lofi",
+      "buttons": [
+        {
+          "id": 2,
+          "text": "Guide",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Guide",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 4,
+          "text": "Skip navigation",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Skip navigation",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 78,
+          "text": "Clear search query",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Clear search query",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 7,
+          "text": "Search",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Search",
+          "title": "Search",
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 9,
+          "text": "Search with your voice",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Search with your voice",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 11,
+          "text": "Settings",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Settings",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 81,
+          "text": "All",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": null,
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 82,
+          "text": "Shorts",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": null,
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 83,
+          "text": "Unwatched",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": null,
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 84,
+          "text": "Watched",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": null,
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 85,
+          "text": "Videos",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": null,
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 86,
+          "text": "Recently uploaded",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": null,
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 87,
+          "text": "Live",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": null,
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 89,
+          "text": "Filters",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Search filters",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 92,
+          "text": "More actions",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "More actions",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 95,
+          "text": "More actions",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "More actions",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 98,
+          "text": "More actions",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "More actions",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 101,
+          "text": "More actions",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "More actions",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 104,
+          "text": "More actions",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "More actions",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 109,
+          "text": "More actions",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "More actions",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        }
+      ],
+      "inputs": [
+        {
+          "id": 6,
+          "text": "Search",
+          "value": "lofi",
+          "role": "input",
+          "type": "text",
+          "placeholder": "Search",
+          "ariaLabel": null,
+          "name": "search_query",
+          "title": null,
+          "visible": true,
+          "enabled": true
+        }
+      ],
+      "links": [
+        {
+          "id": 3,
+          "text": "YouTube Home",
+          "role": "link",
+          "href": "/",
+          "ariaLabel": null,
+          "title": "YouTube Home",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 10,
+          "text": "link",
+          "role": "link",
+          "href": null,
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 12,
+          "text": "Sign in",
+          "role": "link",
+          "href": "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3D%252Fresults%253Fsearch_query%253Dlofi&hl=en&ec=65620",
+          "ariaLabel": "Sign in",
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 15,
+          "text": "Home",
+          "role": "link",
+          "href": "/",
+          "ariaLabel": "Home",
+          "title": "Home",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 17,
+          "text": "Shorts",
+          "role": "link",
+          "href": "/shorts/",
+          "ariaLabel": "Shorts",
+          "title": "Shorts",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 19,
+          "text": "Subscriptions",
+          "role": "link",
+          "href": "/feed/subscriptions",
+          "ariaLabel": "Subscriptions",
+          "title": "Subscriptions",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 21,
+          "text": "You",
+          "role": "link",
+          "href": "/feed/you",
+          "ariaLabel": "You",
+          "title": "You",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 90,
+          "text": "link",
+          "role": "link",
+          "href": "/shorts/ADUTUY2Gff0",
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 91,
+          "text": "Anxiety(lyrics)✨ #lofi #music #song #lyrics",
+          "role": "link",
+          "href": "/shorts/ADUTUY2Gff0",
+          "ariaLabel": null,
+          "title": "Anxiety(lyrics)✨ #lofi #music #song #lyrics",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 93,
+          "text": "link",
+          "role": "link",
+          "href": "/shorts/LweetCoCFHA",
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 94,
+          "text": "Dil Ka Jo Haal Hai  | Besharam | Ranbir Kapoor | Shreya Ghoshal || LOFI JUKEBOX",
+          "role": "link",
+          "href": "/shorts/LweetCoCFHA",
+          "ariaLabel": null,
+          "title": "Dil Ka Jo Haal Hai  | Besharam | Ranbir Kapoor | Shreya Ghoshal || LOFI JUKEBOX",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 96,
+          "text": "link",
+          "role": "link",
+          "href": "/shorts/28ufM37HoWA",
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 97,
+          "text": "Lofi Beats – Chill Vibes for Study, Relax, & Focus",
+          "role": "link",
+          "href": "/shorts/28ufM37HoWA",
+          "ariaLabel": null,
+          "title": "Lofi Beats – Chill Vibes for Study, Relax, & Focus",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 99,
+          "text": "link",
+          "role": "link",
+          "href": "/shorts/u5xviTjyh6w",
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 100,
+          "text": "90s Lofi Songs || best hindi song #music",
+          "role": "link",
+          "href": "/shorts/u5xviTjyh6w",
+          "ariaLabel": null,
+          "title": "90s Lofi Songs || best hindi song #music",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 102,
+          "text": "link",
+          "role": "link",
+          "href": "/shorts/axb1HFlJBOA",
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 103,
+          "text": "MIND RELAX LOVE SONG 💕 | MIND RELAX LOFI MASHUP | LOVE MASHUP SONG 🎧",
+          "role": "link",
+          "href": "/shorts/axb1HFlJBOA",
+          "ariaLabel": null,
+          "title": "MIND RELAX LOVE SONG 💕 | MIND RELAX LOFI MASHUP | LOVE MASHUP SONG 🎧",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 107,
+          "text": "link",
+          "role": "link",
+          "href": "/shorts/GbFcvvEabkg",
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 108,
+          "text": "💘TRENDING| INSTAGRAM LOFI MASHUP| SLOWED+REVERBED | MIND FRESH LOFI SONG | LOFI SONGS",
+          "role": "link",
+          "href": "/shorts/GbFcvvEabkg",
+          "ariaLabel": null,
+          "title": "💘TRENDING| INSTAGRAM LOFI MASHUP| SLOWED+REVERBED | MIND FRESH LOFI SONG | LOFI SONGS",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 110,
+          "text": "link",
+          "role": "link",
+          "href": "/shorts/ystOcPaMBLw",
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        }
+      ],
+      "text": "IN Skip navigation Sign in Home Shorts Subscriptions You All Shorts Unwatched Watched Videos Recently uploaded Live Filters Shorts Anxiety(lyrics)✨ #lofi #music #song #lyrics 961K views Dil Ka Jo Haal Hai | Besharam | Ranbir Kapoor | Shreya Ghoshal || LOFI JUKEBOX 834K views Lofi Beats – Chill Vibes for Study, Relax, & Focus 825K views 90s Lofi Songs || best hindi song #music 967K views MIND RELAX LOVE SONG 💕 | MIND RELAX LOFI MASHUP | LOVE MASHUP SONG 🎧 553K views Shorts 💘TRENDING| INSTAGRAM LOFI MASHUP| SLOWED+REVERBED | MIND FRESH LOFI SONG | LOFI SONGS 1.5M views Tum Se hi (slowed+reverb) | Jab We Met | Kareena , Shahid Kapoor | Mohit Chauhan || LOFI JUKEBOX 2.3M views chhapra ke boss lofi | slowed trending bhojpuri songs | छपरा के बॉस lofi mix 1.1M views New How’s Exam Studying Going? 🌙 Deep Lofi Beats for Late Night Focus on the channel 1.4K views Paro - Aditya Rikhari | Arish #lyrics #music #song #arish #aesthetic #lofi #fyp #trending 1.6M views Pal - Arijit Singh & Shreya Ghoshal jalebi Song | Slowed and Reverb Lofi Mix #arijitsingh #lofi # 110K views Night Lofi Songs | Mashup | Feel Relax & Sleep | Slowed+Reverb | Hindi Lofi Vibes #lofi #bollywood 515K views Top 5 Best Lofi Iconic Songs 2025 HM LO-FI 🎶 #iconicsong #lofisong #hmlofi #shortsfeed 423K views Tera chehra ❤️🥀 Aesthetic edit | Lyrical video | #shorts #status #music #lofi #edit #lyrics 610K views Lo-Fi Chords - Lofi Piano Chords - Chill Chords 1M views Show more People also search for Grunge Dubstep Chill-out music Jazz Ambient music Hip-hop culture Popular music Rock and roll Classical music House music Sitaare (Slowed + Reverb) | Arijit Singh | Amitabh Bhattacharya | Ikkis | Sad Vibes | SSR Lofi 817K views 3 months ago SSR Lofi Sitaare (Slowed + Reverb) | Arijit Singh | Amitabh Bhattacharya | Ikkis | Sad Vibes | SSR Lofi Use Headphone For Better ... lofi hip hop radio 📚 beats to relax/study to Lofi Girl Listen on Spotify, Apple music and more → https://link.lofigirl.com/m/music | Lofi Girl",
       "action": {
-        "type": "refresh",
+        "type": "read_ui",
         "params": {}
       },
-      "timestamp": "2026-06-16T17:01:25.578Z",
-      "events": [
-        "form_detected",
-        "links_detected",
-        "buttons_detected",
-        "content_loaded"
-      ]
+      "timestamp": "2026-06-16T19:30:20.871Z",
+      "events": []
     }
   ]
 }
-[2026-06-16T17:01:25.581Z] [LOG] WORLD: {
-  "history": 3,
-  "url": "https://www.youtube.com/",
-  "title": "YouTube",
+[2026-06-16T19:30:20.906Z] [LOG] WORLD: {
+  "history": 5,
+  "url": "https://www.youtube.com/results?search_query=lofi",
+  "title": "lofi - YouTube",
   "lastOutcome": "page unchanged",
-  "lastStateHash": "5342899f5f3225b42d94d1afe5b776401990d4996b9241907dc4aa09a1c1f6d9"
+  "lastStateHash": "480ec00a3dd961dd20e6d095840485fe3e4c49be09a20cd56f93e8c05dd0a140"
 }
-[2026-06-16T17:01:25.582Z] [LOG] [LOOP] State loop detected. Aborting execution.
+[2026-06-16T19:30:20.908Z] [LOG] OBSERVATION SUMMARY: {
+  "success": true,
+  "expected": "page_read",
+  "actual": "lofi - YouTube",
+  "url": "https://www.youtube.com/results?search_query=lofi",
+  "title": "lofi - YouTube"
+}
+[2026-06-16T19:30:20.917Z] [LOG] OBSERVATION: {
+  "success": true,
+  "expected": "page_read",
+  "actual": "lofi - YouTube",
+  "pageState": {
+    "success": true,
+    "title": "lofi - YouTube",
+    "url": "https://www.youtube.com/results?search_query=lofi",
+    "buttons": [
+      {
+        "id": 2,
+        "text": "Guide",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Guide",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 4,
+        "text": "Skip navigation",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Skip navigation",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 78,
+        "text": "Clear search query",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Clear search query",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 7,
+        "text": "Search",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Search",
+        "title": "Search",
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 9,
+        "text": "Search with your voice",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Search with your voice",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 11,
+        "text": "Settings",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Settings",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 81,
+        "text": "All",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": null,
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 82,
+        "text": "Shorts",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": null,
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 83,
+        "text": "Unwatched",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": null,
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 84,
+        "text": "Watched",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": null,
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 85,
+        "text": "Videos",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": null,
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 86,
+        "text": "Recently uploaded",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": null,
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 87,
+        "text": "Live",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": null,
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 89,
+        "text": "Filters",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Search filters",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 92,
+        "text": "More actions",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "More actions",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 95,
+        "text": "More actions",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "More actions",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 98,
+        "text": "More actions",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "More actions",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 101,
+        "text": "More actions",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "More actions",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 104,
+        "text": "More actions",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "More actions",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 109,
+        "text": "More actions",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "More actions",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      }
+    ],
+    "inputs": [
+      {
+        "id": 6,
+        "text": "Search",
+        "value": "lofi",
+        "role": "input",
+        "type": "text",
+        "placeholder": "Search",
+        "ariaLabel": null,
+        "name": "search_query",
+        "title": null,
+        "visible": true,
+        "enabled": true
+      }
+    ],
+    "links": [
+      {
+        "id": 3,
+        "text": "YouTube Home",
+        "role": "link",
+        "href": "/",
+        "ariaLabel": null,
+        "title": "YouTube Home",
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 10,
+        "text": "link",
+        "role": "link",
+        "href": null,
+        "ariaLabel": null,
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 12,
+        "text": "Sign in",
+        "role": "link",
+        "href": "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3D%252Fresults%253Fsearch_query%253Dlofi&hl=en&ec=65620",
+        "ariaLabel": "Sign in",
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 15,
+        "text": "Home",
+        "role": "link",
+        "href": "/",
+        "ariaLabel": "Home",
+        "title": "Home",
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 17,
+        "text": "Shorts",
+        "role": "link",
+        "href": "/shorts/",
+        "ariaLabel": "Shorts",
+        "title": "Shorts",
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 19,
+        "text": "Subscriptions",
+        "role": "link",
+        "href": "/feed/subscriptions",
+        "ariaLabel": "Subscriptions",
+        "title": "Subscriptions",
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 21,
+        "text": "You",
+        "role": "link",
+        "href": "/feed/you",
+        "ariaLabel": "You",
+        "title": "You",
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 90,
+        "text": "link",
+        "role": "link",
+        "href": "/shorts/ADUTUY2Gff0",
+        "ariaLabel": null,
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 91,
+        "text": "Anxiety(lyrics)✨ #lofi #music #song #lyrics",
+        "role": "link",
+        "href": "/shorts/ADUTUY2Gff0",
+        "ariaLabel": null,
+        "title": "Anxiety(lyrics)✨ #lofi #music #song #lyrics",
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 93,
+        "text": "link",
+        "role": "link",
+        "href": "/shorts/LweetCoCFHA",
+        "ariaLabel": null,
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 94,
+        "text": "Dil Ka Jo Haal Hai  | Besharam | Ranbir Kapoor | Shreya Ghoshal || LOFI JUKEBOX",
+        "role": "link",
+        "href": "/shorts/LweetCoCFHA",
+        "ariaLabel": null,
+        "title": "Dil Ka Jo Haal Hai  | Besharam | Ranbir Kapoor | Shreya Ghoshal || LOFI JUKEBOX",
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 96,
+        "text": "link",
+        "role": "link",
+        "href": "/shorts/28ufM37HoWA",
+        "ariaLabel": null,
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 97,
+        "text": "Lofi Beats – Chill Vibes for Study, Relax, & Focus",
+        "role": "link",
+        "href": "/shorts/28ufM37HoWA",
+        "ariaLabel": null,
+        "title": "Lofi Beats – Chill Vibes for Study, Relax, & Focus",
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 99,
+        "text": "link",
+        "role": "link",
+        "href": "/shorts/u5xviTjyh6w",
+        "ariaLabel": null,
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 100,
+        "text": "90s Lofi Songs || best hindi song #music",
+        "role": "link",
+        "href": "/shorts/u5xviTjyh6w",
+        "ariaLabel": null,
+        "title": "90s Lofi Songs || best hindi song #music",
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 102,
+        "text": "link",
+        "role": "link",
+        "href": "/shorts/axb1HFlJBOA",
+        "ariaLabel": null,
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 103,
+        "text": "MIND RELAX LOVE SONG 💕 | MIND RELAX LOFI MASHUP | LOVE MASHUP SONG 🎧",
+        "role": "link",
+        "href": "/shorts/axb1HFlJBOA",
+        "ariaLabel": null,
+        "title": "MIND RELAX LOVE SONG 💕 | MIND RELAX LOFI MASHUP | LOVE MASHUP SONG 🎧",
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 107,
+        "text": "link",
+        "role": "link",
+        "href": "/shorts/GbFcvvEabkg",
+        "ariaLabel": null,
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 108,
+        "text": "💘TRENDING| INSTAGRAM LOFI MASHUP| SLOWED+REVERBED | MIND FRESH LOFI SONG | LOFI SONGS",
+        "role": "link",
+        "href": "/shorts/GbFcvvEabkg",
+        "ariaLabel": null,
+        "title": "💘TRENDING| INSTAGRAM LOFI MASHUP| SLOWED+REVERBED | MIND FRESH LOFI SONG | LOFI SONGS",
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 110,
+        "text": "link",
+        "role": "link",
+        "href": "/shorts/ystOcPaMBLw",
+        "ariaLabel": null,
+        "title": null,
+        "visible": true,
+        "enabled": true
+      }
+    ],
+    "forms": [
+      {
+        "id": 5,
+        "role": "form",
+        "action": "https://www.youtube.com/results",
+        "method": "get",
+        "visible": true
+      }
+    ],
+    "text": "IN Skip navigation Sign in Home Shorts Subscriptions You All Shorts Unwatched Watched Videos Recently uploaded Live Filters Shorts Anxiety(lyrics)✨ #lofi #music #song #lyrics 961K views Dil Ka Jo Haal Hai | Besharam | Ranbir Kapoor | Shreya Ghoshal || LOFI JUKEBOX 834K views Lofi Beats – Chill Vibes for Study, Relax, & Focus 825K views 90s Lofi Songs || best hindi song #music 967K views MIND RELAX LOVE SONG 💕 | MIND RELAX LOFI MASHUP | LOVE MASHUP SONG 🎧 553K views Shorts 💘TRENDING| INSTAGRAM LOFI MASHUP| SLOWED+REVERBED | MIND FRESH LOFI SONG | LOFI SONGS 1.5M views Tum Se hi (slowed+reverb) | Jab We Met | Kareena , Shahid Kapoor | Mohit Chauhan || LOFI JUKEBOX 2.3M views chhapra ke boss lofi | slowed trending bhojpuri songs | छपरा के बॉस lofi mix 1.1M views New How’s Exam Studying Going? 🌙 Deep Lofi Beats for Late Night Focus on the channel 1.4K views Paro - Aditya Rikhari | Arish #lyrics #music #song #arish #aesthetic #lofi #fyp #trending 1.6M views Pal - Arijit Singh & Shreya Ghoshal jalebi Song | Slowed and Reverb Lofi Mix #arijitsingh #lofi # 110K views Night Lofi Songs | Mashup | Feel Relax & Sleep | Slowed+Reverb | Hindi Lofi Vibes #lofi #bollywood 515K views Top 5 Best Lofi Iconic Songs 2025 HM LO-FI 🎶 #iconicsong #lofisong #hmlofi #shortsfeed 423K views Tera chehra ❤️🥀 Aesthetic edit | Lyrical video | #shorts #status #music #lofi #edit #lyrics 610K views Lo-Fi Chords - Lofi Piano Chords - Chill Chords 1M views Show more People also search for Grunge Dubstep Chill-out music Jazz Ambient music Hip-hop culture Popular music Rock and roll Classical music House music Sitaare (Slowed + Reverb) | Arijit Singh | Amitabh Bhattacharya | Ikkis | Sad Vibes | SSR Lofi 817K views 3 months ago SSR Lofi Sitaare (Slowed + Reverb) | Arijit Singh | Amitabh Bhattacharya | Ikkis | Sad Vibes | SSR Lofi Use Headphone For Better ... lofi hip hop radio 📚 beats to relax/study to Lofi Girl Listen on Spotify, Apple music and more → https://link.lofigirl.com/m/music | Lofi Girl",
+    "tabs": [
+      {
+        "index": 0,
+        "title": "lofi - YouTube",
+        "url": "https://www.youtube.com/results?search_query=lofi",
+        "active": true
+      }
+    ],
+    "activeTab": {
+      "index": 0,
+      "title": "lofi - YouTube",
+      "url": "https://www.youtube.com/results?search_query=lofi",
+      "active": true
+    },
+    "observationQuality": {
+      "score": 1,
+      "reasons": []
+    },
+    "before": {
+      "url": "https://www.youtube.com/results?search_query=lofi",
+      "title": "lofi - YouTube",
+      "tabCount": 1
+    },
+    "after": {
+      "url": "https://www.youtube.com/results?search_query=lofi",
+      "title": "lofi - YouTube",
+      "tabCount": 1
+    }
+  },
+  "title": "lofi - YouTube",
+  "url": "https://www.youtube.com/results?search_query=lofi",
+  "buttons": [
+    {
+      "id": 2,
+      "text": "Guide",
+      "role": "button",
+      "type": "submit",
+      "ariaLabel": "Guide",
+      "title": null,
+      "name": null,
+      "visible": true,
+      "enabled": true
+    },
+    {
+      "id": 4,
+      "text": "Skip navigation",
+      "role": "button",
+      "type": "submit",
+      "ariaLabel": "Skip navigation",
+      "title": null,
+      "name": null,
+      "visible": true,
+      "enabled": true
+    },
+    {
+      "id": 78,
+      "text": "Clear search query",
+      "role": "button",
+      "type": "submit",
+      "ariaLabel": "Clear search query",
+      "title": null,
+      "name": null,
+      "visible": true,
+      "enabled": true
+    },
+    {
+      "id": 7,
+      "text": "Search",
+      "role": "button",
+      "type": "submit",
+      "ariaLabel": "Search",
+      "title": "Search",
+      "name": null,
+      "visible": true,
+      "enabled": true
+    },
+    {
+      "id": 9,
+      "text": "Search with your voice",
+      "role": "button",
+      "type": "submit",
+      "ariaLabel": "Search with your voice",
+      "title": null,
+      "name": null,
+      "visible": true,
+      "enabled": true
+    },
+    {
+      "id": 11,
+      "text": "Settings",
+      "role": "button",
+      "type": "submit",
+      "ariaLabel": "Settings",
+      "title": null,
+      "name": null,
+      "visible": true,
+      "enabled": true
+    },
+    {
+      "id": 81,
+      "text": "All",
+      "role": "button",
+      "type": "submit",
+      "ariaLabel": null,
+      "title": null,
+      "name": null,
+      "visible": true,
+      "enabled": true
+    },
+    {
+      "id": 82,
+      "text": "Shorts",
+      "role": "button",
+      "type": "submit",
+      "ariaLabel": null,
+      "title": null,
+      "name": null,
+      "visible": true,
+      "enabled": true
+    },
+    {
+      "id": 83,
+      "text": "Unwatched",
+      "role": "button",
+      "type": "submit",
+      "ariaLabel": null,
+      "title": null,
+      "name": null,
+      "visible": true,
+      "enabled": true
+    },
+    {
+      "id": 84,
+      "text": "Watched",
+      "role": "button",
+      "type": "submit",
+      "ariaLabel": null,
+      "title": null,
+      "name": null,
+      "visible": true,
+      "enabled": true
+    },
+    {
+      "id": 85,
+      "text": "Videos",
+      "role": "button",
+      "type": "submit",
+      "ariaLabel": null,
+      "title": null,
+      "name": null,
+      "visible": true,
+      "enabled": true
+    },
+    {
+      "id": 86,
+      "text": "Recently uploaded",
+      "role": "button",
+      "type": "submit",
+      "ariaLabel": null,
+      "title": null,
+      "name": null,
+      "visible": true,
+      "enabled": true
+    },
+    {
+      "id": 87,
+      "text": "Live",
+      "role": "button",
+      "type": "submit",
+      "ariaLabel": null,
+      "title": null,
+      "name": null,
+      "visible": true,
+      "enabled": true
+    },
+    {
+      "id": 89,
+      "text": "Filters",
+      "role": "button",
+      "type": "submit",
+      "ariaLabel": "Search filters",
+      "title": null,
+      "name": null,
+      "visible": true,
+      "enabled": true
+    },
+    {
+      "id": 92,
+      "text": "More actions",
+      "role": "button",
+      "type": "submit",
+      "ariaLabel": "More actions",
+      "title": null,
+      "name": null,
+      "visible": true,
+      "enabled": true
+    },
+    {
+      "id": 95,
+      "text": "More actions",
+      "role": "button",
+      "type": "submit",
+      "ariaLabel": "More actions",
+      "title": null,
+      "name": null,
+      "visible": true,
+      "enabled": true
+    },
+    {
+      "id": 98,
+      "text": "More actions",
+      "role": "button",
+      "type": "submit",
+      "ariaLabel": "More actions",
+      "title": null,
+      "name": null,
+      "visible": true,
+      "enabled": true
+    },
+    {
+      "id": 101,
+      "text": "More actions",
+      "role": "button",
+      "type": "submit",
+      "ariaLabel": "More actions",
+      "title": null,
+      "name": null,
+      "visible": true,
+      "enabled": true
+    },
+    {
+      "id": 104,
+      "text": "More actions",
+      "role": "button",
+      "type": "submit",
+      "ariaLabel": "More actions",
+      "title": null,
+      "name": null,
+      "visible": true,
+      "enabled": true
+    },
+    {
+      "id": 109,
+      "text": "More actions",
+      "role": "button",
+      "type": "submit",
+      "ariaLabel": "More actions",
+      "title": null,
+      "name": null,
+      "visible": true,
+      "enabled": true
+    }
+  ],
+  "inputs": [
+    {
+      "id": 6,
+      "text": "Search",
+      "value": "lofi",
+      "role": "input",
+      "type": "text",
+      "placeholder": "Search",
+      "ariaLabel": null,
+      "name": "search_query",
+      "title": null,
+      "visible": true,
+      "enabled": true
+    }
+  ],
+  "links": [
+    {
+      "id": 3,
+      "text": "YouTube Home",
+      "role": "link",
+      "href": "/",
+      "ariaLabel": null,
+      "title": "YouTube Home",
+      "visible": true,
+      "enabled": true
+    },
+    {
+      "id": 10,
+      "text": "link",
+      "role": "link",
+      "href": null,
+      "ariaLabel": null,
+      "title": null,
+      "visible": true,
+      "enabled": true
+    },
+    {
+      "id": 12,
+      "text": "Sign in",
+      "role": "link",
+      "href": "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3D%252Fresults%253Fsearch_query%253Dlofi&hl=en&ec=65620",
+      "ariaLabel": "Sign in",
+      "title": null,
+      "visible": true,
+      "enabled": true
+    },
+    {
+      "id": 15,
+      "text": "Home",
+      "role": "link",
+      "href": "/",
+      "ariaLabel": "Home",
+      "title": "Home",
+      "visible": true,
+      "enabled": true
+    },
+    {
+      "id": 17,
+      "text": "Shorts",
+      "role": "link",
+      "href": "/shorts/",
+      "ariaLabel": "Shorts",
+      "title": "Shorts",
+      "visible": true,
+      "enabled": true
+    },
+    {
+      "id": 19,
+      "text": "Subscriptions",
+      "role": "link",
+      "href": "/feed/subscriptions",
+      "ariaLabel": "Subscriptions",
+      "title": "Subscriptions",
+      "visible": true,
+      "enabled": true
+    },
+    {
+      "id": 21,
+      "text": "You",
+      "role": "link",
+      "href": "/feed/you",
+      "ariaLabel": "You",
+      "title": "You",
+      "visible": true,
+      "enabled": true
+    },
+    {
+      "id": 90,
+      "text": "link",
+      "role": "link",
+      "href": "/shorts/ADUTUY2Gff0",
+      "ariaLabel": null,
+      "title": null,
+      "visible": true,
+      "enabled": true
+    },
+    {
+      "id": 91,
+      "text": "Anxiety(lyrics)✨ #lofi #music #song #lyrics",
+      "role": "link",
+      "href": "/shorts/ADUTUY2Gff0",
+      "ariaLabel": null,
+      "title": "Anxiety(lyrics)✨ #lofi #music #song #lyrics",
+      "visible": true,
+      "enabled": true
+    },
+    {
+      "id": 93,
+      "text": "link",
+      "role": "link",
+      "href": "/shorts/LweetCoCFHA",
+      "ariaLabel": null,
+      "title": null,
+      "visible": true,
+      "enabled": true
+    },
+    {
+      "id": 94,
+      "text": "Dil Ka Jo Haal Hai  | Besharam | Ranbir Kapoor | Shreya Ghoshal || LOFI JUKEBOX",
+      "role": "link",
+      "href": "/shorts/LweetCoCFHA",
+      "ariaLabel": null,
+      "title": "Dil Ka Jo Haal Hai  | Besharam | Ranbir Kapoor | Shreya Ghoshal || LOFI JUKEBOX",
+      "visible": true,
+      "enabled": true
+    },
+    {
+      "id": 96,
+      "text": "link",
+      "role": "link",
+      "href": "/shorts/28ufM37HoWA",
+      "ariaLabel": null,
+      "title": null,
+      "visible": true,
+      "enabled": true
+    },
+    {
+      "id": 97,
+      "text": "Lofi Beats – Chill Vibes for Study, Relax, & Focus",
+      "role": "link",
+      "href": "/shorts/28ufM37HoWA",
+      "ariaLabel": null,
+      "title": "Lofi Beats – Chill Vibes for Study, Relax, & Focus",
+      "visible": true,
+      "enabled": true
+    },
+    {
+      "id": 99,
+      "text": "link",
+      "role": "link",
+      "href": "/shorts/u5xviTjyh6w",
+      "ariaLabel": null,
+      "title": null,
+      "visible": true,
+      "enabled": true
+    },
+    {
+      "id": 100,
+      "text": "90s Lofi Songs || best hindi song #music",
+      "role": "link",
+      "href": "/shorts/u5xviTjyh6w",
+      "ariaLabel": null,
+      "title": "90s Lofi Songs || best hindi song #music",
+      "visible": true,
+      "enabled": true
+    },
+    {
+      "id": 102,
+      "text": "link",
+      "role": "link",
+      "href": "/shorts/axb1HFlJBOA",
+      "ariaLabel": null,
+      "title": null,
+      "visible": true,
+      "enabled": true
+    },
+    {
+      "id": 103,
+      "text": "MIND RELAX LOVE SONG 💕 | MIND RELAX LOFI MASHUP | LOVE MASHUP SONG 🎧",
+      "role": "link",
+      "href": "/shorts/axb1HFlJBOA",
+      "ariaLabel": null,
+      "title": "MIND RELAX LOVE SONG 💕 | MIND RELAX LOFI MASHUP | LOVE MASHUP SONG 🎧",
+      "visible": true,
+      "enabled": true
+    },
+    {
+      "id": 107,
+      "text": "link",
+      "role": "link",
+      "href": "/shorts/GbFcvvEabkg",
+      "ariaLabel": null,
+      "title": null,
+      "visible": true,
+      "enabled": true
+    },
+    {
+      "id": 108,
+      "text": "💘TRENDING| INSTAGRAM LOFI MASHUP| SLOWED+REVERBED | MIND FRESH LOFI SONG | LOFI SONGS",
+      "role": "link",
+      "href": "/shorts/GbFcvvEabkg",
+      "ariaLabel": null,
+      "title": "💘TRENDING| INSTAGRAM LOFI MASHUP| SLOWED+REVERBED | MIND FRESH LOFI SONG | LOFI SONGS",
+      "visible": true,
+      "enabled": true
+    },
+    {
+      "id": 110,
+      "text": "link",
+      "role": "link",
+      "href": "/shorts/ystOcPaMBLw",
+      "ariaLabel": null,
+      "title": null,
+      "visible": true,
+      "enabled": true
+    }
+  ],
+  "text": "IN Skip navigation Sign in Home Shorts Subscriptions You All Shorts Unwatched Watched Videos Recently uploaded Live Filters Shorts Anxiety(lyrics)✨ #lofi #music #song #lyrics 961K views Dil Ka Jo Haal Hai | Besharam | Ranbir Kapoor | Shreya Ghoshal || LOFI JUKEBOX 834K views Lofi Beats – Chill Vibes for Study, Relax, & Focus 825K views 90s Lofi Songs || best hindi song #music 967K views MIND RELAX LOVE SONG 💕 | MIND RELAX LOFI MASHUP | LOVE MASHUP SONG 🎧 553K views Shorts 💘TRENDING| INSTAGRAM LOFI MASHUP| SLOWED+REVERBED | MIND FRESH LOFI SONG | LOFI SONGS 1.5M views Tum Se hi (slowed+reverb) | Jab We Met | Kareena , Shahid Kapoor | Mohit Chauhan || LOFI JUKEBOX 2.3M views chhapra ke boss lofi | slowed trending bhojpuri songs | छपरा के बॉस lofi mix 1.1M views New How’s Exam Studying Going? 🌙 Deep Lofi Beats for Late Night Focus on the channel 1.4K views Paro - Aditya Rikhari | Arish #lyrics #music #song #arish #aesthetic #lofi #fyp #trending 1.6M views Pal - Arijit Singh & Shreya Ghoshal jalebi Song | Slowed and Reverb Lofi Mix #arijitsingh #lofi # 110K views Night Lofi Songs | Mashup | Feel Relax & Sleep | Slowed+Reverb | Hindi Lofi Vibes #lofi #bollywood 515K views Top 5 Best Lofi Iconic Songs 2025 HM LO-FI 🎶 #iconicsong #lofisong #hmlofi #shortsfeed 423K views Tera chehra ❤️🥀 Aesthetic edit | Lyrical video | #shorts #status #music #lofi #edit #lyrics 610K views Lo-Fi Chords - Lofi Piano Chords - Chill Chords 1M views Show more People also search for Grunge Dubstep Chill-out music Jazz Ambient music Hip-hop culture Popular music Rock and roll Classical music House music Sitaare (Slowed + Reverb) | Arijit Singh | Amitabh Bhattacharya | Ikkis | Sad Vibes | SSR Lofi 817K views 3 months ago SSR Lofi Sitaare (Slowed + Reverb) | Arijit Singh | Amitabh Bhattacharya | Ikkis | Sad Vibes | SSR Lofi Use Headphone For Better ... lofi hip hop radio 📚 beats to relax/study to Lofi Girl Listen on Spotify, Apple music and more → https://link.lofigirl.com/m/music | Lofi Girl",
+  "action": {
+    "type": "read_ui",
+    "params": {}
+  },
+  "timestamp": "2026-06-16T19:30:20.871Z",
+  "events": []
+}
+[2026-06-16T19:30:20.925Z] [LOG] VERIFYING TASK WITH CRITERIA: [
+  {
+    "success": true,
+    "expected": "page_read",
+    "actual": "lofi - YouTube",
+    "pageState": {
+      "success": true,
+      "title": "lofi - YouTube",
+      "url": "https://www.youtube.com/results?search_query=lofi",
+      "buttons": [
+        {
+          "id": 2,
+          "text": "Guide",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Guide",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 4,
+          "text": "Skip navigation",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Skip navigation",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 78,
+          "text": "Clear search query",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Clear search query",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 7,
+          "text": "Search",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Search",
+          "title": "Search",
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 9,
+          "text": "Search with your voice",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Search with your voice",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 11,
+          "text": "Settings",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Settings",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 81,
+          "text": "All",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": null,
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 82,
+          "text": "Shorts",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": null,
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 83,
+          "text": "Unwatched",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": null,
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 84,
+          "text": "Watched",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": null,
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 85,
+          "text": "Videos",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": null,
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 86,
+          "text": "Recently uploaded",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": null,
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 87,
+          "text": "Live",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": null,
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 89,
+          "text": "Filters",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Search filters",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 92,
+          "text": "More actions",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "More actions",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 95,
+          "text": "More actions",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "More actions",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 98,
+          "text": "More actions",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "More actions",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 101,
+          "text": "More actions",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "More actions",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 104,
+          "text": "More actions",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "More actions",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 109,
+          "text": "More actions",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "More actions",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        }
+      ],
+      "inputs": [
+        {
+          "id": 6,
+          "text": "Search",
+          "value": "lofi",
+          "role": "input",
+          "type": "text",
+          "placeholder": "Search",
+          "ariaLabel": null,
+          "name": "search_query",
+          "title": null,
+          "visible": true,
+          "enabled": true
+        }
+      ],
+      "links": [
+        {
+          "id": 3,
+          "text": "YouTube Home",
+          "role": "link",
+          "href": "/",
+          "ariaLabel": null,
+          "title": "YouTube Home",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 10,
+          "text": "link",
+          "role": "link",
+          "href": null,
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 12,
+          "text": "Sign in",
+          "role": "link",
+          "href": "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3D%252Fresults%253Fsearch_query%253Dlofi&hl=en&ec=65620",
+          "ariaLabel": "Sign in",
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 15,
+          "text": "Home",
+          "role": "link",
+          "href": "/",
+          "ariaLabel": "Home",
+          "title": "Home",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 17,
+          "text": "Shorts",
+          "role": "link",
+          "href": "/shorts/",
+          "ariaLabel": "Shorts",
+          "title": "Shorts",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 19,
+          "text": "Subscriptions",
+          "role": "link",
+          "href": "/feed/subscriptions",
+          "ariaLabel": "Subscriptions",
+          "title": "Subscriptions",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 21,
+          "text": "You",
+          "role": "link",
+          "href": "/feed/you",
+          "ariaLabel": "You",
+          "title": "You",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 90,
+          "text": "link",
+          "role": "link",
+          "href": "/shorts/ADUTUY2Gff0",
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 91,
+          "text": "Anxiety(lyrics)✨ #lofi #music #song #lyrics",
+          "role": "link",
+          "href": "/shorts/ADUTUY2Gff0",
+          "ariaLabel": null,
+          "title": "Anxiety(lyrics)✨ #lofi #music #song #lyrics",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 93,
+          "text": "link",
+          "role": "link",
+          "href": "/shorts/LweetCoCFHA",
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 94,
+          "text": "Dil Ka Jo Haal Hai  | Besharam | Ranbir Kapoor | Shreya Ghoshal || LOFI JUKEBOX",
+          "role": "link",
+          "href": "/shorts/LweetCoCFHA",
+          "ariaLabel": null,
+          "title": "Dil Ka Jo Haal Hai  | Besharam | Ranbir Kapoor | Shreya Ghoshal || LOFI JUKEBOX",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 96,
+          "text": "link",
+          "role": "link",
+          "href": "/shorts/28ufM37HoWA",
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 97,
+          "text": "Lofi Beats – Chill Vibes for Study, Relax, & Focus",
+          "role": "link",
+          "href": "/shorts/28ufM37HoWA",
+          "ariaLabel": null,
+          "title": "Lofi Beats – Chill Vibes for Study, Relax, & Focus",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 99,
+          "text": "link",
+          "role": "link",
+          "href": "/shorts/u5xviTjyh6w",
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 100,
+          "text": "90s Lofi Songs || best hindi song #music",
+          "role": "link",
+          "href": "/shorts/u5xviTjyh6w",
+          "ariaLabel": null,
+          "title": "90s Lofi Songs || best hindi song #music",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 102,
+          "text": "link",
+          "role": "link",
+          "href": "/shorts/axb1HFlJBOA",
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 103,
+          "text": "MIND RELAX LOVE SONG 💕 | MIND RELAX LOFI MASHUP | LOVE MASHUP SONG 🎧",
+          "role": "link",
+          "href": "/shorts/axb1HFlJBOA",
+          "ariaLabel": null,
+          "title": "MIND RELAX LOVE SONG 💕 | MIND RELAX LOFI MASHUP | LOVE MASHUP SONG 🎧",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 107,
+          "text": "link",
+          "role": "link",
+          "href": "/shorts/GbFcvvEabkg",
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 108,
+          "text": "💘TRENDING| INSTAGRAM LOFI MASHUP| SLOWED+REVERBED | MIND FRESH LOFI SONG | LOFI SONGS",
+          "role": "link",
+          "href": "/shorts/GbFcvvEabkg",
+          "ariaLabel": null,
+          "title": "💘TRENDING| INSTAGRAM LOFI MASHUP| SLOWED+REVERBED | MIND FRESH LOFI SONG | LOFI SONGS",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 110,
+          "text": "link",
+          "role": "link",
+          "href": "/shorts/ystOcPaMBLw",
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        }
+      ],
+      "forms": [
+        {
+          "id": 5,
+          "role": "form",
+          "action": "https://www.youtube.com/results",
+          "method": "get",
+          "visible": true
+        }
+      ],
+      "text": "IN Skip navigation Sign in Home Shorts Subscriptions You All Shorts Unwatched Watched Videos Recently uploaded Live Filters Shorts Anxiety(lyrics)✨ #lofi #music #song #lyrics 961K views Dil Ka Jo Haal Hai | Besharam | Ranbir Kapoor | Shreya Ghoshal || LOFI JUKEBOX 834K views Lofi Beats – Chill Vibes for Study, Relax, & Focus 825K views 90s Lofi Songs || best hindi song #music 967K views MIND RELAX LOVE SONG 💕 | MIND RELAX LOFI MASHUP | LOVE MASHUP SONG 🎧 553K views Shorts 💘TRENDING| INSTAGRAM LOFI MASHUP| SLOWED+REVERBED | MIND FRESH LOFI SONG | LOFI SONGS 1.5M views Tum Se hi (slowed+reverb) | Jab We Met | Kareena , Shahid Kapoor | Mohit Chauhan || LOFI JUKEBOX 2.3M views chhapra ke boss lofi | slowed trending bhojpuri songs | छपरा के बॉस lofi mix 1.1M views New How’s Exam Studying Going? 🌙 Deep Lofi Beats for Late Night Focus on the channel 1.4K views Paro - Aditya Rikhari | Arish #lyrics #music #song #arish #aesthetic #lofi #fyp #trending 1.6M views Pal - Arijit Singh & Shreya Ghoshal jalebi Song | Slowed and Reverb Lofi Mix #arijitsingh #lofi # 110K views Night Lofi Songs | Mashup | Feel Relax & Sleep | Slowed+Reverb | Hindi Lofi Vibes #lofi #bollywood 515K views Top 5 Best Lofi Iconic Songs 2025 HM LO-FI 🎶 #iconicsong #lofisong #hmlofi #shortsfeed 423K views Tera chehra ❤️🥀 Aesthetic edit | Lyrical video | #shorts #status #music #lofi #edit #lyrics 610K views Lo-Fi Chords - Lofi Piano Chords - Chill Chords 1M views Show more People also search for Grunge Dubstep Chill-out music Jazz Ambient music Hip-hop culture Popular music Rock and roll Classical music House music Sitaare (Slowed + Reverb) | Arijit Singh | Amitabh Bhattacharya | Ikkis | Sad Vibes | SSR Lofi 817K views 3 months ago SSR Lofi Sitaare (Slowed + Reverb) | Arijit Singh | Amitabh Bhattacharya | Ikkis | Sad Vibes | SSR Lofi Use Headphone For Better ... lofi hip hop radio 📚 beats to relax/study to Lofi Girl Listen on Spotify, Apple music and more → https://link.lofigirl.com/m/music | Lofi Girl",
+      "tabs": [
+        {
+          "index": 0,
+          "title": "lofi - YouTube",
+          "url": "https://www.youtube.com/results?search_query=lofi",
+          "active": true
+        }
+      ],
+      "activeTab": {
+        "index": 0,
+        "title": "lofi - YouTube",
+        "url": "https://www.youtube.com/results?search_query=lofi",
+        "active": true
+      },
+      "observationQuality": {
+        "score": 1,
+        "reasons": []
+      },
+      "before": {
+        "url": "https://www.youtube.com/results?search_query=lofi",
+        "title": "lofi - YouTube",
+        "tabCount": 1
+      },
+      "after": {
+        "url": "https://www.youtube.com/results?search_query=lofi",
+        "title": "lofi - YouTube",
+        "tabCount": 1
+      }
+    },
+    "title": "lofi - YouTube",
+    "url": "https://www.youtube.com/results?search_query=lofi",
+    "buttons": [
+      {
+        "id": 2,
+        "text": "Guide",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Guide",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 4,
+        "text": "Skip navigation",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Skip navigation",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 78,
+        "text": "Clear search query",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Clear search query",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 7,
+        "text": "Search",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Search",
+        "title": "Search",
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 9,
+        "text": "Search with your voice",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Search with your voice",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 11,
+        "text": "Settings",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Settings",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 81,
+        "text": "All",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": null,
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 82,
+        "text": "Shorts",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": null,
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 83,
+        "text": "Unwatched",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": null,
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 84,
+        "text": "Watched",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": null,
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 85,
+        "text": "Videos",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": null,
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 86,
+        "text": "Recently uploaded",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": null,
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 87,
+        "text": "Live",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": null,
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 89,
+        "text": "Filters",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Search filters",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 92,
+        "text": "More actions",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "More actions",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 95,
+        "text": "More actions",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "More actions",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 98,
+        "text": "More actions",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "More actions",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 101,
+        "text": "More actions",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "More actions",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 104,
+        "text": "More actions",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "More actions",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 109,
+        "text": "More actions",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "More actions",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      }
+    ],
+    "inputs": [
+      {
+        "id": 6,
+        "text": "Search",
+        "value": "lofi",
+        "role": "input",
+        "type": "text",
+        "placeholder": "Search",
+        "ariaLabel": null,
+        "name": "search_query",
+        "title": null,
+        "visible": true,
+        "enabled": true
+      }
+    ],
+    "links": [
+      {
+        "id": 3,
+        "text": "YouTube Home",
+        "role": "link",
+        "href": "/",
+        "ariaLabel": null,
+        "title": "YouTube Home",
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 10,
+        "text": "link",
+        "role": "link",
+        "href": null,
+        "ariaLabel": null,
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 12,
+        "text": "Sign in",
+        "role": "link",
+        "href": "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3D%252Fresults%253Fsearch_query%253Dlofi&hl=en&ec=65620",
+        "ariaLabel": "Sign in",
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 15,
+        "text": "Home",
+        "role": "link",
+        "href": "/",
+        "ariaLabel": "Home",
+        "title": "Home",
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 17,
+        "text": "Shorts",
+        "role": "link",
+        "href": "/shorts/",
+        "ariaLabel": "Shorts",
+        "title": "Shorts",
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 19,
+        "text": "Subscriptions",
+        "role": "link",
+        "href": "/feed/subscriptions",
+        "ariaLabel": "Subscriptions",
+        "title": "Subscriptions",
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 21,
+        "text": "You",
+        "role": "link",
+        "href": "/feed/you",
+        "ariaLabel": "You",
+        "title": "You",
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 90,
+        "text": "link",
+        "role": "link",
+        "href": "/shorts/ADUTUY2Gff0",
+        "ariaLabel": null,
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 91,
+        "text": "Anxiety(lyrics)✨ #lofi #music #song #lyrics",
+        "role": "link",
+        "href": "/shorts/ADUTUY2Gff0",
+        "ariaLabel": null,
+        "title": "Anxiety(lyrics)✨ #lofi #music #song #lyrics",
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 93,
+        "text": "link",
+        "role": "link",
+        "href": "/shorts/LweetCoCFHA",
+        "ariaLabel": null,
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 94,
+        "text": "Dil Ka Jo Haal Hai  | Besharam | Ranbir Kapoor | Shreya Ghoshal || LOFI JUKEBOX",
+        "role": "link",
+        "href": "/shorts/LweetCoCFHA",
+        "ariaLabel": null,
+        "title": "Dil Ka Jo Haal Hai  | Besharam | Ranbir Kapoor | Shreya Ghoshal || LOFI JUKEBOX",
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 96,
+        "text": "link",
+        "role": "link",
+        "href": "/shorts/28ufM37HoWA",
+        "ariaLabel": null,
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 97,
+        "text": "Lofi Beats – Chill Vibes for Study, Relax, & Focus",
+        "role": "link",
+        "href": "/shorts/28ufM37HoWA",
+        "ariaLabel": null,
+        "title": "Lofi Beats – Chill Vibes for Study, Relax, & Focus",
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 99,
+        "text": "link",
+        "role": "link",
+        "href": "/shorts/u5xviTjyh6w",
+        "ariaLabel": null,
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 100,
+        "text": "90s Lofi Songs || best hindi song #music",
+        "role": "link",
+        "href": "/shorts/u5xviTjyh6w",
+        "ariaLabel": null,
+        "title": "90s Lofi Songs || best hindi song #music",
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 102,
+        "text": "link",
+        "role": "link",
+        "href": "/shorts/axb1HFlJBOA",
+        "ariaLabel": null,
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 103,
+        "text": "MIND RELAX LOVE SONG 💕 | MIND RELAX LOFI MASHUP | LOVE MASHUP SONG 🎧",
+        "role": "link",
+        "href": "/shorts/axb1HFlJBOA",
+        "ariaLabel": null,
+        "title": "MIND RELAX LOVE SONG 💕 | MIND RELAX LOFI MASHUP | LOVE MASHUP SONG 🎧",
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 107,
+        "text": "link",
+        "role": "link",
+        "href": "/shorts/GbFcvvEabkg",
+        "ariaLabel": null,
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 108,
+        "text": "💘TRENDING| INSTAGRAM LOFI MASHUP| SLOWED+REVERBED | MIND FRESH LOFI SONG | LOFI SONGS",
+        "role": "link",
+        "href": "/shorts/GbFcvvEabkg",
+        "ariaLabel": null,
+        "title": "💘TRENDING| INSTAGRAM LOFI MASHUP| SLOWED+REVERBED | MIND FRESH LOFI SONG | LOFI SONGS",
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 110,
+        "text": "link",
+        "role": "link",
+        "href": "/shorts/ystOcPaMBLw",
+        "ariaLabel": null,
+        "title": null,
+        "visible": true,
+        "enabled": true
+      }
+    ],
+    "text": "IN Skip navigation Sign in Home Shorts Subscriptions You All Shorts Unwatched Watched Videos Recently uploaded Live Filters Shorts Anxiety(lyrics)✨ #lofi #music #song #lyrics 961K views Dil Ka Jo Haal Hai | Besharam | Ranbir Kapoor | Shreya Ghoshal || LOFI JUKEBOX 834K views Lofi Beats – Chill Vibes for Study, Relax, & Focus 825K views 90s Lofi Songs || best hindi song #music 967K views MIND RELAX LOVE SONG 💕 | MIND RELAX LOFI MASHUP | LOVE MASHUP SONG 🎧 553K views Shorts 💘TRENDING| INSTAGRAM LOFI MASHUP| SLOWED+REVERBED | MIND FRESH LOFI SONG | LOFI SONGS 1.5M views Tum Se hi (slowed+reverb) | Jab We Met | Kareena , Shahid Kapoor | Mohit Chauhan || LOFI JUKEBOX 2.3M views chhapra ke boss lofi | slowed trending bhojpuri songs | छपरा के बॉस lofi mix 1.1M views New How’s Exam Studying Going? 🌙 Deep Lofi Beats for Late Night Focus on the channel 1.4K views Paro - Aditya Rikhari | Arish #lyrics #music #song #arish #aesthetic #lofi #fyp #trending 1.6M views Pal - Arijit Singh & Shreya Ghoshal jalebi Song | Slowed and Reverb Lofi Mix #arijitsingh #lofi # 110K views Night Lofi Songs | Mashup | Feel Relax & Sleep | Slowed+Reverb | Hindi Lofi Vibes #lofi #bollywood 515K views Top 5 Best Lofi Iconic Songs 2025 HM LO-FI 🎶 #iconicsong #lofisong #hmlofi #shortsfeed 423K views Tera chehra ❤️🥀 Aesthetic edit | Lyrical video | #shorts #status #music #lofi #edit #lyrics 610K views Lo-Fi Chords - Lofi Piano Chords - Chill Chords 1M views Show more People also search for Grunge Dubstep Chill-out music Jazz Ambient music Hip-hop culture Popular music Rock and roll Classical music House music Sitaare (Slowed + Reverb) | Arijit Singh | Amitabh Bhattacharya | Ikkis | Sad Vibes | SSR Lofi 817K views 3 months ago SSR Lofi Sitaare (Slowed + Reverb) | Arijit Singh | Amitabh Bhattacharya | Ikkis | Sad Vibes | SSR Lofi Use Headphone For Better ... lofi hip hop radio 📚 beats to relax/study to Lofi Girl Listen on Spotify, Apple music and more → https://link.lofigirl.com/m/music | Lofi Girl",
+    "action": {
+      "type": "read_ui",
+      "params": {}
+    },
+    "timestamp": "2026-06-16T19:30:20.871Z",
+    "events": []
+  }
+]
+[2026-06-16T19:30:20.927Z] [LOG] task: {
+  "id": "c682cbd2-292f-4fde-9454-39c2f5b37ec8",
+  "intent": null,
+  "objective": "Open a lofi video from search results",
+  "target": null,
+  "context": {},
+  "dependsOn": [],
+  "successCriteria": [
+    "URL contains youtube.com/watch",
+    "Page title contains lofi",
+    "Video player is visible"
+  ],
+  "requires": [
+    "lofi_search_results_visible"
+  ],
+  "produces": [
+    "lofi_video_open"
+  ],
+  "plan": null,
+  "result": null,
+  "currentStep": 0,
+  "status": "running",
+  "createdAt": "2026-06-16T19:28:36.055Z"
+}
+[2026-06-16T19:30:20.928Z] [LOG] STATE VERIFIED: null
+[2026-06-16T19:30:20.929Z] [LOG] EVENT VERIFIED: null
+[2026-06-16T19:30:20.929Z] [LOG] RULE VERIFIED: null
+[2026-06-16T19:30:20.930Z] [LOG] [LLM] Trying askGroq
+[2026-06-16T19:30:20.931Z] [LOG] SYSTEM CHARS: 1787
+[2026-06-16T19:30:20.932Z] [LOG] USER CHARS: 14082
+[2026-06-16T19:30:20.933Z] [LOG] TOTAL CHARS: 15869
+[2026-06-16T19:30:21.181Z] [LOG] [LLM] Failed askGroq Groq failed: 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kv6gqdgyfm5ary83wd5n1pb8` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99789, Requested 4569. Please try again in 1h2m45.312s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+
+[2026-06-16T19:30:21.182Z] [LOG] [LLM] Trying askOpenRouter
+[2026-06-16T19:30:21.183Z] [LOG] SYSTEM CHARS: 1787
+[2026-06-16T19:30:21.184Z] [LOG] USER CHARS: 14082
+[2026-06-16T19:30:21.184Z] [LOG] TOTAL CHARS: 15869
+[2026-06-16T19:30:21.185Z] [LOG] [OpenRouter] Request started
+[2026-06-16T19:30:22.153Z] [LOG] [OpenRouter] Status: 200
+[2026-06-16T19:30:34.698Z] [LOG] [LLM] Success askOpenRouter
+[2026-06-16T19:30:34.699Z] [LOG] LLM TASK VERIFICATION: {
+  "achieved": false,
+  "confidence": 0,
+  "reason": "The URL does not contain 'watch' and the page title does not indicate a specific lofi video is playing. The video player is not visible in the provided browser state.",
+  "criteriaResults": [
+    {
+      "criterion": "URL contains youtube.com/watch",
+      "met": false
+    },
+    {
+      "criterion": "Page title contains lofi",
+      "met": true
+    },
+    {
+      "criterion": "Video player is visible",
+      "met": false
+    }
+  ]
+}
+[2026-06-16T19:30:34.700Z] [LOG] GOAL VERIFICATION (DISABLED): {
+  "achieved": false
+}
+[2026-06-16T19:30:34.701Z] [LOG] Task verification failed — replanning for current task
+[2026-06-16T19:30:34.701Z] [LOG] [LLM] Trying askGroq
+[2026-06-16T19:30:34.702Z] [LOG] SYSTEM CHARS: 298
+[2026-06-16T19:30:34.703Z] [LOG] USER CHARS: 301
+[2026-06-16T19:30:34.704Z] [LOG] TOTAL CHARS: 599
+[2026-06-16T19:30:35.027Z] [LOG] [LLM] Success askGroq
+[2026-06-16T19:30:35.028Z] [LOG] IMPOSSIBLE CHECK: {
+  "impossible": false
+}
+[2026-06-16T19:30:35.028Z] [LOG] Replanning...
+[2026-06-16T19:30:35.029Z] [LOG] REPLAN TASK: {
+  "id": "c682cbd2-292f-4fde-9454-39c2f5b37ec8",
+  "intent": null,
+  "objective": "Open a lofi video from search results",
+  "target": null,
+  "context": {},
+  "dependsOn": [],
+  "successCriteria": [
+    "URL contains youtube.com/watch",
+    "Page title contains lofi",
+    "Video player is visible"
+  ],
+  "requires": [
+    "lofi_search_results_visible"
+  ],
+  "produces": [
+    "lofi_video_open"
+  ],
+  "plan": null,
+  "result": null,
+  "currentStep": 0,
+  "status": "running",
+  "createdAt": "2026-06-16T19:28:36.055Z"
+}
+[2026-06-16T19:30:38.922Z] [LOG] REPLAN BROWSER CONTEXT:
+ URL:
+https://www.youtube.com/results?search_query=lofi
+
+Title:
+lofi - YouTube
+
+Inputs:
+[6] Search (type: "text", placeholder: "Search", name: "search_query", value: "lofi")
+
+Buttons:
+[78] Clear search query (type: "submit", ariaLabel: "Clear search query")
+[7] Search (type: "submit", ariaLabel: "Search", title: "Search")
+[9] Search with your voice (type: "submit", ariaLabel: "Search with your voice")
+[89] Filters (type: "submit", ariaLabel: "Search filters")
+[2] Guide (type: "submit", ariaLabel: "Guide")
+[4] Skip navigation (type: "submit", ariaLabel: "Skip navigation")
+[11] Settings (type: "submit", ariaLabel: "Settings")
+[81] All (type: "submit")
+[82] Shorts (type: "submit")
+[83] Unwatched (type: "submit")
+[84] Watched (type: "submit")
+[85] Videos (type: "submit")
+[86] Recently uploaded (type: "submit")
+[87] Live (type: "submit")
+[92] More actions (type: "submit", ariaLabel: "More actions")
+[95] More actions (type: "submit", ariaLabel: "More actions")
+[98] More actions (type: "submit", ariaLabel: "More actions")
+[101] More actions (type: "submit", ariaLabel: "More actions")
+[104] More actions (type: "submit", ariaLabel: "More actions")
+[109] More actions (type: "submit", ariaLabel: "More actions")
+
+Links:
+[3] YouTube Home (href: "/", title: "YouTube Home")
+[10] link
+[12] Sign in (href: "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3D%252Fresults%253Fsearch_query%253Dlofi&hl=en&ec=65620", ariaLabel: "Sign in")
+[15] Home (href: "/", ariaLabel: "Home", title: "Home")
+[17] Shorts (href: "/shorts/", ariaLabel: "Shorts", title: "Shorts")
+[19] Subscriptions (href: "/feed/subscriptions", ariaLabel: "Subscriptions", title: "Subscriptions")
+[21] You (href: "/feed/you", ariaLabel: "You", title: "You")
+[90] link (href: "/shorts/ADUTUY2Gff0")
+[91] Anxiety(lyrics)✨ #lofi #music #song #lyrics (href: "/shorts/ADUTUY2Gff0", title: "Anxiety(lyrics)✨ #lofi #music #song #lyrics")
+[93] link (href: "/shorts/LweetCoCFHA")
+[94] Dil Ka Jo Haal Hai  | Besharam | Ranbir Kapoor | Shreya Ghoshal || LOFI JUKEBOX (href: "/shorts/LweetCoCFHA", title: "Dil Ka Jo Haal Hai  | Besharam | Ranbir Kapoor | Shreya Ghoshal || LOFI JUKEBOX")
+[96] link (href: "/shorts/28ufM37HoWA")
+[97] Lofi Beats – Chill Vibes for Study, Relax, & Focus (href: "/shorts/28ufM37HoWA", title: "Lofi Beats – Chill Vibes for Study, Relax, & Focus")
+[99] link (href: "/shorts/u5xviTjyh6w")
+[100] 90s Lofi Songs || best hindi song #music (href: "/shorts/u5xviTjyh6w", title: "90s Lofi Songs || best hindi song #music")
+[102] link (href: "/shorts/axb1HFlJBOA")
+[103] MIND RELAX LOVE SONG 💕 | MIND RELAX LOFI MASHUP | LOVE MASHUP SONG 🎧 (href: "/shorts/axb1HFlJBOA", title: "MIND RELAX LOVE SONG 💕 | MIND RELAX LOFI MASHUP | LOVE MASHUP SONG 🎧")
+[107] link (href: "/shorts/GbFcvvEabkg")
+[108] 💘TRENDING| INSTAGRAM LOFI MASHUP| SLOWED+REVERBED | MIND FRESH LOFI SONG | LOFI SONGS (href: "/shorts/GbFcvvEabkg", title: "💘TRENDING| INSTAGRAM LOFI MASHUP| SLOWED+REVERBED | MIND FRESH LOFI SONG | LOFI SONGS")
+[110] link (href: "/shorts/ystOcPaMBLw")
+
+Forms:
+[5] role: form, action: https://www.youtube.com/results, method: get
+
+
+[2026-06-16T19:30:38.923Z] [LOG] SYSTEM CHARS: 7884
+[2026-06-16T19:30:38.924Z] [LOG] GOAL CHARS: 26
+[2026-06-16T19:30:38.925Z] [LOG] TOTAL CHARS: 7910
+[2026-06-16T19:30:38.926Z] [LOG] [LLM] Trying askGroq
+[2026-06-16T19:30:38.926Z] [LOG] SYSTEM CHARS: 7884
+[2026-06-16T19:30:38.927Z] [LOG] USER CHARS: 2296
+[2026-06-16T19:30:38.928Z] [LOG] TOTAL CHARS: 10180
+[2026-06-16T19:30:39.027Z] [LOG] [LLM] Failed askGroq Groq failed: 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kv6gqdgyfm5ary83wd5n1pb8` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99965, Requested 2976. Please try again in 42m21.024s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+
+[2026-06-16T19:30:39.028Z] [LOG] [LLM] Trying askOpenRouter
+[2026-06-16T19:30:39.028Z] [LOG] SYSTEM CHARS: 7884
+[2026-06-16T19:30:39.029Z] [LOG] USER CHARS: 2296
+[2026-06-16T19:30:39.029Z] [LOG] TOTAL CHARS: 10180
+[2026-06-16T19:30:39.030Z] [LOG] [OpenRouter] Request started
+[2026-06-16T19:30:41.393Z] [LOG] [OpenRouter] Status: 200
+[2026-06-16T19:30:41.546Z] [LOG] [LLM] Success askOpenRouter
+[2026-06-16T19:30:41.547Z] [LOG] RAW REPLAN RESPONSE: ```json
+{
+  "actions": [
+    {
+      "type": "click",
+      "params": {
+        "element": 87
+      }
+    }
+  ]
+}
+```
+[2026-06-16T19:30:41.547Z] [LOG] PARSED: {
+  "actions": [
+    {
+      "type": "click",
+      "params": {
+        "element": 87
+      }
+    }
+  ]
+}
+[2026-06-16T19:30:41.548Z] [LOG] VALIDATED ACTIONS: [
+  {
+    "type": "click",
+    "params": {
+      "element": 87
+    }
+  }
+]
+[2026-06-16T19:30:41.548Z] [LOG] VALIDATED ACTIONS: [
+  {
+    "type": "click",
+    "params": {
+      "element": 87
+    }
+  }
+]
+[2026-06-16T19:30:41.549Z] [LOG] NEW PLAN: {
+  "goalId": "0a65c70f-dfb0-4d95-b481-73d5d47e1195",
+  "actions": [
+    {
+      "type": "click",
+      "params": {
+        "element": 87
+      }
+    }
+  ],
+  "createdAt": "2026-06-16T19:30:41.549Z"
+}
+[2026-06-16T19:30:41.550Z] [LOG] Task 3 Attempt 3 (Total Actions: 5, LLM Calls: 15)
+[2026-06-16T19:30:41.550Z] [LOG] 
+===== SENDING PLAN =====
+[2026-06-16T19:30:41.551Z] [LOG] {
+  "goalId": "0a65c70f-dfb0-4d95-b481-73d5d47e1195",
+  "actions": [
+    {
+      "type": "click",
+      "params": {
+        "element": 87
+      }
+    }
+  ],
+  "createdAt": "2026-06-16T19:30:41.549Z"
+}
+[2026-06-16T19:30:47.701Z] [LOG] [2026-06-16T19:30:47.698Z] Received: {
+  "type": "execution_result",
+  "observations": [
+    {
+      "success": true,
+      "expected": "page_changed",
+      "actual": "unchanged",
+      "clicked": "element 87",
+      "pageState": {
+        "success": true,
+        "title": "lofi - YouTube",
+        "url": "https://www.youtube.com/results?search_query=lofi",
+        "buttons": [
+          {
+            "id": 2,
+            "text": "Guide",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Guide",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 4,
+            "text": "Skip navigation",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Skip navigation",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 78,
+            "text": "Clear search query",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Clear search query",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 7,
+            "text": "Search",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Search",
+            "title": "Search",
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 9,
+            "text": "Search with your voice",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Search with your voice",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 11,
+            "text": "Settings",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Settings",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 81,
+            "text": "All",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": null,
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 82,
+            "text": "Shorts",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": null,
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 83,
+            "text": "Unwatched",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": null,
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 84,
+            "text": "Watched",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": null,
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 85,
+            "text": "Videos",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": null,
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 86,
+            "text": "Recently uploaded",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": null,
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 87,
+            "text": "Live",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": null,
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 89,
+            "text": "Filters",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Search filters",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 415,
+            "text": "Action menu",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Action menu",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 422,
+            "text": "Action menu",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Action menu",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 429,
+            "text": "Action menu",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Action menu",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 164,
+            "text": "Action menu",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Action menu",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 165,
+            "text": "Action menu",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Action menu",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 168,
+            "text": "Action menu",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Action menu",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          }
+        ],
+        "inputs": [
+          {
+            "id": 6,
+            "text": "Search",
+            "value": "lofi",
+            "role": "input",
+            "type": "text",
+            "placeholder": "Search",
+            "ariaLabel": null,
+            "name": "search_query",
+            "title": null,
+            "visible": true,
+            "enabled": true
+          }
+        ],
+        "links": [
+          {
+            "id": 3,
+            "text": "YouTube Home",
+            "role": "link",
+            "href": "/",
+            "ariaLabel": null,
+            "title": "YouTube Home",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 10,
+            "text": "link",
+            "role": "link",
+            "href": null,
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 12,
+            "text": "Sign in",
+            "role": "link",
+            "href": "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3D%252Fresults%253Fsearch_query%253Dlofi&hl=en&ec=65620",
+            "ariaLabel": "Sign in",
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 15,
+            "text": "Home",
+            "role": "link",
+            "href": "/",
+            "ariaLabel": "Home",
+            "title": "Home",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 17,
+            "text": "Shorts",
+            "role": "link",
+            "href": "/shorts/",
+            "ariaLabel": "Shorts",
+            "title": "Shorts",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 19,
+            "text": "Subscriptions",
+            "role": "link",
+            "href": "/feed/subscriptions",
+            "ariaLabel": "Subscriptions",
+            "title": "Subscriptions",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 21,
+            "text": "You",
+            "role": "link",
+            "href": "/feed/you",
+            "ariaLabel": "You",
+            "title": "You",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 413,
+            "text": "Now playing",
+            "role": "link",
+            "href": "/watch?v=X4VbdwhkE10&pp=ygUEbG9maQ%3D%3D",
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 414,
+            "text": "lofi hip hop radio 📚 beats to relax/study to",
+            "role": "link",
+            "href": "/watch?v=X4VbdwhkE10&pp=ygUEbG9maQ%3D%3D",
+            "ariaLabel": "lofi hip hop radio 📚 beats to relax/study to",
+            "title": "lofi hip hop radio 📚 beats to relax/study to",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 417,
+            "text": "Go to channel Lofi Girl",
+            "role": "link",
+            "href": "/channel/UCSJ4gkVC6NrvII8umztf0Ow",
+            "ariaLabel": "Go to channel Lofi Girl",
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 418,
+            "text": "Lofi Girl",
+            "role": "link",
+            "href": "/channel/UCSJ4gkVC6NrvII8umztf0Ow",
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 420,
+            "text": "Now playing",
+            "role": "link",
+            "href": "/watch?v=JD-kMIpDfnY&pp=ygUEbG9maQ%3D%3D",
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 421,
+            "text": "lofi hip hop radio 💤 beats to sleep/chill to",
+            "role": "link",
+            "href": "/watch?v=JD-kMIpDfnY&pp=ygUEbG9maQ%3D%3D",
+            "ariaLabel": "lofi hip hop radio 💤 beats to sleep/chill to",
+            "title": "lofi hip hop radio 💤 beats to sleep/chill to",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 424,
+            "text": "Go to channel Lofi Girl",
+            "role": "link",
+            "href": "/channel/UCSJ4gkVC6NrvII8umztf0Ow",
+            "ariaLabel": "Go to channel Lofi Girl",
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 425,
+            "text": "Lofi Girl",
+            "role": "link",
+            "href": "/channel/UCSJ4gkVC6NrvII8umztf0Ow",
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 427,
+            "text": "Now playing",
+            "role": "link",
+            "href": "/watch?v=E2vONfzoyRI&pp=ygUEbG9maQ%3D%3D",
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 428,
+            "text": "jazz lofi radio 🎷 beats to chill/study to",
+            "role": "link",
+            "href": "/watch?v=E2vONfzoyRI&pp=ygUEbG9maQ%3D%3D",
+            "ariaLabel": "jazz lofi radio 🎷 beats to chill/study to",
+            "title": "jazz lofi radio 🎷 beats to chill/study to",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 431,
+            "text": "Go to channel Lofi Girl",
+            "role": "link",
+            "href": "/channel/UCSJ4gkVC6NrvII8umztf0Ow",
+            "ariaLabel": "Go to channel Lofi Girl",
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 432,
+            "text": "Lofi Girl",
+            "role": "link",
+            "href": "/channel/UCSJ4gkVC6NrvII8umztf0Ow",
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 150,
+            "text": "link",
+            "role": "link",
+            "href": "/watch?v=Iyr3hnvfHAY&pp=ygUEbG9maQ%3D%3D",
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          }
+        ],
+        "forms": [
+          {
+            "id": 5,
+            "role": "form",
+            "action": "https://www.youtube.com/results",
+            "method": "get",
+            "visible": true
+          }
+        ],
+        "text": "IN Skip navigation Sign in Home Shorts Subscriptions You All Shorts Unwatched Watched Videos Recently uploaded Live Filters Now playing lofi hip hop radio 📚 beats to relax/study to Lofi Girl Listen on Spotify, Apple music and more → https://link.lofigirl.com/m/music | Lofi Girl on all social media ... LIVE Now playing lofi hip hop radio 💤 beats to sleep/chill to Lofi Girl Listen on Spotify, Apple music and more → https://fanlink.tv/Lofi-Sleep | Lofi Girl on all social media ... LIVE Now playing jazz lofi radio 🎷 beats to chill/study to Lofi Girl Listen on Spotify, Apple music and more → https://fanlink.tv/Jazz-Lofi-Girl | Lofi Girl on all social media ... LIVE A cozy day at the forest café 🐱☕ Jazzy Lofi for Study, Focus & Relax FuzzyVibes A cozy day at the forest café ☕ — settle in, slow down, and let the jazz carry you through the day. Perfect background music for ... LIVE New Soft Lofi Room 🎧 Chill Vibes for Peaceful Study & Relaxation Lofi Tone Art This is your little sanctuary—a space just for you to relax, reflect, or simply take a breather. Gentle lofi beats flow softly in the ... LIVE synthwave radio 🌌 beats to chill/game to Lofi Girl Listen on Spotify, Apple music and more → https://fanlink.tv/ChillSynthwave | Subscribe to this channel for more synthwave ... LIVE Study With Me 📚 Pomodoro Lofi Girl Listen on Spotify, Apple music and more → https://link.lofigirl.com/m/music Boost your productivity with the Pomodoro ... LIVE Midnight Calm 🌌 Chill Lofi Beats to Study, Sleep & Unwind Lofi Tone Art Immerse yourself in soothing Lofi beats, calming ambient sounds, and the natural chirping of crickets. Perfect for creating a ... LIVE Chill Lofi Beats🌠 Cozy Vibes to Relax / Study to Lofi Tone Art Welcome to our Lofi live broadcast! Let these gentle melodies accompany you in the dark nights. Whether you are writing, ... LIVE Honey Coffee ☕ Sweet Day with Lofi Cafe in Forest 🍯 Lofi Hip Hop for relax, work, study 24/7 Healing Me Healing Me: https://open.spotify",
+        "tabs": [
+          {
+            "index": 0,
+            "title": "lofi - YouTube",
+            "url": "https://www.youtube.com/results?search_query=lofi",
+            "active": true
+          }
+        ],
+        "activeTab": {
+          "index": 0,
+          "title": "lofi - YouTube",
+          "url": "https://www.youtube.com/results?search_query=lofi",
+          "active": true
+        },
+        "observationQuality": {
+          "score": 1,
+          "reasons": []
+        }
+      },
+      "before": {
+        "url": "https://www.youtube.com/results?search_query=lofi",
+        "title": "lofi - YouTube",
+        "tabCount": 1
+      },
+      "after": {
+        "url": "https://www.youtube.com/results?search_query=lofi",
+        "title": "lofi - YouTube",
+        "tabCount": 1
+      },
+      "action": {
+        "type": "click",
+        "params": {
+          "element": 87
+        }
+      },
+      "timestamp": "2026-06-16T19:30:47.693Z",
+      "events": [
+        "form_detected",
+        "links_detected",
+        "buttons_detected",
+        "content_loaded"
+      ]
+    }
+  ]
+}
+[2026-06-16T19:30:47.708Z] [LOG] EXECUTE RESULT: {
+  "type": "execution_result",
+  "observations": [
+    {
+      "success": true,
+      "expected": "page_changed",
+      "actual": "unchanged",
+      "clicked": "element 87",
+      "pageState": {
+        "success": true,
+        "title": "lofi - YouTube",
+        "url": "https://www.youtube.com/results?search_query=lofi",
+        "buttons": [
+          {
+            "id": 2,
+            "text": "Guide",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Guide",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 4,
+            "text": "Skip navigation",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Skip navigation",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 78,
+            "text": "Clear search query",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Clear search query",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 7,
+            "text": "Search",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Search",
+            "title": "Search",
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 9,
+            "text": "Search with your voice",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Search with your voice",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 11,
+            "text": "Settings",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Settings",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 81,
+            "text": "All",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": null,
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 82,
+            "text": "Shorts",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": null,
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 83,
+            "text": "Unwatched",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": null,
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 84,
+            "text": "Watched",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": null,
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 85,
+            "text": "Videos",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": null,
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 86,
+            "text": "Recently uploaded",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": null,
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 87,
+            "text": "Live",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": null,
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 89,
+            "text": "Filters",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Search filters",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 415,
+            "text": "Action menu",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Action menu",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 422,
+            "text": "Action menu",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Action menu",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 429,
+            "text": "Action menu",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Action menu",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 164,
+            "text": "Action menu",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Action menu",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 165,
+            "text": "Action menu",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Action menu",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 168,
+            "text": "Action menu",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Action menu",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          }
+        ],
+        "inputs": [
+          {
+            "id": 6,
+            "text": "Search",
+            "value": "lofi",
+            "role": "input",
+            "type": "text",
+            "placeholder": "Search",
+            "ariaLabel": null,
+            "name": "search_query",
+            "title": null,
+            "visible": true,
+            "enabled": true
+          }
+        ],
+        "links": [
+          {
+            "id": 3,
+            "text": "YouTube Home",
+            "role": "link",
+            "href": "/",
+            "ariaLabel": null,
+            "title": "YouTube Home",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 10,
+            "text": "link",
+            "role": "link",
+            "href": null,
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 12,
+            "text": "Sign in",
+            "role": "link",
+            "href": "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3D%252Fresults%253Fsearch_query%253Dlofi&hl=en&ec=65620",
+            "ariaLabel": "Sign in",
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 15,
+            "text": "Home",
+            "role": "link",
+            "href": "/",
+            "ariaLabel": "Home",
+            "title": "Home",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 17,
+            "text": "Shorts",
+            "role": "link",
+            "href": "/shorts/",
+            "ariaLabel": "Shorts",
+            "title": "Shorts",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 19,
+            "text": "Subscriptions",
+            "role": "link",
+            "href": "/feed/subscriptions",
+            "ariaLabel": "Subscriptions",
+            "title": "Subscriptions",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 21,
+            "text": "You",
+            "role": "link",
+            "href": "/feed/you",
+            "ariaLabel": "You",
+            "title": "You",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 413,
+            "text": "Now playing",
+            "role": "link",
+            "href": "/watch?v=X4VbdwhkE10&pp=ygUEbG9maQ%3D%3D",
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 414,
+            "text": "lofi hip hop radio 📚 beats to relax/study to",
+            "role": "link",
+            "href": "/watch?v=X4VbdwhkE10&pp=ygUEbG9maQ%3D%3D",
+            "ariaLabel": "lofi hip hop radio 📚 beats to relax/study to",
+            "title": "lofi hip hop radio 📚 beats to relax/study to",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 417,
+            "text": "Go to channel Lofi Girl",
+            "role": "link",
+            "href": "/channel/UCSJ4gkVC6NrvII8umztf0Ow",
+            "ariaLabel": "Go to channel Lofi Girl",
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 418,
+            "text": "Lofi Girl",
+            "role": "link",
+            "href": "/channel/UCSJ4gkVC6NrvII8umztf0Ow",
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 420,
+            "text": "Now playing",
+            "role": "link",
+            "href": "/watch?v=JD-kMIpDfnY&pp=ygUEbG9maQ%3D%3D",
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 421,
+            "text": "lofi hip hop radio 💤 beats to sleep/chill to",
+            "role": "link",
+            "href": "/watch?v=JD-kMIpDfnY&pp=ygUEbG9maQ%3D%3D",
+            "ariaLabel": "lofi hip hop radio 💤 beats to sleep/chill to",
+            "title": "lofi hip hop radio 💤 beats to sleep/chill to",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 424,
+            "text": "Go to channel Lofi Girl",
+            "role": "link",
+            "href": "/channel/UCSJ4gkVC6NrvII8umztf0Ow",
+            "ariaLabel": "Go to channel Lofi Girl",
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 425,
+            "text": "Lofi Girl",
+            "role": "link",
+            "href": "/channel/UCSJ4gkVC6NrvII8umztf0Ow",
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 427,
+            "text": "Now playing",
+            "role": "link",
+            "href": "/watch?v=E2vONfzoyRI&pp=ygUEbG9maQ%3D%3D",
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 428,
+            "text": "jazz lofi radio 🎷 beats to chill/study to",
+            "role": "link",
+            "href": "/watch?v=E2vONfzoyRI&pp=ygUEbG9maQ%3D%3D",
+            "ariaLabel": "jazz lofi radio 🎷 beats to chill/study to",
+            "title": "jazz lofi radio 🎷 beats to chill/study to",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 431,
+            "text": "Go to channel Lofi Girl",
+            "role": "link",
+            "href": "/channel/UCSJ4gkVC6NrvII8umztf0Ow",
+            "ariaLabel": "Go to channel Lofi Girl",
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 432,
+            "text": "Lofi Girl",
+            "role": "link",
+            "href": "/channel/UCSJ4gkVC6NrvII8umztf0Ow",
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 150,
+            "text": "link",
+            "role": "link",
+            "href": "/watch?v=Iyr3hnvfHAY&pp=ygUEbG9maQ%3D%3D",
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          }
+        ],
+        "forms": [
+          {
+            "id": 5,
+            "role": "form",
+            "action": "https://www.youtube.com/results",
+            "method": "get",
+            "visible": true
+          }
+        ],
+        "text": "IN Skip navigation Sign in Home Shorts Subscriptions You All Shorts Unwatched Watched Videos Recently uploaded Live Filters Now playing lofi hip hop radio 📚 beats to relax/study to Lofi Girl Listen on Spotify, Apple music and more → https://link.lofigirl.com/m/music | Lofi Girl on all social media ... LIVE Now playing lofi hip hop radio 💤 beats to sleep/chill to Lofi Girl Listen on Spotify, Apple music and more → https://fanlink.tv/Lofi-Sleep | Lofi Girl on all social media ... LIVE Now playing jazz lofi radio 🎷 beats to chill/study to Lofi Girl Listen on Spotify, Apple music and more → https://fanlink.tv/Jazz-Lofi-Girl | Lofi Girl on all social media ... LIVE A cozy day at the forest café 🐱☕ Jazzy Lofi for Study, Focus & Relax FuzzyVibes A cozy day at the forest café ☕ — settle in, slow down, and let the jazz carry you through the day. Perfect background music for ... LIVE New Soft Lofi Room 🎧 Chill Vibes for Peaceful Study & Relaxation Lofi Tone Art This is your little sanctuary—a space just for you to relax, reflect, or simply take a breather. Gentle lofi beats flow softly in the ... LIVE synthwave radio 🌌 beats to chill/game to Lofi Girl Listen on Spotify, Apple music and more → https://fanlink.tv/ChillSynthwave | Subscribe to this channel for more synthwave ... LIVE Study With Me 📚 Pomodoro Lofi Girl Listen on Spotify, Apple music and more → https://link.lofigirl.com/m/music Boost your productivity with the Pomodoro ... LIVE Midnight Calm 🌌 Chill Lofi Beats to Study, Sleep & Unwind Lofi Tone Art Immerse yourself in soothing Lofi beats, calming ambient sounds, and the natural chirping of crickets. Perfect for creating a ... LIVE Chill Lofi Beats🌠 Cozy Vibes to Relax / Study to Lofi Tone Art Welcome to our Lofi live broadcast! Let these gentle melodies accompany you in the dark nights. Whether you are writing, ... LIVE Honey Coffee ☕ Sweet Day with Lofi Cafe in Forest 🍯 Lofi Hip Hop for relax, work, study 24/7 Healing Me Healing Me: https://open.spotify",
+        "tabs": [
+          {
+            "index": 0,
+            "title": "lofi - YouTube",
+            "url": "https://www.youtube.com/results?search_query=lofi",
+            "active": true
+          }
+        ],
+        "activeTab": {
+          "index": 0,
+          "title": "lofi - YouTube",
+          "url": "https://www.youtube.com/results?search_query=lofi",
+          "active": true
+        },
+        "observationQuality": {
+          "score": 1,
+          "reasons": []
+        }
+      },
+      "before": {
+        "url": "https://www.youtube.com/results?search_query=lofi",
+        "title": "lofi - YouTube",
+        "tabCount": 1
+      },
+      "after": {
+        "url": "https://www.youtube.com/results?search_query=lofi",
+        "title": "lofi - YouTube",
+        "tabCount": 1
+      },
+      "action": {
+        "type": "click",
+        "params": {
+          "element": 87
+        }
+      },
+      "timestamp": "2026-06-16T19:30:47.693Z",
+      "events": [
+        "form_detected",
+        "links_detected",
+        "buttons_detected",
+        "content_loaded"
+      ]
+    }
+  ]
+}
+[2026-06-16T19:30:47.709Z] [LOG] WORLD: {
+  "history": 6,
+  "url": "https://www.youtube.com/results?search_query=lofi",
+  "title": "lofi - YouTube",
+  "lastOutcome": "success",
+  "lastStateHash": "f9c3c1fd0781a3119ed00e9dc9640f595a5b3c2007d2ef2231b530c209b59187"
+}
+[2026-06-16T19:30:47.710Z] [LOG] OBSERVATION SUMMARY: {
+  "success": true,
+  "expected": "page_changed",
+  "actual": "unchanged"
+}
+[2026-06-16T19:30:47.714Z] [LOG] OBSERVATION: {
+  "success": true,
+  "expected": "page_changed",
+  "actual": "unchanged",
+  "clicked": "element 87",
+  "pageState": {
+    "success": true,
+    "title": "lofi - YouTube",
+    "url": "https://www.youtube.com/results?search_query=lofi",
+    "buttons": [
+      {
+        "id": 2,
+        "text": "Guide",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Guide",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 4,
+        "text": "Skip navigation",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Skip navigation",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 78,
+        "text": "Clear search query",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Clear search query",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 7,
+        "text": "Search",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Search",
+        "title": "Search",
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 9,
+        "text": "Search with your voice",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Search with your voice",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 11,
+        "text": "Settings",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Settings",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 81,
+        "text": "All",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": null,
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 82,
+        "text": "Shorts",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": null,
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 83,
+        "text": "Unwatched",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": null,
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 84,
+        "text": "Watched",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": null,
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 85,
+        "text": "Videos",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": null,
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 86,
+        "text": "Recently uploaded",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": null,
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 87,
+        "text": "Live",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": null,
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 89,
+        "text": "Filters",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Search filters",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 415,
+        "text": "Action menu",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Action menu",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 422,
+        "text": "Action menu",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Action menu",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 429,
+        "text": "Action menu",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Action menu",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 164,
+        "text": "Action menu",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Action menu",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 165,
+        "text": "Action menu",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Action menu",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 168,
+        "text": "Action menu",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Action menu",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      }
+    ],
+    "inputs": [
+      {
+        "id": 6,
+        "text": "Search",
+        "value": "lofi",
+        "role": "input",
+        "type": "text",
+        "placeholder": "Search",
+        "ariaLabel": null,
+        "name": "search_query",
+        "title": null,
+        "visible": true,
+        "enabled": true
+      }
+    ],
+    "links": [
+      {
+        "id": 3,
+        "text": "YouTube Home",
+        "role": "link",
+        "href": "/",
+        "ariaLabel": null,
+        "title": "YouTube Home",
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 10,
+        "text": "link",
+        "role": "link",
+        "href": null,
+        "ariaLabel": null,
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 12,
+        "text": "Sign in",
+        "role": "link",
+        "href": "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3D%252Fresults%253Fsearch_query%253Dlofi&hl=en&ec=65620",
+        "ariaLabel": "Sign in",
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 15,
+        "text": "Home",
+        "role": "link",
+        "href": "/",
+        "ariaLabel": "Home",
+        "title": "Home",
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 17,
+        "text": "Shorts",
+        "role": "link",
+        "href": "/shorts/",
+        "ariaLabel": "Shorts",
+        "title": "Shorts",
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 19,
+        "text": "Subscriptions",
+        "role": "link",
+        "href": "/feed/subscriptions",
+        "ariaLabel": "Subscriptions",
+        "title": "Subscriptions",
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 21,
+        "text": "You",
+        "role": "link",
+        "href": "/feed/you",
+        "ariaLabel": "You",
+        "title": "You",
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 413,
+        "text": "Now playing",
+        "role": "link",
+        "href": "/watch?v=X4VbdwhkE10&pp=ygUEbG9maQ%3D%3D",
+        "ariaLabel": null,
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 414,
+        "text": "lofi hip hop radio 📚 beats to relax/study to",
+        "role": "link",
+        "href": "/watch?v=X4VbdwhkE10&pp=ygUEbG9maQ%3D%3D",
+        "ariaLabel": "lofi hip hop radio 📚 beats to relax/study to",
+        "title": "lofi hip hop radio 📚 beats to relax/study to",
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 417,
+        "text": "Go to channel Lofi Girl",
+        "role": "link",
+        "href": "/channel/UCSJ4gkVC6NrvII8umztf0Ow",
+        "ariaLabel": "Go to channel Lofi Girl",
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 418,
+        "text": "Lofi Girl",
+        "role": "link",
+        "href": "/channel/UCSJ4gkVC6NrvII8umztf0Ow",
+        "ariaLabel": null,
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 420,
+        "text": "Now playing",
+        "role": "link",
+        "href": "/watch?v=JD-kMIpDfnY&pp=ygUEbG9maQ%3D%3D",
+        "ariaLabel": null,
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 421,
+        "text": "lofi hip hop radio 💤 beats to sleep/chill to",
+        "role": "link",
+        "href": "/watch?v=JD-kMIpDfnY&pp=ygUEbG9maQ%3D%3D",
+        "ariaLabel": "lofi hip hop radio 💤 beats to sleep/chill to",
+        "title": "lofi hip hop radio 💤 beats to sleep/chill to",
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 424,
+        "text": "Go to channel Lofi Girl",
+        "role": "link",
+        "href": "/channel/UCSJ4gkVC6NrvII8umztf0Ow",
+        "ariaLabel": "Go to channel Lofi Girl",
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 425,
+        "text": "Lofi Girl",
+        "role": "link",
+        "href": "/channel/UCSJ4gkVC6NrvII8umztf0Ow",
+        "ariaLabel": null,
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 427,
+        "text": "Now playing",
+        "role": "link",
+        "href": "/watch?v=E2vONfzoyRI&pp=ygUEbG9maQ%3D%3D",
+        "ariaLabel": null,
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 428,
+        "text": "jazz lofi radio 🎷 beats to chill/study to",
+        "role": "link",
+        "href": "/watch?v=E2vONfzoyRI&pp=ygUEbG9maQ%3D%3D",
+        "ariaLabel": "jazz lofi radio 🎷 beats to chill/study to",
+        "title": "jazz lofi radio 🎷 beats to chill/study to",
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 431,
+        "text": "Go to channel Lofi Girl",
+        "role": "link",
+        "href": "/channel/UCSJ4gkVC6NrvII8umztf0Ow",
+        "ariaLabel": "Go to channel Lofi Girl",
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 432,
+        "text": "Lofi Girl",
+        "role": "link",
+        "href": "/channel/UCSJ4gkVC6NrvII8umztf0Ow",
+        "ariaLabel": null,
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 150,
+        "text": "link",
+        "role": "link",
+        "href": "/watch?v=Iyr3hnvfHAY&pp=ygUEbG9maQ%3D%3D",
+        "ariaLabel": null,
+        "title": null,
+        "visible": true,
+        "enabled": true
+      }
+    ],
+    "forms": [
+      {
+        "id": 5,
+        "role": "form",
+        "action": "https://www.youtube.com/results",
+        "method": "get",
+        "visible": true
+      }
+    ],
+    "text": "IN Skip navigation Sign in Home Shorts Subscriptions You All Shorts Unwatched Watched Videos Recently uploaded Live Filters Now playing lofi hip hop radio 📚 beats to relax/study to Lofi Girl Listen on Spotify, Apple music and more → https://link.lofigirl.com/m/music | Lofi Girl on all social media ... LIVE Now playing lofi hip hop radio 💤 beats to sleep/chill to Lofi Girl Listen on Spotify, Apple music and more → https://fanlink.tv/Lofi-Sleep | Lofi Girl on all social media ... LIVE Now playing jazz lofi radio 🎷 beats to chill/study to Lofi Girl Listen on Spotify, Apple music and more → https://fanlink.tv/Jazz-Lofi-Girl | Lofi Girl on all social media ... LIVE A cozy day at the forest café 🐱☕ Jazzy Lofi for Study, Focus & Relax FuzzyVibes A cozy day at the forest café ☕ — settle in, slow down, and let the jazz carry you through the day. Perfect background music for ... LIVE New Soft Lofi Room 🎧 Chill Vibes for Peaceful Study & Relaxation Lofi Tone Art This is your little sanctuary—a space just for you to relax, reflect, or simply take a breather. Gentle lofi beats flow softly in the ... LIVE synthwave radio 🌌 beats to chill/game to Lofi Girl Listen on Spotify, Apple music and more → https://fanlink.tv/ChillSynthwave | Subscribe to this channel for more synthwave ... LIVE Study With Me 📚 Pomodoro Lofi Girl Listen on Spotify, Apple music and more → https://link.lofigirl.com/m/music Boost your productivity with the Pomodoro ... LIVE Midnight Calm 🌌 Chill Lofi Beats to Study, Sleep & Unwind Lofi Tone Art Immerse yourself in soothing Lofi beats, calming ambient sounds, and the natural chirping of crickets. Perfect for creating a ... LIVE Chill Lofi Beats🌠 Cozy Vibes to Relax / Study to Lofi Tone Art Welcome to our Lofi live broadcast! Let these gentle melodies accompany you in the dark nights. Whether you are writing, ... LIVE Honey Coffee ☕ Sweet Day with Lofi Cafe in Forest 🍯 Lofi Hip Hop for relax, work, study 24/7 Healing Me Healing Me: https://open.spotify",
+    "tabs": [
+      {
+        "index": 0,
+        "title": "lofi - YouTube",
+        "url": "https://www.youtube.com/results?search_query=lofi",
+        "active": true
+      }
+    ],
+    "activeTab": {
+      "index": 0,
+      "title": "lofi - YouTube",
+      "url": "https://www.youtube.com/results?search_query=lofi",
+      "active": true
+    },
+    "observationQuality": {
+      "score": 1,
+      "reasons": []
+    }
+  },
+  "before": {
+    "url": "https://www.youtube.com/results?search_query=lofi",
+    "title": "lofi - YouTube",
+    "tabCount": 1
+  },
+  "after": {
+    "url": "https://www.youtube.com/results?search_query=lofi",
+    "title": "lofi - YouTube",
+    "tabCount": 1
+  },
+  "action": {
+    "type": "click",
+    "params": {
+      "element": 87
+    }
+  },
+  "timestamp": "2026-06-16T19:30:47.693Z",
+  "events": [
+    "form_detected",
+    "links_detected",
+    "buttons_detected",
+    "content_loaded"
+  ]
+}
+[2026-06-16T19:30:47.720Z] [LOG] VERIFYING TASK WITH CRITERIA: [
+  {
+    "success": true,
+    "expected": "page_changed",
+    "actual": "unchanged",
+    "clicked": "element 87",
+    "pageState": {
+      "success": true,
+      "title": "lofi - YouTube",
+      "url": "https://www.youtube.com/results?search_query=lofi",
+      "buttons": [
+        {
+          "id": 2,
+          "text": "Guide",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Guide",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 4,
+          "text": "Skip navigation",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Skip navigation",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 78,
+          "text": "Clear search query",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Clear search query",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 7,
+          "text": "Search",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Search",
+          "title": "Search",
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 9,
+          "text": "Search with your voice",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Search with your voice",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 11,
+          "text": "Settings",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Settings",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 81,
+          "text": "All",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": null,
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 82,
+          "text": "Shorts",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": null,
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 83,
+          "text": "Unwatched",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": null,
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 84,
+          "text": "Watched",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": null,
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 85,
+          "text": "Videos",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": null,
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 86,
+          "text": "Recently uploaded",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": null,
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 87,
+          "text": "Live",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": null,
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 89,
+          "text": "Filters",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Search filters",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 415,
+          "text": "Action menu",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Action menu",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 422,
+          "text": "Action menu",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Action menu",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 429,
+          "text": "Action menu",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Action menu",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 164,
+          "text": "Action menu",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Action menu",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 165,
+          "text": "Action menu",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Action menu",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 168,
+          "text": "Action menu",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Action menu",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        }
+      ],
+      "inputs": [
+        {
+          "id": 6,
+          "text": "Search",
+          "value": "lofi",
+          "role": "input",
+          "type": "text",
+          "placeholder": "Search",
+          "ariaLabel": null,
+          "name": "search_query",
+          "title": null,
+          "visible": true,
+          "enabled": true
+        }
+      ],
+      "links": [
+        {
+          "id": 3,
+          "text": "YouTube Home",
+          "role": "link",
+          "href": "/",
+          "ariaLabel": null,
+          "title": "YouTube Home",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 10,
+          "text": "link",
+          "role": "link",
+          "href": null,
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 12,
+          "text": "Sign in",
+          "role": "link",
+          "href": "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3D%252Fresults%253Fsearch_query%253Dlofi&hl=en&ec=65620",
+          "ariaLabel": "Sign in",
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 15,
+          "text": "Home",
+          "role": "link",
+          "href": "/",
+          "ariaLabel": "Home",
+          "title": "Home",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 17,
+          "text": "Shorts",
+          "role": "link",
+          "href": "/shorts/",
+          "ariaLabel": "Shorts",
+          "title": "Shorts",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 19,
+          "text": "Subscriptions",
+          "role": "link",
+          "href": "/feed/subscriptions",
+          "ariaLabel": "Subscriptions",
+          "title": "Subscriptions",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 21,
+          "text": "You",
+          "role": "link",
+          "href": "/feed/you",
+          "ariaLabel": "You",
+          "title": "You",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 413,
+          "text": "Now playing",
+          "role": "link",
+          "href": "/watch?v=X4VbdwhkE10&pp=ygUEbG9maQ%3D%3D",
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 414,
+          "text": "lofi hip hop radio 📚 beats to relax/study to",
+          "role": "link",
+          "href": "/watch?v=X4VbdwhkE10&pp=ygUEbG9maQ%3D%3D",
+          "ariaLabel": "lofi hip hop radio 📚 beats to relax/study to",
+          "title": "lofi hip hop radio 📚 beats to relax/study to",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 417,
+          "text": "Go to channel Lofi Girl",
+          "role": "link",
+          "href": "/channel/UCSJ4gkVC6NrvII8umztf0Ow",
+          "ariaLabel": "Go to channel Lofi Girl",
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 418,
+          "text": "Lofi Girl",
+          "role": "link",
+          "href": "/channel/UCSJ4gkVC6NrvII8umztf0Ow",
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 420,
+          "text": "Now playing",
+          "role": "link",
+          "href": "/watch?v=JD-kMIpDfnY&pp=ygUEbG9maQ%3D%3D",
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 421,
+          "text": "lofi hip hop radio 💤 beats to sleep/chill to",
+          "role": "link",
+          "href": "/watch?v=JD-kMIpDfnY&pp=ygUEbG9maQ%3D%3D",
+          "ariaLabel": "lofi hip hop radio 💤 beats to sleep/chill to",
+          "title": "lofi hip hop radio 💤 beats to sleep/chill to",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 424,
+          "text": "Go to channel Lofi Girl",
+          "role": "link",
+          "href": "/channel/UCSJ4gkVC6NrvII8umztf0Ow",
+          "ariaLabel": "Go to channel Lofi Girl",
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 425,
+          "text": "Lofi Girl",
+          "role": "link",
+          "href": "/channel/UCSJ4gkVC6NrvII8umztf0Ow",
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 427,
+          "text": "Now playing",
+          "role": "link",
+          "href": "/watch?v=E2vONfzoyRI&pp=ygUEbG9maQ%3D%3D",
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 428,
+          "text": "jazz lofi radio 🎷 beats to chill/study to",
+          "role": "link",
+          "href": "/watch?v=E2vONfzoyRI&pp=ygUEbG9maQ%3D%3D",
+          "ariaLabel": "jazz lofi radio 🎷 beats to chill/study to",
+          "title": "jazz lofi radio 🎷 beats to chill/study to",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 431,
+          "text": "Go to channel Lofi Girl",
+          "role": "link",
+          "href": "/channel/UCSJ4gkVC6NrvII8umztf0Ow",
+          "ariaLabel": "Go to channel Lofi Girl",
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 432,
+          "text": "Lofi Girl",
+          "role": "link",
+          "href": "/channel/UCSJ4gkVC6NrvII8umztf0Ow",
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 150,
+          "text": "link",
+          "role": "link",
+          "href": "/watch?v=Iyr3hnvfHAY&pp=ygUEbG9maQ%3D%3D",
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        }
+      ],
+      "forms": [
+        {
+          "id": 5,
+          "role": "form",
+          "action": "https://www.youtube.com/results",
+          "method": "get",
+          "visible": true
+        }
+      ],
+      "text": "IN Skip navigation Sign in Home Shorts Subscriptions You All Shorts Unwatched Watched Videos Recently uploaded Live Filters Now playing lofi hip hop radio 📚 beats to relax/study to Lofi Girl Listen on Spotify, Apple music and more → https://link.lofigirl.com/m/music | Lofi Girl on all social media ... LIVE Now playing lofi hip hop radio 💤 beats to sleep/chill to Lofi Girl Listen on Spotify, Apple music and more → https://fanlink.tv/Lofi-Sleep | Lofi Girl on all social media ... LIVE Now playing jazz lofi radio 🎷 beats to chill/study to Lofi Girl Listen on Spotify, Apple music and more → https://fanlink.tv/Jazz-Lofi-Girl | Lofi Girl on all social media ... LIVE A cozy day at the forest café 🐱☕ Jazzy Lofi for Study, Focus & Relax FuzzyVibes A cozy day at the forest café ☕ — settle in, slow down, and let the jazz carry you through the day. Perfect background music for ... LIVE New Soft Lofi Room 🎧 Chill Vibes for Peaceful Study & Relaxation Lofi Tone Art This is your little sanctuary—a space just for you to relax, reflect, or simply take a breather. Gentle lofi beats flow softly in the ... LIVE synthwave radio 🌌 beats to chill/game to Lofi Girl Listen on Spotify, Apple music and more → https://fanlink.tv/ChillSynthwave | Subscribe to this channel for more synthwave ... LIVE Study With Me 📚 Pomodoro Lofi Girl Listen on Spotify, Apple music and more → https://link.lofigirl.com/m/music Boost your productivity with the Pomodoro ... LIVE Midnight Calm 🌌 Chill Lofi Beats to Study, Sleep & Unwind Lofi Tone Art Immerse yourself in soothing Lofi beats, calming ambient sounds, and the natural chirping of crickets. Perfect for creating a ... LIVE Chill Lofi Beats🌠 Cozy Vibes to Relax / Study to Lofi Tone Art Welcome to our Lofi live broadcast! Let these gentle melodies accompany you in the dark nights. Whether you are writing, ... LIVE Honey Coffee ☕ Sweet Day with Lofi Cafe in Forest 🍯 Lofi Hip Hop for relax, work, study 24/7 Healing Me Healing Me: https://open.spotify",
+      "tabs": [
+        {
+          "index": 0,
+          "title": "lofi - YouTube",
+          "url": "https://www.youtube.com/results?search_query=lofi",
+          "active": true
+        }
+      ],
+      "activeTab": {
+        "index": 0,
+        "title": "lofi - YouTube",
+        "url": "https://www.youtube.com/results?search_query=lofi",
+        "active": true
+      },
+      "observationQuality": {
+        "score": 1,
+        "reasons": []
+      }
+    },
+    "before": {
+      "url": "https://www.youtube.com/results?search_query=lofi",
+      "title": "lofi - YouTube",
+      "tabCount": 1
+    },
+    "after": {
+      "url": "https://www.youtube.com/results?search_query=lofi",
+      "title": "lofi - YouTube",
+      "tabCount": 1
+    },
+    "action": {
+      "type": "click",
+      "params": {
+        "element": 87
+      }
+    },
+    "timestamp": "2026-06-16T19:30:47.693Z",
+    "events": [
+      "form_detected",
+      "links_detected",
+      "buttons_detected",
+      "content_loaded"
+    ]
+  }
+]
+[2026-06-16T19:30:47.722Z] [LOG] task: {
+  "id": "c682cbd2-292f-4fde-9454-39c2f5b37ec8",
+  "intent": null,
+  "objective": "Open a lofi video from search results",
+  "target": null,
+  "context": {},
+  "dependsOn": [],
+  "successCriteria": [
+    "URL contains youtube.com/watch",
+    "Page title contains lofi",
+    "Video player is visible"
+  ],
+  "requires": [
+    "lofi_search_results_visible"
+  ],
+  "produces": [
+    "lofi_video_open"
+  ],
+  "plan": null,
+  "result": null,
+  "currentStep": 0,
+  "status": "running",
+  "createdAt": "2026-06-16T19:28:36.055Z"
+}
+[2026-06-16T19:30:47.723Z] [LOG] STATE VERIFIED: null
+[2026-06-16T19:30:47.723Z] [LOG] EVENT VERIFIED: null
+[2026-06-16T19:30:47.726Z] [LOG] RULE VERIFIED: {
+  "achieved": false
+}
+[2026-06-16T19:30:47.727Z] [LOG] [LLM] Trying askGroq
+[2026-06-16T19:30:47.727Z] [LOG] SYSTEM CHARS: 1787
+[2026-06-16T19:30:47.728Z] [LOG] USER CHARS: 13856
+[2026-06-16T19:30:47.729Z] [LOG] TOTAL CHARS: 15643
+[2026-06-16T19:30:47.923Z] [LOG] [LLM] Failed askGroq Groq failed: 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kv6gqdgyfm5ary83wd5n1pb8` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99955, Requested 4354. Please try again in 1h2m2.976s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+
+[2026-06-16T19:30:47.924Z] [LOG] [LLM] Trying askOpenRouter
+[2026-06-16T19:30:47.925Z] [LOG] SYSTEM CHARS: 1787
+[2026-06-16T19:30:47.926Z] [LOG] USER CHARS: 13856
+[2026-06-16T19:30:47.926Z] [LOG] TOTAL CHARS: 15643
+[2026-06-16T19:30:47.927Z] [LOG] [OpenRouter] Request started
+[2026-06-16T19:30:48.709Z] [LOG] [OpenRouter] Status: 200
+[2026-06-16T19:31:01.500Z] [LOG] [LLM] Success askOpenRouter
+[2026-06-16T19:31:01.501Z] [LOG] LLM TASK VERIFICATION: {
+  "achieved": false,
+  "confidence": 0,
+  "reason": "The URL does not contain 'youtube.com/watch', the page title contains 'lofi' but the video player is not visible.",
+  "criteriaResults": [
+    {
+      "criterion": "URL contains youtube.com/watch",
+      "met": false
+    },
+    {
+      "criterion": "Page title contains lofi",
+      "met": true
+    },
+    {
+      "criterion": "Video player is visible",
+      "met": false
+    }
+  ]
+}
+[2026-06-16T19:31:01.502Z] [LOG] GOAL VERIFICATION (DISABLED): {
+  "achieved": false
+}
+[2026-06-16T19:31:01.503Z] [LOG] Task verification failed — replanning for current task
+[2026-06-16T19:31:01.504Z] [LOG] [LLM] Trying askGroq
+[2026-06-16T19:31:01.505Z] [LOG] SYSTEM CHARS: 298
+[2026-06-16T19:31:01.505Z] [LOG] USER CHARS: 522
+[2026-06-16T19:31:01.506Z] [LOG] TOTAL CHARS: 820
+[2026-06-16T19:31:01.728Z] [LOG] [LLM] Failed askGroq Groq failed: 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kv6gqdgyfm5ary83wd5n1pb8` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99939, Requested 271. Please try again in 3m1.44s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+
+[2026-06-16T19:31:01.729Z] [LOG] [LLM] Trying askOpenRouter
+[2026-06-16T19:31:01.730Z] [LOG] SYSTEM CHARS: 298
+[2026-06-16T19:31:01.730Z] [LOG] USER CHARS: 522
+[2026-06-16T19:31:01.731Z] [LOG] TOTAL CHARS: 820
+[2026-06-16T19:31:01.732Z] [LOG] [OpenRouter] Request started
+[2026-06-16T19:31:02.047Z] [LOG] [OpenRouter] Status: 200
+[2026-06-16T19:31:02.052Z] [LOG] [LLM] Success askOpenRouter
+[2026-06-16T19:31:02.053Z] [LOG] IMPOSSIBLE CHECK: {
+  "impossible": false
+}
+[2026-06-16T19:31:02.054Z] [LOG] Replanning...
+[2026-06-16T19:31:02.057Z] [LOG] REPLAN TASK: {
+  "id": "c682cbd2-292f-4fde-9454-39c2f5b37ec8",
+  "intent": null,
+  "objective": "Open a lofi video from search results",
+  "target": null,
+  "context": {},
+  "dependsOn": [],
+  "successCriteria": [
+    "URL contains youtube.com/watch",
+    "Page title contains lofi",
+    "Video player is visible"
+  ],
+  "requires": [
+    "lofi_search_results_visible"
+  ],
+  "produces": [
+    "lofi_video_open"
+  ],
+  "plan": null,
+  "result": null,
+  "currentStep": 0,
+  "status": "running",
+  "createdAt": "2026-06-16T19:28:36.055Z"
+}
+[2026-06-16T19:31:05.628Z] [LOG] REPLAN BROWSER CONTEXT:
+ URL:
+https://www.youtube.com/results?search_query=lofi
+
+Title:
+lofi - YouTube
+
+Inputs:
+[6] Search (type: "text", placeholder: "Search", name: "search_query", value: "lofi")
+
+Buttons:
+[78] Clear search query (type: "submit", ariaLabel: "Clear search query")
+[7] Search (type: "submit", ariaLabel: "Search", title: "Search")
+[9] Search with your voice (type: "submit", ariaLabel: "Search with your voice")
+[89] Filters (type: "submit", ariaLabel: "Search filters")
+[2] Guide (type: "submit", ariaLabel: "Guide")
+[4] Skip navigation (type: "submit", ariaLabel: "Skip navigation")
+[11] Settings (type: "submit", ariaLabel: "Settings")
+[81] All (type: "submit")
+[82] Shorts (type: "submit")
+[83] Unwatched (type: "submit")
+[84] Watched (type: "submit")
+[85] Videos (type: "submit")
+[86] Recently uploaded (type: "submit")
+[87] Live (type: "submit")
+[415] Action menu (type: "submit", ariaLabel: "Action menu")
+[422] Action menu (type: "submit", ariaLabel: "Action menu")
+[429] Action menu (type: "submit", ariaLabel: "Action menu")
+[164] Action menu (type: "submit", ariaLabel: "Action menu")
+[165] Action menu (type: "submit", ariaLabel: "Action menu")
+[168] Action menu (type: "submit", ariaLabel: "Action menu")
+
+Links:
+[3] YouTube Home (href: "/", title: "YouTube Home")
+[10] link
+[12] Sign in (href: "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3D%252Fresults%253Fsearch_query%253Dlofi&hl=en&ec=65620", ariaLabel: "Sign in")
+[15] Home (href: "/", ariaLabel: "Home", title: "Home")
+[17] Shorts (href: "/shorts/", ariaLabel: "Shorts", title: "Shorts")
+[19] Subscriptions (href: "/feed/subscriptions", ariaLabel: "Subscriptions", title: "Subscriptions")
+[21] You (href: "/feed/you", ariaLabel: "You", title: "You")
+[413] Now playing (href: "/watch?v=X4VbdwhkE10&pp=ygUEbG9maQ%3D%3D")
+[414] lofi hip hop radio 📚 beats to relax/study to (href: "/watch?v=X4VbdwhkE10&pp=ygUEbG9maQ%3D%3D", ariaLabel: "lofi hip hop radio 📚 beats to relax/study to", title: "lofi hip hop radio 📚 beats to relax/study to")
+[417] Go to channel Lofi Girl (href: "/channel/UCSJ4gkVC6NrvII8umztf0Ow", ariaLabel: "Go to channel Lofi Girl")
+[418] Lofi Girl (href: "/channel/UCSJ4gkVC6NrvII8umztf0Ow")
+[420] Now playing (href: "/watch?v=JD-kMIpDfnY&pp=ygUEbG9maQ%3D%3D")
+[421] lofi hip hop radio 💤 beats to sleep/chill to (href: "/watch?v=JD-kMIpDfnY&pp=ygUEbG9maQ%3D%3D", ariaLabel: "lofi hip hop radio 💤 beats to sleep/chill to", title: "lofi hip hop radio 💤 beats to sleep/chill to")
+[424] Go to channel Lofi Girl (href: "/channel/UCSJ4gkVC6NrvII8umztf0Ow", ariaLabel: "Go to channel Lofi Girl")
+[425] Lofi Girl (href: "/channel/UCSJ4gkVC6NrvII8umztf0Ow")
+[427] Now playing (href: "/watch?v=E2vONfzoyRI&pp=ygUEbG9maQ%3D%3D")
+[428] jazz lofi radio 🎷 beats to chill/study to (href: "/watch?v=E2vONfzoyRI&pp=ygUEbG9maQ%3D%3D", ariaLabel: "jazz lofi radio 🎷 beats to chill/study to", title: "jazz lofi radio 🎷 beats to chill/study to")
+[431] Go to channel Lofi Girl (href: "/channel/UCSJ4gkVC6NrvII8umztf0Ow", ariaLabel: "Go to channel Lofi Girl")
+[432] Lofi Girl (href: "/channel/UCSJ4gkVC6NrvII8umztf0Ow")
+[150] link (href: "/watch?v=Iyr3hnvfHAY&pp=ygUEbG9maQ%3D%3D")
+
+Forms:
+[5] role: form, action: https://www.youtube.com/results, method: get
+
+
+[2026-06-16T19:31:05.630Z] [LOG] SYSTEM CHARS: 8007
+[2026-06-16T19:31:05.631Z] [LOG] GOAL CHARS: 26
+[2026-06-16T19:31:05.632Z] [LOG] TOTAL CHARS: 8033
+[2026-06-16T19:31:05.633Z] [LOG] [LLM] Trying askGroq
+[2026-06-16T19:31:05.634Z] [LOG] SYSTEM CHARS: 8007
+[2026-06-16T19:31:05.635Z] [LOG] USER CHARS: 2931
+[2026-06-16T19:31:05.639Z] [LOG] TOTAL CHARS: 10938
+[2026-06-16T19:31:05.733Z] [LOG] [LLM] Failed askGroq Groq failed: 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kv6gqdgyfm5ary83wd5n1pb8` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99934, Requested 3248. Please try again in 45m49.248s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+
+[2026-06-16T19:31:05.734Z] [LOG] [LLM] Trying askOpenRouter
+[2026-06-16T19:31:05.735Z] [LOG] SYSTEM CHARS: 8007
+[2026-06-16T19:31:05.736Z] [LOG] USER CHARS: 2931
+[2026-06-16T19:31:05.737Z] [LOG] TOTAL CHARS: 10938
+[2026-06-16T19:31:05.737Z] [LOG] [OpenRouter] Request started
+[2026-06-16T19:31:06.611Z] [LOG] [OpenRouter] Status: 200
+[2026-06-16T19:31:15.030Z] [LOG] [LLM] Success askOpenRouter
+[2026-06-16T19:31:15.032Z] [LOG] RAW REPLAN RESPONSE: To analyze why the previous plan failed, let's examine the provided data. The last action was a click on element 87, which is the "Live" filter button. However, the page state remained unchanged after this action, indicating that the click did not achieve the expected outcome of changing the page or moving closer to the goal of opening a lofi video from search results.
+
+Given this information, the next step should involve inspecting the available links on the page, as the goal is to open a lofi video. The page contains several links to videos, such as those with href attributes starting with "/watch?v=".
+
+Here's a plan to move forward:
+
+```json
+{
+  "actions": [
+    {
+      "type": "click",
+      "params": {
+        "element": 414
+      }
+    }
+  ]
+}
+```
+
+This action chooses a link that appears to lead to a lofi video, based on the text "lofi hip hop radio 📚 beats to relax/study to" associated with element 414. Clicking on this link should navigate to a video page, which aligns with the objective of opening a lofi video from search results.
+[2026-06-16T19:31:15.033Z] [LOG] PARSED: {
+  "actions": [
+    {
+      "type": "click",
+      "params": {
+        "element": 414
+      }
+    }
+  ]
+}
+[2026-06-16T19:31:15.034Z] [LOG] VALIDATED ACTIONS: [
+  {
+    "type": "click",
+    "params": {
+      "element": 414
+    }
+  }
+]
+[2026-06-16T19:31:15.036Z] [LOG] VALIDATED ACTIONS: [
+  {
+    "type": "click",
+    "params": {
+      "element": 414
+    }
+  }
+]
+[2026-06-16T19:31:15.037Z] [LOG] NEW PLAN: {
+  "goalId": "0a65c70f-dfb0-4d95-b481-73d5d47e1195",
+  "actions": [
+    {
+      "type": "click",
+      "params": {
+        "element": 414
+      }
+    }
+  ],
+  "createdAt": "2026-06-16T19:31:15.036Z"
+}
+[2026-06-16T19:31:15.038Z] [LOG] Task 3 Attempt 4 (Total Actions: 6, LLM Calls: 18)
+[2026-06-16T19:31:15.038Z] [LOG] 
+===== SENDING PLAN =====
+[2026-06-16T19:31:15.039Z] [LOG] {
+  "goalId": "0a65c70f-dfb0-4d95-b481-73d5d47e1195",
+  "actions": [
+    {
+      "type": "click",
+      "params": {
+        "element": 414
+      }
+    }
+  ],
+  "createdAt": "2026-06-16T19:31:15.036Z"
+}
+[2026-06-16T19:31:25.940Z] [LOG] [2026-06-16T19:31:25.934Z] Received: {
+  "type": "execution_result",
+  "observations": [
+    {
+      "success": true,
+      "expected": "page_changed",
+      "actual": "changed",
+      "clicked": "element 414",
+      "pageState": {
+        "success": true,
+        "title": "lofi hip hop radio 📚 beats to relax/study to - YouTube",
+        "url": "https://www.youtube.com/watch?v=X4VbdwhkE10",
+        "buttons": [
+          {
+            "id": 2,
+            "text": "Guide",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Guide",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 4,
+            "text": "Skip navigation",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Skip navigation",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 78,
+            "text": "Clear search query",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Clear search query",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 7,
+            "text": "Search",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Search",
+            "title": "Search",
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 9,
+            "text": "Search with your voice",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Search with your voice",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 11,
+            "text": "Settings",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Settings",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 440,
+            "text": "Download",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Download This link opens in new tab",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 441,
+            "text": "My Ad Center",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "My Ad Center",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 64,
+            "text": "Play (k)",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Play (k)",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 67,
+            "text": "Mute (m)",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Mute (m)",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 71,
+            "text": "Subtitles/closed captions unavailable",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Subtitles/closed captions unavailable",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 72,
+            "text": "Settings",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Settings",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 73,
+            "text": "Theater mode (t)",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Theater mode (t)",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 75,
+            "text": "Full screen (f)",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Full screen (f)",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 444,
+            "text": "Join",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Join this channel",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 445,
+            "text": "Subscribe",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Subscribe to Lofi Girl.",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 447,
+            "text": "14K",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "like this video along with 14,760 other people",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 448,
+            "text": "Dislike this video",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Dislike this video",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 449,
+            "text": "Share",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Share",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 451,
+            "text": "Save",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Save to playlist",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          }
+        ],
+        "inputs": [
+          {
+            "id": 6,
+            "text": "Search",
+            "value": "lofi",
+            "role": "input",
+            "type": "text",
+            "placeholder": "Search",
+            "ariaLabel": null,
+            "name": "search_query",
+            "title": null,
+            "visible": true,
+            "enabled": true
+          }
+        ],
+        "links": [
+          {
+            "id": 3,
+            "text": "YouTube Home",
+            "role": "link",
+            "href": "/",
+            "ariaLabel": null,
+            "title": "YouTube Home",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 10,
+            "text": "link",
+            "role": "link",
+            "href": null,
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 12,
+            "text": "Sign in",
+            "role": "link",
+            "href": "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3D%252Fwatch%253Fv%253DX4VbdwhkE10%2526pp%253DygUEbG9maQ%25253D%25253D&hl=en&ec=65620",
+            "ariaLabel": "Sign in",
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 25,
+            "text": "link",
+            "role": "link",
+            "href": null,
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 26,
+            "text": "link",
+            "role": "link",
+            "href": "/@LofiGirl",
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 443,
+            "text": "Lofi Girl",
+            "role": "link",
+            "href": "/channel/UCSJ4gkVC6NrvII8umztf0Ow",
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 474,
+            "text": "Learn more",
+            "role": "link",
+            "href": null,
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 475,
+            "text": "Morning Coffee Repress - Vinyl Limited Edition\nLimited shipping areas\nLofi Girl",
+            "role": "link",
+            "href": null,
+            "ariaLabel": "Morning Coffee Repress - Vinyl Limited Edition, Limited shipping areas , from Lofi Girl",
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 476,
+            "text": "Lofi Girl Essentials T-Shirt L\nLimited shipping areas\nLofi Girl",
+            "role": "link",
+            "href": null,
+            "ariaLabel": "Lofi Girl Essentials T-Shirt L, Limited shipping areas , from Lofi Girl",
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 477,
+            "text": "Spring Collection 2026 – Seasons Vinyls Part 1\nLimited shipping areas\nLofi Girl",
+            "role": "link",
+            "href": null,
+            "ariaLabel": "Spring Collection 2026 – Seasons Vinyls Part 1, Limited shipping areas , from Lofi Girl",
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 478,
+            "text": "Lofi Girl Backpack\nLimited shipping areas\nLofi Girl",
+            "role": "link",
+            "href": null,
+            "ariaLabel": "Lofi Girl Backpack, Limited shipping areas , from Lofi Girl",
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 479,
+            "text": "Lofi Girl x Assassin's Creed: Shadows Collaboration Vinyl\nLimited shipping areas\nLofi Girl",
+            "role": "link",
+            "href": null,
+            "ariaLabel": "Lofi Girl x Assassin's Creed: Shadows Collaboration Vinyl, Limited shipping areas , from Lofi Girl",
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 480,
+            "text": "Spring Edition - Notebook\nLimited shipping areas\nLofi Girl",
+            "role": "link",
+            "href": null,
+            "ariaLabel": "Spring Edition - Notebook, Limited shipping areas , from Lofi Girl",
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 518,
+            "text": "Download",
+            "role": "link",
+            "href": "https://www.googleadservices.com/pagead/aclk?sa=L&ai=C_HkDhqQxatOZAuTH1_oP8oiWkQKkqe2zhwHo35PpgBawkB8QASAAYOWq6YPkDoIBF2NhLXB1Yi02MjE5ODExNzQ3MDQ5MzcxoAGOkNyxKKgDBMgDCqoEtANP0L9gbP5zmjMT_6dJ3_SkZ9-EBPO7R_-73KM8LKkI61Jjd-sh41P9H_DmugJRWZy9YlwcQY-OTZ4BAQ8KanaBDTYrABuXfwcxx2p5kkG3D4IN58fRb5pm2B32iJqk3XtPH6DAqaLfWoRItwtrVTYfKracrLCL34nBtsUngV20bd2KibQ4umHxItj9kDMitaH6eCvHwSlGC_S7swAu88FTuLquEHepb_vPsS1J8i2WcgdjAJSr-_zdZH39MSyB77oZblwy3DBWSXOv2OLmwo_CyNta04HEtA0hchJ8oUjpMkNrPVtbRdC5ENAL45IshpIZgBjsWa6P81c7Gcz2Qdd76w0EjqtzSsuyOysFHujRBmhXcokrR2a5J14xh2truTxBkVBcclFznANmCLJp_ASNEksjvwO5COqiZw-CcQSVWoi2HRd9sQGhyaTGeMjCR8rDJs1otyZJotefc3KG0_V8QO9-pe7ncC0G0rpc5lZm0BQkQETv7h9WVqnV0b15d4VTYNCdD1g9L9diaTOS3GybL_t28GOgECeyEoMYFiAJmID0e4_t-DTWPrgzaChoEIppOlIsiAXqwLT4UaAGoQGAB-OJzSKQBwSoB_LAsQKoB7jEsQKoB-G2sQKoB6XPsQKoB-edsQKoB-idsQKoB--1sQKoB_C1sQKoB_nTsQKoB8nasQKoB6ngsQKoB4QIqAem1LECqAeo0huoB7YHqAewm7ECqAeusbECqAf9srECqAfIz7ECqAfJz7ECqAfNx7ECqAfx0bECqAf81bECqAf71bECqAeM1rECqAeL1rECqAea4rECqAeb4rECqAed17ECqAed1LECqAeBxhuoB_yvsQKoB77ZsQKoB6vFG6gHnNwbqAe3obECqAfVqbECqAfn2rECqAfetbECqAfqsbECqAe-t7ECqAeZtbECqAeFwbECqAfrpbECqAfKqbECqAfCyLECkggLS1k3Yk45QWdGVVWoCAHSCC4IgEEQARheMgKCAjoPgGOAwICAgICAgAKqgIAQSNmg0jVQFFjQ5Ljlv4yVA2AB8ggfY2EteXQtaG9zdC1wdWItNjQ4MTk0MTgxMjAyNTY5M5oJKmh0dHBzOi8vd3d3Lmdvb2dsZS5jb20vY2hyb21lL2RyL2Rvd25sb2FkL7EJYyQKN9wAZGvICRjICY8ByAnCAaELyhCIKulaZhG6C0QIARABGAQgASgBMBBAAUgBYABoAXADeAGIAQCYAQGiARIKABgAIABYAWAAcAGoAgHYAgKoAQHYAQGAAgGIAga6AwJzadALEuALAaIMQSoKCgiV4rECjt-xAmIXChVjb20uZ29vZ2xlLmNocm9tZS5pb3NqFQoTY29tLndhbG1hcnQuYW5kcm9pZHgAiAEA0gwCEAHaDCYKCxDws4a5-6myyJYBEgIBAxoNGOrAtPhRIPjcgeuDBUABSgIQH5oNARKqDQJJTsgNAdINiwNodHRwczovL2FkLmRvdWJsZWNsaWNrLm5ldC9kZG0vdHJhY2tjbGsvTjUyOTUuNTA4NzgxM0RFTUFOREdFTi9CMzQ2MTQ2OTguNDM1MTY0NTYxO2RjX3Rya19haWQ9NjI4NTIzMjA5O2RjX3Rya19jaWQ9MjQ2NjExOTI1O2RjX2xhdD07ZGNfcmRpZD07dGFnX2Zvcl9jaGlsZF9kaXJlY3RlZF90cmVhdG1lbnQ9O3RmdWE9O2dkcHI9JHtHRFBSfTtnZHByX2NvbnNlbnQ9JHtHRFBSX0NPTlNFTlRfNzU1fTtsdGQ9O2RjX3Rkdj0xO2RjX3J1aT0xO2RjX2Vwcz1BSGFzOGNBZEM4bXQ2d1JMZk5qVzRCLU5KTlhhQ052eXR5NmQ1NHR5eGhOSXQybXJ5Q3NSN1QyY1gybFd0bFFYZlNDcTRNTGNjVmRwbDRrVmZxUmZNdztkY19wdWJpZD02P2dhZF9zb3VyY2U9MiZnYWRfY2FtcGFpZ25pZD0yMTk5NTc5MDQ0MrgT____________AYgUArAUAcAVyYCAQNAVAdgVAZAWAZgWAeIWAggBgBcBihcYCAMYASABKAEwATgBQAFIAVABWAFgAmgBoBcBuhcGKAAwADgB0BgB8BgBwhkCCAE&ase=2&gclid=EAIaIQobChMI0_S45b-MlQMV5ONVCR1yhCUiEAEYASAAEgIF4vD_BwE&num=1&cid=CAASwgHkaF-bLDL2Gu1OzfaTT8lAkPt-fvpLp5Zm2bjY6R7cofkYODrDbgLrtMQ9dpqMNXahi4OK7dU9ZYpekJrxRCYCK60omUp1QRgFpEK2QCo1t2ysf-SFf_f54ccXph4BN1aSxpFGSOJ2K86XNqounl-mqkoo7Kal3mI_ZQMqYGk_enTHHrq4kSpubs4r5uyshHJrLTug5yR9WFBYJ8Qy_Tc7S87-L8wLZ69qpgBqvsTG5dcEGZ7bmOIwSWgU9n0dHX2aRA&ad_cpn=%5BAD_CPN%5D&sig=AOD64_3C5I_7C2it8SyJ11UFjtaH76-zEw&label=video_click_to_advertiser_site&ctype=110&ms=%5BCLICK_MS%5D&adclksrc=%5BCLICK_SOURCE%5D",
+            "ariaLabel": "Download",
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 520,
+            "text": "LIVE",
+            "role": "link",
+            "href": "/watch?v=yf5NOyy1SXU&pp=0gcJCT4LAYcqIYzv",
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 521,
+            "text": "Soft Lofi Room 🎧 Chill Vibes for Peaceful Study & Relaxation",
+            "role": "link",
+            "href": "/watch?v=yf5NOyy1SXU&pp=0gcJCT4LAYcqIYzv",
+            "ariaLabel": "Soft Lofi Room 🎧 Chill Vibes for Peaceful Study & Relaxation",
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 523,
+            "text": "LIVE",
+            "role": "link",
+            "href": "/watch?v=dMWZ3exnBy8",
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 524,
+            "text": "ALPHA WAVES for intense study 🧠 INCREASE PRODUCTIVITY, STUDY AND MEMORIZE FAST",
+            "role": "link",
+            "href": "/watch?v=dMWZ3exnBy8",
+            "ariaLabel": "ALPHA WAVES for intense study 🧠 INCREASE PRODUCTIVITY, STUDY AND MEMORIZE FAST",
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 526,
+            "text": "LIVE",
+            "role": "link",
+            "href": "/watch?v=K0-6reET2BY",
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 527,
+            "text": "Relaxing Rain Sounds and Soft Piano Music for Deep Sleep, Stress Relief, and Peaceful Nights",
+            "role": "link",
+            "href": "/watch?v=K0-6reET2BY",
+            "ariaLabel": "Relaxing Rain Sounds and Soft Piano Music for Deep Sleep, Stress Relief, and Peaceful Nights",
+            "title": null,
+            "visible": true,
+            "enabled": true
+          }
+        ],
+        "forms": [
+          {
+            "id": 5,
+            "role": "form",
+            "action": "https://www.youtube.com/results",
+            "method": "get",
+            "visible": true
+          }
+        ],
+        "text": "IN Skip navigation Sign in Get Chrome with built-in AI google.com Download Sponsored google.com Skip 0:03 / 0:15 lofi hip hop radio 📚 beats to relax/study to Lofi Girl 15.8M subscribers Join Subscribe 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 K Share Save 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 , 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 watching now Started streaming on Jun 4, 2026 📻 Lofi Girl - Radios 🎼 | Listen on Spotify, Apple music and more → https://link.lofigirl.com/m/music … ...more Live chat Join the conversation to interact with the creator and others watching this live stream. Open panel Lofi Girl tagged products below. Learn more Morning Coffee Repress - Vinyl Limited Edition Limited shipping areas Lofi Girl Lofi Girl Essentials T-Shirt L Limited shipping areas Lofi Girl Spring Collection 2026 – Seasons Vinyls Part 1 Limited shipping areas Lofi Girl Lofi Girl Backpack Limited shipping areas Lofi Girl Lofi Girl x Assassin's Creed: Shadows Collaboration Vinyl Limited shipping areas Lofi Girl Spring Edition - Notebook Limited shipping areas Lofi Girl Get Chrome with built-in AI Sponsored google.com Download LIVE Soft Lofi Room 🎧 Chill Vibes for Peaceful Study & Relaxation Lofi Tone Art 807 watching LIVE ALPHA WAVES for intense study 🧠 INCREASE PRODUCTIVITY, STUDY AND MEMORIZE FAST Brain Waves 356 watching LIVE Relaxing Rain Sounds and Soft Piano Music for Deep Sleep, Stress Relief, and Peaceful Nights Relaxing Piano 4.9K watching LIVE jazz lofi radio 🎷 beats to chill/study to Lofi Girl 2K watching LIVE Calming Lofi Rain 🌧️ Chill Beats for Focus, Study & Sleep Lofi Tone Art 467 watching 2:07:48 jazz before i reach flow state Defunct 289K views • 1 month ago 3:00:04 study wi",
+        "tabs": [
+          {
+            "index": 0,
+            "title": "lofi hip hop radio 📚 beats to relax/study to - YouTube",
+            "url": "https://www.youtube.com/watch?v=X4VbdwhkE10",
+            "active": true
+          }
+        ],
+        "activeTab": {
+          "index": 0,
+          "title": "lofi hip hop radio 📚 beats to relax/study to - YouTube",
+          "url": "https://www.youtube.com/watch?v=X4VbdwhkE10",
+          "active": true
+        },
+        "observationQuality": {
+          "score": 1,
+          "reasons": []
+        }
+      },
+      "before": {
+        "url": "https://www.youtube.com/results?search_query=lofi",
+        "title": "lofi - YouTube",
+        "tabCount": 1
+      },
+      "after": {
+        "url": "https://www.youtube.com/watch?v=X4VbdwhkE10",
+        "title": "YouTube",
+        "tabCount": 1
+      },
+      "action": {
+        "type": "click",
+        "params": {
+          "element": 414
+        }
+      },
+      "timestamp": "2026-06-16T19:31:25.927Z",
+      "events": [
+        "url_changed",
+        "content_changed",
+        "form_detected",
+        "links_detected",
+        "buttons_detected",
+        "content_loaded"
+      ]
+    }
+  ]
+}
+[2026-06-16T19:31:25.947Z] [LOG] EXECUTE RESULT: {
+  "type": "execution_result",
+  "observations": [
+    {
+      "success": true,
+      "expected": "page_changed",
+      "actual": "changed",
+      "clicked": "element 414",
+      "pageState": {
+        "success": true,
+        "title": "lofi hip hop radio 📚 beats to relax/study to - YouTube",
+        "url": "https://www.youtube.com/watch?v=X4VbdwhkE10",
+        "buttons": [
+          {
+            "id": 2,
+            "text": "Guide",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Guide",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 4,
+            "text": "Skip navigation",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Skip navigation",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 78,
+            "text": "Clear search query",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Clear search query",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 7,
+            "text": "Search",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Search",
+            "title": "Search",
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 9,
+            "text": "Search with your voice",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Search with your voice",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 11,
+            "text": "Settings",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Settings",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 440,
+            "text": "Download",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Download This link opens in new tab",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 441,
+            "text": "My Ad Center",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "My Ad Center",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 64,
+            "text": "Play (k)",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Play (k)",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 67,
+            "text": "Mute (m)",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Mute (m)",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 71,
+            "text": "Subtitles/closed captions unavailable",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Subtitles/closed captions unavailable",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 72,
+            "text": "Settings",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Settings",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 73,
+            "text": "Theater mode (t)",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Theater mode (t)",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 75,
+            "text": "Full screen (f)",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Full screen (f)",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 444,
+            "text": "Join",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Join this channel",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 445,
+            "text": "Subscribe",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Subscribe to Lofi Girl.",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 447,
+            "text": "14K",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "like this video along with 14,760 other people",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 448,
+            "text": "Dislike this video",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Dislike this video",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 449,
+            "text": "Share",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Share",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 451,
+            "text": "Save",
+            "role": "button",
+            "type": "submit",
+            "ariaLabel": "Save to playlist",
+            "title": null,
+            "name": null,
+            "visible": true,
+            "enabled": true
+          }
+        ],
+        "inputs": [
+          {
+            "id": 6,
+            "text": "Search",
+            "value": "lofi",
+            "role": "input",
+            "type": "text",
+            "placeholder": "Search",
+            "ariaLabel": null,
+            "name": "search_query",
+            "title": null,
+            "visible": true,
+            "enabled": true
+          }
+        ],
+        "links": [
+          {
+            "id": 3,
+            "text": "YouTube Home",
+            "role": "link",
+            "href": "/",
+            "ariaLabel": null,
+            "title": "YouTube Home",
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 10,
+            "text": "link",
+            "role": "link",
+            "href": null,
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 12,
+            "text": "Sign in",
+            "role": "link",
+            "href": "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3D%252Fwatch%253Fv%253DX4VbdwhkE10%2526pp%253DygUEbG9maQ%25253D%25253D&hl=en&ec=65620",
+            "ariaLabel": "Sign in",
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 25,
+            "text": "link",
+            "role": "link",
+            "href": null,
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 26,
+            "text": "link",
+            "role": "link",
+            "href": "/@LofiGirl",
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 443,
+            "text": "Lofi Girl",
+            "role": "link",
+            "href": "/channel/UCSJ4gkVC6NrvII8umztf0Ow",
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 474,
+            "text": "Learn more",
+            "role": "link",
+            "href": null,
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 475,
+            "text": "Morning Coffee Repress - Vinyl Limited Edition\nLimited shipping areas\nLofi Girl",
+            "role": "link",
+            "href": null,
+            "ariaLabel": "Morning Coffee Repress - Vinyl Limited Edition, Limited shipping areas , from Lofi Girl",
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 476,
+            "text": "Lofi Girl Essentials T-Shirt L\nLimited shipping areas\nLofi Girl",
+            "role": "link",
+            "href": null,
+            "ariaLabel": "Lofi Girl Essentials T-Shirt L, Limited shipping areas , from Lofi Girl",
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 477,
+            "text": "Spring Collection 2026 – Seasons Vinyls Part 1\nLimited shipping areas\nLofi Girl",
+            "role": "link",
+            "href": null,
+            "ariaLabel": "Spring Collection 2026 – Seasons Vinyls Part 1, Limited shipping areas , from Lofi Girl",
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 478,
+            "text": "Lofi Girl Backpack\nLimited shipping areas\nLofi Girl",
+            "role": "link",
+            "href": null,
+            "ariaLabel": "Lofi Girl Backpack, Limited shipping areas , from Lofi Girl",
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 479,
+            "text": "Lofi Girl x Assassin's Creed: Shadows Collaboration Vinyl\nLimited shipping areas\nLofi Girl",
+            "role": "link",
+            "href": null,
+            "ariaLabel": "Lofi Girl x Assassin's Creed: Shadows Collaboration Vinyl, Limited shipping areas , from Lofi Girl",
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 480,
+            "text": "Spring Edition - Notebook\nLimited shipping areas\nLofi Girl",
+            "role": "link",
+            "href": null,
+            "ariaLabel": "Spring Edition - Notebook, Limited shipping areas , from Lofi Girl",
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 518,
+            "text": "Download",
+            "role": "link",
+            "href": "https://www.googleadservices.com/pagead/aclk?sa=L&ai=C_HkDhqQxatOZAuTH1_oP8oiWkQKkqe2zhwHo35PpgBawkB8QASAAYOWq6YPkDoIBF2NhLXB1Yi02MjE5ODExNzQ3MDQ5MzcxoAGOkNyxKKgDBMgDCqoEtANP0L9gbP5zmjMT_6dJ3_SkZ9-EBPO7R_-73KM8LKkI61Jjd-sh41P9H_DmugJRWZy9YlwcQY-OTZ4BAQ8KanaBDTYrABuXfwcxx2p5kkG3D4IN58fRb5pm2B32iJqk3XtPH6DAqaLfWoRItwtrVTYfKracrLCL34nBtsUngV20bd2KibQ4umHxItj9kDMitaH6eCvHwSlGC_S7swAu88FTuLquEHepb_vPsS1J8i2WcgdjAJSr-_zdZH39MSyB77oZblwy3DBWSXOv2OLmwo_CyNta04HEtA0hchJ8oUjpMkNrPVtbRdC5ENAL45IshpIZgBjsWa6P81c7Gcz2Qdd76w0EjqtzSsuyOysFHujRBmhXcokrR2a5J14xh2truTxBkVBcclFznANmCLJp_ASNEksjvwO5COqiZw-CcQSVWoi2HRd9sQGhyaTGeMjCR8rDJs1otyZJotefc3KG0_V8QO9-pe7ncC0G0rpc5lZm0BQkQETv7h9WVqnV0b15d4VTYNCdD1g9L9diaTOS3GybL_t28GOgECeyEoMYFiAJmID0e4_t-DTWPrgzaChoEIppOlIsiAXqwLT4UaAGoQGAB-OJzSKQBwSoB_LAsQKoB7jEsQKoB-G2sQKoB6XPsQKoB-edsQKoB-idsQKoB--1sQKoB_C1sQKoB_nTsQKoB8nasQKoB6ngsQKoB4QIqAem1LECqAeo0huoB7YHqAewm7ECqAeusbECqAf9srECqAfIz7ECqAfJz7ECqAfNx7ECqAfx0bECqAf81bECqAf71bECqAeM1rECqAeL1rECqAea4rECqAeb4rECqAed17ECqAed1LECqAeBxhuoB_yvsQKoB77ZsQKoB6vFG6gHnNwbqAe3obECqAfVqbECqAfn2rECqAfetbECqAfqsbECqAe-t7ECqAeZtbECqAeFwbECqAfrpbECqAfKqbECqAfCyLECkggLS1k3Yk45QWdGVVWoCAHSCC4IgEEQARheMgKCAjoPgGOAwICAgICAgAKqgIAQSNmg0jVQFFjQ5Ljlv4yVA2AB8ggfY2EteXQtaG9zdC1wdWItNjQ4MTk0MTgxMjAyNTY5M5oJKmh0dHBzOi8vd3d3Lmdvb2dsZS5jb20vY2hyb21lL2RyL2Rvd25sb2FkL7EJYyQKN9wAZGvICRjICY8ByAnCAaELyhCIKulaZhG6C0QIARABGAQgASgBMBBAAUgBYABoAXADeAGIAQCYAQGiARIKABgAIABYAWAAcAGoAgHYAgKoAQHYAQGAAgGIAga6AwJzadALEuALAaIMQSoKCgiV4rECjt-xAmIXChVjb20uZ29vZ2xlLmNocm9tZS5pb3NqFQoTY29tLndhbG1hcnQuYW5kcm9pZHgAiAEA0gwCEAHaDCYKCxDws4a5-6myyJYBEgIBAxoNGOrAtPhRIPjcgeuDBUABSgIQH5oNARKqDQJJTsgNAdINiwNodHRwczovL2FkLmRvdWJsZWNsaWNrLm5ldC9kZG0vdHJhY2tjbGsvTjUyOTUuNTA4NzgxM0RFTUFOREdFTi9CMzQ2MTQ2OTguNDM1MTY0NTYxO2RjX3Rya19haWQ9NjI4NTIzMjA5O2RjX3Rya19jaWQ9MjQ2NjExOTI1O2RjX2xhdD07ZGNfcmRpZD07dGFnX2Zvcl9jaGlsZF9kaXJlY3RlZF90cmVhdG1lbnQ9O3RmdWE9O2dkcHI9JHtHRFBSfTtnZHByX2NvbnNlbnQ9JHtHRFBSX0NPTlNFTlRfNzU1fTtsdGQ9O2RjX3Rkdj0xO2RjX3J1aT0xO2RjX2Vwcz1BSGFzOGNBZEM4bXQ2d1JMZk5qVzRCLU5KTlhhQ052eXR5NmQ1NHR5eGhOSXQybXJ5Q3NSN1QyY1gybFd0bFFYZlNDcTRNTGNjVmRwbDRrVmZxUmZNdztkY19wdWJpZD02P2dhZF9zb3VyY2U9MiZnYWRfY2FtcGFpZ25pZD0yMTk5NTc5MDQ0MrgT____________AYgUArAUAcAVyYCAQNAVAdgVAZAWAZgWAeIWAggBgBcBihcYCAMYASABKAEwATgBQAFIAVABWAFgAmgBoBcBuhcGKAAwADgB0BgB8BgBwhkCCAE&ase=2&gclid=EAIaIQobChMI0_S45b-MlQMV5ONVCR1yhCUiEAEYASAAEgIF4vD_BwE&num=1&cid=CAASwgHkaF-bLDL2Gu1OzfaTT8lAkPt-fvpLp5Zm2bjY6R7cofkYODrDbgLrtMQ9dpqMNXahi4OK7dU9ZYpekJrxRCYCK60omUp1QRgFpEK2QCo1t2ysf-SFf_f54ccXph4BN1aSxpFGSOJ2K86XNqounl-mqkoo7Kal3mI_ZQMqYGk_enTHHrq4kSpubs4r5uyshHJrLTug5yR9WFBYJ8Qy_Tc7S87-L8wLZ69qpgBqvsTG5dcEGZ7bmOIwSWgU9n0dHX2aRA&ad_cpn=%5BAD_CPN%5D&sig=AOD64_3C5I_7C2it8SyJ11UFjtaH76-zEw&label=video_click_to_advertiser_site&ctype=110&ms=%5BCLICK_MS%5D&adclksrc=%5BCLICK_SOURCE%5D",
+            "ariaLabel": "Download",
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 520,
+            "text": "LIVE",
+            "role": "link",
+            "href": "/watch?v=yf5NOyy1SXU&pp=0gcJCT4LAYcqIYzv",
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 521,
+            "text": "Soft Lofi Room 🎧 Chill Vibes for Peaceful Study & Relaxation",
+            "role": "link",
+            "href": "/watch?v=yf5NOyy1SXU&pp=0gcJCT4LAYcqIYzv",
+            "ariaLabel": "Soft Lofi Room 🎧 Chill Vibes for Peaceful Study & Relaxation",
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 523,
+            "text": "LIVE",
+            "role": "link",
+            "href": "/watch?v=dMWZ3exnBy8",
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 524,
+            "text": "ALPHA WAVES for intense study 🧠 INCREASE PRODUCTIVITY, STUDY AND MEMORIZE FAST",
+            "role": "link",
+            "href": "/watch?v=dMWZ3exnBy8",
+            "ariaLabel": "ALPHA WAVES for intense study 🧠 INCREASE PRODUCTIVITY, STUDY AND MEMORIZE FAST",
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 526,
+            "text": "LIVE",
+            "role": "link",
+            "href": "/watch?v=K0-6reET2BY",
+            "ariaLabel": null,
+            "title": null,
+            "visible": true,
+            "enabled": true
+          },
+          {
+            "id": 527,
+            "text": "Relaxing Rain Sounds and Soft Piano Music for Deep Sleep, Stress Relief, and Peaceful Nights",
+            "role": "link",
+            "href": "/watch?v=K0-6reET2BY",
+            "ariaLabel": "Relaxing Rain Sounds and Soft Piano Music for Deep Sleep, Stress Relief, and Peaceful Nights",
+            "title": null,
+            "visible": true,
+            "enabled": true
+          }
+        ],
+        "forms": [
+          {
+            "id": 5,
+            "role": "form",
+            "action": "https://www.youtube.com/results",
+            "method": "get",
+            "visible": true
+          }
+        ],
+        "text": "IN Skip navigation Sign in Get Chrome with built-in AI google.com Download Sponsored google.com Skip 0:03 / 0:15 lofi hip hop radio 📚 beats to relax/study to Lofi Girl 15.8M subscribers Join Subscribe 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 K Share Save 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 , 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 watching now Started streaming on Jun 4, 2026 📻 Lofi Girl - Radios 🎼 | Listen on Spotify, Apple music and more → https://link.lofigirl.com/m/music … ...more Live chat Join the conversation to interact with the creator and others watching this live stream. Open panel Lofi Girl tagged products below. Learn more Morning Coffee Repress - Vinyl Limited Edition Limited shipping areas Lofi Girl Lofi Girl Essentials T-Shirt L Limited shipping areas Lofi Girl Spring Collection 2026 – Seasons Vinyls Part 1 Limited shipping areas Lofi Girl Lofi Girl Backpack Limited shipping areas Lofi Girl Lofi Girl x Assassin's Creed: Shadows Collaboration Vinyl Limited shipping areas Lofi Girl Spring Edition - Notebook Limited shipping areas Lofi Girl Get Chrome with built-in AI Sponsored google.com Download LIVE Soft Lofi Room 🎧 Chill Vibes for Peaceful Study & Relaxation Lofi Tone Art 807 watching LIVE ALPHA WAVES for intense study 🧠 INCREASE PRODUCTIVITY, STUDY AND MEMORIZE FAST Brain Waves 356 watching LIVE Relaxing Rain Sounds and Soft Piano Music for Deep Sleep, Stress Relief, and Peaceful Nights Relaxing Piano 4.9K watching LIVE jazz lofi radio 🎷 beats to chill/study to Lofi Girl 2K watching LIVE Calming Lofi Rain 🌧️ Chill Beats for Focus, Study & Sleep Lofi Tone Art 467 watching 2:07:48 jazz before i reach flow state Defunct 289K views • 1 month ago 3:00:04 study wi",
+        "tabs": [
+          {
+            "index": 0,
+            "title": "lofi hip hop radio 📚 beats to relax/study to - YouTube",
+            "url": "https://www.youtube.com/watch?v=X4VbdwhkE10",
+            "active": true
+          }
+        ],
+        "activeTab": {
+          "index": 0,
+          "title": "lofi hip hop radio 📚 beats to relax/study to - YouTube",
+          "url": "https://www.youtube.com/watch?v=X4VbdwhkE10",
+          "active": true
+        },
+        "observationQuality": {
+          "score": 1,
+          "reasons": []
+        }
+      },
+      "before": {
+        "url": "https://www.youtube.com/results?search_query=lofi",
+        "title": "lofi - YouTube",
+        "tabCount": 1
+      },
+      "after": {
+        "url": "https://www.youtube.com/watch?v=X4VbdwhkE10",
+        "title": "YouTube",
+        "tabCount": 1
+      },
+      "action": {
+        "type": "click",
+        "params": {
+          "element": 414
+        }
+      },
+      "timestamp": "2026-06-16T19:31:25.927Z",
+      "events": [
+        "url_changed",
+        "content_changed",
+        "form_detected",
+        "links_detected",
+        "buttons_detected",
+        "content_loaded"
+      ]
+    }
+  ]
+}
+[2026-06-16T19:31:25.950Z] [LOG] WORLD: {
+  "history": 7,
+  "url": "https://www.youtube.com/watch?v=X4VbdwhkE10",
+  "title": "lofi hip hop radio 📚 beats to relax/study to - YouTube",
+  "lastOutcome": "success",
+  "lastStateHash": "678517b0185c88f2e32c2a5a335c81b6f1de3082a7205a5ea6805b01025a1816"
+}
+[2026-06-16T19:31:25.950Z] [LOG] OBSERVATION SUMMARY: {
+  "success": true,
+  "expected": "page_changed",
+  "actual": "changed"
+}
+[2026-06-16T19:31:25.956Z] [LOG] OBSERVATION: {
+  "success": true,
+  "expected": "page_changed",
+  "actual": "changed",
+  "clicked": "element 414",
+  "pageState": {
+    "success": true,
+    "title": "lofi hip hop radio 📚 beats to relax/study to - YouTube",
+    "url": "https://www.youtube.com/watch?v=X4VbdwhkE10",
+    "buttons": [
+      {
+        "id": 2,
+        "text": "Guide",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Guide",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 4,
+        "text": "Skip navigation",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Skip navigation",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 78,
+        "text": "Clear search query",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Clear search query",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 7,
+        "text": "Search",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Search",
+        "title": "Search",
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 9,
+        "text": "Search with your voice",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Search with your voice",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 11,
+        "text": "Settings",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Settings",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 440,
+        "text": "Download",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Download This link opens in new tab",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 441,
+        "text": "My Ad Center",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "My Ad Center",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 64,
+        "text": "Play (k)",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Play (k)",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 67,
+        "text": "Mute (m)",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Mute (m)",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 71,
+        "text": "Subtitles/closed captions unavailable",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Subtitles/closed captions unavailable",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 72,
+        "text": "Settings",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Settings",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 73,
+        "text": "Theater mode (t)",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Theater mode (t)",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 75,
+        "text": "Full screen (f)",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Full screen (f)",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 444,
+        "text": "Join",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Join this channel",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 445,
+        "text": "Subscribe",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Subscribe to Lofi Girl.",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 447,
+        "text": "14K",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "like this video along with 14,760 other people",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 448,
+        "text": "Dislike this video",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Dislike this video",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 449,
+        "text": "Share",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Share",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 451,
+        "text": "Save",
+        "role": "button",
+        "type": "submit",
+        "ariaLabel": "Save to playlist",
+        "title": null,
+        "name": null,
+        "visible": true,
+        "enabled": true
+      }
+    ],
+    "inputs": [
+      {
+        "id": 6,
+        "text": "Search",
+        "value": "lofi",
+        "role": "input",
+        "type": "text",
+        "placeholder": "Search",
+        "ariaLabel": null,
+        "name": "search_query",
+        "title": null,
+        "visible": true,
+        "enabled": true
+      }
+    ],
+    "links": [
+      {
+        "id": 3,
+        "text": "YouTube Home",
+        "role": "link",
+        "href": "/",
+        "ariaLabel": null,
+        "title": "YouTube Home",
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 10,
+        "text": "link",
+        "role": "link",
+        "href": null,
+        "ariaLabel": null,
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 12,
+        "text": "Sign in",
+        "role": "link",
+        "href": "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3D%252Fwatch%253Fv%253DX4VbdwhkE10%2526pp%253DygUEbG9maQ%25253D%25253D&hl=en&ec=65620",
+        "ariaLabel": "Sign in",
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 25,
+        "text": "link",
+        "role": "link",
+        "href": null,
+        "ariaLabel": null,
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 26,
+        "text": "link",
+        "role": "link",
+        "href": "/@LofiGirl",
+        "ariaLabel": null,
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 443,
+        "text": "Lofi Girl",
+        "role": "link",
+        "href": "/channel/UCSJ4gkVC6NrvII8umztf0Ow",
+        "ariaLabel": null,
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 474,
+        "text": "Learn more",
+        "role": "link",
+        "href": null,
+        "ariaLabel": null,
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 475,
+        "text": "Morning Coffee Repress - Vinyl Limited Edition\nLimited shipping areas\nLofi Girl",
+        "role": "link",
+        "href": null,
+        "ariaLabel": "Morning Coffee Repress - Vinyl Limited Edition, Limited shipping areas , from Lofi Girl",
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 476,
+        "text": "Lofi Girl Essentials T-Shirt L\nLimited shipping areas\nLofi Girl",
+        "role": "link",
+        "href": null,
+        "ariaLabel": "Lofi Girl Essentials T-Shirt L, Limited shipping areas , from Lofi Girl",
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 477,
+        "text": "Spring Collection 2026 – Seasons Vinyls Part 1\nLimited shipping areas\nLofi Girl",
+        "role": "link",
+        "href": null,
+        "ariaLabel": "Spring Collection 2026 – Seasons Vinyls Part 1, Limited shipping areas , from Lofi Girl",
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 478,
+        "text": "Lofi Girl Backpack\nLimited shipping areas\nLofi Girl",
+        "role": "link",
+        "href": null,
+        "ariaLabel": "Lofi Girl Backpack, Limited shipping areas , from Lofi Girl",
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 479,
+        "text": "Lofi Girl x Assassin's Creed: Shadows Collaboration Vinyl\nLimited shipping areas\nLofi Girl",
+        "role": "link",
+        "href": null,
+        "ariaLabel": "Lofi Girl x Assassin's Creed: Shadows Collaboration Vinyl, Limited shipping areas , from Lofi Girl",
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 480,
+        "text": "Spring Edition - Notebook\nLimited shipping areas\nLofi Girl",
+        "role": "link",
+        "href": null,
+        "ariaLabel": "Spring Edition - Notebook, Limited shipping areas , from Lofi Girl",
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 518,
+        "text": "Download",
+        "role": "link",
+        "href": "https://www.googleadservices.com/pagead/aclk?sa=L&ai=C_HkDhqQxatOZAuTH1_oP8oiWkQKkqe2zhwHo35PpgBawkB8QASAAYOWq6YPkDoIBF2NhLXB1Yi02MjE5ODExNzQ3MDQ5MzcxoAGOkNyxKKgDBMgDCqoEtANP0L9gbP5zmjMT_6dJ3_SkZ9-EBPO7R_-73KM8LKkI61Jjd-sh41P9H_DmugJRWZy9YlwcQY-OTZ4BAQ8KanaBDTYrABuXfwcxx2p5kkG3D4IN58fRb5pm2B32iJqk3XtPH6DAqaLfWoRItwtrVTYfKracrLCL34nBtsUngV20bd2KibQ4umHxItj9kDMitaH6eCvHwSlGC_S7swAu88FTuLquEHepb_vPsS1J8i2WcgdjAJSr-_zdZH39MSyB77oZblwy3DBWSXOv2OLmwo_CyNta04HEtA0hchJ8oUjpMkNrPVtbRdC5ENAL45IshpIZgBjsWa6P81c7Gcz2Qdd76w0EjqtzSsuyOysFHujRBmhXcokrR2a5J14xh2truTxBkVBcclFznANmCLJp_ASNEksjvwO5COqiZw-CcQSVWoi2HRd9sQGhyaTGeMjCR8rDJs1otyZJotefc3KG0_V8QO9-pe7ncC0G0rpc5lZm0BQkQETv7h9WVqnV0b15d4VTYNCdD1g9L9diaTOS3GybL_t28GOgECeyEoMYFiAJmID0e4_t-DTWPrgzaChoEIppOlIsiAXqwLT4UaAGoQGAB-OJzSKQBwSoB_LAsQKoB7jEsQKoB-G2sQKoB6XPsQKoB-edsQKoB-idsQKoB--1sQKoB_C1sQKoB_nTsQKoB8nasQKoB6ngsQKoB4QIqAem1LECqAeo0huoB7YHqAewm7ECqAeusbECqAf9srECqAfIz7ECqAfJz7ECqAfNx7ECqAfx0bECqAf81bECqAf71bECqAeM1rECqAeL1rECqAea4rECqAeb4rECqAed17ECqAed1LECqAeBxhuoB_yvsQKoB77ZsQKoB6vFG6gHnNwbqAe3obECqAfVqbECqAfn2rECqAfetbECqAfqsbECqAe-t7ECqAeZtbECqAeFwbECqAfrpbECqAfKqbECqAfCyLECkggLS1k3Yk45QWdGVVWoCAHSCC4IgEEQARheMgKCAjoPgGOAwICAgICAgAKqgIAQSNmg0jVQFFjQ5Ljlv4yVA2AB8ggfY2EteXQtaG9zdC1wdWItNjQ4MTk0MTgxMjAyNTY5M5oJKmh0dHBzOi8vd3d3Lmdvb2dsZS5jb20vY2hyb21lL2RyL2Rvd25sb2FkL7EJYyQKN9wAZGvICRjICY8ByAnCAaELyhCIKulaZhG6C0QIARABGAQgASgBMBBAAUgBYABoAXADeAGIAQCYAQGiARIKABgAIABYAWAAcAGoAgHYAgKoAQHYAQGAAgGIAga6AwJzadALEuALAaIMQSoKCgiV4rECjt-xAmIXChVjb20uZ29vZ2xlLmNocm9tZS5pb3NqFQoTY29tLndhbG1hcnQuYW5kcm9pZHgAiAEA0gwCEAHaDCYKCxDws4a5-6myyJYBEgIBAxoNGOrAtPhRIPjcgeuDBUABSgIQH5oNARKqDQJJTsgNAdINiwNodHRwczovL2FkLmRvdWJsZWNsaWNrLm5ldC9kZG0vdHJhY2tjbGsvTjUyOTUuNTA4NzgxM0RFTUFOREdFTi9CMzQ2MTQ2OTguNDM1MTY0NTYxO2RjX3Rya19haWQ9NjI4NTIzMjA5O2RjX3Rya19jaWQ9MjQ2NjExOTI1O2RjX2xhdD07ZGNfcmRpZD07dGFnX2Zvcl9jaGlsZF9kaXJlY3RlZF90cmVhdG1lbnQ9O3RmdWE9O2dkcHI9JHtHRFBSfTtnZHByX2NvbnNlbnQ9JHtHRFBSX0NPTlNFTlRfNzU1fTtsdGQ9O2RjX3Rkdj0xO2RjX3J1aT0xO2RjX2Vwcz1BSGFzOGNBZEM4bXQ2d1JMZk5qVzRCLU5KTlhhQ052eXR5NmQ1NHR5eGhOSXQybXJ5Q3NSN1QyY1gybFd0bFFYZlNDcTRNTGNjVmRwbDRrVmZxUmZNdztkY19wdWJpZD02P2dhZF9zb3VyY2U9MiZnYWRfY2FtcGFpZ25pZD0yMTk5NTc5MDQ0MrgT____________AYgUArAUAcAVyYCAQNAVAdgVAZAWAZgWAeIWAggBgBcBihcYCAMYASABKAEwATgBQAFIAVABWAFgAmgBoBcBuhcGKAAwADgB0BgB8BgBwhkCCAE&ase=2&gclid=EAIaIQobChMI0_S45b-MlQMV5ONVCR1yhCUiEAEYASAAEgIF4vD_BwE&num=1&cid=CAASwgHkaF-bLDL2Gu1OzfaTT8lAkPt-fvpLp5Zm2bjY6R7cofkYODrDbgLrtMQ9dpqMNXahi4OK7dU9ZYpekJrxRCYCK60omUp1QRgFpEK2QCo1t2ysf-SFf_f54ccXph4BN1aSxpFGSOJ2K86XNqounl-mqkoo7Kal3mI_ZQMqYGk_enTHHrq4kSpubs4r5uyshHJrLTug5yR9WFBYJ8Qy_Tc7S87-L8wLZ69qpgBqvsTG5dcEGZ7bmOIwSWgU9n0dHX2aRA&ad_cpn=%5BAD_CPN%5D&sig=AOD64_3C5I_7C2it8SyJ11UFjtaH76-zEw&label=video_click_to_advertiser_site&ctype=110&ms=%5BCLICK_MS%5D&adclksrc=%5BCLICK_SOURCE%5D",
+        "ariaLabel": "Download",
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 520,
+        "text": "LIVE",
+        "role": "link",
+        "href": "/watch?v=yf5NOyy1SXU&pp=0gcJCT4LAYcqIYzv",
+        "ariaLabel": null,
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 521,
+        "text": "Soft Lofi Room 🎧 Chill Vibes for Peaceful Study & Relaxation",
+        "role": "link",
+        "href": "/watch?v=yf5NOyy1SXU&pp=0gcJCT4LAYcqIYzv",
+        "ariaLabel": "Soft Lofi Room 🎧 Chill Vibes for Peaceful Study & Relaxation",
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 523,
+        "text": "LIVE",
+        "role": "link",
+        "href": "/watch?v=dMWZ3exnBy8",
+        "ariaLabel": null,
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 524,
+        "text": "ALPHA WAVES for intense study 🧠 INCREASE PRODUCTIVITY, STUDY AND MEMORIZE FAST",
+        "role": "link",
+        "href": "/watch?v=dMWZ3exnBy8",
+        "ariaLabel": "ALPHA WAVES for intense study 🧠 INCREASE PRODUCTIVITY, STUDY AND MEMORIZE FAST",
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 526,
+        "text": "LIVE",
+        "role": "link",
+        "href": "/watch?v=K0-6reET2BY",
+        "ariaLabel": null,
+        "title": null,
+        "visible": true,
+        "enabled": true
+      },
+      {
+        "id": 527,
+        "text": "Relaxing Rain Sounds and Soft Piano Music for Deep Sleep, Stress Relief, and Peaceful Nights",
+        "role": "link",
+        "href": "/watch?v=K0-6reET2BY",
+        "ariaLabel": "Relaxing Rain Sounds and Soft Piano Music for Deep Sleep, Stress Relief, and Peaceful Nights",
+        "title": null,
+        "visible": true,
+        "enabled": true
+      }
+    ],
+    "forms": [
+      {
+        "id": 5,
+        "role": "form",
+        "action": "https://www.youtube.com/results",
+        "method": "get",
+        "visible": true
+      }
+    ],
+    "text": "IN Skip navigation Sign in Get Chrome with built-in AI google.com Download Sponsored google.com Skip 0:03 / 0:15 lofi hip hop radio 📚 beats to relax/study to Lofi Girl 15.8M subscribers Join Subscribe 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 K Share Save 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 , 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 watching now Started streaming on Jun 4, 2026 📻 Lofi Girl - Radios 🎼 | Listen on Spotify, Apple music and more → https://link.lofigirl.com/m/music … ...more Live chat Join the conversation to interact with the creator and others watching this live stream. Open panel Lofi Girl tagged products below. Learn more Morning Coffee Repress - Vinyl Limited Edition Limited shipping areas Lofi Girl Lofi Girl Essentials T-Shirt L Limited shipping areas Lofi Girl Spring Collection 2026 – Seasons Vinyls Part 1 Limited shipping areas Lofi Girl Lofi Girl Backpack Limited shipping areas Lofi Girl Lofi Girl x Assassin's Creed: Shadows Collaboration Vinyl Limited shipping areas Lofi Girl Spring Edition - Notebook Limited shipping areas Lofi Girl Get Chrome with built-in AI Sponsored google.com Download LIVE Soft Lofi Room 🎧 Chill Vibes for Peaceful Study & Relaxation Lofi Tone Art 807 watching LIVE ALPHA WAVES for intense study 🧠 INCREASE PRODUCTIVITY, STUDY AND MEMORIZE FAST Brain Waves 356 watching LIVE Relaxing Rain Sounds and Soft Piano Music for Deep Sleep, Stress Relief, and Peaceful Nights Relaxing Piano 4.9K watching LIVE jazz lofi radio 🎷 beats to chill/study to Lofi Girl 2K watching LIVE Calming Lofi Rain 🌧️ Chill Beats for Focus, Study & Sleep Lofi Tone Art 467 watching 2:07:48 jazz before i reach flow state Defunct 289K views • 1 month ago 3:00:04 study wi",
+    "tabs": [
+      {
+        "index": 0,
+        "title": "lofi hip hop radio 📚 beats to relax/study to - YouTube",
+        "url": "https://www.youtube.com/watch?v=X4VbdwhkE10",
+        "active": true
+      }
+    ],
+    "activeTab": {
+      "index": 0,
+      "title": "lofi hip hop radio 📚 beats to relax/study to - YouTube",
+      "url": "https://www.youtube.com/watch?v=X4VbdwhkE10",
+      "active": true
+    },
+    "observationQuality": {
+      "score": 1,
+      "reasons": []
+    }
+  },
+  "before": {
+    "url": "https://www.youtube.com/results?search_query=lofi",
+    "title": "lofi - YouTube",
+    "tabCount": 1
+  },
+  "after": {
+    "url": "https://www.youtube.com/watch?v=X4VbdwhkE10",
+    "title": "YouTube",
+    "tabCount": 1
+  },
+  "action": {
+    "type": "click",
+    "params": {
+      "element": 414
+    }
+  },
+  "timestamp": "2026-06-16T19:31:25.927Z",
+  "events": [
+    "url_changed",
+    "content_changed",
+    "form_detected",
+    "links_detected",
+    "buttons_detected",
+    "content_loaded"
+  ]
+}
+[2026-06-16T19:31:25.963Z] [LOG] VERIFYING TASK WITH CRITERIA: [
+  {
+    "success": true,
+    "expected": "page_changed",
+    "actual": "changed",
+    "clicked": "element 414",
+    "pageState": {
+      "success": true,
+      "title": "lofi hip hop radio 📚 beats to relax/study to - YouTube",
+      "url": "https://www.youtube.com/watch?v=X4VbdwhkE10",
+      "buttons": [
+        {
+          "id": 2,
+          "text": "Guide",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Guide",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 4,
+          "text": "Skip navigation",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Skip navigation",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 78,
+          "text": "Clear search query",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Clear search query",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 7,
+          "text": "Search",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Search",
+          "title": "Search",
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 9,
+          "text": "Search with your voice",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Search with your voice",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 11,
+          "text": "Settings",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Settings",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 440,
+          "text": "Download",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Download This link opens in new tab",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 441,
+          "text": "My Ad Center",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "My Ad Center",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 64,
+          "text": "Play (k)",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Play (k)",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 67,
+          "text": "Mute (m)",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Mute (m)",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 71,
+          "text": "Subtitles/closed captions unavailable",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Subtitles/closed captions unavailable",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 72,
+          "text": "Settings",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Settings",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 73,
+          "text": "Theater mode (t)",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Theater mode (t)",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 75,
+          "text": "Full screen (f)",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Full screen (f)",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 444,
+          "text": "Join",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Join this channel",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 445,
+          "text": "Subscribe",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Subscribe to Lofi Girl.",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 447,
+          "text": "14K",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "like this video along with 14,760 other people",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 448,
+          "text": "Dislike this video",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Dislike this video",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 449,
+          "text": "Share",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Share",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 451,
+          "text": "Save",
+          "role": "button",
+          "type": "submit",
+          "ariaLabel": "Save to playlist",
+          "title": null,
+          "name": null,
+          "visible": true,
+          "enabled": true
+        }
+      ],
+      "inputs": [
+        {
+          "id": 6,
+          "text": "Search",
+          "value": "lofi",
+          "role": "input",
+          "type": "text",
+          "placeholder": "Search",
+          "ariaLabel": null,
+          "name": "search_query",
+          "title": null,
+          "visible": true,
+          "enabled": true
+        }
+      ],
+      "links": [
+        {
+          "id": 3,
+          "text": "YouTube Home",
+          "role": "link",
+          "href": "/",
+          "ariaLabel": null,
+          "title": "YouTube Home",
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 10,
+          "text": "link",
+          "role": "link",
+          "href": null,
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 12,
+          "text": "Sign in",
+          "role": "link",
+          "href": "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3D%252Fwatch%253Fv%253DX4VbdwhkE10%2526pp%253DygUEbG9maQ%25253D%25253D&hl=en&ec=65620",
+          "ariaLabel": "Sign in",
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 25,
+          "text": "link",
+          "role": "link",
+          "href": null,
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 26,
+          "text": "link",
+          "role": "link",
+          "href": "/@LofiGirl",
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 443,
+          "text": "Lofi Girl",
+          "role": "link",
+          "href": "/channel/UCSJ4gkVC6NrvII8umztf0Ow",
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 474,
+          "text": "Learn more",
+          "role": "link",
+          "href": null,
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 475,
+          "text": "Morning Coffee Repress - Vinyl Limited Edition\nLimited shipping areas\nLofi Girl",
+          "role": "link",
+          "href": null,
+          "ariaLabel": "Morning Coffee Repress - Vinyl Limited Edition, Limited shipping areas , from Lofi Girl",
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 476,
+          "text": "Lofi Girl Essentials T-Shirt L\nLimited shipping areas\nLofi Girl",
+          "role": "link",
+          "href": null,
+          "ariaLabel": "Lofi Girl Essentials T-Shirt L, Limited shipping areas , from Lofi Girl",
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 477,
+          "text": "Spring Collection 2026 – Seasons Vinyls Part 1\nLimited shipping areas\nLofi Girl",
+          "role": "link",
+          "href": null,
+          "ariaLabel": "Spring Collection 2026 – Seasons Vinyls Part 1, Limited shipping areas , from Lofi Girl",
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 478,
+          "text": "Lofi Girl Backpack\nLimited shipping areas\nLofi Girl",
+          "role": "link",
+          "href": null,
+          "ariaLabel": "Lofi Girl Backpack, Limited shipping areas , from Lofi Girl",
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 479,
+          "text": "Lofi Girl x Assassin's Creed: Shadows Collaboration Vinyl\nLimited shipping areas\nLofi Girl",
+          "role": "link",
+          "href": null,
+          "ariaLabel": "Lofi Girl x Assassin's Creed: Shadows Collaboration Vinyl, Limited shipping areas , from Lofi Girl",
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 480,
+          "text": "Spring Edition - Notebook\nLimited shipping areas\nLofi Girl",
+          "role": "link",
+          "href": null,
+          "ariaLabel": "Spring Edition - Notebook, Limited shipping areas , from Lofi Girl",
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 518,
+          "text": "Download",
+          "role": "link",
+          "href": "https://www.googleadservices.com/pagead/aclk?sa=L&ai=C_HkDhqQxatOZAuTH1_oP8oiWkQKkqe2zhwHo35PpgBawkB8QASAAYOWq6YPkDoIBF2NhLXB1Yi02MjE5ODExNzQ3MDQ5MzcxoAGOkNyxKKgDBMgDCqoEtANP0L9gbP5zmjMT_6dJ3_SkZ9-EBPO7R_-73KM8LKkI61Jjd-sh41P9H_DmugJRWZy9YlwcQY-OTZ4BAQ8KanaBDTYrABuXfwcxx2p5kkG3D4IN58fRb5pm2B32iJqk3XtPH6DAqaLfWoRItwtrVTYfKracrLCL34nBtsUngV20bd2KibQ4umHxItj9kDMitaH6eCvHwSlGC_S7swAu88FTuLquEHepb_vPsS1J8i2WcgdjAJSr-_zdZH39MSyB77oZblwy3DBWSXOv2OLmwo_CyNta04HEtA0hchJ8oUjpMkNrPVtbRdC5ENAL45IshpIZgBjsWa6P81c7Gcz2Qdd76w0EjqtzSsuyOysFHujRBmhXcokrR2a5J14xh2truTxBkVBcclFznANmCLJp_ASNEksjvwO5COqiZw-CcQSVWoi2HRd9sQGhyaTGeMjCR8rDJs1otyZJotefc3KG0_V8QO9-pe7ncC0G0rpc5lZm0BQkQETv7h9WVqnV0b15d4VTYNCdD1g9L9diaTOS3GybL_t28GOgECeyEoMYFiAJmID0e4_t-DTWPrgzaChoEIppOlIsiAXqwLT4UaAGoQGAB-OJzSKQBwSoB_LAsQKoB7jEsQKoB-G2sQKoB6XPsQKoB-edsQKoB-idsQKoB--1sQKoB_C1sQKoB_nTsQKoB8nasQKoB6ngsQKoB4QIqAem1LECqAeo0huoB7YHqAewm7ECqAeusbECqAf9srECqAfIz7ECqAfJz7ECqAfNx7ECqAfx0bECqAf81bECqAf71bECqAeM1rECqAeL1rECqAea4rECqAeb4rECqAed17ECqAed1LECqAeBxhuoB_yvsQKoB77ZsQKoB6vFG6gHnNwbqAe3obECqAfVqbECqAfn2rECqAfetbECqAfqsbECqAe-t7ECqAeZtbECqAeFwbECqAfrpbECqAfKqbECqAfCyLECkggLS1k3Yk45QWdGVVWoCAHSCC4IgEEQARheMgKCAjoPgGOAwICAgICAgAKqgIAQSNmg0jVQFFjQ5Ljlv4yVA2AB8ggfY2EteXQtaG9zdC1wdWItNjQ4MTk0MTgxMjAyNTY5M5oJKmh0dHBzOi8vd3d3Lmdvb2dsZS5jb20vY2hyb21lL2RyL2Rvd25sb2FkL7EJYyQKN9wAZGvICRjICY8ByAnCAaELyhCIKulaZhG6C0QIARABGAQgASgBMBBAAUgBYABoAXADeAGIAQCYAQGiARIKABgAIABYAWAAcAGoAgHYAgKoAQHYAQGAAgGIAga6AwJzadALEuALAaIMQSoKCgiV4rECjt-xAmIXChVjb20uZ29vZ2xlLmNocm9tZS5pb3NqFQoTY29tLndhbG1hcnQuYW5kcm9pZHgAiAEA0gwCEAHaDCYKCxDws4a5-6myyJYBEgIBAxoNGOrAtPhRIPjcgeuDBUABSgIQH5oNARKqDQJJTsgNAdINiwNodHRwczovL2FkLmRvdWJsZWNsaWNrLm5ldC9kZG0vdHJhY2tjbGsvTjUyOTUuNTA4NzgxM0RFTUFOREdFTi9CMzQ2MTQ2OTguNDM1MTY0NTYxO2RjX3Rya19haWQ9NjI4NTIzMjA5O2RjX3Rya19jaWQ9MjQ2NjExOTI1O2RjX2xhdD07ZGNfcmRpZD07dGFnX2Zvcl9jaGlsZF9kaXJlY3RlZF90cmVhdG1lbnQ9O3RmdWE9O2dkcHI9JHtHRFBSfTtnZHByX2NvbnNlbnQ9JHtHRFBSX0NPTlNFTlRfNzU1fTtsdGQ9O2RjX3Rkdj0xO2RjX3J1aT0xO2RjX2Vwcz1BSGFzOGNBZEM4bXQ2d1JMZk5qVzRCLU5KTlhhQ052eXR5NmQ1NHR5eGhOSXQybXJ5Q3NSN1QyY1gybFd0bFFYZlNDcTRNTGNjVmRwbDRrVmZxUmZNdztkY19wdWJpZD02P2dhZF9zb3VyY2U9MiZnYWRfY2FtcGFpZ25pZD0yMTk5NTc5MDQ0MrgT____________AYgUArAUAcAVyYCAQNAVAdgVAZAWAZgWAeIWAggBgBcBihcYCAMYASABKAEwATgBQAFIAVABWAFgAmgBoBcBuhcGKAAwADgB0BgB8BgBwhkCCAE&ase=2&gclid=EAIaIQobChMI0_S45b-MlQMV5ONVCR1yhCUiEAEYASAAEgIF4vD_BwE&num=1&cid=CAASwgHkaF-bLDL2Gu1OzfaTT8lAkPt-fvpLp5Zm2bjY6R7cofkYODrDbgLrtMQ9dpqMNXahi4OK7dU9ZYpekJrxRCYCK60omUp1QRgFpEK2QCo1t2ysf-SFf_f54ccXph4BN1aSxpFGSOJ2K86XNqounl-mqkoo7Kal3mI_ZQMqYGk_enTHHrq4kSpubs4r5uyshHJrLTug5yR9WFBYJ8Qy_Tc7S87-L8wLZ69qpgBqvsTG5dcEGZ7bmOIwSWgU9n0dHX2aRA&ad_cpn=%5BAD_CPN%5D&sig=AOD64_3C5I_7C2it8SyJ11UFjtaH76-zEw&label=video_click_to_advertiser_site&ctype=110&ms=%5BCLICK_MS%5D&adclksrc=%5BCLICK_SOURCE%5D",
+          "ariaLabel": "Download",
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 520,
+          "text": "LIVE",
+          "role": "link",
+          "href": "/watch?v=yf5NOyy1SXU&pp=0gcJCT4LAYcqIYzv",
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 521,
+          "text": "Soft Lofi Room 🎧 Chill Vibes for Peaceful Study & Relaxation",
+          "role": "link",
+          "href": "/watch?v=yf5NOyy1SXU&pp=0gcJCT4LAYcqIYzv",
+          "ariaLabel": "Soft Lofi Room 🎧 Chill Vibes for Peaceful Study & Relaxation",
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 523,
+          "text": "LIVE",
+          "role": "link",
+          "href": "/watch?v=dMWZ3exnBy8",
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 524,
+          "text": "ALPHA WAVES for intense study 🧠 INCREASE PRODUCTIVITY, STUDY AND MEMORIZE FAST",
+          "role": "link",
+          "href": "/watch?v=dMWZ3exnBy8",
+          "ariaLabel": "ALPHA WAVES for intense study 🧠 INCREASE PRODUCTIVITY, STUDY AND MEMORIZE FAST",
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 526,
+          "text": "LIVE",
+          "role": "link",
+          "href": "/watch?v=K0-6reET2BY",
+          "ariaLabel": null,
+          "title": null,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": 527,
+          "text": "Relaxing Rain Sounds and Soft Piano Music for Deep Sleep, Stress Relief, and Peaceful Nights",
+          "role": "link",
+          "href": "/watch?v=K0-6reET2BY",
+          "ariaLabel": "Relaxing Rain Sounds and Soft Piano Music for Deep Sleep, Stress Relief, and Peaceful Nights",
+          "title": null,
+          "visible": true,
+          "enabled": true
+        }
+      ],
+      "forms": [
+        {
+          "id": 5,
+          "role": "form",
+          "action": "https://www.youtube.com/results",
+          "method": "get",
+          "visible": true
+        }
+      ],
+      "text": "IN Skip navigation Sign in Get Chrome with built-in AI google.com Download Sponsored google.com Skip 0:03 / 0:15 lofi hip hop radio 📚 beats to relax/study to Lofi Girl 15.8M subscribers Join Subscribe 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 K Share Save 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 , 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 watching now Started streaming on Jun 4, 2026 📻 Lofi Girl - Radios 🎼 | Listen on Spotify, Apple music and more → https://link.lofigirl.com/m/music … ...more Live chat Join the conversation to interact with the creator and others watching this live stream. Open panel Lofi Girl tagged products below. Learn more Morning Coffee Repress - Vinyl Limited Edition Limited shipping areas Lofi Girl Lofi Girl Essentials T-Shirt L Limited shipping areas Lofi Girl Spring Collection 2026 – Seasons Vinyls Part 1 Limited shipping areas Lofi Girl Lofi Girl Backpack Limited shipping areas Lofi Girl Lofi Girl x Assassin's Creed: Shadows Collaboration Vinyl Limited shipping areas Lofi Girl Spring Edition - Notebook Limited shipping areas Lofi Girl Get Chrome with built-in AI Sponsored google.com Download LIVE Soft Lofi Room 🎧 Chill Vibes for Peaceful Study & Relaxation Lofi Tone Art 807 watching LIVE ALPHA WAVES for intense study 🧠 INCREASE PRODUCTIVITY, STUDY AND MEMORIZE FAST Brain Waves 356 watching LIVE Relaxing Rain Sounds and Soft Piano Music for Deep Sleep, Stress Relief, and Peaceful Nights Relaxing Piano 4.9K watching LIVE jazz lofi radio 🎷 beats to chill/study to Lofi Girl 2K watching LIVE Calming Lofi Rain 🌧️ Chill Beats for Focus, Study & Sleep Lofi Tone Art 467 watching 2:07:48 jazz before i reach flow state Defunct 289K views • 1 month ago 3:00:04 study wi",
+      "tabs": [
+        {
+          "index": 0,
+          "title": "lofi hip hop radio 📚 beats to relax/study to - YouTube",
+          "url": "https://www.youtube.com/watch?v=X4VbdwhkE10",
+          "active": true
+        }
+      ],
+      "activeTab": {
+        "index": 0,
+        "title": "lofi hip hop radio 📚 beats to relax/study to - YouTube",
+        "url": "https://www.youtube.com/watch?v=X4VbdwhkE10",
+        "active": true
+      },
+      "observationQuality": {
+        "score": 1,
+        "reasons": []
+      }
+    },
+    "before": {
+      "url": "https://www.youtube.com/results?search_query=lofi",
+      "title": "lofi - YouTube",
+      "tabCount": 1
+    },
+    "after": {
+      "url": "https://www.youtube.com/watch?v=X4VbdwhkE10",
+      "title": "YouTube",
+      "tabCount": 1
+    },
+    "action": {
+      "type": "click",
+      "params": {
+        "element": 414
+      }
+    },
+    "timestamp": "2026-06-16T19:31:25.927Z",
+    "events": [
+      "url_changed",
+      "content_changed",
+      "form_detected",
+      "links_detected",
+      "buttons_detected",
+      "content_loaded"
+    ]
+  }
+]
+[2026-06-16T19:31:25.965Z] [LOG] task: {
+  "id": "c682cbd2-292f-4fde-9454-39c2f5b37ec8",
+  "intent": null,
+  "objective": "Open a lofi video from search results",
+  "target": null,
+  "context": {},
+  "dependsOn": [],
+  "successCriteria": [
+    "URL contains youtube.com/watch",
+    "Page title contains lofi",
+    "Video player is visible"
+  ],
+  "requires": [
+    "lofi_search_results_visible"
+  ],
+  "produces": [
+    "lofi_video_open"
+  ],
+  "plan": null,
+  "result": null,
+  "currentStep": 0,
+  "status": "running",
+  "createdAt": "2026-06-16T19:28:36.055Z"
+}
+[2026-06-16T19:31:25.966Z] [LOG] STATE VERIFIED: null
+[2026-06-16T19:31:25.967Z] [LOG] EVENT VERIFIED: null
+[2026-06-16T19:31:25.968Z] [LOG] RULE VERIFIED: {
+  "achieved": true
+}
+[2026-06-16T19:31:25.969Z] [LOG] Rule check confirmed achievement.
+[2026-06-16T19:31:35.756Z] [LOG] [2026-06-16T19:31:35.756Z] A client disconnected

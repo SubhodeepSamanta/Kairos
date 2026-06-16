@@ -1,3 +1,79 @@
+export function evaluateSuccessCriteria(task, observation) {
+  const criteriaList = task?.successCriteria;
+  if (!criteriaList || !Array.isArray(criteriaList) || criteriaList.length === 0) {
+    return null;
+  }
+
+  const browser = observation?.pageState || observation;
+  const currentUrl = (observation?.url || browser?.url || "").toLowerCase();
+  const currentTitle = (observation?.title || browser?.title || "").toLowerCase();
+  const pageText = (browser?.text || "").toLowerCase();
+
+  for (const criterion of criteriaList) {
+    const critLower = criterion.toLowerCase();
+    let handled = false;
+
+    // 1. URL checks
+    if (critLower.includes("url contains") || critLower.includes("url must contain")) {
+      handled = true;
+      const match = criterion.match(/contains\s+['"]?([^\s'"]+)['"]?/i);
+      if (match) {
+        const expected = match[1].toLowerCase();
+        if (!currentUrl.includes(expected)) return false;
+      } else {
+        // Fallback simple search
+        const words = criterion.split(/\s+/);
+        const lastWord = words[words.length - 1].replace(/['"]/g, "");
+        if (!currentUrl.includes(lastWord.toLowerCase())) return false;
+      }
+    }
+    // 2. Title checks
+    else if (critLower.includes("title contains") || critLower.includes("title must contain")) {
+      handled = true;
+      const match = criterion.match(/contains\s+['"]?([^'"]+)['"]?/i);
+      if (match) {
+        const expected = match[1].toLowerCase();
+        if (!currentTitle.includes(expected)) return false;
+      } else {
+        const words = criterion.split(/\s+/);
+        const lastWord = words[words.length - 1].replace(/['"]/g, "");
+        if (!currentTitle.includes(lastWord.toLowerCase())) return false;
+      }
+    }
+    // 3. Input value checks (e.g. "Search input contains lofi")
+    else if (critLower.includes("input contains") || critLower.includes("input value")) {
+      handled = true;
+      const match = criterion.match(/contains\s+['"]?([^'"]+)['"]?/i);
+      if (match) {
+        const expected = match[1].toLowerCase();
+        const inputs = browser?.inputs || [];
+        const anyInputMatches = inputs.some(input => {
+          const val = (input.value || "").toLowerCase();
+          return val.includes(expected);
+        });
+        if (!anyInputMatches) return false;
+      }
+    }
+    // 4. General text checks
+    else if (critLower.includes("text contains") || critLower.includes("page contains")) {
+      handled = true;
+      const match = criterion.match(/contains\s+['"]?([^'"]+)['"]?/i);
+      if (match) {
+        const expected = match[1].toLowerCase();
+        if (!pageText.includes(expected)) return false;
+      }
+    }
+
+    // If we can't verify this criterion programmatically, must delegate to LLM verifier
+    if (!handled) {
+      return null;
+    }
+  }
+
+  return true;
+}
+
+
 export function matchNavigation(task, observation) {
   const action = observation?.action;
   
@@ -77,6 +153,16 @@ export function matchTabSwitch(task, observation) {
 
 export function matchReadPage(task, observation) {
   const action = observation?.action;
+  
+  // If the objective requires real action/interaction, a pure read cannot satisfy it.
+  const obj = (task?.objective || "").toLowerCase();
+  const requiresAction = obj.includes("enter") || obj.includes("type") || obj.includes("click") || 
+                         obj.includes("search") || obj.includes("submit") || obj.includes("press") ||
+                         obj.includes("play") || obj.includes("like") || obj.includes("skip") || obj.includes("pause");
+  if (requiresAction) {
+    return null;
+  }
+
   if (action?.type === "read_ui" || action?.type === "extract_metadata" || action?.type === "extract_links" || action?.type === "extract_data") {
     if (observation.success) {
       return {

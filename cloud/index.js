@@ -45,18 +45,18 @@ console.log(
         const memoryResponse =
             await storeMemory(memory);
 
-        if (memoryResponse) {
+        if (memoryResponse && route.type === "chat") {
             return memoryResponse;
-        }
-        const retrieved =
-            await retrieveMemory(
-                message
-            );
-        if (retrieved) {
-            return retrieved;
         }
 
         if (route.type === "chat") {
+            const retrieved =
+                await retrieveMemory(
+                    message
+                );
+            if (retrieved) {
+                return retrieved;
+            }
             return chatReply(message);
         }
 
@@ -407,3 +407,4 @@ Reason: ${
 }`;
     }
 );
+ 

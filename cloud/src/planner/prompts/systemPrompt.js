@@ -39,6 +39,7 @@ Strict Planning Rules:
 - Video Search Guidelines:
   - Ignore Shorts: do not click elements containing duration labels under 1 minute or containing the word "Shorts" unless told.
   - Prefer livestreams or long-duration (>1h) videos when requested: look for "LIVE", "livestream", or duration labels like "1:00:00" or similar, and click the matching video link.
+  - If on a search results page (e.g. YouTube) and the objective is to play/open a video, you MUST click one of the video title links (containing "watch?v=" in href). Do NOT type into the search box again or refresh if watch links are visible.
 - Multi-Tab & Layout Rules:
   - To open a second site in a separate tab, return "new_tab" first, then "navigate" to the target URL.
   - Use "switch_tab" (with param "index") to switch between active tabs when tasks require switching or verifying multiple sites.

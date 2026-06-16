@@ -158,24 +158,25 @@ export function startWebSocketServer(
             ws.send(JSON.stringify({ type: "goal_status", status: "Working..." }));
 
             try {
-              // 1. Memory extract & store
+              // 1. Check Route first
+              const route = routeMessage(data.goal);
+
+              // 2. Memory extract & store (silent for agent/research, active for chat)
               const memory = await extractMemory(data.goal);
               const memoryResponse = await storeMemory(memory);
-              if (memoryResponse) {
+              if (memoryResponse && route.type === "chat") {
                 ws.send(JSON.stringify({ type: "goal_result", success: true, result: memoryResponse }));
                 return;
               }
 
-              // 2. Memory retrieve
-              const retrieved = await retrieveMemory(data.goal);
-              if (retrieved) {
-                ws.send(JSON.stringify({ type: "goal_result", success: true, result: retrieved }));
-                return;
-              }
-
-              // 3. Routing
-              const route = routeMessage(data.goal);
+              // 3. Memory retrieve (only for chat)
               if (route.type === "chat") {
+                const retrieved = await retrieveMemory(data.goal);
+                if (retrieved) {
+                  ws.send(JSON.stringify({ type: "goal_result", success: true, result: retrieved }));
+                  return;
+                }
+
                 const reply = await chatReply(data.goal);
                 ws.send(JSON.stringify({ type: "goal_result", success: true, result: reply }));
                 return;
