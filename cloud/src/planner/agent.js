@@ -306,18 +306,32 @@ console.log(
         let obsQuality = activeObservation?.pageState?.observationQuality;
         if (obsQuality && obsQuality.score < 0.7) {
           console.log(`[QUALITY] Low observation quality score: ${obsQuality.score}. Reasons: ${obsQuality.reasons.join(", ")}. Waiting and re-reading...`);
-          await new Promise(resolve => setTimeout(resolve, 1500));
+          await new Promise(resolve => setTimeout(resolve, 2000));
           
-          const readPlan = {
+          let readPlan = {
             goalId: goal.id,
             actions: [{ type: "read_ui", params: {} }]
           };
-          const readResult = await executePlan(readPlan);
-          const readObsList = readResult.observations || [];
-          const readObs = readObsList[readObsList.length - 1];
+          let readResult = await executePlan(readPlan);
+          let readObs = readResult?.observations?.[readResult.observations.length - 1];
+          
+          if (readObs?.pageState?.observationQuality?.score < 0.5) {
+            console.log(`[QUALITY] Quality remains low (${readObs.pageState.observationQuality.score}). Refreshing page...`);
+            const refreshPlan = {
+              goalId: goal.id,
+              actions: [
+                { type: "refresh", params: {} },
+                { type: "read_ui", params: {} }
+              ]
+            };
+            const refreshResult = await executePlan(refreshPlan);
+            readResult = refreshResult;
+            readObs = refreshResult?.observations?.[refreshResult.observations.length - 1];
+          }
+
           if (readObs) {
             activeObservation = readObs;
-            activeObservations = [...activeObservations, ...readObsList];
+            activeObservations = [...activeObservations, ...(readResult.observations || [])];
           }
         }
 

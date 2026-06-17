@@ -26,7 +26,10 @@ export async function readPage() {
       "input:not([type='hidden']):not([disabled])",
       "textarea:not([disabled])",
       "a",
-      "form"
+      "form",
+      "[role='button']",
+      "[role='link']",
+      "[contenteditable='true']"
     ];
     const elements = document.querySelectorAll(selectors.join(", "));
     elements.forEach(el => {
@@ -38,7 +41,7 @@ export async function readPage() {
 
   // 2. Buttons
   const buttons = [];
-  const buttonLocators = page.locator("button:not([disabled])");
+  const buttonLocators = page.locator("button:not([disabled]), [role='button']");
   const buttonCount = await buttonLocators.count().catch(() => 0);
 
   for (let i = 0; i < buttonCount; i++) {
@@ -82,7 +85,7 @@ export async function readPage() {
 
   // 3. Inputs
   const inputs = [];
-  const inputLocators = page.locator("input:not([type='hidden']):not([disabled]), textarea:not([disabled])");
+  const inputLocators = page.locator("input:not([type='hidden']):not([disabled]), textarea:not([disabled]), [contenteditable='true']");
   const inputCount = await inputLocators.count().catch(() => 0);
 
   for (let i = 0; i < inputCount; i++) {
@@ -126,7 +129,7 @@ export async function readPage() {
 
   // 4. Links
   const links = [];
-  const linkLocators = page.locator("a");
+  const linkLocators = page.locator("a, [role='link']");
   const linkCount = await linkLocators.count().catch(() => 0);
 
   for (let i = 0; i < linkCount; i++) {
@@ -204,9 +207,29 @@ export async function readPage() {
       .slice(0, 2000);
   }).catch(() => "");
 
-  const sortedButtons = [...buttons].sort((a, b) => b.confidence - a.confidence);
-  const sortedInputs = [...inputs].sort((a, b) => b.confidence - a.confidence);
-  const sortedLinks = [...links].sort((a, b) => b.confidence - a.confidence);
+  const PROTECTED_PURPOSES = [
+    "search_input",
+    "search_launcher",
+    "search_button",
+    "video_link",
+    "product_link",
+    "login_button",
+    "submit_button",
+    "login_email",
+    "login_password"
+  ];
+
+  const sortProtectedFirst = (a, b) => {
+    const aProtected = PROTECTED_PURPOSES.includes(a.purpose);
+    const bProtected = PROTECTED_PURPOSES.includes(b.purpose);
+    if (aProtected && !bProtected) return -1;
+    if (!aProtected && bProtected) return 1;
+    return b.confidence - a.confidence;
+  };
+
+  const sortedButtons = [...buttons].sort(sortProtectedFirst);
+  const sortedInputs = [...inputs].sort(sortProtectedFirst);
+  const sortedLinks = [...links].sort(sortProtectedFirst);
 
   const cappedButtons = sortedButtons.slice(0, 20);
   const cappedInputs = sortedInputs.slice(0, 10);
@@ -215,9 +238,12 @@ export async function readPage() {
   // Get active tabs
   const tabs = await listTabs().catch(() => []);
   const activeTab = tabs.find(t => t.active) || null;
-  const pageType = classifyPage(url, title, { inputs });
+  const classification = classifyPage(url, title, { inputs });
+  const pageType = classification.legacyPageType || classification.pageType;
+  const site = classification.site;
+  const genericPageType = classification.pageType;
 
-  console.log("PAGE TYPE:", pageType);
+  console.log("PAGE TYPE:", pageType, "SITE:", site, "GENERIC TYPE:", genericPageType);
   console.log(
     "INPUTS:",
     inputs.length,
@@ -243,6 +269,8 @@ export async function readPage() {
     title,
     url,
     pageType,
+    site,
+    genericPageType,
     buttons: cappedButtons,
     inputs: cappedInputs,
     links: cappedLinks,
@@ -278,6 +306,8 @@ export async function readPage() {
     title,
     url,
     pageType,
+    site,
+    genericPageType,
     buttons: cappedButtons,
     inputs: cappedInputs,
     links: cappedLinks,

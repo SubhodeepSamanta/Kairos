@@ -15,15 +15,60 @@ export async function clickText(
   const context = page.context();
   const pagesBefore = context.pages().length;
 
-  if (element) {
+  const getSnapshot = async () => {
+    try {
+      const url = page.url();
+      const title = await page.title().catch(() => "");
+      const body = await page.evaluate(() => document.body.innerText).catch(() => "");
+      const active = await page.evaluate(() => {
+        const el = document.activeElement;
+        return el ? { tag: el.tagName, id: el.id, class: el.className } : null;
+      }).catch(() => null);
+      const media = await page.evaluate(() => {
+        return Array.from(document.querySelectorAll("video, audio")).map(el => ({
+          paused: el.paused,
+          currentTime: el.currentTime,
+          volume: el.volume,
+          muted: el.muted
+        }));
+      }).catch(() => []);
+      const elementStates = await page.evaluate(() => {
+        return Array.from(document.querySelectorAll("button, a, input, [role='button'], [role='link']")).map(el => ({
+          expanded: el.getAttribute("aria-expanded"),
+          pressed: el.getAttribute("aria-pressed"),
+          checked: el.checked || el.getAttribute("aria-checked") || el.getAttribute("checked"),
+          selected: el.getAttribute("aria-selected")
+        }));
+      }).catch(() => []);
+      const overlayVisible = await page.evaluate(() => {
+        const selectors = ['dialog', '[role="dialog"]', '[role="menu"]', '[role="listbox"]', '.modal', '.overlay', '.dropdown-menu', '.search-suggestions', '.search-suggestions-menu', '#search-suggestions'];
+        return selectors.some(sel => {
+          try {
+            const els = document.querySelectorAll(sel);
+            return Array.from(els).some(el => {
+              const style = window.getComputedStyle(el);
+              return style.display !== 'none' && style.visibility !== 'hidden' && el.offsetHeight > 0;
+            });
+          } catch {
+            return false;
+          }
+        });
+      }).catch(() => false);
+      return { url, title, body, active, media, elementStates, overlayVisible };
+    } catch {
+      return { url: "", title: "", body: "", active: null, media: [], elementStates: [], overlayVisible: false };
+    }
+  };
 
+  const before = await getSnapshot();
+
+  if (element) {
     const locator =
       getElement(
         element
       );
 
     if (!locator) {
-
       return {
         success: false,
         reason:
@@ -43,6 +88,7 @@ export async function clickText(
           fallbacks.push(`[role="button"]:has-text("${info.text}")`);
         } else if (info.role === "link") {
           fallbacks.push(`a:has-text("${info.text}")`);
+          fallbacks.push(`[role="link"]:has-text("${info.text}")`);
         }
         fallbacks.push(`:text("${info.text}")`);
 
@@ -97,13 +143,26 @@ export async function clickText(
       .catch(() => {});
 
     await page.waitForTimeout(1000);
+    const after = await getSnapshot();
     const pagesAfter = context.pages().length;
 
+    const urlChanged = before.url !== after.url;
+    const titleChanged = before.title !== after.title;
+    const bodyChanged = before.body !== after.body;
+    const tabOpened = pagesAfter > pagesBefore;
+    const focusChanged = JSON.stringify(before.active) !== JSON.stringify(after.active);
+    const mediaChanged = JSON.stringify(before.media) !== JSON.stringify(after.media);
+    const elementStateChanged = JSON.stringify(before.elementStates) !== JSON.stringify(after.elementStates);
+    const overlayOpened = !before.overlayVisible && after.overlayVisible;
+
+    const success = urlChanged || titleChanged || bodyChanged || tabOpened || focusChanged || mediaChanged || elementStateChanged || overlayOpened;
+
     return {
-      success: true,
+      success,
       clicked:
         `element ${element}`,
-      newTabOpened: pagesAfter > pagesBefore
+      newTabOpened: tabOpened,
+      reason: success ? undefined : "Click registered but caused no state changes (URL/DOM/Title/Tab/Focus/Media/Attributes/Overlay)"
     };
   }
 
@@ -115,6 +174,7 @@ a,
 input[type='submit'],
 input[type='button'],
 [role='button'],
+[role='link'],
 [aria-label]
 `
     );
@@ -217,11 +277,24 @@ input[type='button'],
     .catch(() => {});
 
   await page.waitForTimeout(1000);
+  const after = await getSnapshot();
   const pagesAfter = context.pages().length;
 
+  const urlChanged = before.url !== after.url;
+  const titleChanged = before.title !== after.title;
+  const bodyChanged = before.body !== after.body;
+  const tabOpened = pagesAfter > pagesBefore;
+  const focusChanged = JSON.stringify(before.active) !== JSON.stringify(after.active);
+  const mediaChanged = JSON.stringify(before.media) !== JSON.stringify(after.media);
+  const elementStateChanged = JSON.stringify(before.elementStates) !== JSON.stringify(after.elementStates);
+  const overlayOpened = !before.overlayVisible && after.overlayVisible;
+
+  const success = urlChanged || titleChanged || bodyChanged || tabOpened || focusChanged || mediaChanged || elementStateChanged || overlayOpened;
+
   return {
-    success: true,
+    success,
     clicked: text,
-    newTabOpened: pagesAfter > pagesBefore
+    newTabOpened: tabOpened,
+    reason: success ? undefined : "Click registered but caused no state changes (URL/DOM/Title/Tab/Focus/Media/Attributes/Overlay)"
   };
 }

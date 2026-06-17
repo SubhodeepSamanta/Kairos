@@ -25,6 +25,21 @@ export async function launchBrowser() {
 context =
   await browser.newContext();
 
+context.on("page", page => {
+  if (!pages.includes(page)) {
+    pages.push(page);
+  }
+  page.on("close", () => {
+    const idx = pages.indexOf(page);
+    if (idx !== -1) {
+      pages.splice(idx, 1);
+      if (activePageIndex >= pages.length) {
+        activePageIndex = Math.max(0, pages.length - 1);
+      }
+    }
+  });
+});
+
 const page =
   await context.newPage();
 
@@ -91,19 +106,6 @@ export async function closeTab(index) {
   }
 
   await pages[index].close();
-
-  pages.splice(index, 1);
-
-  if (
-    activePageIndex >=
-    pages.length
-  ) {
-    activePageIndex =
-      Math.max(
-        0,
-        pages.length - 1
-      );
-  }
 }
 
 export async function listTabs() {
@@ -119,10 +121,14 @@ export async function listTabs() {
     const page =
       pages[i];
 
+    if (!page || page.isClosed()) {
+      continue;
+    }
+
     tabs.push({
       index: i,
       title:
-        await page.title(),
+        await page.title().catch(() => "unknown"),
       url:
         page.url(),
       active:
@@ -183,10 +189,17 @@ export async function createNewTab() {
   const newPage =
     await context.newPage();
 
-  pages.push(newPage);
+  let retries = 50;
+  while (!pages.includes(newPage) && retries > 0) {
+    await new Promise(resolve => setTimeout(resolve, 10));
+    retries--;
+  }
 
-  activePageIndex =
-    pages.length - 1;
+  activePageIndex = pages.indexOf(newPage);
+  if (activePageIndex === -1) {
+    pages.push(newPage);
+    activePageIndex = pages.length - 1;
+  }
 
   return {
     success: true,

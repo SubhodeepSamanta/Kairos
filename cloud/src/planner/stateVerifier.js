@@ -4,7 +4,8 @@ import {
   matchTabSwitch,
   matchReadPage,
   matchEvents,
-  evaluateSuccessCriteria
+  evaluateSuccessCriteria,
+  matchSearch
 } from "./stateMatchers.js";
 
 export function verifyState({
@@ -56,6 +57,7 @@ export function verifyState({
 
   // 2. Fall back to action-based state matchers if no successCriteria are defined
   const matchers = [
+    matchSearch,
     matchEvents,
     matchFormFill,
     matchTabSwitch,

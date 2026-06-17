@@ -135,6 +135,26 @@ export function buildRelevantBrowserContext(
     }
   }
 
+  const PROTECTED_PURPOSES = [
+    "search_input",
+    "search_launcher",
+    "search_button",
+    "video_link",
+    "product_link",
+    "login_button",
+    "submit_button",
+    "login_email",
+    "login_password"
+  ];
+
+  const sortProtectedFirst = (a, b) => {
+    const aProtected = PROTECTED_PURPOSES.includes(a.purpose);
+    const bProtected = PROTECTED_PURPOSES.includes(b.purpose);
+    if (aProtected && !bProtected) return -1;
+    if (!aProtected && bProtected) return 1;
+    return 0;
+  };
+
   const inputs =
     filteredRanked
       .filter(
@@ -142,6 +162,7 @@ export function buildRelevantBrowserContext(
           item.category ===
           "input"
       )
+      .sort(sortProtectedFirst)
       .slice(0, 10); // Compressed down from 15
 
   const buttons =
@@ -151,6 +172,7 @@ export function buildRelevantBrowserContext(
           item.category ===
           "button"
       )
+      .sort(sortProtectedFirst)
       .slice(0, 15); // Compressed down from 20
 
   const links =
@@ -160,6 +182,7 @@ export function buildRelevantBrowserContext(
           item.category ===
           "link"
       )
+      .sort(sortProtectedFirst)
       .slice(0, 15); // Compressed down from 20
 
   if (inputs.length) {

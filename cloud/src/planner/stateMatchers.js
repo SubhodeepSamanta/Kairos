@@ -180,3 +180,30 @@ export function matchEvents(
 ) {
   return null;
 }
+
+export function matchSearch(task, observation) {
+  const browser = observation?.pageState || observation;
+  const obj = (task?.objective || "").toLowerCase();
+  
+  if (!(obj.includes("search") || obj.includes("query") || obj.includes("find"))) {
+    return null;
+  }
+
+  const currentUrl = (observation?.url || browser?.url || "").toLowerCase();
+  const pageType = (browser?.pageType || "").toLowerCase();
+  const genericPageType = (browser?.genericPageType || "").toLowerCase();
+
+  // If pageType indicates results, or URL has search queries
+  if (pageType.includes("results") || pageType.includes("search") || 
+      genericPageType.includes("result") || genericPageType.includes("search") ||
+      currentUrl.includes("/search") || currentUrl.includes("?q=") || 
+      currentUrl.includes("&q=") || currentUrl.includes("search?") || 
+      currentUrl.includes("search_query=")) {
+    return {
+      achieved: true,
+      reason: `Programmatic verification: Search results page detected (pageType: ${pageType}, genericPageType: ${genericPageType}, URL: ${currentUrl}).`
+    };
+  }
+
+  return null;
+}

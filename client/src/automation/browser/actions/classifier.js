@@ -12,7 +12,10 @@ export function classifyElement(el, role) {
   const combined = `${text} ${placeholder} ${ariaLabel} ${name} ${title} ${href}`;
 
   if (role === "input") {
-    if (combined.includes("search") || name === "q" || placeholder.includes("find") || placeholder.includes("search") || combined.includes("query")) {
+    if ((combined.includes("search") || placeholder.includes("search") || combined.includes("find") || combined.includes("query") || combined.includes("jump to")) && (el.readOnly || el.readonly || combined.includes("readonly"))) {
+      purpose = "search_launcher";
+      confidence = 0.95;
+    } else if (combined.includes("search") || name === "q" || placeholder.includes("find") || placeholder.includes("search") || combined.includes("query")) {
       purpose = "search_input";
       confidence = 0.95;
     } else if (combined.includes("email") && (combined.includes("sign up") || combined.includes("register") || combined.includes("create"))) {
@@ -32,7 +35,31 @@ export function classifyElement(el, role) {
       confidence = 0.85;
     }
   } else if (role === "button") {
-    if (combined.includes("search") || combined.includes("find")) {
+    if (combined.includes("search or jump to") || combined.includes("quick search") || text === "search" || ariaLabel.includes("search button") || placeholder.includes("search")) {
+      purpose = "search_launcher";
+      confidence = 0.95;
+    } else if (combined.includes("close") || combined.includes("dismiss") || combined.includes("cancel") || ariaLabel.includes("close") || title.includes("close")) {
+      purpose = "close_button";
+      confidence = 0.95;
+    } else if (combined.includes("menu") || combined.includes("nav") || combined.includes("hamburger") || combined.includes("options") || ariaLabel.includes("menu")) {
+      purpose = "menu_button";
+      confidence = 0.9;
+    } else if (combined.includes("next") || combined.includes("continue") || combined.includes("forward") || ariaLabel.includes("next")) {
+      purpose = "next_button";
+      confidence = 0.9;
+    } else if (combined.includes("back") || combined.includes("prev") || combined.includes("previous") || ariaLabel.includes("back")) {
+      purpose = "back_button";
+      confidence = 0.9;
+    } else if (combined.includes("download") || combined.includes("export") || ariaLabel.includes("download")) {
+      purpose = "download_button";
+      confidence = 0.9;
+    } else if (combined.includes("filter") || combined.includes("refine") || ariaLabel.includes("filter")) {
+      purpose = "filter_button";
+      confidence = 0.9;
+    } else if (combined.includes("sort") || combined.includes("order by") || ariaLabel.includes("sort")) {
+      purpose = "sort_button";
+      confidence = 0.9;
+    } else if (combined.includes("search") || combined.includes("find")) {
       purpose = "search_button";
       confidence = 0.9;
     } else if (combined.includes("sign in") || combined.includes("login") || combined.includes("log in") || combined.includes("log_in")) {
@@ -41,9 +68,6 @@ export function classifyElement(el, role) {
     } else if (combined.includes("sign up") || combined.includes("signup") || combined.includes("register") || combined.includes("join")) {
       purpose = "signup_button";
       confidence = 0.95;
-    } else if (combined.includes("next") || combined.includes("continue") || combined.includes("forward")) {
-      purpose = "navigation_button";
-      confidence = 0.9;
     } else if (combined.includes("play") || combined.includes("pause") || combined.includes("stop") || combined.includes("mute") || combined.includes("volume")) {
       purpose = "media_control";
       confidence = 0.9;
@@ -70,6 +94,9 @@ export function classifyElement(el, role) {
     } else if (combined.includes("profile") || combined.includes("account") || combined.includes("my-profile") || combined.includes("my profile")) {
       purpose = "profile_link";
       confidence = 0.85;
+    } else if (combined.includes("search or jump to") || combined.includes("quick search")) {
+      purpose = "search_launcher";
+      confidence = 0.95;
     } else if (combined.includes("search") || href.includes("search")) {
       purpose = "search_link";
       confidence = 0.8;
@@ -88,6 +115,9 @@ export function classifyElement(el, role) {
     } else if (href.includes("/r/") && href.includes("/comments/")) {
       purpose = "post_link";
       confidence = 0.9;
+    } else if (combined.includes("result") || href.includes("/wiki/") || combined.includes("title") || combined.includes("headline")) {
+      purpose = "result_link";
+      confidence = 0.8;
     }
   }
 
@@ -98,127 +128,170 @@ export function classifyPage(url, title, elements = {}) {
   const urlLower = (url || "").toLowerCase();
   const titleLower = (title || "").toLowerCase();
 
+  let site = "generic";
+  let pageType = "content_page";
+  let legacyPageType = "generic";
+
   if (urlLower.includes("github.com")) {
+    site = "github";
     if (urlLower.includes("/search")) {
-      return "github_search_results";
-    }
-    const hasSearchInput = (elements.inputs || []).some(input => input.purpose === "search_input");
-    if (hasSearchInput) {
-      return "github_search_overlay";
-    }
-    try {
-      const path = new URL(url).pathname;
-      if (path === "/" || path === "") {
-        return "github_home";
+      pageType = "result_page";
+      legacyPageType = "github_search_results";
+    } else {
+      const hasSearchInput = (elements.inputs || []).some(input => input.purpose === "search_input");
+      if (hasSearchInput) {
+        pageType = "search_page";
+        legacyPageType = "github_search_overlay";
+      } else {
+        try {
+          const path = new URL(url).pathname;
+          if (path === "/" || path === "") {
+            pageType = "home_page";
+            legacyPageType = "github_home";
+          } else {
+            pageType = "content_page";
+            legacyPageType = "github_repo";
+          }
+        } catch {
+          pageType = "content_page";
+          legacyPageType = "github_repo";
+        }
       }
-    } catch {}
-    return "github_repo";
-  }
-
-  if (urlLower.includes("youtube.com")) {
+    }
+  } else if (urlLower.includes("youtube.com")) {
+    site = "youtube";
     if (urlLower.includes("/shorts")) {
-      return "youtube_shorts";
-    }
-    if (urlLower.includes("/results")) {
-      return "youtube_results";
-    }
-    if (urlLower.includes("/watch")) {
-      return "youtube_video";
-    }
-    try {
-      const path = new URL(url).pathname;
-      if (path === "/" || path === "") {
-        return "youtube_home";
+      pageType = "video_page";
+      legacyPageType = "youtube_shorts";
+    } else if (urlLower.includes("/results")) {
+      pageType = "result_page";
+      legacyPageType = "youtube_results";
+    } else if (urlLower.includes("/watch")) {
+      pageType = "video_page";
+      legacyPageType = "youtube_video";
+    } else {
+      try {
+        const path = new URL(url).pathname;
+        if (path === "/" || path === "") {
+          pageType = "home_page";
+          legacyPageType = "youtube_home";
+        } else {
+          pageType = "content_page";
+          legacyPageType = "youtube_page";
+        }
+      } catch {
+        pageType = "content_page";
+        legacyPageType = "youtube_page";
       }
-    } catch {}
-    return "youtube_page";
-  }
-
-  if (urlLower.includes("google.com")) {
-    if (urlLower.includes("/search")) {
-      return "google_search_results";
     }
-    return "google_home";
-  }
-
-  if (urlLower.includes("linkedin.com")) {
+  } else if (urlLower.includes("google.com")) {
+    site = "google";
+    if (urlLower.includes("/search")) {
+      pageType = "result_page";
+      legacyPageType = "google_search_results";
+    } else {
+      pageType = "home_page";
+      legacyPageType = "google_home";
+    }
+  } else if (urlLower.includes("linkedin.com")) {
+    site = "linkedin";
     if (urlLower.includes("/feed")) {
-      return "linkedin_home";
+      pageType = "home_page";
+      legacyPageType = "linkedin_home";
+    } else if (urlLower.includes("/in/")) {
+      pageType = "profile_page";
+      legacyPageType = "linkedin_profile";
+    } else if (urlLower.includes("/jobs")) {
+      pageType = "content_page";
+      legacyPageType = "linkedin_jobs";
+    } else if (urlLower.includes("/search")) {
+      pageType = "result_page";
+      legacyPageType = "linkedin_search";
+    } else {
+      pageType = "home_page";
+      legacyPageType = "linkedin_home";
     }
-    if (urlLower.includes("/in/")) {
-      return "linkedin_profile";
-    }
-    if (urlLower.includes("/jobs")) {
-      return "linkedin_jobs";
-    }
-    if (urlLower.includes("/search")) {
-      return "linkedin_search";
-    }
-    return "linkedin_home";
-  }
-
-  if (urlLower.includes("instagram.com")) {
+  } else if (urlLower.includes("instagram.com")) {
+    site = "instagram";
     if (urlLower.includes("/p/") || urlLower.includes("/reel/")) {
-      return "instagram_post";
+      pageType = "content_page";
+      legacyPageType = "instagram_post";
+    } else {
+      try {
+        const path = new URL(url).pathname;
+        if (path === "/" || path === "" || path.includes("/feed")) {
+          pageType = "home_page";
+          legacyPageType = "instagram_home";
+        } else if (path.length > 2) {
+          pageType = "profile_page";
+          legacyPageType = "instagram_profile";
+        } else {
+          pageType = "home_page";
+          legacyPageType = "instagram_home";
+        }
+      } catch {
+        pageType = "home_page";
+        legacyPageType = "instagram_home";
+      }
     }
-    try {
-      const path = new URL(url).pathname;
-      if (path === "/" || path === "" || path.includes("/feed")) {
-        return "instagram_home";
-      }
-      if (path.length > 2) {
-        return "instagram_profile";
-      }
-    } catch {}
-    return "instagram_home";
-  }
-
-  if (urlLower.includes("twitter.com") || urlLower.includes("x.com")) {
+  } else if (urlLower.includes("twitter.com") || urlLower.includes("x.com")) {
+    site = "twitter";
     if (urlLower.includes("/status/")) {
-      return "twitter_status";
+      pageType = "content_page";
+      legacyPageType = "twitter_status";
+    } else if (urlLower.includes("/home")) {
+      pageType = "home_page";
+      legacyPageType = "twitter_home";
+    } else {
+      pageType = "profile_page";
+      legacyPageType = "twitter_profile";
     }
-    if (urlLower.includes("/home")) {
-      return "twitter_home";
-    }
-    return "twitter_profile";
-  }
-
-  if (urlLower.includes("amazon.com")) {
+  } else if (urlLower.includes("amazon.com")) {
+    site = "amazon";
     if (urlLower.includes("/cart") || urlLower.includes("/gp/cart")) {
-      return "amazon_cart";
+      pageType = "form_page";
+      legacyPageType = "amazon_cart";
+    } else if (urlLower.includes("/s?") || urlLower.includes("/s/")) {
+      pageType = "result_page";
+      legacyPageType = "amazon_search";
+    } else if (urlLower.includes("/dp/") || urlLower.includes("/gp/product")) {
+      pageType = "product_page";
+      legacyPageType = "amazon_product";
+    } else {
+      pageType = "home_page";
+      legacyPageType = "amazon_home";
     }
-    if (urlLower.includes("/s?") || urlLower.includes("/s/")) {
-      return "amazon_search";
-    }
-    if (urlLower.includes("/dp/") || urlLower.includes("/gp/product")) {
-      return "amazon_product";
-    }
-    return "amazon_home";
-  }
-
-  if (urlLower.includes("wikipedia.org")) {
+  } else if (urlLower.includes("wikipedia.org")) {
+    site = "wikipedia";
     if (urlLower.includes("/wiki/")) {
-      return "wikipedia_article";
+      pageType = "content_page";
+      legacyPageType = "wikipedia_article";
+    } else {
+      pageType = "home_page";
+      legacyPageType = "wikipedia_home";
     }
-    return "wikipedia_home";
-  }
-
-  if (urlLower.includes("reddit.com")) {
+  } else if (urlLower.includes("reddit.com")) {
+    site = "reddit";
     if (urlLower.includes("/r/")) {
-      return "reddit_subreddit";
+      pageType = "result_page";
+      legacyPageType = "reddit_subreddit";
+    } else if (urlLower.includes("/comments/")) {
+      pageType = "content_page";
+      legacyPageType = "reddit_comments";
+    } else {
+      pageType = "home_page";
+      legacyPageType = "reddit_home";
     }
-    if (urlLower.includes("/comments/")) {
-      return "reddit_comments";
-    }
-    return "reddit_home";
-  }
-
-  if (urlLower.includes("yahoo.com")) {
+  } else if (urlLower.includes("yahoo.com")) {
+    site = "yahoo";
     if (urlLower.includes("search.yahoo.com")) {
-      return "yahoo_search_results";
+      pageType = "result_page";
+      legacyPageType = "yahoo_search_results";
+    } else {
+      pageType = "home_page";
+      legacyPageType = "yahoo_home";
     }
-    return "yahoo_home";
   }
 
-  return "generic";
+  return { site, pageType, legacyPageType };
 }
