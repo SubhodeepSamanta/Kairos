@@ -1,5 +1,6 @@
 import { askLLM } from "../llm/provider.js";
 import { createTask } from "../shared/schemas/task.js";
+import { parseGoal } from "./goalParser.js";
 
     function extractJson(text) {
 
@@ -105,10 +106,14 @@ const parsed =
 
     return (
       parsed.tasks || []
-    ).map(task =>
-      createTask({
+    ).map(task => {
+      const parsedIntent = parseGoal(task.objective);
+      return createTask({
         objective:
           task.objective,
+
+        intent:
+          parsedIntent,
 
         context:
           task.context || {},
@@ -121,8 +126,8 @@ const parsed =
 
         produces:
           task.produces || []
-      })
-    );
+      });
+    });
 
   } catch (error) {
 
@@ -135,6 +140,9 @@ const parsed =
     createTask({
       objective:
         goal.objective,
+
+      intent:
+        goal.intent,
 
       context: {
         entities:

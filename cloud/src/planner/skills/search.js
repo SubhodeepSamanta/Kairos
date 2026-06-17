@@ -1,25 +1,37 @@
+import { resultSkill } from "./result.js";
+
 export const searchSkill = {
   name: "SearchSkill",
   canHandle(task, browserState) {
+    if (resultSkill.canHandle(task, browserState)) {
+      return false;
+    }
+    if (task.intent?.type) {
+      return task.intent.type === "search";
+    }
     const objective = (task.objective || "").toLowerCase();
     return objective.includes("search") || objective.includes("query") || objective.includes("find");
   },
   execute(task, browserState) {
-    const objective = (task.objective || "").toLowerCase();
     const actions = [];
-
     let query = "";
-    const quoteMatch = objective.match(/['"](.*?)['"]/);
-    if (quoteMatch && quoteMatch[1].trim()) {
-      query = quoteMatch[1].trim();
+
+    if (task.intent?.query) {
+      query = task.intent.query;
     } else {
-      let clean = objective;
-      clean = clean.replace(/search\s+(?:for\s+)?/i, "");
-      clean = clean.replace(/query\s+(?:for\s+)?/i, "");
-      clean = clean.replace(/find\s+/i, "");
-      clean = clean.replace(/\s+on\s+[a-z0-9.]+/i, "");
-      clean = clean.replace(/\s+in\s+[a-z0-9.]+/i, "");
-      query = clean.trim();
+      const objective = (task.objective || "").toLowerCase();
+      const quoteMatch = objective.match(/['"](.*?)['"]/);
+      if (quoteMatch && quoteMatch[1].trim()) {
+        query = quoteMatch[1].trim();
+      } else {
+        let clean = objective;
+        clean = clean.replace(/search\s+(?:for\s+)?/i, "");
+        clean = clean.replace(/query\s+(?:for\s+)?/i, "");
+        clean = clean.replace(/find\s+/i, "");
+        clean = clean.replace(/\s+on\s+[a-z0-9.]+/i, "");
+        clean = clean.replace(/\s+in\s+[a-z0-9.]+/i, "");
+        query = clean.trim();
+      }
     }
 
     if (!query) return null;
@@ -71,3 +83,4 @@ export const searchSkill = {
     return null;
   }
 };
+

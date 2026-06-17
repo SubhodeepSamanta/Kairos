@@ -14,8 +14,10 @@ import { amazonSkill } from "./amazon.js";
 import { wikipediaSkill } from "./wikipedia.js";
 import { redditSkill } from "./reddit.js";
 import { yahooSkill } from "./yahoo.js";
+import { resultSkill } from "./result.js";
 
 const SKILLS = [
+  resultSkill,
   searchSkill,
   videoSkill,
   formFillSkill,

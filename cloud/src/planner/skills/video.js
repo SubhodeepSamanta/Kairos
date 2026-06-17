@@ -1,6 +1,9 @@
 export const videoSkill = {
   name: "VideoSkill",
   canHandle(task, browserState) {
+    if (task.intent?.type) {
+      return task.intent.type === "media";
+    }
     const objective = (task.objective || "").toLowerCase();
     return objective.includes("play") || objective.includes("watch") || objective.includes("video");
   },
@@ -19,3 +22,4 @@ export const videoSkill = {
     return null;
   }
 };
+

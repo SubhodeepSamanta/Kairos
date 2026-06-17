@@ -1,6 +1,9 @@
 export const navigationSkill = {
   name: "NavigationSkill",
   canHandle(task, browserState) {
+    if (task.intent?.type) {
+      return task.intent.type === "navigate";
+    }
     const objective = (task.objective || "").toLowerCase();
     if (objective.includes("back") || objective.includes("refresh") || objective.includes("tab") || objective.includes("new tab") || objective.includes("open tab")) {
       return true;
@@ -15,6 +18,53 @@ export const navigationSkill = {
     return false;
   },
   execute(task, browserState) {
+    // 1. Prioritize task.intent
+    if (task.intent?.type === "navigate") {
+      const target = task.intent.target;
+      const action = task.intent.action;
+
+      if (action === "back" || target === "back") {
+        return [{ type: "back", params: {} }];
+      }
+      if (action === "refresh" || target === "refresh") {
+        return [{ type: "refresh", params: {} }];
+      }
+      if (target === "new tab" || target === "open tab" || (task.intent.constraints && task.intent.constraints.newTab)) {
+        return [{ type: "new_tab", params: {} }];
+      }
+      if (target) {
+        if (target.match(/https?:\/\/[^\s]+/)) {
+          return [{
+            type: "navigate",
+            params: {
+              url: target
+            }
+          }];
+        }
+        const SITE_MAP = {
+          github: "https://github.com",
+          youtube: "https://youtube.com",
+          google: "https://google.com",
+          linkedin: "https://linkedin.com",
+          instagram: "https://instagram.com",
+          amazon: "https://amazon.com",
+          wikipedia: "https://wikipedia.org",
+          reddit: "https://reddit.com",
+          yahoo: "https://yahoo.com"
+        };
+        const mapped = SITE_MAP[target.toLowerCase()];
+        if (mapped) {
+          return [{
+            type: "navigate",
+            params: {
+              url: mapped
+            }
+          }];
+        }
+      }
+    }
+
+    // 2. Fallback to objective text
     const objective = (task.objective || "").toLowerCase();
 
     if (objective.includes("back")) {
@@ -63,3 +113,4 @@ export const navigationSkill = {
     return null;
   }
 };
+
