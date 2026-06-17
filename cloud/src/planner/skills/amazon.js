@@ -15,8 +15,12 @@ export const amazonSkill = {
       if (quoteMatch && quoteMatch[1].trim()) {
         query = quoteMatch[1].trim();
       } else {
-        const queryMatch = objective.match(/search (?:amazon for|for) (['"]?)(.*?)\1/i) || objective.match(/find (['"]?)(.*?)\1/i) || objective.match(/search (['"]?)(.*?)\1/i);
-        query = queryMatch ? queryMatch[2] : "";
+        let clean = objective;
+        clean = clean.replace(/search\s+(?:amazon\s+for|for\s+)?/i, "");
+        clean = clean.replace(/find\s+/i, "");
+        clean = clean.replace(/\s+on\s+amazon/i, "");
+        clean = clean.replace(/\s+in\s+amazon/i, "");
+        query = clean.trim();
       }
 
       if (query) {

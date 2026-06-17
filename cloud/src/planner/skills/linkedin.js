@@ -15,8 +15,10 @@ export const linkedinSkill = {
       if (quoteMatch && quoteMatch[1].trim()) {
         title = quoteMatch[1].trim();
       } else {
-        const titleMatch = objective.match(/(?:job|jobs) (?:for|as|of)? (['"]?)(.*?)\1/i) || objective.match(/search (['"]?)(.*?)\1/i);
-        title = titleMatch ? titleMatch[2] : "";
+        let clean = objective;
+        clean = clean.replace(/(?:job|jobs)\s+(?:for|as|of)?\s+/i, "");
+        clean = clean.replace(/search\s+/i, "");
+        title = clean.trim();
       }
 
       if (title) {
@@ -47,8 +49,12 @@ export const linkedinSkill = {
       if (quoteMatch && quoteMatch[1].trim()) {
         query = quoteMatch[1].trim();
       } else {
-        const queryMatch = objective.match(/search (?:linkedin for|for) (['"]?)(.*?)\1/i) || objective.match(/find (['"]?)(.*?)\1/i);
-        query = queryMatch ? queryMatch[2] : "";
+        let clean = objective;
+        clean = clean.replace(/search\s+(?:linkedin\s+for|for\s+)?/i, "");
+        clean = clean.replace(/find\s+/i, "");
+        clean = clean.replace(/\s+on\s+linkedin/i, "");
+        clean = clean.replace(/\s+in\s+linkedin/i, "");
+        query = clean.trim();
       }
 
       if (query) {

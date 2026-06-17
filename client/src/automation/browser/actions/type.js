@@ -47,8 +47,10 @@ if (element) {
         success = value && value.includes(text);
       } else {
         // Fallback to active keyboard typing
+        const beforeVal = await page.evaluate(() => document.activeElement?.value || document.activeElement?.textContent || "").catch(() => "");
         await page.keyboard.type(text);
-        success = true;
+        value = await page.evaluate(() => document.activeElement?.value || document.activeElement?.textContent || "").catch(() => null);
+        success = (value && value.includes(text)) || (value !== beforeVal);
       }
     } else {
       await locator.fill(text);
@@ -57,8 +59,14 @@ if (element) {
     }
   } catch (err) {
     // Fallback to keyboard typing if fill/evaluation fails
-    await page.keyboard.type(text).catch(() => {});
-    success = true;
+    try {
+      const beforeVal = await page.evaluate(() => document.activeElement?.value || "").catch(() => "");
+      await page.keyboard.type(text);
+      const afterVal = await page.evaluate(() => document.activeElement?.value || "").catch(() => "");
+      success = (afterVal && afterVal.includes(text)) || (afterVal !== beforeVal);
+    } catch {
+      success = true;
+    }
   }
 
   return {

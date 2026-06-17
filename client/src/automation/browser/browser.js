@@ -44,36 +44,23 @@ export async function getPage() {
     return launchBrowser();
   }
 
-  const page =
+  let page =
     pages[activePageIndex];
 
   if (
     !page ||
     page.isClosed()
   ) {
-    return launchBrowser();
+    const openPageIndex = pages.findIndex(p => p && !p.isClosed());
+    if (openPageIndex !== -1) {
+      activePageIndex = openPageIndex;
+      page = pages[activePageIndex];
+    } else {
+      return launchBrowser();
+    }
   }
 
   return page;
-}
-
-export async function createTab() {
-
-  const page =
-    await getPage();
-
-  const context =
-    page.context();
-
-  const newPage =
-  await context.newPage();
-
-  pages.push(newPage);
-
-  activePageIndex =
-    pages.length - 1;
-
-  return newPage;
 }
 
 export function switchTab(index) {
@@ -194,7 +181,7 @@ export async function createNewTab() {
   }
 
   const newPage =
-    await browser.newPage();
+    await context.newPage();
 
   pages.push(newPage);
 

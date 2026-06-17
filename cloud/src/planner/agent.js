@@ -330,6 +330,7 @@ console.log(
           action: obs.action
         }));
 
+        console.log("LAST ACTION", activeObservation?.action);
         setObservation(activeObservation);
         updateWorldModel(goal, activeObservation);
 
@@ -609,6 +610,7 @@ if (
   console.log(
     "Task verification failed — replanning for current task"
   );
+} else {
   goal.blacklistedSkills = goal.blacklistedSkills || [];
   handleExecutionFailure(goal, goal.tasks[goal.currentTask], failedObservation?.action, goal.blacklistedSkills);
 }

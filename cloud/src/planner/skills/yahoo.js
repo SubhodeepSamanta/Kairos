@@ -15,8 +15,12 @@ export const yahooSkill = {
       if (quoteMatch && quoteMatch[1].trim()) {
         query = quoteMatch[1].trim();
       } else {
-        const queryMatch = objective.match(/search (?:yahoo for|for) (['"]?)(.*?)\1/i) || objective.match(/find (['"]?)(.*?)\1/i);
-        query = queryMatch ? queryMatch[2] : "";
+        let clean = objective;
+        clean = clean.replace(/search\s+(?:yahoo\s+for|for\s+)?/i, "");
+        clean = clean.replace(/find\s+/i, "");
+        clean = clean.replace(/\s+on\s+yahoo/i, "");
+        clean = clean.replace(/\s+in\s+yahoo/i, "");
+        query = clean.trim();
       }
 
       if (query) {

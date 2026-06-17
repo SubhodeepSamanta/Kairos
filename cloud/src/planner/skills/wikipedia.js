@@ -15,8 +15,13 @@ export const wikipediaSkill = {
       if (quoteMatch && quoteMatch[1].trim()) {
         query = quoteMatch[1].trim();
       } else {
-        const queryMatch = objective.match(/search (?:wikipedia for|for) (['"]?)(.*?)\1/i) || objective.match(/read about (['"]?)(.*?)\1/i) || objective.match(/search (['"]?)(.*?)\1/i) || objective.match(/open wikipedia\s+(.+)/i);
-        query = queryMatch ? (queryMatch[2] || queryMatch[1]) : "";
+        let clean = objective;
+        clean = clean.replace(/search\s+(?:wikipedia\s+for|for\s+)?/i, "");
+        clean = clean.replace(/read\s+about\s+/i, "");
+        clean = clean.replace(/open\s+wikipedia\s+/i, "");
+        clean = clean.replace(/\s+on\s+wikipedia/i, "");
+        clean = clean.replace(/\s+in\s+wikipedia/i, "");
+        query = clean.trim();
       }
 
       if (query) {

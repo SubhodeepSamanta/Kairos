@@ -38,6 +38,11 @@ export async function createGoalPlan(goal) {
     return skillPlan;
   }
 
+  console.log(`[SKILL CHECK]
+  task objective: "${currentTask.objective}"
+  pageType: "${browser.pageType || ""}"
+  router result: null (Skill Router bypassed or not matched)`);
+
   const memoryContext =
     await retrieveRelevantMemories(
       currentTask

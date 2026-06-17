@@ -17,7 +17,10 @@ export async function readPage() {
 
   // 1. Inject data-kairos-id attributes directly to interactive elements in DOM
   await page.evaluate(() => {
-    window.__kairosNextId = window.__kairosNextId || 1;
+    document.querySelectorAll("[data-kairos-id]").forEach(el => {
+      el.removeAttribute("data-kairos-id");
+    });
+    window.__kairosNextId = 1;
     const selectors = [
       "button:not([disabled])",
       "input:not([type='hidden']):not([disabled])",
@@ -57,7 +60,7 @@ export async function readPage() {
     const text = innerText.trim() || metadata.ariaLabel || metadata.title || "button";
     if (!text) continue;
 
-    registerElement(id, page.locator(`[data-kairos-id="${id}"]`));
+    registerElement(id, page.locator(`[data-kairos-id="${id}"]`), text, "button");
 
     const enabled = await locator.isEnabled().catch(() => true);
     const btnObj = {
@@ -99,7 +102,7 @@ export async function readPage() {
       title: el.title || null
     })).catch(() => ({}));
 
-    registerElement(id, page.locator(`[data-kairos-id="${id}"]`));
+    registerElement(id, page.locator(`[data-kairos-id="${id}"]`), metadata.ariaLabel || metadata.placeholder || metadata.name || metadata.type || "input", "input");
 
     const enabled = await locator.isEnabled().catch(() => true);
     const inputObj = {
@@ -144,7 +147,7 @@ export async function readPage() {
     const text = innerText.trim() || metadata.ariaLabel || metadata.title || "link";
     if (!text) continue;
 
-    registerElement(id, page.locator(`[data-kairos-id="${id}"]`));
+    registerElement(id, page.locator(`[data-kairos-id="${id}"]`), text, "link");
 
     const enabled = await locator.isEnabled().catch(() => true);
     const linkObj = {
@@ -183,7 +186,7 @@ export async function readPage() {
       role: el.getAttribute("role") || "form"
     })).catch(() => ({}));
 
-    registerElement(id, page.locator(`[data-kairos-id="${id}"]`));
+    registerElement(id, page.locator(`[data-kairos-id="${id}"]`), null, "form");
 
     forms.push({
       id: parseInt(id, 10),
@@ -201,14 +204,40 @@ export async function readPage() {
       .slice(0, 2000);
   }).catch(() => "");
 
-  const cappedButtons = buttons.slice(0, 20);
-  const cappedInputs = inputs.slice(0, 10);
-  const cappedLinks = links.slice(0, 20);
+  const sortedButtons = [...buttons].sort((a, b) => b.confidence - a.confidence);
+  const sortedInputs = [...inputs].sort((a, b) => b.confidence - a.confidence);
+  const sortedLinks = [...links].sort((a, b) => b.confidence - a.confidence);
+
+  const cappedButtons = sortedButtons.slice(0, 20);
+  const cappedInputs = sortedInputs.slice(0, 10);
+  const cappedLinks = sortedLinks.slice(0, 20);
 
   // Get active tabs
   const tabs = await listTabs().catch(() => []);
   const activeTab = tabs.find(t => t.active) || null;
-  const pageType = classifyPage(url, title);
+  const pageType = classifyPage(url, title, { inputs });
+
+  console.log("PAGE TYPE:", pageType);
+  console.log(
+    "INPUTS:",
+    inputs.length,
+    "BUTTONS:",
+    buttons.length,
+    "LINKS:",
+    links.length
+  );
+  console.log(
+    "SEARCH INPUTS (UNSLICED):",
+    inputs.filter(x => x.purpose === "search_input")
+  );
+  console.log(
+    "SEARCH BUTTONS (UNSLICED):",
+    buttons.filter(x => x.purpose === "search_button")
+  );
+  console.log(
+    "SEARCH INPUTS (SLICED):",
+    cappedInputs.filter(x => x.purpose === "search_input")
+  );
 
   updateBrowserContext({
     title,

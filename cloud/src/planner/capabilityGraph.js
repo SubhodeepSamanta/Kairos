@@ -6,7 +6,20 @@ export function resolveExecutor(goalId, task, browserState, blacklistedSkills = 
   const pageType = browserState.pageType || "";
   const skillName = getSkillNameForPageType(pageType);
   
+  const registeredSkills = [
+    "YouTubeSkill (youtube_*)",
+    "GitHubSkill (github_*)",
+    "GoogleSkill (google_*)",
+    "LinkedInSkill (linkedin_*)",
+    "InstagramSkill (instagram_*)",
+    "AmazonSkill (amazon_*)",
+    "WikipediaSkill (wikipedia_*)",
+    "RedditSkill (reddit_*)",
+    "YahooSkill (yahoo_*)"
+  ];
   console.log(`[CAPABILITY GRAPH] pageType="${pageType}", blacklisted=${JSON.stringify(blacklistedSkills)}`);
+  console.log(`[CAPABILITY GRAPH] Registered skills: ${JSON.stringify(registeredSkills)}`);
+  console.log(`[CAPABILITY GRAPH] Skills available for "${pageType}": ${JSON.stringify(skillName ? [skillName] : [])}`);
 
   if (skillName && blacklistedSkills.includes(skillName)) {
     console.log(`[CAPABILITY GRAPH] Skill ${skillName} is blacklisted for this task. Bypassing to LLM.`);

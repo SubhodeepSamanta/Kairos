@@ -1,6 +1,7 @@
 import { getPage } from "../browser.js";
 import {
-  getElement
+  getElement,
+  getElementInfo
 } from "../elements/registry.js";
 
 export async function clickText(
@@ -30,7 +31,49 @@ export async function clickText(
       };
     }
 
-    await locator.click();
+    try {
+      await locator.click({ timeout: 5000 });
+    } catch (err) {
+      console.log(`[CLICK] Direct stable ID click failed: "${err.message}". Attempting fallback...`);
+      const info = getElementInfo(element);
+      if (info && info.text) {
+        const fallbacks = [];
+        if (info.role === "button") {
+          fallbacks.push(`button:has-text("${info.text}")`);
+          fallbacks.push(`[role="button"]:has-text("${info.text}")`);
+        } else if (info.role === "link") {
+          fallbacks.push(`a:has-text("${info.text}")`);
+        }
+        fallbacks.push(`:text("${info.text}")`);
+
+        let fallbackSuccess = false;
+        for (const selector of fallbacks) {
+          try {
+            console.log(`[CLICK] Fallback selector: "${selector}"`);
+            const fallbackLocator = page.locator(selector).first();
+            await fallbackLocator.click({ timeout: 3000 });
+            fallbackSuccess = true;
+            console.log(`[CLICK] Fallback click succeeded: "${selector}"`);
+            break;
+          } catch (e) {
+            // Try next fallback
+          }
+        }
+        if (!fallbackSuccess) {
+          return {
+            success: false,
+            reason: `Click failed and fallbacks failed: ${err.message}`,
+            clicked: `element ${element}`
+          };
+        }
+      } else {
+        return {
+          success: false,
+          reason: `Click failed: ${err.message}`,
+          clicked: `element ${element}`
+        };
+      }
+    }
 
     await Promise.race([
       page.waitForNavigation({

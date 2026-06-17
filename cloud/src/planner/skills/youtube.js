@@ -16,8 +16,13 @@ export const youtubeSkill = {
         if (quoteMatch && quoteMatch[1].trim()) {
           query = quoteMatch[1].trim();
         } else {
-          const queryMatch = objective.match(/search (?:youtube for|for) (['"]?)(.*?)\1/i) || objective.match(/(?:play|watch) (['"]?)(.*?)\1/i);
-          query = queryMatch ? queryMatch[2] : "";
+          let clean = objective;
+          clean = clean.replace(/search\s+(?:youtube\s+for|for\s+)?/i, "");
+          clean = clean.replace(/(?:play|watch)\s+/i, "");
+          clean = clean.replace(/\s+on\s+youtube/i, "");
+          clean = clean.replace(/\s+videos?\s+on\s+youtube/i, "");
+          clean = clean.replace(/\s+videos?/i, "");
+          query = clean.trim();
         }
 
         if (query) {

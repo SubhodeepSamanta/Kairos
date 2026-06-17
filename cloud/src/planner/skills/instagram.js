@@ -15,8 +15,12 @@ export const instagramSkill = {
       if (quoteMatch && quoteMatch[1].trim()) {
         query = quoteMatch[1].trim();
       } else {
-        const queryMatch = objective.match(/search (?:instagram for|for) (['"]?)(.*?)\1/i) || objective.match(/find (['"]?)(.*?)\1/i);
-        query = queryMatch ? queryMatch[2] : "";
+        let clean = objective;
+        clean = clean.replace(/search\s+(?:instagram\s+for|for\s+)?/i, "");
+        clean = clean.replace(/find\s+/i, "");
+        clean = clean.replace(/\s+on\s+instagram/i, "");
+        clean = clean.replace(/\s+in\s+instagram/i, "");
+        query = clean.trim();
       }
 
       if (query) {

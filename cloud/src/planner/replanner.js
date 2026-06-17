@@ -41,6 +41,11 @@ if (!currentTask) {
     return JSON.stringify(skillPlan.actions);
   }
 
+  console.log(`[SKILL CHECK]
+  task objective: "${currentTask.objective}"
+  pageType: "${browser.pageType || ""}"
+  router result: null (Skill Router bypassed or not matched)`);
+
 console.log(
   "REPLAN TASK:",
   JSON.stringify(

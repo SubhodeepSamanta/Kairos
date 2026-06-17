@@ -14,8 +14,12 @@ export const googleSkill = {
       if (quoteMatch && quoteMatch[1].trim()) {
         query = quoteMatch[1].trim();
       } else {
-        const queryMatch = objective.match(/search (?:google for|for) (['"]?)(.*?)\1/i) || objective.match(/google (['"]?)(.*?)\1/i) || objective.match(/search (['"]?)(.*?)\1/i);
-        query = queryMatch ? queryMatch[2] : "";
+        let clean = objective;
+        clean = clean.replace(/search\s+(?:google\s+for|for\s+)?/i, "");
+        clean = clean.replace(/google\s+/i, "");
+        clean = clean.replace(/\s+on\s+google/i, "");
+        clean = clean.replace(/\s+in\s+google/i, "");
+        query = clean.trim();
       }
 
       if (query) {

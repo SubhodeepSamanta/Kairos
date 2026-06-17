@@ -12,7 +12,7 @@ export function classifyElement(el, role) {
   const combined = `${text} ${placeholder} ${ariaLabel} ${name} ${title} ${href}`;
 
   if (role === "input") {
-    if (combined.includes("search") || name === "q" || placeholder.includes("find") || placeholder.includes("search")) {
+    if (combined.includes("search") || name === "q" || placeholder.includes("find") || placeholder.includes("search") || combined.includes("query")) {
       purpose = "search_input";
       confidence = 0.95;
     } else if (combined.includes("email") && (combined.includes("sign up") || combined.includes("register") || combined.includes("create"))) {
@@ -79,6 +79,15 @@ export function classifyElement(el, role) {
     } else if (href.includes("/cart") || href.includes("/basket") || combined.includes("cart")) {
       purpose = "cart_link";
       confidence = 0.9;
+    } else if (href.includes("/watch")) {
+      purpose = "video_link";
+      confidence = 0.9;
+    } else if (href.includes("/dp/") || href.includes("/gp/")) {
+      purpose = "product_link";
+      confidence = 0.9;
+    } else if (href.includes("/r/") && href.includes("/comments/")) {
+      purpose = "post_link";
+      confidence = 0.9;
     }
   }
 
@@ -92,6 +101,10 @@ export function classifyPage(url, title, elements = {}) {
   if (urlLower.includes("github.com")) {
     if (urlLower.includes("/search")) {
       return "github_search_results";
+    }
+    const hasSearchInput = (elements.inputs || []).some(input => input.purpose === "search_input");
+    if (hasSearchInput) {
+      return "github_search_overlay";
     }
     try {
       const path = new URL(url).pathname;
