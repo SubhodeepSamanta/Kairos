@@ -1,83 +1,102 @@
 import { createGoalPlan, parsePlanResponse } from "./planner.js";
 import { createReplan } from "./replanner.js";
-import { verifyGoal }
-from "./goalVerifier.js";
-import { verifyTask }
-from "./taskVerifier.js";
+import { verifyTask } from "./taskVerifier.js";
 import { llmCallCount, maxLlmCalls } from "../llm/provider.js";
 import {
   updateWorldModel,
   recordCompletedTask,
-  recordFailedTask,
   addFinding
 } from "../agent/worldModel.js";
 import { extractDataFromPage } from "./extractor.js";
-import { isGoalImpossible }
-  from "./failureVerifier.js";
-  import {
-  verifyByRules
-}
-from "./ruleVerifier.js";
-import {
-  parseGoal
-} from "./goalParser.js";
-
-import {
-  setIntent
-} from "../agent/state.js";
-import {
-  setGoal,
-  setPlan,
-  setObservation
-} from "../agent/state.js";
-import {
-  verifyState
-} from "./stateVerifier.js";
-import {
-  verifyEvents
-} from "./eventVerifier.js";
-import {
-  TASK_STATUS
-}
-from "../shared/schemas/task.js";
-import {
-  buildTaskGraph
-}
-from "./taskParser.js";
-import { resolveExecutor } from "./capabilityGraph.js";
+import { isGoalImpossible } from "./failureVerifier.js";
+import { verifyByRules } from "./ruleVerifier.js";
+import { setIntent, setGoal, setPlan, setObservation } from "../agent/state.js";
+import { verifyState } from "./stateVerifier.js";
+import { verifyEvents } from "./eventVerifier.js";
+import { TASK_STATUS } from "../shared/schemas/task.js";
 import { handleExecutionFailure } from "./strategy.js";
 
-function completeTask(
-  goal,
-  observation
-) {
+import { parseIntent } from "./intentParser.js";
+import { buildObjectives } from "./objectiveBuilder.js";
+import { initTracker, updateTracker } from "./objectiveTracker.js";
+import { verifyObjective } from "./objectiveVerifier.js";
+import { resolveCurrentState } from "./currentStateResolver.js";
+import { generateTransitions, generateTasksForTransitions } from "./transitionGenerator.js";
 
-  const currentTask =
-    goal.tasks[
-      goal.currentTask
-    ];
-
+function completeTask(goal, observation) {
+  const currentTask = goal.tasks[goal.currentTask];
   if (currentTask) {
-
-    currentTask.status =
-      TASK_STATUS.COMPLETED;
-
-    currentTask.result =
-      observation;
-
-    recordCompletedTask(
-      goal,
-      currentTask
-    );
+    currentTask.status = TASK_STATUS.COMPLETED;
+    currentTask.result = observation;
+    recordCompletedTask(goal, currentTask);
   }
-
   goal.currentTask++;
   goal.blacklistedSkills = [];
+  return goal.currentTask >= goal.tasks.length;
+}
 
-  return (
-    goal.currentTask >=
-    goal.tasks.length
-  );
+async function handleTaskCompletion(goal, normalizedObservation) {
+  const finished = completeTask(goal, normalizedObservation);
+  
+  if (finished) {
+    const currentObj = goal.tracker.objectives[goal.tracker.currentIndex];
+    
+    // Verify current objective reached its desired state
+    const reached = verifyObjective(currentObj, normalizedObservation);
+    if (reached) {
+      updateTracker(goal.tracker, goal.tracker.currentIndex, "completed");
+      console.log(`[OBJECTIVE] Completed: ${currentObj.desiredState}`);
+    } else {
+      updateTracker(goal.tracker, goal.tracker.currentIndex, "failed");
+      console.log(`[OBJECTIVE] Failed to verify: ${currentObj.desiredState}`);
+    }
+
+    // Load tasks for the next objective
+    const hasMore = await loadTasksForCurrentObjective(goal, normalizedObservation);
+    return { finished: true, hasMore };
+  }
+  return { finished: false, hasMore: true };
+}
+
+async function loadTasksForCurrentObjective(goal, browserState) {
+  const tracker = goal.tracker;
+  const resolvedCurState = resolveCurrentState(browserState);
+  
+  // Skip any objectives that are already completed
+  while (tracker.currentIndex < tracker.objectives.length) {
+    const currentObj = tracker.objectives[tracker.currentIndex];
+    if (verifyObjective(currentObj, browserState)) {
+      updateTracker(tracker, tracker.currentIndex, "completed");
+      console.log(`[OBJECTIVE] Already achieved, skipping: ${currentObj.desiredState}`);
+    } else {
+      break;
+    }
+  }
+
+  if (tracker.currentIndex >= tracker.objectives.length) {
+    console.log("[OBJECTIVE] All objectives met.");
+    return false;
+  }
+
+  const currentObj = tracker.objectives[tracker.currentIndex];
+  updateTracker(tracker, tracker.currentIndex, "in_progress");
+
+  const transitions = generateTransitions(resolvedCurState, currentObj);
+
+  // H8: Diagnostic Logging
+  console.log(`
+=========================================
+CURRENT STATE: ${resolvedCurState.platform}_${resolvedCurState.currentState} (query="${resolvedCurState.parameters.query || ""}")
+DESIRED STATE: ${currentObj.platform}_${currentObj.desiredState} (query="${currentObj.parameters.query || ""}")
+TRANSITIONS: ${transitions.map(t => t.id).join(", ")}
+OBJECTIVE STATUS: ${currentObj.desiredState} is IN_PROGRESS
+=========================================
+`);
+
+  // Generate tasks for current objective using transition generator
+  goal.tasks = generateTasksForTransitions(transitions);
+  goal.currentTask = 0;
+  return true;
 }
 
 function detectLoop(world) {
@@ -173,7 +192,6 @@ async function _runAgentInternal({
     goal,
     executePlan
 }) {
-
   // Fetch initial browser state before planning
   const initReadPlan = {
     goalId: goal.id,
@@ -189,500 +207,310 @@ async function _runAgentInternal({
   const latestObs = goal.world?.history?.[goal.world.history.length - 1]?.observation;
   const browserState = latestObs?.pageState || latestObs || {};
 
-const intent =
-  parseGoal(
-    goal.objective
-  );
-goal.intent =
-  intent;
+  const intent = await parseIntent(goal.objective);
+  goal.intent = intent;
+  setIntent(intent);
 
-goal.tasks =
-  await buildTaskGraph(
-    goal,
-    browserState
-  );
+  console.log("INTENT:", JSON.stringify(intent, null, 2));
 
-console.log(
-  "TASK GRAPH:",
-  JSON.stringify(
-    goal.tasks,
-    null,
-    2
-  )
-);
-goal.currentTask = 0;
+  const objectives = buildObjectives(intent);
+  goal.objectives = objectives;
+  goal.tracker = initTracker(objectives);
 
-setIntent(intent);
-console.log(
-  "INTENT:",
-  JSON.stringify(
-    intent,
-    null,
-    2
-  )
-);
-    let plan =
-        await createGoalPlan(goal);
-        setGoal(goal);
-setPlan(plan);
-console.log(
-  "INITIAL PLAN:",
-  JSON.stringify(
-    plan,
-    null,
-    2
-  )
-);
-    if (
-        plan.actions.length === 0
-    ) {
-        return {
-            success: false,
-            reason: "no_plan"
-        };
+  // Early exit: check if final desired state is already met before planning
+  const finalObj = goal.tracker.objectives[goal.tracker.objectives.length - 1];
+  if (verifyObjective(finalObj, browserState)) {
+    console.log(`[GOAL COMPLETE] Initial browser state already satisfies the final desired state: ${finalObj.desiredState}. Stopping execution immediately.`);
+    return {
+      success: true,
+      observation: latestObs
+    };
+  }
+
+  const hasTasks = await loadTasksForCurrentObjective(goal, browserState);
+  if (!hasTasks) {
+    return {
+      success: true,
+      observation: latestObs
+    };
+  }
+
+  console.log("TASK GRAPH:", JSON.stringify(goal.tasks, null, 2));
+
+  let plan = await createGoalPlan(goal);
+  setGoal(goal);
+  setPlan(plan);
+  console.log("INITIAL PLAN:", JSON.stringify(plan, null, 2));
+
+  if (plan.actions.length === 0) {
+    return {
+      success: false,
+      reason: "no_plan"
+    };
+  }
+
+  const taskAttempts = {};
+  let totalActions = 0;
+  const MAX_TASK_RETRIES = 5;
+  const MAX_GOAL_ACTIONS = 30;
+
+  while (true) {
+    const currentTaskIndex = goal.currentTask;
+    taskAttempts[currentTaskIndex] = (taskAttempts[currentTaskIndex] || 0) + 1;
+
+    console.log(
+        `Task ${currentTaskIndex + 1} Attempt ${taskAttempts[currentTaskIndex]} (Total Actions: ${totalActions}, LLM Calls: ${llmCallCount})`
+    );
+
+    if (taskAttempts[currentTaskIndex] > MAX_TASK_RETRIES) {
+      console.log(`[BUDGET] Task ${currentTaskIndex} exceeded max retries of ${MAX_TASK_RETRIES}`);
+      return {
+        success: false,
+        reason: "task_retry_budget_exceeded"
+      };
     }
 
-    const taskAttempts = {};
-    let totalActions = 0;
-    const MAX_TASK_RETRIES = 5;
-    const MAX_GOAL_ACTIONS = 30;
+    totalActions += plan.actions.length;
+    if (totalActions > MAX_GOAL_ACTIONS) {
+      console.log(`[BUDGET] Goal exceeded max actions of ${MAX_GOAL_ACTIONS}`);
+      return {
+        success: false,
+        reason: "goal_action_budget_exceeded"
+      };
+    }
 
-    while (true) {
-        const currentTaskIndex = goal.currentTask;
-        taskAttempts[currentTaskIndex] = (taskAttempts[currentTaskIndex] || 0) + 1;
+    if (llmCallCount >= maxLlmCalls) {
+      console.log(`[BUDGET] Goal exceeded max LLM calls of ${maxLlmCalls}`);
+      return {
+        success: false,
+        reason: "llm_budget_exceeded"
+      };
+    }
 
-        console.log(
-            `Task ${currentTaskIndex + 1} Attempt ${taskAttempts[currentTaskIndex]} (Total Actions: ${totalActions}, LLM Calls: ${llmCallCount})`
-        );
+    goal.tasks[goal.currentTask].status = TASK_STATUS.RUNNING;
+    const result = await executePlan(plan);
 
-        if (taskAttempts[currentTaskIndex] > MAX_TASK_RETRIES) {
-          console.log(`[BUDGET] Task ${currentTaskIndex} exceeded max retries of ${MAX_TASK_RETRIES}`);
-          return {
-            success: false,
-            reason: "task_retry_budget_exceeded"
-          };
+    console.log("EXECUTE RESULT:", JSON.stringify(result, null, 2));
+
+    const observations = result.observations || [];
+    const failedObservation = observations.find(obs => !obs.success);
+
+    let activeObservation = failedObservation || observations[observations.length - 1];
+    let activeObservations = observations;
+
+    let obsQuality = activeObservation?.pageState?.observationQuality;
+    if (obsQuality && obsQuality.score < 0.7) {
+      console.log(`[QUALITY] Low observation quality score: ${obsQuality.score}. Reasons: ${obsQuality.reasons.join(", ")}. Waiting and re-reading...`);
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      let readPlan = {
+        goalId: goal.id,
+        actions: [{ type: "read_ui", params: {} }]
+      };
+      let readResult = await executePlan(readPlan);
+      let readObs = readResult?.observations?.[readResult.observations.length - 1];
+      
+      if (readObs?.pageState?.observationQuality?.score < 0.5) {
+        console.log(`[QUALITY] Quality remains low (${readObs.pageState.observationQuality.score}). Refreshing page...`);
+        const refreshPlan = {
+          goalId: goal.id,
+          actions: [
+            { type: "refresh", params: {} },
+            { type: "read_ui", params: {} }
+          ]
+        };
+        const refreshResult = await executePlan(refreshPlan);
+        readResult = refreshResult;
+        readObs = refreshResult?.observations?.[refreshResult.observations.length - 1];
+      }
+
+      if (readObs) {
+        activeObservation = readObs;
+        activeObservations = [...activeObservations, ...(readResult.observations || [])];
+      }
+    }
+
+    const compactObservations = activeObservations.map(obs => ({
+      success: obs.success,
+      expected: obs.expected,
+      actual: obs.actual,
+      before: obs.before,
+      after: obs.after,
+      action: obs.action
+    }));
+
+    console.log("LAST ACTION", activeObservation?.action);
+    setObservation(activeObservation);
+    updateWorldModel(goal, activeObservation);
+
+    if (activeObservation?.action?.type === "extract_data" && activeObservation?.success) {
+      const pageText = activeObservation.pageState?.text || "";
+      const queryText = activeObservation.action.params?.query || "";
+      const sourceUrl = activeObservation.pageState?.url || "";
+      const sourceTitle = activeObservation.pageState?.title || "";
+      
+      console.log(`[EXTRACT] Extracting data for query: "${queryText}"...`);
+      const extractedData = await extractDataFromPage(pageText, queryText);
+      
+      addFinding(goal, {
+        query: queryText,
+        data: extractedData,
+        source: { url: sourceUrl, title: sourceTitle }
+      });
+      console.log(`[EXTRACT] Finding added to world model:`, JSON.stringify(extractedData));
+    }
+
+    console.log("WORLD:", {
+      history: goal.world?.history?.length || 0,
+      url: goal.world?.lastUrl,
+      title: goal.world?.lastTitle,
+      lastOutcome: goal.world?.lastOutcome,
+      lastStateHash: goal.world?.lastStateHash
+    });
+
+    if (detectLoop(goal.world)) {
+      console.log("[LOOP] State loop detected. Aborting execution.");
+      return {
+        success: false,
+        observation: activeObservation,
+        reason: "state_loop_detected"
+      };
+    }
+
+    const compactObservation = {
+      success: activeObservation?.success,
+      expected: activeObservation?.expected,
+      actual: activeObservation?.actual,
+      before: activeObservation?.before,
+      after: activeObservation?.after,
+      action: activeObservation?.action
+    };
+
+    console.log("OBSERVATION SUMMARY:", JSON.stringify({
+      success: activeObservation?.success,
+      expected: activeObservation?.expected,
+      actual: activeObservation?.actual,
+      url: activeObservation?.url,
+      title: activeObservation?.title
+    }, null, 2));
+
+    const allSucceeded = observations.every(obs => obs.success);
+
+    if (allSucceeded) {
+      const currentTask = goal.tasks[goal.currentTask];
+      const activeTab = activeObservation?.pageState?.activeTab || activeObservation?.activeTab;
+      const normalizedObservation = activeTab ? {
+        ...activeObservation,
+        url: activeTab.url,
+        title: activeTab.title,
+        pageState: {
+          ...activeObservation.pageState,
+          url: activeTab.url,
+          title: activeTab.title
         }
+      } : activeObservation;
 
-        totalActions += plan.actions.length;
-        if (totalActions > MAX_GOAL_ACTIONS) {
-          console.log(`[BUDGET] Goal exceeded max actions of ${MAX_GOAL_ACTIONS}`);
-          return {
-            success: false,
-            reason: "goal_action_budget_exceeded"
-          };
-        }
+      const stateResult = verifyState({ task: currentTask, observation: normalizedObservation });
+      const eventResult = verifyEvents({ task: currentTask, observation: normalizedObservation });
 
-        if (llmCallCount >= maxLlmCalls) {
-          console.log(`[BUDGET] Goal exceeded max LLM calls of ${maxLlmCalls}`);
-          return {
-            success: false,
-            reason: "llm_budget_exceeded"
-          };
-        }
+      console.log("STATE VERIFIED:", stateResult);
+      console.log("EVENT VERIFIED:", eventResult);
 
-        goal.tasks[
-          goal.currentTask
-        ].status =
-          TASK_STATUS.RUNNING;
-        const result =
-            await executePlan(plan);
+      let isTaskAchieved = false;
 
-        console.log(
-          "EXECUTE RESULT:",
-          JSON.stringify(result, null, 2)
-        );
-
-        const observations =
-            result.observations || [];
-
-        const failedObservation =
-            observations.find(
-                obs => !obs.success
-            );
-
-        let activeObservation = failedObservation || observations[observations.length - 1];
-        let activeObservations = observations;
-
-        let obsQuality = activeObservation?.pageState?.observationQuality;
-        if (obsQuality && obsQuality.score < 0.7) {
-          console.log(`[QUALITY] Low observation quality score: ${obsQuality.score}. Reasons: ${obsQuality.reasons.join(", ")}. Waiting and re-reading...`);
-          await new Promise(resolve => setTimeout(resolve, 2000));
-          
-          let readPlan = {
-            goalId: goal.id,
-            actions: [{ type: "read_ui", params: {} }]
-          };
-          let readResult = await executePlan(readPlan);
-          let readObs = readResult?.observations?.[readResult.observations.length - 1];
-          
-          if (readObs?.pageState?.observationQuality?.score < 0.5) {
-            console.log(`[QUALITY] Quality remains low (${readObs.pageState.observationQuality.score}). Refreshing page...`);
-            const refreshPlan = {
-              goalId: goal.id,
-              actions: [
-                { type: "refresh", params: {} },
-                { type: "read_ui", params: {} }
-              ]
-            };
-            const refreshResult = await executePlan(refreshPlan);
-            readResult = refreshResult;
-            readObs = refreshResult?.observations?.[refreshResult.observations.length - 1];
-          }
-
-          if (readObs) {
-            activeObservation = readObs;
-            activeObservations = [...activeObservations, ...(readResult.observations || [])];
-          }
-        }
-
-        const compactObservations = activeObservations.map(obs => ({
-          success: obs.success,
-          expected: obs.expected,
-          actual: obs.actual,
-          before: obs.before,
-          after: obs.after,
-          action: obs.action
-        }));
-
-        console.log("LAST ACTION", activeObservation?.action);
-        setObservation(activeObservation);
-        updateWorldModel(goal, activeObservation);
-
-        if (activeObservation?.action?.type === "extract_data" && activeObservation?.success) {
-          const pageText = activeObservation.pageState?.text || "";
-          const queryText = activeObservation.action.params?.query || "";
-          const sourceUrl = activeObservation.pageState?.url || "";
-          const sourceTitle = activeObservation.pageState?.title || "";
-          
-          console.log(`[EXTRACT] Extracting data for query: "${queryText}"...`);
-          const extractedData = await extractDataFromPage(pageText, queryText);
-          
-          addFinding(goal, {
-            query: queryText,
-            data: extractedData,
-            source: { url: sourceUrl, title: sourceTitle }
+      if (eventResult?.achieved || stateResult?.achieved) {
+        console.log("Programmatic state/event check confirmed achievement.");
+        isTaskAchieved = true;
+      } else {
+        const ruleResult = verifyByRules(normalizedObservation);
+        console.log("RULE VERIFIED:", ruleResult);
+        if (ruleResult?.achieved) {
+          console.log("Rule check confirmed achievement.");
+          isTaskAchieved = true;
+        } else {
+          const taskResult = await verifyTask({
+            task: currentTask,
+            observation: normalizedObservation,
+            world: goal.world
           });
-          console.log(`[EXTRACT] Finding added to world model:`, JSON.stringify(extractedData));
+          console.log("LLM TASK VERIFICATION:", JSON.stringify(taskResult, null, 2));
+          if (taskResult.achieved) {
+            isTaskAchieved = true;
+          }
         }
+      }
 
-        console.log("WORLD:", {
-          history: goal.world?.history?.length || 0,
-          url: goal.world?.lastUrl,
-          title: goal.world?.lastTitle,
-          lastOutcome: goal.world?.lastOutcome,
-          lastStateHash: goal.world?.lastStateHash
-        });
-
-        if (detectLoop(goal.world)) {
-          console.log("[LOOP] State loop detected. Aborting execution.");
+      if (isTaskAchieved) {
+        // H6: Stop immediately if Final Desired State is reached
+        const finalObj = goal.tracker.objectives[goal.tracker.objectives.length - 1];
+        if (verifyObjective(finalObj, normalizedObservation)) {
+          console.log(`[GOAL COMPLETE] Final desired state reached: ${finalObj.platform}_${finalObj.desiredState}. Stopping execution immediately.`);
           return {
-            success: false,
-            observation: activeObservation,
-            reason: "state_loop_detected"
+            success: true,
+            observation: normalizedObservation
           };
         }
 
-        const compactObservation = {
-          success: activeObservation?.success,
-          expected: activeObservation?.expected,
-          actual: activeObservation?.actual,
-          before: activeObservation?.before,
-          after: activeObservation?.after,
-          action: activeObservation?.action
-        };
-
-        console.log(
-          "OBSERVATION SUMMARY:",
-          JSON.stringify(
-            {
-              success: activeObservation?.success,
-              expected: activeObservation?.expected,
-              actual: activeObservation?.actual,
-              url: activeObservation?.url,
-              title: activeObservation?.title
-            },
-            null,
-            2
-          )
-        );
-        console.log(
-            "OBSERVATION:",
-            JSON.stringify(
-                activeObservation,
-                null,
-                2
-            )
-        );
-
-const allSucceeded =
-  observations.every(
-    obs => obs.success
-  );
-
-if (allSucceeded) {
-console.log(
-  "VERIFYING TASK WITH CRITERIA:",
-  JSON.stringify(
-    observations,
-    null,
-    2
-  )
-);
-
-const currentTask =
-  goal.tasks[
-    goal.currentTask
-  ];
-
-// Fallback 1: Programmatic State and Event verifiers (highly efficient)
-const activeTab = activeObservation?.pageState?.activeTab || activeObservation?.activeTab;
-const normalizedObservation = activeTab ? {
-  ...activeObservation,
-  url: activeTab.url,
-  title: activeTab.title,
-  pageState: {
-    ...activeObservation.pageState,
-    url: activeTab.url,
-    title: activeTab.title
-  }
-} : activeObservation;
-
-const stateResult =
-  verifyState({
-    task:
-      currentTask,
-    observation: normalizedObservation
-  });
-
-const eventResult =
-  verifyEvents({
-    task:
-      currentTask,
-    observation: normalizedObservation
-  });
-
-console.log("STATE VERIFIED:", stateResult);
-console.log("EVENT VERIFIED:", eventResult);
-
-if (
-  eventResult?.achieved ||
-  stateResult?.achieved
-) {
-  console.log("Programmatic state/event check confirmed achievement.");
-  const finished =
-    completeTask(
-      goal,
-      normalizedObservation
-    );
-
-  if (!finished) {
-    plan =
-      await createGoalPlan(
-        goal
-      );
-
-    if (
-      plan.actions.length === 0
-    ) {
-      return {
-        success: false,
-        reason: "no_plan_for_task"
-      };
-    }
-
-    setPlan(plan);
-    continue;
-  }
-
-  return {
-    success: true,
-    observation: normalizedObservation
-  };
-}
-
-// Fallback 2: Rule verifier
-const ruleResult =
-  verifyByRules(
-    normalizedObservation
-  );
-
-console.log("RULE VERIFIED:", ruleResult);
-
-if (
-  ruleResult?.achieved
-) {
-  console.log("Rule check confirmed achievement.");
-  const finished =
-    completeTask(
-      goal,
-      normalizedObservation
-    );
-
-  if (!finished) {
-    plan =
-      await createGoalPlan(
-        goal
-      );
-
-    if (
-      plan.actions.length === 0
-    ) {
-      return {
-        success: false,
-        reason: "no_plan_for_task"
-      };
-    }
-
-    setPlan(plan);
-    continue;
-  }
-
-  return {
-    success: true,
-    observation: normalizedObservation
-  };
-}
-
-// Fallback 3: LLM successCriteria-based task verifier (more thorough, more expensive)
-const taskResult =
-  await verifyTask({
-    task: currentTask,
-    observation: normalizedObservation,
-    world: goal.world
-  });
-
-console.log(
-  "LLM TASK VERIFICATION:",
-  JSON.stringify(taskResult, null, 2)
-);
-
-if (taskResult.achieved) {
-  const finished =
-    completeTask(
-      goal,
-      normalizedObservation
-    );
-
-  if (!finished) {
-    plan =
-      await createGoalPlan(
-        goal
-      );
-
-    if (
-      plan.actions.length === 0
-    ) {
-      return {
-        success: false,
-        reason: "no_plan_for_task"
-      };
-    }
-
-    setPlan(plan);
-    continue;
-  }
-
-  return {
-    success: true,
-    observation: activeObservation
-  };
-}
-
-// Last resort: LLM goal verification (Disabled per roadmap, re-enable Wave 3.10)
-const verification = { achieved: false };
-
-  console.log(
-    "GOAL VERIFICATION (DISABLED):",
-    verification
-  );
-
-if (
-  verification.achieved
-) {
-  const finished =
-    completeTask(
-      goal,
-      activeObservation
-    );
-
-  if (!finished) {
-    plan =
-      await createGoalPlan(
-        goal
-      );
-
-    setPlan(plan);
-    continue;
-  }
-
-  return {
-    success: true,
-    observation: activeObservation
-  };
-}
-
-  console.log(
-    "Task verification failed — replanning for current task"
-  );
-} else {
-  goal.blacklistedSkills = goal.blacklistedSkills || [];
-  handleExecutionFailure(goal, goal.tasks[goal.currentTask], failedObservation?.action, goal.blacklistedSkills);
-}
-
-const impossible =
-  await isGoalImpossible({
-    intent,
-    observations:
-      compactObservations
-  });
-
-console.log(
-  "IMPOSSIBLE CHECK:",
-  impossible
-);
-
-if (impossible.impossible) {
-  return {
-    success: false,
-    reason: "goal_impossible",
-    observation: activeObservation
-  };
-}
-
-console.log(
-  "Replanning..."
-);
-
-const replanResponse =
-  await createReplan({
-    goal,
-    previousPlan: plan,
-    observation: compactObservation,
-    observations: compactObservations
-  });
-        console.log("RAW REPLAN RESPONSE:", replanResponse);
-        plan =
-            parsePlanResponse(
-                goal.id,
-                replanResponse
-            );
-            setPlan(plan);
-        if (
-            plan.actions.length === 0
-        ) {
-            return {
-                success: false,
-                reason: "unable_to_replan"
-            };
+        const completedStatus = await handleTaskCompletion(goal, normalizedObservation);
+        if (!completedStatus.hasMore) {
+          return {
+            success: true,
+            observation: normalizedObservation
+          };
         }
 
-        console.log(
-            "NEW PLAN:",
-            JSON.stringify(
-                plan,
-                null,
-                2
-            )
-        );
+        plan = await createGoalPlan(goal);
+        if (plan.actions.length === 0) {
+          return {
+            success: false,
+            reason: "no_plan_for_task"
+          };
+        }
+        setPlan(plan);
+        continue;
+      }
+
+      console.log("Task verification failed — replanning for current task");
+    } else {
+      goal.blacklistedSkills = goal.blacklistedSkills || [];
+      handleExecutionFailure(goal, goal.tasks[goal.currentTask], failedObservation?.action, goal.blacklistedSkills);
     }
+
+    const impossible = await isGoalImpossible({
+      intent,
+      observations: compactObservations
+    });
+
+    console.log("IMPOSSIBLE CHECK:", impossible);
+
+    if (impossible.impossible) {
+      return {
+        success: false,
+        reason: "goal_impossible",
+        observation: activeObservation
+      };
+    }
+
+    console.log("Replanning...");
+
+    const replanResponse = await createReplan({
+      goal,
+      previousPlan: plan,
+      observation: compactObservation,
+      observations: compactObservations
+    });
+    
+    console.log("RAW REPLAN RESPONSE:", replanResponse);
+    plan = parsePlanResponse(goal.id, replanResponse);
+    setPlan(plan);
+    
+    if (plan.actions.length === 0) {
+      return {
+        success: false,
+        reason: "unable_to_replan"
+      };
+    }
+
+    console.log("NEW PLAN:", JSON.stringify(plan, null, 2));
+  }
 }

@@ -15,8 +15,8 @@ import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const LOG_FILE = path.join(__dirname, "cloud_server.log");
 
-// Clear log on server start
-fs.writeFileSync(LOG_FILE, `[KAIROS] Server started at ${new Date().toISOString()}\n`);
+// Append start marker to log
+fs.appendFileSync(LOG_FILE, `\n--- [KAIROS] Server started at ${new Date().toISOString()} ---\n`);
 
 function appendToLog(level, args) {
   const timestamp = new Date().toISOString();
