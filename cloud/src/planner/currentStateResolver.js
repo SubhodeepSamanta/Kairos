@@ -16,6 +16,8 @@ export function resolveCurrentState(observation) {
     platform = "amazon";
   } else if (url.includes("google.com")) {
     platform = "google";
+  } else if (url.includes("linkedin.com")) {
+    platform = "linkedin";
   } else if (url && url !== "about:blank") {
     // Parse name from host
     try {
@@ -23,6 +25,17 @@ export function resolveCurrentState(observation) {
       platform = host.replace("www.", "").split(".")[0] || "generic";
     } catch (e) {
       platform = "generic";
+    }
+  }
+
+  const pageType = (browser.pageType || "").toLowerCase();
+  if (platform === "generic" && pageType) {
+    const platforms = ["github", "youtube", "amazon", "google", "linkedin", "instagram", "reddit", "wikipedia"];
+    for (const p of platforms) {
+      if (pageType.includes(p) || title.includes(p)) {
+        platform = p;
+        break;
+      }
     }
   }
 
@@ -47,14 +60,19 @@ export function resolveCurrentState(observation) {
       // ignore URL parse error
     }
 
-    if (query || url.includes("/search") || url.includes("/results")) {
+    const hasResultLinks = (browser.links || []).some(link => 
+      ["result_link", "video_link", "product_link", "post_link", "search_link"].includes(link.purpose)
+    );
+    const hasSearchInput = (browser.inputs || []).some(input => input.purpose === "search_input");
+
+    if (query || url.includes("/search") || url.includes("/results") || pageType.includes("results") || (hasResultLinks && hasSearchInput)) {
       currentState = "results";
-    } else if (platform === "youtube" && (url.includes("/watch") || url.includes("v="))) {
+    } else if ((platform === "youtube" && (url.includes("/watch") || url.includes("v="))) || pageType.includes("video_playing") || pageType.includes("watch")) {
       currentState = "video_playing";
     } else {
       // Check if homepage (no complex pathname)
       const pathname = urlObj ? urlObj.pathname.split("/").filter(Boolean) : [];
-      if (pathname.length === 0) {
+      if (pathname.length === 0 || pageType.includes("home")) {
         currentState = "home";
       } else if (pathname.length === 1 && ["feed", "home", "index.html", "index.php"].includes(pathname[0])) {
         currentState = "home";

@@ -23,6 +23,7 @@ import { initTracker, updateTracker, recordTransition, recordCapabilityExecution
 import { verifyObjective } from "./objectiveVerifier.js";
 import { resolveCurrentState } from "./currentStateResolver.js";
 import { generateTransitions } from "./transitionGenerator.js";
+import { createExecutionContext, updateExecutionContext, generateExecutionSummary } from "./executionContext.js";
 
 function printMetrics(goal, startTime, startLlmCalls) {
   const durationSec = ((Date.now() - startTime) / 1000).toFixed(1);
@@ -99,65 +100,123 @@ async function _runAgentInternal({
   goal.objectives = objectives;
   goal.tracker = initTracker(objectives);
 
+  // Initialize Execution Context
+  const context = createExecutionContext(goal);
+  for (const obj of objectives) {
+    if (obj.openQuestions) {
+      context.openQuestions.push(...obj.openQuestions);
+    }
+  }
+  goal.context = context;
+
   // Check if final desired state is already met
   const finalObj = goal.tracker.objectives[goal.tracker.objectives.length - 1];
   if (verifyObjective(finalObj, browserState)) {
     console.log(`[GOAL COMPLETE] Initial browser state already satisfies the final desired state: ${finalObj.desiredState}. Stopping execution immediately.`);
+    const summary = generateExecutionSummary(context);
+    console.log("EXECUTION SUMMARY:", JSON.stringify(summary, null, 2));
     return {
       success: true,
-      observation: latestObs
+      observation: latestObs,
+      contextSummary: summary
     };
   }
 
   let totalActions = 0;
   const MAX_GOAL_ACTIONS = 30;
   goal.blacklistedCapabilities = [];
+  const transitionAttempts = {}; // Tracks retry count per transition to prevent infinite recovery loops
 
   while (true) {
     // 1. Resolve current state
     const resolvedCurState = resolveCurrentState(browserState);
 
+    // Update Execution Context with the latest observation
+    if (latestObs) {
+      await updateExecutionContext(context, latestObs, resolvedCurState);
+    }
+
     // 2. Check for human intervention
     const intervention = checkForHumanIntervention(browserState);
     if (intervention) {
       console.log(`[HUMAN_INTERVENTION] State: ${intervention.state}, Reason: ${intervention.reason}`);
+      const summary = generateExecutionSummary(context);
+      console.log("EXECUTION SUMMARY (PAUSED):", JSON.stringify(summary, null, 2));
       return {
         success: false,
         reason: intervention.state,
-        observation: latestObs
+        observation: latestObs,
+        contextSummary: summary
       };
     }
 
-    // 3. Skip any objectives already achieved
+    // 3. Early exit if all open questions are resolved (knowledge-based goal completion)
+    const hasQuestions = context.completedQuestions.length > 0 || context.openQuestions.length > 0;
+    const allQuestionsResolved = hasQuestions && context.openQuestions.length === 0;
+    if (allQuestionsResolved) {
+      console.log("[GOAL COMPLETE] Early exit: All execution-context open questions have been successfully answered.");
+      while (goal.tracker.currentIndex < goal.tracker.objectives.length) {
+        updateTracker(goal.tracker, goal.tracker.currentIndex, "completed");
+      }
+      const summary = generateExecutionSummary(context);
+      console.log("EXECUTION SUMMARY:", JSON.stringify(summary, null, 2));
+      return {
+        success: true,
+        observation: latestObs,
+        contextSummary: summary
+      };
+    }
+
+    // 4. Skip any objectives already achieved by browser state
     while (goal.tracker.currentIndex < goal.tracker.objectives.length) {
       const currentObj = goal.tracker.objectives[goal.tracker.currentIndex];
       if (verifyObjective(currentObj, browserState)) {
         updateTracker(goal.tracker, goal.tracker.currentIndex, "completed");
-        console.log(`[OBJECTIVE] Achieved: ${currentObj.desiredState}`);
+        console.log(`[OBJECTIVE] Achieved via state: ${currentObj.desiredState}`);
       } else {
         break;
       }
     }
 
-    // 4. Goal complete check
+    // 5. Goal complete check (state-based)
     if (goal.tracker.currentIndex >= goal.tracker.objectives.length) {
       console.log("[GOAL COMPLETE] All objectives met.");
+      const summary = generateExecutionSummary(context);
+      console.log("EXECUTION SUMMARY:", JSON.stringify(summary, null, 2));
       return {
         success: true,
-        observation: latestObs
+        observation: latestObs,
+        contextSummary: summary
       };
     }
 
     const currentObj = goal.tracker.objectives[goal.tracker.currentIndex];
+    context.currentObjective = currentObj;
+
+    // 6. Early objective completion check (knowledge-based objective completion)
+    if (currentObj.openQuestions && currentObj.openQuestions.length > 0) {
+      const objQuestionsResolved = currentObj.openQuestions.every(q => 
+        context.completedQuestions.some(cq => cq.question === q)
+      );
+      if (objQuestionsResolved) {
+        console.log(`[OBJECTIVE COMPLETE] Early exit: All information gaps for objective "${currentObj.desiredState}" resolved.`);
+        updateTracker(goal.tracker, goal.tracker.currentIndex, "completed");
+        continue;
+      }
+    }
+
     updateTracker(goal.tracker, goal.tracker.currentIndex, "in_progress");
 
-    // 5. Generate transitions
+    // 7. Generate transitions
     const transitions = generateTransitions(resolvedCurState, currentObj);
     if (transitions.length === 0) {
       console.log("[AGENT] No transitions generated. Target might be reached.");
+      const summary = generateExecutionSummary(context);
+      console.log("EXECUTION SUMMARY:", JSON.stringify(summary, null, 2));
       return {
         success: true,
-        observation: latestObs
+        observation: latestObs,
+        contextSummary: summary
       };
     }
 
@@ -172,17 +231,20 @@ ACTIVE TRANSITION: ${activeTransition.id}
 =========================================
 `);
 
-    // 6. Action limits check
+    // 8. Action limits check
     if (totalActions > MAX_GOAL_ACTIONS) {
       console.log(`[BUDGET] Goal exceeded max actions of ${MAX_GOAL_ACTIONS}`);
+      const summary = generateExecutionSummary(context);
+      console.log("EXECUTION SUMMARY:", JSON.stringify(summary, null, 2));
       return {
         success: false,
         reason: "goal_action_budget_exceeded",
-        observation: latestObs
+        observation: latestObs,
+        contextSummary: summary
       };
     }
 
-    // 7. Route to Capability
+    // 9. Route to Capability
     const capability = routeCapability(activeTransition, goal.blacklistedCapabilities);
     let plan = null;
 
@@ -229,14 +291,24 @@ ACTIVE TRANSITION: ${activeTransition.id}
         goal.tracker.lastFailure = failure.message;
         goal.tracker.attemptCount++;
 
+        // Increment retry attempts and escalate if limit reached
+        const transitionId = activeTransition.id;
+        transitionAttempts[transitionId] = (transitionAttempts[transitionId] || 0) + 1;
+        if (transitionAttempts[transitionId] >= 3) {
+          console.log(`[RECOVERY ESCALATION] Transition ${transitionId} failed ${transitionAttempts[transitionId]} times. Blacklisting capability: ${capability.name}`);
+          goal.blacklistedCapabilities.push(capability.name);
+        }
+
         // Check for human intervention post-failure
         const postFailIntervention = checkForHumanIntervention(browserState);
         if (postFailIntervention) {
           console.log(`[HUMAN_INTERVENTION] Post-failure state: ${postFailIntervention.state}, Reason: ${postFailIntervention.reason}`);
+          const summary = generateExecutionSummary(context);
           return {
             success: false,
             reason: postFailIntervention.state,
-            observation: latestObs
+            observation: latestObs,
+            contextSummary: summary
           };
         }
 
@@ -276,10 +348,12 @@ ACTIVE TRANSITION: ${activeTransition.id}
         updateWorldModel(goal, latestObs);
       } else {
         console.log("[AGENT] Recovery failed to generate actions.");
+        const summary = generateExecutionSummary(context);
         return {
           success: false,
           reason: "no_plan_or_recovery",
-          observation: latestObs
+          observation: latestObs,
+          contextSummary: summary
         };
       }
     }
