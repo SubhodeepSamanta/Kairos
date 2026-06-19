@@ -28,14 +28,10 @@ export function handleExecutionFailure(goal, currentTask, failedAction, blacklis
 
 function getSkillNameForPageType(pageType) {
   if (!pageType) return null;
-  if (pageType.startsWith("youtube_")) return "YouTubeSkill";
-  if (pageType.startsWith("github_")) return "GitHubSkill";
-  if (pageType.startsWith("google_")) return "GoogleSkill";
-  if (pageType.startsWith("linkedin_")) return "LinkedInSkill";
-  if (pageType.startsWith("instagram_")) return "InstagramSkill";
-  if (pageType.startsWith("amazon_")) return "AmazonSkill";
-  if (pageType.startsWith("wikipedia_")) return "WikipediaSkill";
-  if (pageType.startsWith("reddit_")) return "RedditSkill";
-  if (pageType.startsWith("yahoo_")) return "YahooSkill";
+  if (pageType === "video_page") return "MediaCapability";
+  if (pageType === "result_page") return "SearchCapability";
+  if (pageType === "product_page") return "ResultCapability";
+  if (pageType === "form_page") return "FormCapability";
+  if (pageType === "profile_page") return "FormCapability";
   return null;
 }

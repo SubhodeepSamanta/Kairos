@@ -35,10 +35,21 @@ export async function typeText(text, element) {
       if (tagName !== "INPUT" && tagName !== "TEXTAREA" && !isEditable) {
         // Targeted a launcher button/link. Click it first.
         await locator.click();
-        // Wait 600ms for overlay/modal to focus
-        await new Promise(r => setTimeout(r, 600));
         
-        const active = await getActiveElementInfo();
+        // Wait 1500ms first for overlay/modal animation/load
+        await new Promise(r => setTimeout(r, 1500));
+        
+        // Poll for up to 3 seconds (3000ms) for an editable active element
+        let active = null;
+        const startTime = Date.now();
+        while (Date.now() - startTime < 3000) {
+          active = await getActiveElementInfo();
+          if (active && (active.tag === "INPUT" || active.tag === "TEXTAREA" || active.isContentEditable)) {
+            break;
+          }
+          await new Promise(r => setTimeout(r, 200));
+        }
+        
         if (active && (active.tag === "INPUT" || active.tag === "TEXTAREA" || active.isContentEditable)) {
           await page.keyboard.type(text);
           const afterActive = await getActiveElementInfo();
@@ -47,7 +58,7 @@ export async function typeText(text, element) {
         } else {
           return {
             success: false,
-            reason: "Clicked launcher, but focus did not transition to an input/textarea/contenteditable element."
+            reason: "Clicked launcher, but focus did not transition to an input/textarea/contenteditable element within timeout."
           };
         }
       } else {

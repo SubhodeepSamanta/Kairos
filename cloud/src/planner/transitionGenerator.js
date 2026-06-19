@@ -29,9 +29,7 @@ export function generateTransitions(currentState, desiredObjective, failedTransi
   }
 
   // Candidate 2: Direct transition to the desired final state
-  const fromPlatform = cleanCurPlatform === cleanObjPlatform ? cleanCurPlatform : cleanObjPlatform;
-  const fromState = cleanCurPlatform === cleanObjPlatform ? cleanCurState : "home";
-  const directTransId = `${fromPlatform}_${fromState}_to_${cleanObjPlatform}_${desiredObjective.desiredState}`;
+  const directTransId = `${cleanCurPlatform}_${cleanCurState}_to_${cleanObjPlatform}_${desiredObjective.desiredState}`;
   const directFailureCount = failedTransitions[directTransId] || 0;
   
   // Final state has higher direct priority if we are already on the right platform
@@ -47,14 +45,14 @@ export function generateTransitions(currentState, desiredObjective, failedTransi
     confidence: directConfidence
   });
 
-  // Candidate 3: Navigation Fallback to a search engine home if stuck
-  const fallbackTransId = `${cleanCurPlatform}_${cleanCurState}_to_google_home`;
+  // Candidate 3: Navigation Fallback to target platform home if stuck
+  const fallbackTransId = `${cleanCurPlatform}_${cleanCurState}_to_${cleanObjPlatform}_home`;
   const fallbackFailureCount = failedTransitions[fallbackTransId] || 0;
-  if (cleanCurPlatform !== "google" && desiredObjective.desiredState !== "home") {
+  if (desiredObjective.desiredState !== "home" && cleanCurState !== "home") {
     candidates.push({
       id: fallbackTransId,
       desiredState: "home",
-      platform: "google",
+      platform: desiredObjective.platform,
       parameters: {},
       score: 0.4 - (fallbackFailureCount * 0.2),
       confidence: parseFloat(Math.max(0.1, 0.7 - (fallbackFailureCount * 0.2)).toFixed(2))
@@ -71,8 +69,8 @@ export function generateTransitions(currentState, desiredObjective, failedTransi
 
 export function generateTasksForTransitions(transitions) {
   return transitions.map(trans => {
-    const platform = trans.platform || "google";
-    const platformUrl = platform.includes(".") ? platform : `${platform}.com`;
+    const platform = trans.platform || "generic";
+    const platformUrl = platform.includes(".") ? platform : (platform === "generic" ? "https://google.com" : `https://${platform}.com`);
 
     switch (trans.desiredState) {
       case "home":

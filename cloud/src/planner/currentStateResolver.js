@@ -1,11 +1,28 @@
-export function resolveCurrentState(observation) {
+export function resolveCurrentState(observation, previousResolvedState = null) {
   const browser = observation?.pageState || observation || {};
   const url = (observation?.url || browser?.url || "").toLowerCase();
   const title = (observation?.title || browser?.title || "").toLowerCase();
   
+  if ((!url || url === "about:blank") && previousResolvedState) {
+    return previousResolvedState;
+  }
+  
   let platform = "generic";
   let currentState = "content";
   let query = "";
+
+  const ENVIRONMENT_MAP = {
+    "google": "search_site",
+    "github": "search_site",
+    "youtube": "media_site",
+    "amazon": "commerce_site",
+    "reddit": "discussion_site",
+    "wikipedia": "knowledge_site",
+    "linkedin": "professional_site",
+    "twitter": "social_site",
+    "x": "social_site",
+    "instagram": "social_site"
+  };
 
   // 1. Identify platform
   if (url.includes("github.com")) {
@@ -39,9 +56,13 @@ export function resolveCurrentState(observation) {
     }
   }
 
+  let environment = observation?.environment || browser?.environment || ENVIRONMENT_MAP[platform] || "generic";
+
   // 2. Identify state & parameters
   if (!url || url === "about:blank") {
     currentState = "blank";
+    platform = "generic";
+    environment = "generic";
   } else {
     // Check search queries
     let urlObj;
@@ -84,6 +105,7 @@ export function resolveCurrentState(observation) {
 
   return {
     platform,
+    environment,
     currentState,
     parameters: {
       query,

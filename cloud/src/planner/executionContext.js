@@ -144,9 +144,9 @@ export async function updateExecutionContext(context, observation, resolvedState
   }
 }
 
-export function generateExecutionSummary(context) {
+export function generateExecutionSummary(context, tracker = null) {
   context.executionSummary = {
-    objectivesCompleted: context.completedQuestions.length,
+    objectivesCompleted: tracker ? tracker.objectives.filter(o => o.achieved).length : context.completedQuestions.length,
     factsCollected: context.worldFacts.length,
     entitiesDiscovered: context.discoveredEntities.length,
     pagesVisited: context.visitedPages.length,

@@ -28,16 +28,16 @@ export function buildSystemPrompt(
   if (browserContext.includes("Page Type:") || browserContext.includes("purpose:")) {
     sections.push(`Semantic elements classification:
 - Elements now have a "purpose" attribute (e.g. purpose: "search_input", purpose: "login_button").
-- The current page has a "Page Type" (e.g. Page Type: github_home).
+- The current page has a "Page Type" (e.g. Page Type: result_page).
 - Prioritize elements with a matching purpose for your objective (e.g. type search queries into inputs with purpose: "search_input").`);
   }
-
-  // Video Search Guidelines (only append for video/youtube tasks)
-  if (taskLower.includes("video") || taskLower.includes("youtube") || taskLower.includes("watch") || taskLower.includes("play") || browserContext.includes("youtube")) {
+ 
+  // Video Search Guidelines (only append for video/media tasks or media_site environment)
+  if (taskLower.includes("video") || taskLower.includes("media") || taskLower.includes("watch") || taskLower.includes("play") || browserContext.includes("media_site")) {
     sections.push(`Video Search Guidelines:
 - Ignore Shorts: do not click elements containing duration labels under 1 minute or containing the word "Shorts" unless told.
 - Prefer livestreams or long-duration (>1h) videos when requested: look for "LIVE", "livestream", or duration labels like "1:00:00" or similar, and click the matching video link.
-- If on a search results page (e.g. YouTube) and the objective is to play/open a video, you MUST click one of the video title links (containing "watch?v=" in href). Do NOT type into the search box again or refresh if watch links are visible.`);
+- If on a search results page and the objective is to play/open a video, you MUST click one of the video title links. Do NOT type into the search box again or refresh if watch/video links are visible.`);
   }
 
   // Multi-Tab guidelines

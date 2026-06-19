@@ -5,34 +5,40 @@ export function buildObjectives(intent) {
   // Check for compound goals or sub-actions in intent context
   const originalGoal = (intent.originalGoal || "").toLowerCase();
   
-  if (originalGoal.includes("search github for react") && originalGoal.includes("extract stars")) {
+  const hasExtract = originalGoal.includes("extract") || originalGoal.includes("get") || originalGoal.includes("find");
+  const hasSearch = originalGoal.includes("search") || originalGoal.includes("find");
+  
+  if (hasSearch && hasExtract) {
     // Multi-objective compound goal scenario
     objectives.push({
       id: "obj1",
       desiredState: "home",
-      platform: "github",
+      platform,
       parameters: {},
-      successConditions: ["URL contains github"],
+      successConditions: [`URL contains ${platform}`],
       priority: 5,
       dependencies: [],
       confidence: 1.0,
       openQuestions: []
     });
+    
+    const query = intent.query || intent.topic || "query";
     objectives.push({
       id: "obj2",
       desiredState: "results",
-      platform: "github",
-      parameters: { query: "react" },
-      successConditions: ["URL contains github", "query contains react"],
+      platform,
+      parameters: { query },
+      successConditions: [`URL contains ${platform}`, `query contains ${query}`],
       priority: 4,
       dependencies: ["obj1"],
       confidence: 1.0,
       openQuestions: []
     });
+    
     objectives.push({
       id: "obj3",
       desiredState: "result_selected",
-      platform: "github",
+      platform,
       parameters: { ordinal: "first" },
       successConditions: ["URL is detailed result page"],
       priority: 3,
@@ -40,16 +46,18 @@ export function buildObjectives(intent) {
       confidence: 1.0,
       openQuestions: []
     });
+    
+    const extractionQuery = originalGoal.includes("star") ? "extract stars count" : (originalGoal.includes("price") ? "extract price" : "extract details");
     objectives.push({
       id: "obj4",
       desiredState: "information_extracted",
-      platform: "github",
-      parameters: { query: "extract stars count" },
-      successConditions: ["stars count extracted"],
+      platform,
+      parameters: { query: extractionQuery },
+      successConditions: ["data extracted"],
       priority: 2,
       dependencies: ["obj3"],
       confidence: 1.0,
-      openQuestions: ["What is the repository stars count?"]
+      openQuestions: [`What is the extracted data?`]
     });
     
     return objectives;

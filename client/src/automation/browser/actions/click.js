@@ -22,7 +22,7 @@ export async function clickText(
       const body = await page.evaluate(() => document.body.innerText).catch(() => "");
       const active = await page.evaluate(() => {
         const el = document.activeElement;
-        return el ? { tag: el.tagName, id: el.id, class: el.className } : null;
+        return el ? { tag: el.tagName, id: el.id, class: el.className, value: el.value || el.textContent || "" } : null;
       }).catch(() => null);
       const media = await page.evaluate(() => {
         return Array.from(document.querySelectorAll("video, audio")).map(el => ({
@@ -154,15 +154,17 @@ export async function clickText(
     const mediaChanged = JSON.stringify(before.media) !== JSON.stringify(after.media);
     const elementStateChanged = JSON.stringify(before.elementStates) !== JSON.stringify(after.elementStates);
     const overlayOpened = !before.overlayVisible && after.overlayVisible;
+    const activeElementTagChanged = before.active?.tag !== after.active?.tag;
+    const activeElementValueChanged = before.active?.value !== after.active?.value;
 
-    const success = urlChanged || titleChanged || bodyChanged || tabOpened || focusChanged || mediaChanged || elementStateChanged || overlayOpened;
+    const success = urlChanged || titleChanged || bodyChanged || tabOpened || focusChanged || mediaChanged || elementStateChanged || overlayOpened || activeElementTagChanged || activeElementValueChanged;
 
     return {
       success,
       clicked:
         `element ${element}`,
       newTabOpened: tabOpened,
-      reason: success ? undefined : "Click registered but caused no state changes (URL/DOM/Title/Tab/Focus/Media/Attributes/Overlay)"
+      reason: success ? undefined : "Click registered but caused no state changes (URL/DOM/Title/Tab/Focus/Media/Attributes/Overlay/ActiveElement)"
     };
   }
 
@@ -288,13 +290,15 @@ input[type='button'],
   const mediaChanged = JSON.stringify(before.media) !== JSON.stringify(after.media);
   const elementStateChanged = JSON.stringify(before.elementStates) !== JSON.stringify(after.elementStates);
   const overlayOpened = !before.overlayVisible && after.overlayVisible;
+  const activeElementTagChanged = before.active?.tag !== after.active?.tag;
+  const activeElementValueChanged = before.active?.value !== after.active?.value;
 
-  const success = urlChanged || titleChanged || bodyChanged || tabOpened || focusChanged || mediaChanged || elementStateChanged || overlayOpened;
+  const success = urlChanged || titleChanged || bodyChanged || tabOpened || focusChanged || mediaChanged || elementStateChanged || overlayOpened || activeElementTagChanged || activeElementValueChanged;
 
   return {
     success,
     clicked: text,
     newTabOpened: tabOpened,
-    reason: success ? undefined : "Click registered but caused no state changes (URL/DOM/Title/Tab/Focus/Media/Attributes/Overlay)"
+    reason: success ? undefined : "Click registered but caused no state changes (URL/DOM/Title/Tab/Focus/Media/Attributes/Overlay/ActiveElement)"
   };
 }

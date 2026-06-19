@@ -12,9 +12,6 @@ import { extractDataFromPage } from "./extractor.js";
 import { isGoalImpossible } from "./failureVerifier.js";
 import { verifyByRules } from "./ruleVerifier.js";
 import { setIntent, setGoal, setPlan, setObservation } from "../agent/state.js";
-import { verifyState } from "./stateVerifier.js";
-import { verifyEvents } from "./eventVerifier.js";
-import { TASK_STATUS } from "../shared/schemas/task.js";
 import { handleExecutionFailure } from "./strategy.js";
 
 import { parseIntent } from "./intentParser.js";
@@ -22,14 +19,25 @@ import { buildObjectives } from "./objectiveBuilder.js";
 import { initTracker, updateTracker, recordTransition, recordCapabilityExecution } from "./objectiveTracker.js";
 import { verifyObjective } from "./objectiveVerifier.js";
 import { resolveCurrentState } from "./currentStateResolver.js";
-import { generateTransitions, generateTasksForTransitions } from "./transitionGenerator.js";
+import { generateTransitions } from "./transitionGenerator.js";
 import { createExecutionContext, updateExecutionContext, generateExecutionSummary } from "./executionContext.js";
-import { runUnifiedVerification } from "./unifiedVerifier.js";
+
+function getLatestObservation(observations, fallbackObs) {
+  if (!observations || observations.length === 0) return fallbackObs;
+  const failedObservation = observations.find(obs => !obs.success);
+  let latest = failedObservation || observations[observations.length - 1];
+  
+  const obsWithPageState = [...observations].reverse().find(obs => obs?.pageState);
+  if (latest && !latest.pageState && obsWithPageState?.pageState) {
+    latest = { ...latest, pageState: obsWithPageState.pageState };
+  }
+  return latest;
+}
 
 function printMetrics(goal, startTime, startLlmCalls) {
   const durationSec = ((Date.now() - startTime) / 1000).toFixed(1);
   const llmCallsUsed = llmCallCount - startLlmCalls;
-  const metrics = goal.metrics || { skillExecutions: 0, fallbackCount: 0, plannerPromptChars: 0, compressedPromptChars: 0, totalActions: 0 };
+  const metrics = goal.metrics || { skillExecutions: 0, fallbackCount: 0, plannerPromptChars: 0, compressedPromptChars: 0, totalActions: 0, intent_calls: 0, planning_calls: 0, verification_calls: 0 };
   
   console.log(`
 ===== EXECUTION METRICS =====
@@ -38,6 +46,10 @@ Goal:
 ${goal.objective}
 
 LLM Calls: ${llmCallsUsed}
+  - intent_calls: ${metrics.intent_calls || 0}
+  - planning_calls: ${metrics.planning_calls || 0}
+  - verification_calls: ${metrics.verification_calls || 0}
+
 Actions: ${metrics.totalActions || 0}
 Skill Executions: ${metrics.skillExecutions}
 Fallbacks: ${metrics.fallbackCount}
@@ -53,7 +65,16 @@ export async function runAgent({
 }) {
   const startTime = Date.now();
   const startLlmCalls = llmCallCount;
-  goal.metrics = { skillExecutions: 0, fallbackCount: 0, plannerPromptChars: 0, compressedPromptChars: 0, totalActions: 0 };
+  goal.metrics = { 
+    skillExecutions: 0, 
+    fallbackCount: 0, 
+    plannerPromptChars: 0, 
+    compressedPromptChars: 0, 
+    totalActions: 0,
+    intent_calls: 0,
+    planning_calls: 0,
+    verification_calls: 0
+  };
 
   const wrapExecutePlan = async (plan) => {
     if (plan && plan.actions) {
@@ -88,10 +109,12 @@ async function _runAgentInternal({
     updateWorldModel(goal, initObs);
   }
 
-  let latestObs = goal.world?.history?.[goal.world.history.length - 1]?.observation;
+  let latestObs = initObs || goal.world?.history?.[goal.world.history.length - 1]?.observation;
   let browserState = latestObs?.pageState || latestObs || {};
 
+  const preIntentCalls = llmCallCount;
   const intent = await parseIntent(goal.objective);
+  goal.metrics.intent_calls = llmCallCount - preIntentCalls;
   goal.intent = intent;
   setIntent(intent);
 
@@ -121,7 +144,7 @@ async function _runAgentInternal({
   const finalObj = goal.tracker.objectives[goal.tracker.objectives.length - 1];
   if (verifyObjective(finalObj, browserState)) {
     console.log(`[GOAL COMPLETE] Initial browser state already satisfies the final desired state: ${finalObj.desiredState}. Stopping execution immediately.`);
-    const summary = generateExecutionSummary(context);
+    const summary = generateExecutionSummary(context, goal.tracker);
     console.log("EXECUTION SUMMARY:", JSON.stringify(summary, null, 2));
     return {
       success: true,
@@ -140,24 +163,41 @@ async function _runAgentInternal({
   const transitionRetries = {};
   const objectiveRetries = {};
   let totalGoalRetries = 0;
+  let lastResolvedState = null;
 
   // Track state-transition combinations to detect dead-end states
   const transitionAuditHistory = [];
 
   while (true) {
     // 1. Resolve current state
-    const resolvedCurState = resolveCurrentState(browserState);
+    const resolvedCurState = resolveCurrentState(browserState, lastResolvedState);
+    lastResolvedState = resolvedCurState;
 
-    // Update Execution Context with the latest observation
+    // Update Execution Context with the latest observation (only call LLM extraction if we need it)
     if (latestObs) {
-      await updateExecutionContext(context, latestObs, resolvedCurState);
+      const needsLlmExtraction = (intent.intent === "extract_information" || goal.tracker.objectives.some(o => o.desiredState === "information_extracted"));
+      if (needsLlmExtraction) {
+        const preUpdateCalls = llmCallCount;
+        await updateExecutionContext(context, latestObs, resolvedCurState);
+        goal.metrics.planning_calls += (llmCallCount - preUpdateCalls);
+      } else {
+        const pageUrl = latestObs.pageState?.url || latestObs.url;
+        const pageTitle = latestObs.pageState?.title || latestObs.title;
+        if (pageUrl && !context.visitedPages.some(p => p.url === pageUrl)) {
+          context.visitedPages.push({
+            url: pageUrl,
+            title: pageTitle || "",
+            timestamp: new Date().toISOString()
+          });
+        }
+      }
     }
 
     // 2. Check for human intervention
     const intervention = checkForHumanIntervention(browserState);
     if (intervention) {
       console.log(`[HUMAN_INTERVENTION] State: ${intervention.state}, Reason: ${intervention.reason}`);
-      const summary = generateExecutionSummary(context);
+      const summary = generateExecutionSummary(context, goal.tracker);
       saveAgentSession(goal, goal.tracker, context, intervention.state);
       return {
         success: false,
@@ -175,7 +215,7 @@ async function _runAgentInternal({
       while (goal.tracker.currentIndex < goal.tracker.objectives.length) {
         updateTracker(goal.tracker, goal.tracker.currentIndex, "completed");
       }
-      const summary = generateExecutionSummary(context);
+      const summary = generateExecutionSummary(context, goal.tracker);
       console.log("EXECUTION SUMMARY:", JSON.stringify(summary, null, 2));
       return {
         success: true,
@@ -199,7 +239,7 @@ async function _runAgentInternal({
     // 5. Goal complete check (state-based)
     if (goal.tracker.currentIndex >= goal.tracker.objectives.length) {
       console.log("[GOAL COMPLETE] All objectives met.");
-      const summary = generateExecutionSummary(context);
+      const summary = generateExecutionSummary(context, goal.tracker);
       console.log("EXECUTION SUMMARY:", JSON.stringify(summary, null, 2));
       return {
         success: true,
@@ -230,7 +270,7 @@ async function _runAgentInternal({
     const transitions = generateTransitions(resolvedCurState, currentObj, failedTransitions);
     if (transitions.length === 0) {
       console.log("[AGENT] No transitions generated. Target might be reached.");
-      const summary = generateExecutionSummary(context);
+      const summary = generateExecutionSummary(context, goal.tracker);
       console.log("EXECUTION SUMMARY:", JSON.stringify(summary, null, 2));
       return {
         success: true,
@@ -250,11 +290,12 @@ TRANSITIONS: ${transitions.map(t => `${t.id} (${t.score.toFixed(2)})`).join(", "
 ACTIVE TRANSITION: ${activeTransition.id} (confidence: ${activeTransition.confidence})
 =========================================
 `);
+    console.log("[TRANSITION]", activeTransition);
 
     // 8. Action limits check
     if (totalActions > MAX_GOAL_ACTIONS) {
       console.log(`[BUDGET] Goal exceeded max actions of ${MAX_GOAL_ACTIONS}`);
-      const summary = generateExecutionSummary(context);
+      const summary = generateExecutionSummary(context, goal.tracker);
       console.log("EXECUTION SUMMARY:", JSON.stringify(summary, null, 2));
       return {
         success: false,
@@ -267,16 +308,95 @@ ACTIVE TRANSITION: ${activeTransition.id} (confidence: ${activeTransition.confid
     // 9. Route to Capability
     const capability = routeCapability(activeTransition, goal.blacklistedCapabilities);
     let plan = null;
+    let executeSuccess = false;
+
+    console.log("[CAPABILITY]", capability ? capability.name : "None");
+
+    console.log(`[CAPABILITY DIAGNOSTIC]
+  Transition: ${activeTransition.id}
+  Selected Capability: ${capability ? capability.name : "None"}
+  Capability Input (desiredState): ${activeTransition.desiredState}
+  Capability Input (parameters): ${JSON.stringify(activeTransition.parameters)}`);
 
     if (capability) {
+      console.log("DEBUG BROWSER STATE KEYS:", Object.keys(browserState));
+      console.log("DEBUG BROWSER STATE INPUTS:", browserState.inputs);
       capability.executions++;
-      const actions = capability.execute(activeTransition, browserState);
-      if (actions && actions.length > 0) {
-        plan = createPlan(goal.id, actions);
+      const capabilityResult = capability.execute(activeTransition, browserState) || { success: false, reason: "No response from capability execute" };
+      
+      console.log("[ACTIONS]", capabilityResult.actions || []);
+      console.log(`[CAPABILITY DIAGNOSTIC] Capability Output:`, JSON.stringify(capabilityResult, null, 2));
+
+      if (capabilityResult.success && capabilityResult.actions && capabilityResult.actions.length > 0) {
+        plan = createPlan(goal.id, capabilityResult.actions);
+      } else {
+        console.warn(`[CAPABILITY FAILURE] Capability matched but returned invalid execution plan. Reason: ${capabilityResult.reason || "Empty actions or success=false"}`);
+        
+        // Treat as failure directly, record metrics
+        recordCapabilityExecution(goal.tracker, capability.name, "failure", 0);
+        capability.failures++;
+        capability.successRate = capability.successes / capability.executions;
+
+        const failure = { 
+          type: "element_missing", 
+          message: `Capability "${capability.name}" failed to generate plan: ${capabilityResult.reason || "empty actions"}`, 
+          browserState 
+        };
+        console.log("[RECOVERY]", failure.message);
+        goal.tracker.lastFailure = failure.message;
+        goal.tracker.attemptCount++;
+
+        const transitionId = activeTransition.id;
+        transitionRetries[transitionId] = (transitionRetries[transitionId] || 0) + 1;
+        objectiveRetries[currentObj.id] = (objectiveRetries[currentObj.id] || 0) + 1;
+        totalGoalRetries++;
+
+        // Verify limits
+        if (totalGoalRetries >= 10 || objectiveRetries[currentObj.id] >= 5) {
+          console.log(`[LIMITS EXCEEDED] Goal retries: ${totalGoalRetries}/10, Objective retries: ${objectiveRetries[currentObj.id]}/5. Requiring manual intervention.`);
+          const summary = generateExecutionSummary(context, goal.tracker);
+          saveAgentSession(goal, goal.tracker, context, "WAITING_FOR_MANUAL_ACTION", activeTransition);
+          return {
+            success: false,
+            reason: "WAITING_FOR_MANUAL_ACTION",
+            observation: latestObs,
+            contextSummary: summary
+          };
+        }
+
+        // Recovery / Escalation
+        const escalationRetryCount = transitionRetries[transitionId] - 1;
+        const recoveryResult = determineRecovery(failure, activeTransition, capability, escalationRetryCount);
+        if (recoveryResult && recoveryResult.escalate) {
+          if (recoveryResult.escalate === "alternative_capability") {
+            console.log(`[RECOVERY ESCALATION] Blacklisting capability: ${capability.name}`);
+            goal.blacklistedCapabilities.push(capability.name);
+          } else if (recoveryResult.escalate === "alternative_transition") {
+            console.log(`[RECOVERY ESCALATION] Blacklisting transition: ${transitionId}`);
+            failedTransitions[transitionId] = (failedTransitions[transitionId] || 0) + 1;
+          } else if (recoveryResult.escalate === "human_loop") {
+            console.log(`[RECOVERY ESCALATION] Pausing execution. Escalating to state: ${recoveryResult.state}`);
+            const summary = generateExecutionSummary(context, goal.tracker);
+            saveAgentSession(goal, goal.tracker, context, recoveryResult.state, activeTransition);
+            return {
+              success: false,
+              reason: recoveryResult.state,
+              observation: latestObs,
+              contextSummary: summary
+            };
+          }
+        } else if (recoveryResult && Array.isArray(recoveryResult)) {
+          console.log(`[RECOVERY] Executing simple recovery actions for failure: ${failure.type}`);
+          const recPlan = createPlan(goal.id, recoveryResult);
+          const recResult = await executePlan(recPlan);
+          const recObs = recResult.observations || [];
+          latestObs = getLatestObservation(recObs, latestObs);
+          browserState = latestObs?.pageState || latestObs || {};
+          totalActions += recPlan.actions.length;
+          updateWorldModel(goal, latestObs);
+        }
       }
     }
-    
-    let executeSuccess = false;
 
     if (plan) {
       setPlan(plan);
@@ -286,30 +406,31 @@ ACTIVE TRANSITION: ${activeTransition.id} (confidence: ${activeTransition.confid
       console.log("EXECUTE RESULT:", JSON.stringify(result, null, 2));
 
       const observations = result.observations || [];
-      const failedObservation = observations.find(obs => !obs.success);
-      latestObs = failedObservation || observations[observations.length - 1];
+      latestObs = getLatestObservation(observations, latestObs);
       browserState = latestObs?.pageState || latestObs || {};
 
       totalActions += plan.actions.length;
       setObservation(latestObs);
       updateWorldModel(goal, latestObs);
-
-      const resolvedNextState = resolveCurrentState(browserState);
+      const resolvedNextState = resolveCurrentState(browserState, lastResolvedState);
+      lastResolvedState = resolvedNextState;
       recordTransition(goal.tracker, activeTransition, resolvedCurState, resolvedNextState);
 
-      // STEP 5 — unified verification report check
-      const currentTask = generateTasksForTransitions([activeTransition])[0];
-      const verReport = await runUnifiedVerification({
-        goal,
-        task: currentTask,
-        intent: goal.intent,
-        observation: latestObs,
-        observations: goal.world?.history?.map(h => h.observation) || []
-      });
+      // STEP 5 — Capability Verification
+      const targetVerified = capability.verify(activeTransition, latestObs);
+      console.log("[VERIFY RESULT]", targetVerified);
+      console.log(`[VERIFICATION] transition: ${activeTransition.id}, verified: ${targetVerified}`);
 
-      console.log(`[VERIFICATION REPORT] verified: ${verReport.verified}, confidence: ${verReport.confidence}, signals:`, JSON.stringify(verReport.signals));
-
-      const targetVerified = verReport.verified && verReport.confidence >= 0.5;
+      const env = resolvedCurState.environment || "generic";
+      if (capability) {
+        if (!capability.success_by_environment) {
+          capability.success_by_environment = {};
+        }
+        if (!capability.success_by_environment[env]) {
+          capability.success_by_environment[env] = { executions: 0, successes: 0, successRate: 1.0 };
+        }
+        capability.success_by_environment[env].executions++;
+      }
 
       if (targetVerified) {
         console.log(`[VERIFICATION] Target state verified successfully for transition: ${activeTransition.id}`);
@@ -317,17 +438,42 @@ ACTIVE TRANSITION: ${activeTransition.id} (confidence: ${activeTransition.confid
         if (capability) {
           capability.successes++;
           capability.successRate = capability.successes / capability.executions;
+          capability.success_by_environment[env].successes++;
+          capability.success_by_environment[env].successRate = 
+            capability.success_by_environment[env].successes / capability.success_by_environment[env].executions;
         }
         executeSuccess = true;
       } else {
         console.log(`[VERIFICATION] Target state verification failed for transition: ${activeTransition.id}`);
+        
+        // Re-resolve state using latest browserState
+        const finalCheckState = resolveCurrentState(browserState, lastResolvedState);
+        if (verifyObjective(currentObj, finalCheckState)) {
+          console.log(`[RECOVERY BYPASS] Re-resolved state satisfies active objective "${currentObj.desiredState}". Skipping recovery.`);
+          updateTracker(goal.tracker, goal.tracker.currentIndex, "completed");
+          executeSuccess = true;
+          
+          if (capability) {
+            capability.successes++;
+            capability.successRate = capability.successes / capability.executions;
+            capability.success_by_environment[env].successes++;
+            capability.success_by_environment[env].successRate = 
+              capability.success_by_environment[env].successes / capability.success_by_environment[env].executions;
+          }
+          recordCapabilityExecution(goal.tracker, capability.name, "success");
+          continue; // Bypass recovery loop entirely
+        }
+
         recordCapabilityExecution(goal.tracker, capability.name, "failure", 0);
         if (capability) {
           capability.failures++;
           capability.successRate = capability.successes / capability.executions;
+          capability.success_by_environment[env].successRate = 
+            capability.success_by_environment[env].successes / capability.success_by_environment[env].executions;
         }
 
         const failure = diagnoseFailure(activeTransition, browserState, result);
+        console.log("[RECOVERY]", failure.message);
         goal.tracker.lastFailure = failure.message;
         goal.tracker.attemptCount++;
 
@@ -340,7 +486,7 @@ ACTIVE TRANSITION: ${activeTransition.id} (confidence: ${activeTransition.confid
         // Verify limits: max retries per transition (3), per objective (5), per goal (10)
         if (totalGoalRetries >= 10 || objectiveRetries[currentObj.id] >= 5) {
           console.log(`[LIMITS EXCEEDED] Goal retries: ${totalGoalRetries}/10, Objective retries: ${objectiveRetries[currentObj.id]}/5. Requiring manual intervention.`);
-          const summary = generateExecutionSummary(context);
+          const summary = generateExecutionSummary(context, goal.tracker);
           saveAgentSession(goal, goal.tracker, context, "WAITING_FOR_MANUAL_ACTION", activeTransition);
           return {
             success: false,
@@ -365,7 +511,7 @@ ACTIVE TRANSITION: ${activeTransition.id} (confidence: ${activeTransition.confid
         const postFailIntervention = checkForHumanIntervention(browserState);
         if (postFailIntervention) {
           console.log(`[HUMAN_INTERVENTION] Post-failure state: ${postFailIntervention.state}, Reason: ${postFailIntervention.reason}`);
-          const summary = generateExecutionSummary(context);
+          const summary = generateExecutionSummary(context, goal.tracker);
           saveAgentSession(goal, goal.tracker, context, postFailIntervention.state, activeTransition);
           return {
             success: false,
@@ -386,7 +532,7 @@ ACTIVE TRANSITION: ${activeTransition.id} (confidence: ${activeTransition.confid
             failedTransitions[transitionId] = (failedTransitions[transitionId] || 0) + 1;
           } else if (recoveryResult.escalate === "human_loop") {
             console.log(`[RECOVERY ESCALATION] Pausing execution. Escalating to state: ${recoveryResult.state}`);
-            const summary = generateExecutionSummary(context);
+            const summary = generateExecutionSummary(context, goal.tracker);
             saveAgentSession(goal, goal.tracker, context, recoveryResult.state, activeTransition);
             return {
               success: false,
@@ -400,13 +546,13 @@ ACTIVE TRANSITION: ${activeTransition.id} (confidence: ${activeTransition.confid
           const recPlan = createPlan(goal.id, recoveryResult);
           const recResult = await executePlan(recPlan);
           const recObs = recResult.observations || [];
-          latestObs = recObs[recObs.length - 1] || latestObs;
+          latestObs = getLatestObservation(recObs, latestObs);
           browserState = latestObs?.pageState || latestObs || {};
           totalActions += recPlan.actions.length;
           updateWorldModel(goal, latestObs);
 
           // Re-verify target state
-          const postRecoveryVerified = verReport.verified; // Keep verified state flag
+          const postRecoveryVerified = capability.verify(activeTransition, latestObs);
           if (postRecoveryVerified) {
             console.log("[RECOVERY] Target state verified after recovery.");
             executeSuccess = true;
@@ -423,13 +569,13 @@ ACTIVE TRANSITION: ${activeTransition.id} (confidence: ${activeTransition.confid
         const recPlan = createPlan(goal.id, recoveryActions);
         const recResult = await executePlan(recPlan);
         const recObs = recResult.observations || [];
-        latestObs = recObs[recObs.length - 1] || latestObs;
+        latestObs = getLatestObservation(recObs, latestObs);
         browserState = latestObs?.pageState || latestObs || {};
         totalActions += recPlan.actions.length;
         updateWorldModel(goal, latestObs);
       } else {
         console.log("[AGENT] Recovery failed to generate actions.");
-        const summary = generateExecutionSummary(context);
+        const summary = generateExecutionSummary(context, goal.tracker);
         return {
           success: false,
           reason: "no_plan_or_recovery",

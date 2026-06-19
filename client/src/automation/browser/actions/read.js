@@ -231,19 +231,20 @@ export async function readPage() {
   const sortedInputs = [...inputs].sort(sortProtectedFirst);
   const sortedLinks = [...links].sort(sortProtectedFirst);
 
-  const cappedButtons = sortedButtons.slice(0, 20);
-  const cappedInputs = sortedInputs.slice(0, 10);
-  const cappedLinks = sortedLinks.slice(0, 20);
+  const cappedButtons = sortedButtons.slice(0, 50);
+  const cappedInputs = sortedInputs.slice(0, 20);
+  const cappedLinks = sortedLinks.slice(0, 50);
 
   // Get active tabs
   const tabs = await listTabs().catch(() => []);
   const activeTab = tabs.find(t => t.active) || null;
-  const classification = classifyPage(url, title, { inputs });
-  const pageType = classification.legacyPageType || classification.pageType;
+  const classification = classifyPage(url, title, { inputs, buttons, links });
+  const pageType = classification.pageType;
   const site = classification.site;
+  const environment = classification.environment || "generic";
   const genericPageType = classification.pageType;
 
-  console.log("PAGE TYPE:", pageType, "SITE:", site, "GENERIC TYPE:", genericPageType);
+  console.log("PAGE TYPE:", pageType, "SITE:", site, "ENVIRONMENT:", environment, "GENERIC TYPE:", genericPageType);
   console.log(
     "INPUTS:",
     inputs.length,
@@ -261,6 +262,10 @@ export async function readPage() {
     buttons.filter(x => x.purpose === "search_button")
   );
   console.log(
+    "SEARCH LAUNCHERS (UNSLICED):",
+    [...inputs, ...buttons, ...links].filter(x => x.purpose === "search_launcher")
+  );
+  console.log(
     "SEARCH INPUTS (SLICED):",
     cappedInputs.filter(x => x.purpose === "search_input")
   );
@@ -270,6 +275,7 @@ export async function readPage() {
     url,
     pageType,
     site,
+    environment,
     genericPageType,
     buttons: cappedButtons,
     inputs: cappedInputs,
@@ -307,6 +313,7 @@ export async function readPage() {
     url,
     pageType,
     site,
+    environment,
     genericPageType,
     buttons: cappedButtons,
     inputs: cappedInputs,

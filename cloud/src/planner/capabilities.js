@@ -1,4 +1,5 @@
 import { resolveCurrentState } from "./currentStateResolver.js";
+import { evaluateState } from "./objectiveVerifier.js";
 
 const ORDINALS = {
   "first": 0, "1st": 0, "top": 0,
@@ -23,22 +24,23 @@ export const NavigationCapability = {
   failures: 0,
   successRate: 1.0,
   confidence: 0.95,
+  success_by_environment: {},
   canHandle(transition) {
     return transition.desiredState === "home" || transition.desiredState === "navigate";
   },
   execute(transition, browserState) {
     const target = transition.parameters?.url || transition.platform;
-    if (!target) return null;
+    if (!target) return { success: false, reason: "No target platform or URL specified" };
     
     if (target === "back") {
-      return [{ type: "back", params: {} }];
+      return { success: true, actions: [{ type: "back", params: {} }] };
     }
     if (target === "refresh") {
-      return [{ type: "refresh", params: {} }];
+      return { success: true, actions: [{ type: "refresh", params: {} }] };
     }
 
     if (target.match(/https?:\/\/[^\s]+/)) {
-      return [{ type: "navigate", params: { url: target } }];
+      return { success: true, actions: [{ type: "navigate", params: { url: target } }] };
     }
 
     const SITE_MAP = {
@@ -55,32 +57,16 @@ export const NavigationCapability = {
 
     const mapped = SITE_MAP[target.toLowerCase()];
     if (mapped) {
-      return [{ type: "navigate", params: { url: mapped } }];
+      return { success: true, actions: [{ type: "navigate", params: { url: mapped } }] };
     }
 
-    return null;
+    return { success: false, reason: `Unmapped platform destination: ${target}` };
   },
   verify(transition, observation) {
     if (!observation) return false;
     const resolved = resolveCurrentState(observation);
-    const target = transition.parameters?.url || transition.platform;
-    
-    if (transition.desiredState === "home") {
-      const cleanObjPlatform = (transition.platform || "").toLowerCase().replace(/\.com|\.org|\.net/g, "");
-      const cleanResPlatform = (resolved.platform || "").toLowerCase().replace(/\.com|\.org|\.net/g, "");
-      if (cleanObjPlatform !== cleanResPlatform) return false;
-      
-      const url = (observation.url || "").toLowerCase();
-      const title = (observation.title || "").toLowerCase();
-      return url.length > 0 && (url.endsWith("/") || url.includes("home") || title.includes("home") || (!url.includes("search") && !url.includes("watch")));
-    }
-    
-    if (transition.desiredState === "navigate" && target) {
-      const url = (observation.url || "").toLowerCase();
-      return url.includes(target.toLowerCase()) || url.includes(transition.platform.toLowerCase());
-    }
-    
-    return observation.success !== false;
+    const evalRes = evaluateState({ desiredState: transition.desiredState, platform: transition.platform, parameters: transition.parameters }, resolved, observation);
+    return evalRes.matched;
   },
   recover(failure, transition) {
     console.log(`[RECOVERY] NavigationCapability handling failure: ${failure.type}`);
@@ -95,20 +81,21 @@ export const TabCapability = {
   failures: 0,
   successRate: 1.0,
   confidence: 0.90,
+  success_by_environment: {},
   canHandle(transition) {
     return transition.desiredState === "new_tab" || transition.desiredState === "switch_tab" || transition.desiredState === "close_tab";
   },
   execute(transition, browserState) {
     if (transition.desiredState === "new_tab") {
-      return [{ type: "new_tab", params: {} }];
+      return { success: true, actions: [{ type: "new_tab", params: {} }] };
     }
     if (transition.desiredState === "switch_tab") {
-      return [{ type: "switch_tab", params: { index: transition.parameters?.index } }];
+      return { success: true, actions: [{ type: "switch_tab", params: { index: transition.parameters?.index } }] };
     }
     if (transition.desiredState === "close_tab") {
-      return [{ type: "close_tab", params: { index: transition.parameters?.index } }];
+      return { success: true, actions: [{ type: "close_tab", params: { index: transition.parameters?.index } }] };
     }
-    return null;
+    return { success: false, reason: `Unsupported tab action: ${transition.desiredState}` };
   },
   verify(transition, observation) {
     return observation && observation.success !== false;
@@ -126,12 +113,13 @@ export const SearchCapability = {
   failures: 0,
   successRate: 1.0,
   confidence: 0.92,
+  success_by_environment: {},
   canHandle(transition) {
     return transition.desiredState === "results";
   },
   execute(transition, browserState) {
     const query = transition.parameters?.query;
-    if (!query) return null;
+    if (!query) return { success: false, reason: "No search query provided in transition parameters" };
 
     const actions = [];
     const searchInput = (browserState.inputs || []).find(input => input.purpose === "search_input");
@@ -149,7 +137,13 @@ export const SearchCapability = {
           key: "Enter"
         }
       });
-      return actions;
+      actions.push({
+        type: "wait",
+        params: {
+          seconds: 3
+        }
+      });
+      return { success: true, actions };
     }
 
     const searchLauncher = (browserState.buttons || []).find(btn => btn.purpose === "search_launcher") ||
@@ -161,7 +155,7 @@ export const SearchCapability = {
           element: searchLauncher.id
         }
       });
-      return actions;
+      return { success: true, actions };
     }
 
     const searchBtn = (browserState.buttons || []).find(btn => btn.purpose === "search_button");
@@ -172,34 +166,16 @@ export const SearchCapability = {
           element: searchBtn.id
         }
       });
-      return actions;
+      return { success: true, actions };
     }
 
-    return null;
+    return { success: false, reason: "No search input, launcher, or search button found in the browser state" };
   },
   verify(transition, observation) {
     if (!observation) return false;
     const resolved = resolveCurrentState(observation);
-    if (resolved.currentState !== "results") return false;
-
-    if (transition.parameters?.query) {
-      const objQuery = transition.parameters.query.toLowerCase().trim();
-      const resQuery = (resolved.parameters?.query || "").toLowerCase().trim();
-      const title = (observation.title || "").toLowerCase();
-      
-      const queryMatched = resQuery.includes(objQuery) || objQuery.includes(resQuery) || title.includes(objQuery);
-      if (!queryMatched) return false;
-    }
-
-    const candidateLinks = (observation.links || []).filter(link => {
-      return ["result_link", "video_link", "product_link", "post_link", "search_link"].includes(link.purpose);
-    });
-    if (candidateLinks.length === 0 && (observation.links || []).length > 0) {
-      const hasGenericLinks = (observation.links || []).some(link => link.purpose !== "home_link" && link.purpose !== "profile_link");
-      if (!hasGenericLinks) return false;
-    }
-
-    return true;
+    const evalRes = evaluateState({ desiredState: "results", platform: transition.platform, parameters: transition.parameters }, resolved, observation);
+    return evalRes.matched;
   },
   recover(failure, transition) {
     console.log(`[RECOVERY] SearchCapability handling failure: ${failure.type}`);
@@ -222,6 +198,7 @@ export const ResultCapability = {
   failures: 0,
   successRate: 1.0,
   confidence: 0.88,
+  success_by_environment: {},
   canHandle(transition) {
     return transition.desiredState === "result_selected" || transition.desiredState === "product_details";
   },
@@ -238,26 +215,32 @@ export const ResultCapability = {
 
     if (candidateLinks.length > targetIdx) {
       const targetLink = candidateLinks[targetIdx];
-      return [{
-        type: "click",
-        params: {
-          element: targetLink.id
-        }
-      }];
+      return {
+        success: true,
+        actions: [{
+          type: "click",
+          params: {
+            element: targetLink.id
+          }
+        }]
+      };
     }
 
     const allLinks = (browserState.links || []).filter(link => link.purpose !== "home_link" && link.purpose !== "profile_link");
     if (allLinks.length > targetIdx) {
       const targetLink = allLinks[targetIdx];
-      return [{
-        type: "click",
-        params: {
-          element: targetLink.id
-        }
-      }];
+      return {
+        success: true,
+        actions: [{
+          type: "click",
+          params: {
+            element: targetLink.id
+          }
+        }]
+      };
     }
 
-    return null;
+    return { success: false, reason: `No links available at index position ${targetIdx}` };
   },
   verify(transition, observation) {
     if (!observation) return false;
@@ -280,26 +263,30 @@ export const MediaCapability = {
   failures: 0,
   successRate: 1.0,
   confidence: 0.90,
+  success_by_environment: {},
   canHandle(transition) {
     return transition.desiredState === "video_playing" || transition.desiredState === "audio_playing";
   },
   execute(transition, browserState) {
     const videoLink = (browserState.links || []).find(link => link.purpose === "video_link" || (link.href && link.href.includes("/watch")));
     if (videoLink) {
-      return [{
-        type: "click",
-        params: {
-          element: videoLink.id
-        }
-      }];
+      return {
+        success: true,
+        actions: [{
+          type: "click",
+          params: {
+            element: videoLink.id
+          }
+        }]
+      };
     }
-    return null;
+    return { success: false, reason: "No video_link or watch page link found in browser state" };
   },
   verify(transition, observation) {
     if (!observation) return false;
-    const url = (observation.url || "").toLowerCase();
     const resolved = resolveCurrentState(observation);
-    return url.includes("watch") || url.includes("video") || resolved.currentState === "video_playing";
+    const evalRes = evaluateState({ desiredState: "video_playing", platform: transition.platform, parameters: transition.parameters }, resolved, observation);
+    return evalRes.matched;
   },
   recover(failure, transition) {
     console.log(`[RECOVERY] MediaCapability handling failure: ${failure.type}`);
@@ -314,6 +301,7 @@ export const FormCapability = {
   failures: 0,
   successRate: 1.0,
   confidence: 0.85,
+  success_by_environment: {},
   canHandle(transition) {
     return transition.desiredState === "form_submitted" || transition.desiredState === "logged_in";
   },
@@ -349,8 +337,8 @@ export const FormCapability = {
         }
       });
     }
-    if (actions.length > 0) return actions;
-    return null;
+    if (actions.length > 0) return { success: true, actions };
+    return { success: false, reason: "No relevant login fields or submit buttons available to execute" };
   },
   verify(transition, observation) {
     if (!observation) return false;
@@ -372,16 +360,20 @@ export const ExtractionCapability = {
   failures: 0,
   successRate: 1.0,
   confidence: 0.94,
+  success_by_environment: {},
   canHandle(transition) {
     return transition.desiredState === "information_extracted";
   },
   execute(transition, browserState) {
-    return [{
-      type: "extract_data",
-      params: {
-        query: transition.parameters?.query || "extract information"
-      }
-    }];
+    return {
+      success: true,
+      actions: [{
+        type: "extract_data",
+        params: {
+          query: transition.parameters?.query || "extract information"
+        }
+      }]
+    };
   },
   verify(transition, observation) {
     return observation && observation.success === true;

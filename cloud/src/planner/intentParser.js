@@ -11,8 +11,17 @@ export async function parseIntent(goalText) {
   const text = goalText.toLowerCase().trim();
 
   // Regex-based fast parsing for standard patterns
+  // "open youtube", "go to github"
+  let match = text.match(/^(?:open|go\s+to|navigate\s+to|visit)\s+([a-z0-9.]+)(?:\.com|\.org)?$/i);
+  if (match) {
+    return {
+      intent: "navigate",
+      platform: match[1].trim()
+    };
+  }
+
   // "search github for react"
-  let match = text.match(/^search\s+([a-z0-9.]+)\s+for\s+(.+)$/i);
+  match = text.match(/^search\s+([a-z0-9.]+)\s+for\s+(.+)$/i);
   if (match) {
     return {
       intent: "search",

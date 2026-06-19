@@ -128,170 +128,97 @@ export function classifyPage(url, title, elements = {}) {
   const urlLower = (url || "").toLowerCase();
   const titleLower = (title || "").toLowerCase();
 
-  let site = "generic";
-  let pageType = "content_page";
-  let legacyPageType = "generic";
+  const ENVIRONMENT_MAP = {
+    "google.com": "search_site",
+    "github.com": "search_site",
+    "youtube.com": "media_site",
+    "youtu.be": "media_site",
+    "amazon.com": "commerce_site",
+    "reddit.com": "discussion_site",
+    "wikipedia.org": "knowledge_site",
+    "linkedin.com": "professional_site",
+    "twitter.com": "social_site",
+    "x.com": "social_site",
+    "instagram.com": "social_site"
+  };
 
-  if (urlLower.includes("github.com")) {
-    site = "github";
-    if (urlLower.includes("/search")) {
-      pageType = "result_page";
-      legacyPageType = "github_search_results";
-    } else {
-      const hasSearchInput = (elements.inputs || []).some(input => input.purpose === "search_input");
-      if (hasSearchInput) {
-        pageType = "search_page";
-        legacyPageType = "github_search_overlay";
-      } else {
-        try {
-          const path = new URL(url).pathname;
-          if (path === "/" || path === "") {
-            pageType = "home_page";
-            legacyPageType = "github_home";
-          } else {
-            pageType = "content_page";
-            legacyPageType = "github_repo";
-          }
-        } catch {
-          pageType = "content_page";
-          legacyPageType = "github_repo";
-        }
+  let site = "generic";
+  let environment = "generic";
+
+  if (urlLower && urlLower !== "about:blank") {
+    try {
+      const host = new URL(urlLower).hostname;
+      site = host.replace("www.", "").split(".")[0] || "generic";
+      const envKey = Object.keys(ENVIRONMENT_MAP).find(key => host.includes(key));
+      if (envKey) {
+        environment = ENVIRONMENT_MAP[envKey];
       }
-    }
-  } else if (urlLower.includes("youtube.com")) {
-    site = "youtube";
-    if (urlLower.includes("/shorts")) {
-      pageType = "video_page";
-      legacyPageType = "youtube_shorts";
-    } else if (urlLower.includes("/results")) {
-      pageType = "result_page";
-      legacyPageType = "youtube_results";
-    } else if (urlLower.includes("/watch")) {
-      pageType = "video_page";
-      legacyPageType = "youtube_video";
-    } else {
-      try {
-        const path = new URL(url).pathname;
-        if (path === "/" || path === "") {
-          pageType = "home_page";
-          legacyPageType = "youtube_home";
-        } else {
-          pageType = "content_page";
-          legacyPageType = "youtube_page";
-        }
-      } catch {
-        pageType = "content_page";
-        legacyPageType = "youtube_page";
-      }
-    }
-  } else if (urlLower.includes("google.com")) {
-    site = "google";
-    if (urlLower.includes("/search")) {
-      pageType = "result_page";
-      legacyPageType = "google_search_results";
-    } else {
-      pageType = "home_page";
-      legacyPageType = "google_home";
-    }
-  } else if (urlLower.includes("linkedin.com")) {
-    site = "linkedin";
-    if (urlLower.includes("/feed")) {
-      pageType = "home_page";
-      legacyPageType = "linkedin_home";
-    } else if (urlLower.includes("/in/")) {
-      pageType = "profile_page";
-      legacyPageType = "linkedin_profile";
-    } else if (urlLower.includes("/jobs")) {
-      pageType = "content_page";
-      legacyPageType = "linkedin_jobs";
-    } else if (urlLower.includes("/search")) {
-      pageType = "result_page";
-      legacyPageType = "linkedin_search";
-    } else {
-      pageType = "home_page";
-      legacyPageType = "linkedin_home";
-    }
-  } else if (urlLower.includes("instagram.com")) {
-    site = "instagram";
-    if (urlLower.includes("/p/") || urlLower.includes("/reel/")) {
-      pageType = "content_page";
-      legacyPageType = "instagram_post";
-    } else {
-      try {
-        const path = new URL(url).pathname;
-        if (path === "/" || path === "" || path.includes("/feed")) {
-          pageType = "home_page";
-          legacyPageType = "instagram_home";
-        } else if (path.length > 2) {
-          pageType = "profile_page";
-          legacyPageType = "instagram_profile";
-        } else {
-          pageType = "home_page";
-          legacyPageType = "instagram_home";
-        }
-      } catch {
-        pageType = "home_page";
-        legacyPageType = "instagram_home";
-      }
-    }
-  } else if (urlLower.includes("twitter.com") || urlLower.includes("x.com")) {
-    site = "twitter";
-    if (urlLower.includes("/status/")) {
-      pageType = "content_page";
-      legacyPageType = "twitter_status";
-    } else if (urlLower.includes("/home")) {
-      pageType = "home_page";
-      legacyPageType = "twitter_home";
-    } else {
-      pageType = "profile_page";
-      legacyPageType = "twitter_profile";
-    }
-  } else if (urlLower.includes("amazon.com")) {
-    site = "amazon";
-    if (urlLower.includes("/cart") || urlLower.includes("/gp/cart")) {
-      pageType = "form_page";
-      legacyPageType = "amazon_cart";
-    } else if (urlLower.includes("/s?") || urlLower.includes("/s/")) {
-      pageType = "result_page";
-      legacyPageType = "amazon_search";
-    } else if (urlLower.includes("/dp/") || urlLower.includes("/gp/product")) {
-      pageType = "product_page";
-      legacyPageType = "amazon_product";
-    } else {
-      pageType = "home_page";
-      legacyPageType = "amazon_home";
-    }
-  } else if (urlLower.includes("wikipedia.org")) {
-    site = "wikipedia";
-    if (urlLower.includes("/wiki/")) {
-      pageType = "content_page";
-      legacyPageType = "wikipedia_article";
-    } else {
-      pageType = "home_page";
-      legacyPageType = "wikipedia_home";
-    }
-  } else if (urlLower.includes("reddit.com")) {
-    site = "reddit";
-    if (urlLower.includes("/r/")) {
-      pageType = "result_page";
-      legacyPageType = "reddit_subreddit";
-    } else if (urlLower.includes("/comments/")) {
-      pageType = "content_page";
-      legacyPageType = "reddit_comments";
-    } else {
-      pageType = "home_page";
-      legacyPageType = "reddit_home";
-    }
-  } else if (urlLower.includes("yahoo.com")) {
-    site = "yahoo";
-    if (urlLower.includes("search.yahoo.com")) {
-      pageType = "result_page";
-      legacyPageType = "yahoo_search_results";
-    } else {
-      pageType = "home_page";
-      legacyPageType = "yahoo_home";
+    } catch {
+      site = "generic";
+      environment = "generic";
     }
   }
 
-  return { site, pageType, legacyPageType };
+  const inputs = elements.inputs || [];
+  const buttons = elements.buttons || [];
+  const links = elements.links || [];
+
+  const hasSearchInput = inputs.some(x => x.purpose === "search_input" || x.purpose === "search_launcher");
+  const hasSearchLauncher = buttons.some(x => x.purpose === "search_launcher" || x.purpose === "search_button") ||
+                             links.some(x => x.purpose === "search_launcher" || x.purpose === "search_link");
+  const hasResultLinks = links.some(x => ["result_link", "video_link", "product_link", "post_link"].includes(x.purpose));
+  
+  const hasMediaControls = buttons.some(x => x.purpose === "media_control");
+  const hasVideoLinks = links.some(x => x.purpose === "video_link");
+
+  const hasPurchaseControls = buttons.some(x => x.purpose === "add_to_cart_button" || x.purpose === "checkout_button");
+  const hasProductLinks = links.some(x => x.purpose === "product_link");
+
+  const hasProfileLinks = links.some(x => x.purpose === "profile_link");
+  
+  const hasAuthInputs = inputs.some(x => ["login_email", "login_password", "signup_email"].includes(x.purpose)) ||
+                        buttons.some(x => ["login_button", "signup_button"].includes(x.purpose));
+
+  const hasHomeLink = links.some(x => x.purpose === "home_link");
+
+  let pageType = "content_page";
+
+  const isHomePath = (() => {
+    try {
+      const path = new URL(urlLower).pathname.replace(/\/+$/, "");
+      return path === "" || path === "/" || path === "/home" || path === "/feed" || path === "/main";
+    } catch {
+      return false;
+    }
+  })();
+
+  // DOM Landmarks classification (Primary)
+  if (isHomePath) {
+    pageType = "home_page";
+  } else if ((hasSearchInput || hasSearchLauncher) && hasResultLinks) {
+    pageType = "result_page";
+  } else if (hasMediaControls || hasVideoLinks) {
+    pageType = "video_page";
+  } else if (hasPurchaseControls || hasProductLinks) {
+    pageType = "product_page";
+  } else if (hasAuthInputs) {
+    pageType = "form_page";
+  } else if (urlLower.includes("/in/") || urlLower.includes("/profile") || urlLower.includes("/user/")) {
+    pageType = "profile_page";
+  } else {
+    // Fallback: URL/Title heuristics
+    if (urlLower.includes("/search") || urlLower.includes("/results") || urlLower.includes("search_query")) {
+      pageType = "result_page";
+    } else if (urlLower.includes("/watch") || urlLower.includes("/shorts") || urlLower.includes("video")) {
+      pageType = "video_page";
+    } else if (urlLower.includes("/dp/") || urlLower.includes("/gp/product") || urlLower.includes("/jobs")) {
+      pageType = "product_page";
+    } else if (urlLower.includes("/cart") || urlLower.includes("/gp/cart")) {
+      pageType = "form_page";
+    } else if (hasHomeLink) {
+      pageType = "home_page";
+    }
+  }
+
+  return { site, environment, pageType, legacyPageType: pageType };
 }
