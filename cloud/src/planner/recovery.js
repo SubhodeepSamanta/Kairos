@@ -45,7 +45,30 @@ export function diagnoseFailure(transition, browserState, executionResult) {
   return { type: "verification_failed", message: "Target state verification failed", browserState };
 }
 
-export function determineRecovery(failure, transition, capability = null) {
+export function determineRecovery(failure, transition, capability = null, retryCount = 0) {
+  console.log(`[RECOVERY] Processing recovery: retryCount=${retryCount}, failureType="${failure.type}"`);
+
+  // Hardened Escalation Model
+  if (retryCount === 1) {
+    console.log("[RECOVERY ESCALATION] Escalating to: alternative capability");
+    return { escalate: "alternative_capability" };
+  }
+  
+  if (retryCount === 2) {
+    console.log("[RECOVERY ESCALATION] Escalating to: alternative transition");
+    return { escalate: "alternative_transition" };
+  }
+  
+  if (retryCount >= 3) {
+    console.log("[RECOVERY ESCALATION] Escalating to: human loop manual action");
+    return { 
+      escalate: "human_loop", 
+      state: "WAITING_FOR_MANUAL_ACTION", 
+      reason: `Transition "${transition.id}" failed repeatedly (3+ retries). Requiring manual assistance.`
+    };
+  }
+
+  // retryCount === 0: Attempt 1 (Simple recovery)
   if (capability && typeof capability.recover === "function") {
     const capRecovery = capability.recover(failure, transition);
     if (capRecovery && capRecovery.length > 0) {
@@ -54,7 +77,7 @@ export function determineRecovery(failure, transition, capability = null) {
     }
   }
 
-  console.log(`[RECOVERY] Triggering generic recovery for failure type: "${failure.type}"`);
+  console.log(`[RECOVERY] Triggering generic simple recovery for failure type: "${failure.type}"`);
 
   switch (failure.type) {
     case "blocked_by_modal":

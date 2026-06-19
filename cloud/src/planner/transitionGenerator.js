@@ -1,34 +1,72 @@
 import { createTask } from "../shared/schemas/task.js";
 
-export function generateTransitions(currentState, desiredObjective) {
-  const transitions = [];
+export function generateTransitions(currentState, desiredObjective, failedTransitions = {}) {
+  const candidates = [];
   const cleanCurPlatform = (currentState.platform || "").toLowerCase();
   const cleanCurState = (currentState.currentState || "").toLowerCase();
   const cleanObjPlatform = (desiredObjective.platform || "").toLowerCase();
 
-  // If platforms are different, and desired target isn't already home, transition to home first
+  // Candidate 1: Transition to target platform's home first if platforms don't match
   if (cleanCurPlatform !== cleanObjPlatform && 
       desiredObjective.desiredState !== "home" && 
       desiredObjective.desiredState !== "goal_completed") {
-    transitions.push({
-      id: `${cleanCurPlatform}_${cleanCurState}_to_${cleanObjPlatform}_home`,
+    
+    const transId = `${cleanCurPlatform}_${cleanCurState}_to_${cleanObjPlatform}_home`;
+    const failureCount = failedTransitions[transId] || 0;
+    
+    // Calculate score & confidence
+    let score = 0.8 - (failureCount * 0.25);
+    let confidence = parseFloat(Math.max(0.1, 0.9 - (failureCount * 0.3)).toFixed(2));
+    
+    candidates.push({
+      id: transId,
       desiredState: "home",
       platform: desiredObjective.platform,
-      parameters: {}
+      parameters: {},
+      score,
+      confidence
     });
   }
 
-  // Push final state target
-  const fromPlatform = transitions.length > 0 ? cleanObjPlatform : cleanCurPlatform;
-  const fromState = transitions.length > 0 ? "home" : cleanCurState;
-  transitions.push({
-    id: `${fromPlatform}_${fromState}_to_${cleanObjPlatform}_${desiredObjective.desiredState}`,
+  // Candidate 2: Direct transition to the desired final state
+  const fromPlatform = cleanCurPlatform === cleanObjPlatform ? cleanCurPlatform : cleanObjPlatform;
+  const fromState = cleanCurPlatform === cleanObjPlatform ? cleanCurState : "home";
+  const directTransId = `${fromPlatform}_${fromState}_to_${cleanObjPlatform}_${desiredObjective.desiredState}`;
+  const directFailureCount = failedTransitions[directTransId] || 0;
+  
+  // Final state has higher direct priority if we are already on the right platform
+  let directScore = (cleanCurPlatform === cleanObjPlatform ? 1.0 : 0.7) - (directFailureCount * 0.25);
+  let directConfidence = parseFloat(Math.max(0.1, 0.95 - (directFailureCount * 0.3)).toFixed(2));
+
+  candidates.push({
+    id: directTransId,
     desiredState: desiredObjective.desiredState,
     platform: desiredObjective.platform,
-    parameters: desiredObjective.parameters || {}
+    parameters: desiredObjective.parameters || {},
+    score: directScore,
+    confidence: directConfidence
   });
 
-  return transitions;
+  // Candidate 3: Navigation Fallback to a search engine home if stuck
+  const fallbackTransId = `${cleanCurPlatform}_${cleanCurState}_to_google_home`;
+  const fallbackFailureCount = failedTransitions[fallbackTransId] || 0;
+  if (cleanCurPlatform !== "google" && desiredObjective.desiredState !== "home") {
+    candidates.push({
+      id: fallbackTransId,
+      desiredState: "home",
+      platform: "google",
+      parameters: {},
+      score: 0.4 - (fallbackFailureCount * 0.2),
+      confidence: parseFloat(Math.max(0.1, 0.7 - (fallbackFailureCount * 0.2)).toFixed(2))
+    });
+  }
+
+  // Sort candidate transitions by score in descending order
+  candidates.sort((a, b) => b.score - a.score);
+
+  console.log(`[STATE MACHINE] Generated and ranked transitions:`, JSON.stringify(candidates.map(c => ({ id: c.id, score: c.score.toFixed(2), conf: c.confidence })), null, 2));
+
+  return candidates;
 }
 
 export function generateTasksForTransitions(transitions) {

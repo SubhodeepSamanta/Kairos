@@ -8,8 +8,21 @@ const ORDINALS = {
   "fifth": 4, "5th": 4
 };
 
+function initMetrics(cap) {
+  cap.executions = 0;
+  cap.successes = 0;
+  cap.failures = 0;
+  cap.successRate = 1.0;
+  cap.confidence = 0.9;
+}
+
 export const NavigationCapability = {
   name: "NavigationCapability",
+  executions: 0,
+  successes: 0,
+  failures: 0,
+  successRate: 1.0,
+  confidence: 0.95,
   canHandle(transition) {
     return transition.desiredState === "home" || transition.desiredState === "navigate";
   },
@@ -71,15 +84,17 @@ export const NavigationCapability = {
   },
   recover(failure, transition) {
     console.log(`[RECOVERY] NavigationCapability handling failure: ${failure.type}`);
-    if (failure.type === "blocked_by_modal") {
-      return [{ type: "refresh", params: {} }];
-    }
     return [{ type: "refresh", params: {} }];
   }
 };
 
 export const TabCapability = {
   name: "TabCapability",
+  executions: 0,
+  successes: 0,
+  failures: 0,
+  successRate: 1.0,
+  confidence: 0.90,
   canHandle(transition) {
     return transition.desiredState === "new_tab" || transition.desiredState === "switch_tab" || transition.desiredState === "close_tab";
   },
@@ -106,6 +121,11 @@ export const TabCapability = {
 
 export const SearchCapability = {
   name: "SearchCapability",
+  executions: 0,
+  successes: 0,
+  failures: 0,
+  successRate: 1.0,
+  confidence: 0.92,
   canHandle(transition) {
     return transition.desiredState === "results";
   },
@@ -184,7 +204,6 @@ export const SearchCapability = {
   recover(failure, transition) {
     console.log(`[RECOVERY] SearchCapability handling failure: ${failure.type}`);
     if (failure.type === "element_missing") {
-      // Return launcher click action if search input is hidden but launcher exists
       const browserState = failure.browserState || {};
       const searchLauncher = (browserState.buttons || []).find(btn => btn.purpose === "search_launcher") ||
                              (browserState.links || []).find(link => link.purpose === "search_launcher");
@@ -198,6 +217,11 @@ export const SearchCapability = {
 
 export const ResultCapability = {
   name: "ResultCapability",
+  executions: 0,
+  successes: 0,
+  failures: 0,
+  successRate: 1.0,
+  confidence: 0.88,
   canHandle(transition) {
     return transition.desiredState === "result_selected" || transition.desiredState === "product_details";
   },
@@ -238,13 +262,11 @@ export const ResultCapability = {
   verify(transition, observation) {
     if (!observation) return false;
     const resolved = resolveCurrentState(observation);
-    // Verified if we moved away from search results or url changed, or page type matches target
     return resolved.currentState !== "results" && observation.success !== false;
   },
   recover(failure, transition) {
     console.log(`[RECOVERY] ResultCapability handling failure: ${failure.type}`);
     if (failure.type === "element_missing" || failure.type === "verification_failed") {
-      // Try scrolling down to expose more result elements
       return [{ type: "scroll", params: { direction: "down", amount: 300 } }];
     }
     return null;
@@ -253,6 +275,11 @@ export const ResultCapability = {
 
 export const MediaCapability = {
   name: "MediaCapability",
+  executions: 0,
+  successes: 0,
+  failures: 0,
+  successRate: 1.0,
+  confidence: 0.90,
   canHandle(transition) {
     return transition.desiredState === "video_playing" || transition.desiredState === "audio_playing";
   },
@@ -282,6 +309,11 @@ export const MediaCapability = {
 
 export const FormCapability = {
   name: "FormCapability",
+  executions: 0,
+  successes: 0,
+  failures: 0,
+  successRate: 1.0,
+  confidence: 0.85,
   canHandle(transition) {
     return transition.desiredState === "form_submitted" || transition.desiredState === "logged_in";
   },
@@ -335,6 +367,11 @@ export const FormCapability = {
 
 export const ExtractionCapability = {
   name: "ExtractionCapability",
+  executions: 0,
+  successes: 0,
+  failures: 0,
+  successRate: 1.0,
+  confidence: 0.94,
   canHandle(transition) {
     return transition.desiredState === "information_extracted";
   },

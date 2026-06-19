@@ -8,7 +8,7 @@ export function createExecutionContext(goal) {
   return {
     goal: goal.objective,
     currentObjective: null,
-    worldFacts: [],
+    worldFacts: [], // Semantic triples: { subject, relation, object, confidence, source, timestamp }
     discoveredEntities: [],
     visitedPages: [],
     openQuestions: [],
@@ -33,14 +33,14 @@ export async function extractFactsAndEntities(observation, context) {
 
   const systemPrompt = `You are a World Model extraction assistant.
 Analyze the page content and URL to:
-1. Extract key facts (e.g. deadline, salary, location, email, url, etc.).
+1. Extract semantic triples showing relationships (subject -> relation -> object) (e.g. Google SWE Intern -> has_deadline -> July 15, or SWE Intern -> has_location -> India).
 2. Track entities (e.g. company, person, job, website, product, etc.).
 3. Answer any relevant open questions from the list provided.
 
 Return ONLY a JSON object in this format:
 {
   "facts": [
-    { "type": "location|deadline|salary|email|phone|other", "key": "string", "value": "string", "confidence": 0.0-1.0, "source": "string" }
+    { "subject": "string", "relation": "string", "object": "string", "confidence": 0.0-1.0, "source": "string" }
   ],
   "entities": [
     { "type": "company|person|job|product|website", "name": "string", "attributes": {} }
@@ -89,11 +89,16 @@ export async function updateExecutionContext(context, observation, resolvedState
   // Perform LLM extraction
   const extracted = await extractFactsAndEntities(observation, context);
 
-  // Merge facts with verification (confidence > 0.75 and source exists)
+  // Merge facts as triples with confidence check
   if (extracted.facts && Array.isArray(extracted.facts)) {
     for (const fact of extracted.facts) {
-      if (fact.confidence > 0.75 && fact.source) {
-        if (!context.worldFacts.some(f => f.key === fact.key && f.value === fact.value)) {
+      if (fact.confidence > 0.75 && fact.source && fact.subject && fact.relation && fact.object) {
+        const isDuplicate = context.worldFacts.some(f => 
+          f.subject.toLowerCase() === fact.subject.toLowerCase() && 
+          f.relation.toLowerCase() === fact.relation.toLowerCase() && 
+          f.object.toLowerCase() === fact.object.toLowerCase()
+        );
+        if (!isDuplicate) {
           context.worldFacts.push({
             ...fact,
             timestamp: new Date().toISOString()
