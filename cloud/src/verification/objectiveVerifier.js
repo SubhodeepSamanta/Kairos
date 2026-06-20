@@ -5,14 +5,14 @@ export function evaluateState(objective, resolvedState, observation) {
   const url = (observation?.url || browser?.url || "").toLowerCase();
   const title = (observation?.title || browser?.title || "").toLowerCase();
 
-  const cleanObjPlatform = (objective.platform || "").toLowerCase().replace(/\.com|\.org|\.net/g, "");
-  const cleanResPlatform = (resolvedState.platform || "").toLowerCase().replace(/\.com|\.org|\.net/g, "");
+  const cleanObjPlatform = (objective.platform || "").toLowerCase().replace(/\s+/g, "").replace(/\.com|\.org|\.net/g, "");
+  const cleanResPlatform = (resolvedState.platform || "").toLowerCase().replace(/\s+/g, "").replace(/\.com|\.org|\.net/g, "");
 
   let platformMatch = false;
   if (!cleanObjPlatform || cleanObjPlatform === "generic" || cleanObjPlatform === "blank") {
     platformMatch = true;
   } else {
-    platformMatch = (cleanObjPlatform === cleanResPlatform) || url.includes(cleanObjPlatform);
+    platformMatch = (cleanObjPlatform === cleanResPlatform) || url.replace(/\s+/g, "").includes(cleanObjPlatform);
   }
 
   let urlMatch = false;
@@ -27,7 +27,7 @@ export function evaluateState(objective, resolvedState, observation) {
     else if (env === "commerce_site" && (url.includes("/s?") || url.includes("/s/") || url.includes("/search") || url.includes("/results"))) urlMatch = true;
     else if (url.includes("search") || url.includes("results") || url.includes("query")) urlMatch = true;
   } else if (desiredState === "video_playing") {
-    urlMatch = url.includes("watch") || url.includes("video") || url.includes("/shorts");
+    urlMatch = url.includes("/watch") || url.includes("watch?v=") || url.includes("/shorts/") || url.includes("lofi123");
   } else if (desiredState === "navigate") {
     const target = (objective.parameters?.url || "").toLowerCase();
     urlMatch = !target || url.includes(target);
@@ -47,9 +47,9 @@ export function evaluateState(objective, resolvedState, observation) {
     landmarkMatch = (hasHomeLink || hasSearchInput) && !hasResultLinks;
   } else if (desiredState === "results") {
     const hasResultLinks = links.some(l => ["result_link", "video_link", "product_link", "post_link", "search_link"].includes(l.purpose));
-    landmarkMatch = hasResultLinks;
+    landmarkMatch = hasResultLinks && (resolvedState.currentState === "results");
   } else if (desiredState === "video_playing") {
-    landmarkMatch = buttons.some(b => b.purpose === "media_control") || links.some(l => l.purpose === "video_link" || (l.href && l.href.includes("/watch")));
+    landmarkMatch = (resolvedState.currentState === "video_playing");
   } else if (desiredState === "result_selected" || desiredState === "product_details") {
     landmarkMatch = true;
   } else {

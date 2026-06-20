@@ -20,6 +20,14 @@ export async function parseIntent(goalText) {
     };
   }
 
+  match = text.match(/^(?:login|sign\s+in|authenticate)(?:\s+to|\s+on)?\s+([a-z0-9.]+)(?:\.com|\.org)?$/i);
+  if (match) {
+    return {
+      intent: "authenticate",
+      platform: match[1].trim()
+    };
+  }
+
   // "search github for react"
   match = text.match(/^search\s+([a-z0-9.]+)\s+for\s+(.+)$/i);
   if (match) {

@@ -1,1190 +1,480 @@
-This is the roadmap I'd actually follow if the goal is:
+Yes.
 
-```text
-Kairos = OpenClaw/Hermes-level architecture
-+
-Desktop Companion
-+
-Research Brain
-+
-Personal Assistant
+After seeing this codebase, I think your biggest mistake would be continuing to patch bugs one-by-one.
+
+The browser agent is already large enough that adding more:
+
+```js
+if(youtube)
+if(github)
+if(linkedin)
+if(result_page)
+if(video_page)
 ```
 
-without having to redesign things later.
-
-The important thing is that some pieces depend on others.
-
-For example:
-
-```text
-Memory before Verification
-=
-bad memories
-
-Learning before Memory
-=
-learning garbage
-```
-
-which is why most agent projects become a mess.
+will eventually collapse under its own weight. 
 
 ---
 
-# PHASE H — Goal Intelligence
+# What I Would Do
 
-### Purpose
+Forget "Part 1, Part 2, Part 3".
 
-Convert user requests into:
-
-```text
-Desired State
-Constraints
-Success Conditions
-```
-
-instead of actions.
+Think in terms of maturity levels.
 
 ---
 
-### H1 — Goal Parser
+# Current Kairos
 
-Current:
-
-```text
-search github for react
-```
-
-Future:
-
-```json
-{
-  "intent":"search",
-  "target":"github",
-  "query":"react"
-}
-```
-
----
-
-### H2 — Desired State Generator
-
-Current:
+Current reasoning:
 
 ```text
-Goal → Task
-```
-
-Future:
-
-```json
-{
-  "site":"github",
-  "query":"react",
-  "results_visible":true
-}
-```
-
----
-
-### H3 — Success Criteria Generator
-
-Generate:
-
-```json
-{
-  "url_contains":"github",
-  "results_visible":true
-}
-```
-
----
-
-### Files
-
-```text
-goalParser.js
-taskParser.js
-agent.js
-```
-
----
-
-# PHASE I — State Machine
-
-### Purpose
-
-Replace:
-
-```text
-Goal
+User Goal
 ↓
-Task
+Intent Parser
 ↓
-Action
-```
-
-with
-
-```text
-Current State
+Objective Builder
 ↓
-Desired State
+Transition Generator
 ↓
-Transition
-```
-
----
-
-### I1 — State Representation
-
-Define:
-
-```json
-{
-  "browser":{},
-  "desktop":{},
-  "tabs":[],
-  "apps":[],
-  "files":[]
-}
-```
-
----
-
-### I2 — Transition Planner
-
-Example:
-
-```text
-Current:
-about:blank
-
-Desired:
-github_results
-
-Transition:
-navigate github
-```
-
----
-
-### I3 — Transition Verifier
-
-Verify:
-
-```text
-Did transition happen?
-```
-
-not:
-
-```text
-Did goal happen?
-```
-
----
-
-### Files
-
-```text
-state.js
-worldModel.js
-planner.js
-agent.js
-```
-
----
-
-# PHASE K — Goal Verification
-
-Highest ROI phase.
-
----
-
-### Purpose
-
-Know:
-
-```text
-When to stop.
-```
-
----
-
-### K1 — State Verification
-
-Example:
-
-```text
-Goal:
-open youtube
-
-Current:
-youtube_home
-
-SUCCESS
-```
-
----
-
-### K2 — Task Verification
-
-Example:
-
-```text
-Search react
-
-Current:
-github results page
-
-SUCCESS
-```
-
----
-
-### K3 — Goal Verification
-
-Example:
-
-```text
-Play lofi
-
-Current:
-video page
-playing
-
-SUCCESS
-```
-
----
-
-### K4 — Confidence Scoring
-
-```json
-{
-  "achieved":true,
-  "confidence":0.96
-}
-```
-
----
-
-### Files
-
-```text
-goalVerifier.js
-taskVerifier.js
-stateVerifier.js
-eventVerifier.js
-```
-
----
-
-# PHASE L — Recovery Engine
-
-### Purpose
-
-Handle failures intelligently.
-
----
-
-### L1 — Failure Classifier
-
-Detect:
-
-```text
-Popup
-Overlay
-Captcha
-Login Wall
-Permission Request
-```
-
----
-
-### L2 — Recovery Strategies
-
-Map:
-
-```text
-Popup
-↓
-close popup
-```
-
-```text
-Overlay
-↓
-dismiss overlay
-```
-
----
-
-### L3 — Retry Policies
-
-Avoid:
-
-```text
-click
-click
-click
-click
-```
-
-loops.
-
----
-
-### Files
-
-```text
-failureVerifier.js
-strategy.js
-replanner.js
-```
-
----
-
-# PHASE M — Human In The Loop
-
-This should happen before Memory.
-
----
-
-### Purpose
-
-Know when NOT to continue.
-
----
-
-### M1 — User Request System
-
-Agent asks:
-
-```text
-Need login.
-
-Continue?
-```
-
----
-
-### M2 — Pause State
-
-Store:
-
-```json
-{
-  "state":"WAITING_FOR_USER"
-}
-```
-
----
-
-### M3 — Resume System
-
-Continue exactly where it stopped.
-
----
-
-### M4 — Approval Gates
-
-Examples:
-
-```text
-Send email?
-Delete file?
-Transfer money?
-```
-
-Ask first.
-
----
-
-### Files
-
-```text
-agent.js
-planner.js
-connectors/*
-```
-
----
-
-# PHASE J — Capability Framework
-
-Notice this comes AFTER the brain phases.
-
----
-
-### Purpose
-
-Remove website thinking.
-
----
-
-### J1 — Search Capability
-
-Works on:
-
-```text
-Google
-GitHub
-Reddit
-YouTube
-Wikipedia
-```
-
----
-
-### J2 — Navigation Capability
-
-Works on:
-
-```text
-Tabs
-Pages
-Links
-Results
-```
-
----
-
-### J3 — Form Capability
-
-Works on:
-
-```text
-Login
-Signup
-Checkout
-Forms
-```
-
----
-
-### J4 — Media Capability
-
-Works on:
-
-```text
-Video
-Audio
-Playback
-```
-
----
-
-### J5 — Extraction Capability
-
-Works on:
-
-```text
-Tables
-Text
-Articles
-Products
-```
-
----
-
-### Files
-
-```text
-skills/*
-router.js
-capabilityGraph.js
-```
-
----
-
-# PHASE O — World Model
-
-Depends on everything above.
-
----
-
-### Purpose
-
-Persistent understanding of environment.
-
----
-
-### O1 — Browser State
-
-Track:
-
-```text
-Current page
-Tabs
-History
-```
-
----
-
-### O2 — Desktop State
-
-Track:
-
-```text
-Apps
-Windows
-Focus
-```
-
----
-
-### O3 — Task State
-
-Track:
-
-```text
-Current goal
-Current task
-Progress
-```
-
----
-
-### O4 — Findings State
-
-Track:
-
-```text
-Research
-Extracted info
-Results
-```
-
----
-
-### Files
-
-```text
-worldModel.js
-memory/*
-```
-
----
-
-# PHASE Q — Memory
-
-Depends on:
-
-```text
-Verification
-Recovery
-Human In Loop
-```
-
----
-
-### Q1 — User Memory
-
-Preferences:
-
-```text
-Preferred browser
-Preferred editor
-Preferred news
-```
-
----
-
-### Q2 — Workflow Memory
-
-```text
-How user usually performs tasks
-```
-
----
-
-### Q3 — Success Memory
-
-```text
-Goal
-Strategy
-Success
-```
-
----
-
-### Q4 — Failure Memory
-
-```text
-Goal
-Failure
-Reason
-```
-
----
-
-# PHASE R — Learning
-
-Depends on Memory.
-
----
-
-### R1 — Strategy Learning
-
-```text
-What plans work?
-```
-
----
-
-### R2 — Recovery Learning
-
-```text
-What fixes work?
-```
-
----
-
-### R3 — Skill Selection Learning
-
-```text
-Which capability is best?
-```
-
----
-
-### R4 — Personalization Learning
-
-```text
-User-specific optimization.
-```
-
----
-
-# PHASE N — Desktop Companion
-
-Can be built in parallel after H/K are reasonably done.
-
----
-
-### N1 — UIA Engine
-
-```text
-Read UI
-Click
-Type
-```
-
----
-
-### N2 — Window Manager
-
-```text
-Focus
-Move
-Resize
-Switch
-```
-
----
-
-### N3 — Filesystem
-
-```text
-Read
-Write
-Move
-Delete
-Search
-```
-
----
-
-### N4 — Terminal
-
-```text
-Run commands
-Capture output
-```
-
----
-
-### N5 — Desktop Observer
-
-```text
-Desktop semantic understanding
-```
-
----
-
-# PHASE P — Research Brain
-
-Separate agent.
-
----
-
-### P1 — Search
-
-### P2 — Crawl
-
-### P3 — Summarize
-
-### P4 — Fact Store
-
-### P5 — Report Generation
-
----
-
-# PHASE S — Voice
-
-Last.
-
----
-
-### S1 — STT
-
-### S2 — TTS
-
-### S3 — Wake Word
-
-### S4 — Conversation Layer
-
-### S5 — Notifications
-
----
-
-# If the goal is maximum intelligence
-
-The order I would actually execute is:
-
-```text
-H  Goal Intelligence
-I  State Machine
-K  Goal Verification
-L  Recovery
-M  Human In Loop
-J  Capability Framework
-
-O  World Model
-
-Q  Memory
-R  Learning
-
-N  Desktop Companion
-P  Research Brain
-
-S  Voice
-```
-
-That sequence minimizes rewrites and is the closest path from your current Kairos to a true Hermes/OpenClaw-style agent rather than just a browser automation system.
-Yes — and this is exactly where I think we should stop changing architecture.
-
-You've changed architecture about 3 times:
-
-### Version 1
-
-```text
-Goal
-↓
-LLM
-↓
-Tool
-```
-
-Problem:
-
-```text
-Not an agent.
-```
-
----
-
-### Version 2
-
-```text
-Planner
-↓
-Executor
-↓
-Observer
-↓
-Replanner
-```
-
-Problem:
-
-```text
-Too LLM-heavy.
-```
-
----
-
-### Version 3 (Current)
-
-```text
-Goal Intelligence
-↓
-State Machine
+Capability
 ↓
 Verification
-↓
-Recovery
-↓
-Human Loop
-↓
-Capabilities
-↓
-World Model
-↓
-Memory
-↓
-Learning
 ```
 
-This is the first version that actually resembles modern agent architectures.
+but everywhere I look I see:
+
+```js
+if (site === "youtube")
+if (site === "github")
+
+if (pageType === "video_page")
+if (pageType === "result_page")
+
+if (purpose === "video_link")
+```
+
+This is still website-driven reasoning.
 
 ---
 
-# About GoogleSkill / RedditSkill
+# What OpenClaw/Hermes Do
 
-No.
-
-When I say:
+They reason using:
 
 ```text
-SearchCapability
+Search Box
+Button
+Input
+Result
+Media
+Article
+Product
+Menu
+Dialog
+Tab
 ```
 
-I do NOT mean:
-
-```text
-GoogleSkill
-RedditSkill
-GitHubSkill
-YouTubeSkill
-```
-
-forever.
-
-Those were transitional.
-
-Think of them as training wheels.
+These concepts exist on every site.
 
 ---
 
-Current:
+# Goal
+
+Transform Kairos from:
 
 ```text
-YouTubeSkill
-
-if pageType == youtube
-   click search box
+Website Agent
 ```
 
-Future:
+into
 
 ```text
-SearchCapability
-
-find search_input
-type query
-submit search
+Interaction Agent
 ```
-
-Works on:
-
-```text
-Google
-YouTube
-GitHub
-Reddit
-Amazon
-Wikipedia
-LinkedIn
-```
-
-without knowing the site.
-
-That's how OpenClaw-style systems evolve.
 
 ---
 
-# Will We Need Another Architecture Rewrite?
+# Phase A — Kill Website Logic
 
-Barring some huge discovery:
-
-```text
-NO
-```
-
-What we may change later:
+Delete concepts like:
 
 ```text
-Implementation details
+youtube
+github
+amazon
+linkedin
+reddit
 ```
 
-Examples:
+from reasoning.
 
-```text
-Better verifier
-Better memory storage
-Better learning algorithm
-Better state representation
+Keep them only for metadata.
+
+Bad:
+
+```js
+if(site==="youtube")
 ```
 
-But not:
+Good:
 
-```text
-Planner
-↓
-Executor
-↓
-Observer
-↓
-World Model
-↓
-Verifier
+```js
+if(pageContains(videoResults))
 ```
-
-That backbone is solid.
 
 ---
 
-# The Real Missing Pieces
+# Phase B — Kill Page Types
 
-Right now Kairos' problem is not:
+Right now:
 
-```text
-Architecture
+```js
+video_page
+result_page
+home_page
+product_page
 ```
 
-It's:
+are everywhere.
+
+These become a bottleneck.
+
+Instead use:
 
 ```text
-Intelligence inside architecture
+Capabilities Present
 ```
 
-You already have the rooms.
+Example:
 
-Now you need furniture.
+```json
+{
+  "search": true,
+  "results": true,
+  "media": false,
+  "form": false
+}
+```
+
+Now the planner reasons:
+
+```text
+Need search
+Search exists
+Use it
+```
+
+instead of:
+
+```text
+Need search
+Are we on youtube?
+Are we on google?
+Are we on github?
+```
 
 ---
 
-# What OpenClaw/Hermes Have That Kairos Doesn't
+# Phase C — Universal Elements
 
-Not:
+Current classifier:
 
-```text
-More tools
+```js
+video_link
+product_link
+result_link
+jobs_link
 ```
 
-Not:
+Still too specific.
+
+Move toward:
 
 ```text
-More prompts
+primary_action
+secondary_action
+
+content_item
+content_container
+
+search_input
+
+navigation_link
+
+media_item
+
+interactive_control
 ```
 
-Not:
+The LLM should decide.
 
-```text
-More skills
-```
+Not regex.
 
-They have:
+---
 
-### 1. Better State Representation
+# Phase D — LLM World Model
+
+Biggest upgrade.
 
 Instead of:
 
-```json
-{
-  "buttons": [...],
-  "inputs": [...]
-}
+```js
+desiredState = "video_playing"
 ```
 
-they think:
+Use:
 
-```json
-{
-  "current_state": "github_home",
-  "desired_state": "github_search_results",
-  "progress": 0.5
-}
+```text
+Current State
+Goal State
 ```
-
----
-
-### 2. Better Verification
 
 Example:
 
+Current:
+
 ```text
-Goal:
-Search github for react
+Search results visible
 ```
 
-Current Kairos:
+Goal:
 
 ```text
-Did click happen?
-Did type happen?
+First video opened
+```
+
+LLM generates:
+
+```text
+Click first media result
+```
+
+No hardcoded transition.
+
+---
+
+# Phase E — Capability Rewrite
+
+Current:
+
+```text
+SearchCapability
+SelectionCapability
+MediaCapability
+NavigationCapability
+```
+
+Good.
+
+Keep them.
+
+But make them dumb executors.
+
+---
+
+Current:
+
+```text
+Capability decides + executes
 ```
 
 Future:
 
 ```text
-Are github results visible?
+LLM decides
+Capability executes
 ```
 
 Huge difference.
 
 ---
 
-### 3. Better Recovery
+# Phase F — Observation Upgrade
+
+Current observation:
+
+```text
+buttons
+links
+inputs
+```
+
+Needs:
+
+```text
+semantic_regions
+
+header
+sidebar
+main_content
+results
+media
+dialog
+menu
+footer
+```
+
+Now agent understands page layout.
+
+Not just DOM.
+
+---
+
+# Phase G — ReAct Loop
 
 Current:
 
 ```text
-Failed
-
-↓
-
-Replan
+Plan
+Execute
+Verify
 ```
 
 Future:
 
 ```text
-Failed
-
-↓
-
-Why?
-
-↓
-
-Overlay
-
-↓
-
-Close Overlay
-
-↓
-
-Continue
+Observe
+Think
+Act
+Observe
+Think
+Act
+Observe
+Think
+Act
 ```
+
+Every step.
+
+This is where OpenClaw feels alive.
 
 ---
 
-### 4. Better World Model
+# Phase H — Remove Recovery Hell
 
 Current:
 
 ```text
-Current page
+fail
+recover
+fail
+recover
+fail
+recover
 ```
+
+Instead:
+
+```text
+fail
+observe again
+rethink
+try another action
+```
+
+Recovery becomes:
+
+```text
+replanning
+```
+
+not:
+
+```text
+random scrolling
+```
+
+---
+
+# Where This Gets You
+
+After all phases:
+
+Current:
+
+```text
+Search YouTube
+Play first video
+```
+
+Agent:
+
+```text
+works
+```
+
+---
 
 Future:
 
 ```text
-Browser
-Tabs
-Desktop Apps
-Files
-Current Goal
-Current Task
-Research Findings
-Pending User Actions
+Search YouTube for Messi
+Open first video
+Open creator channel
+Open latest upload
+Summarize comments
 ```
+
+without a single:
+
+```js
+if(site==="youtube")
+```
+
+in the planner.
 
 ---
 
-# What I Would Freeze Right Now
-
-Freeze permanently:
+# My Target Architecture
 
 ```text
-Cloud / Client split
+User Goal
+     ↓
 
-Playwright browser layer
+Observe Page
+     ↓
 
-CLI connector
+World Model
+     ↓
 
-WebSocket communication
+LLM Reasoning
+     ↓
 
-Semantic observer
+Action Proposal
+     ↓
 
-Planner → Executor → Observer loop
+Capability Execution
+     ↓
 
-Capability-based future direction
+Observation
+     ↓
 
-Human-in-loop concept
+Goal Check
+     ↓
 
-Research separated from execution
+Repeat
 ```
 
-No more redesigns here.
+No website logic.
 
----
+No page-type logic.
 
-# One Change I Would Make To The Roadmap
+No site-specific transitions.
 
-Move World Model earlier.
+No hardcoded workflows.
 
-Instead of:
+Only:
 
 ```text
-H Goal Intelligence
-I State Machine
-K Verification
-L Recovery
-M Human Loop
-J Capability Framework
-
-O World Model
+Observe
+Reason
+Act
+Observe
+Reason
+Act
 ```
 
-I'd do:
+If we pull this off, Kairos won't just reach "100% browser automation".
 
-```text
-H Goal Intelligence
-I State Machine
-
-O World Model
-
-K Verification
-L Recovery
-M Human Loop
-
-J Capability Framework
-```
-
-Why?
-
-Because:
-
-```text
-Verification
-Recovery
-Human Loop
-```
-
-all need a good world model.
-
-Otherwise they become hacks.
-
----
-
-# If This Were My Project
-
-I would freeze the architecture today and write at the top of the roadmap:
-
-```text
-ARCHITECTURE LOCKED
-
-No further redesigns.
-
-Only implementation improvements.
-
-Any future change must improve an existing component,
-not replace the architecture.
-```
-
-Because at this point, another architecture rewrite is far more likely to slow Kairos down than improve it. The next gains will come from making the verifier, world model, state machine, and recovery system smarter—not from rearranging folders or inventing a fourth architecture.
+It will move from being a browser automation framework into an actual browser agent. And from what I can see in this codebase, the biggest obstacle isn't missing features anymore—it's removing the hardcoded assumptions that are still scattered through the reasoning layer. 

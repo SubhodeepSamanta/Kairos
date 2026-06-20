@@ -44,7 +44,8 @@ export const NavigationCapability = {
       return { success: true, actions: [{ type: "navigate", params: { url: mapped } }] };
     }
 
-    return { success: false, reason: `Unmapped platform destination: ${target}` };
+    const fallbackUrl = target.includes(".") ? (target.match(/https?:\/\//) ? target : `https://${target}`) : `https://${target.toLowerCase().replace(/\s+/g, "")}.com`;
+    return { success: true, actions: [{ type: "navigate", params: { url: fallbackUrl } }] };
   },
   verify(transition, observation) {
     if (!observation) return false;

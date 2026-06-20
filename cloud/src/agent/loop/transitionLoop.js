@@ -1,0 +1,58 @@
+import { generateTransitions } from "../../reasoning/transitionGenerator.js";
+import { generateExecutionSummary } from "../../world/executionContext.js";
+
+export function processTransitions({
+  goal,
+  resolvedCurState,
+  currentObj,
+  failedTransitions,
+  latestObs,
+  context,
+  totalActions,
+  MAX_GOAL_ACTIONS
+}) {
+  const transitions = generateTransitions(resolvedCurState, currentObj, failedTransitions);
+  if (transitions.length === 0) {
+    console.log("[AGENT] No transitions generated. Target might be reached.");
+    const summary = generateExecutionSummary(context, goal.tracker);
+    console.log("EXECUTION SUMMARY:", JSON.stringify(summary, null, 2));
+    return {
+      shouldExit: true,
+      exitValue: {
+        success: true,
+        confidence: 0.9,
+        observation: latestObs,
+        contextSummary: summary
+      }
+    };
+  }
+
+  const activeTransition = transitions[0];
+
+  console.log(`
+=========================================
+CURRENT STATE: ${resolvedCurState.platform}_${resolvedCurState.currentState} (query="${resolvedCurState.parameters?.query || ""}")
+DESIRED STATE: ${currentObj.platform}_${currentObj.desiredState} (query="${currentObj.parameters?.query || ""}")
+TRANSITIONS: ${transitions.map(t => `${t.id} (${t.score.toFixed(2)})`).join(", ")}
+ACTIVE TRANSITION: ${activeTransition.id} (confidence: ${activeTransition.confidence})
+=========================================
+`);
+  console.log("[TRANSITION]", activeTransition);
+
+  if (totalActions > MAX_GOAL_ACTIONS) {
+    console.log(`[BUDGET] Goal exceeded max actions of ${MAX_GOAL_ACTIONS}`);
+    const summary = generateExecutionSummary(context, goal.tracker);
+    console.log("EXECUTION SUMMARY:", JSON.stringify(summary, null, 2));
+    return {
+      shouldExit: true,
+      exitValue: {
+        success: false,
+        reason: "goal_action_budget_exceeded",
+        observation: latestObs,
+        contextSummary: summary
+      }
+    };
+  }
+
+  return { shouldExit: false, activeTransition };
+}

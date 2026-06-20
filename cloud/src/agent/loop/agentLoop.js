@@ -1,31 +1,19 @@
 import { createPlan } from "../../shared/schemas/plan.js";
-import { routeCapability } from "../../capabilities/router.js";
-import { determineRecovery, diagnoseFailure } from "../recovery/recovery.js";
-import { checkForHumanIntervention, saveAgentSession, loadAgentSession } from "../state/agentSession.js";
 import { llmCallCount } from "../../llm/provider.js";
 import { updateWorldModel, addFinding } from "../../world/worldModel.js";
 import { extractDataFromPage } from "../../reasoning/extractor.js";
 import { setIntent, setGoal, setPlan, setObservation } from "../state/state.js";
 import { parseIntent } from "../../reasoning/intentParser.js";
 import { buildObjectives } from "../../reasoning/objectiveBuilder.js";
-import { initTracker, updateTracker, recordTransition, recordCapabilityExecution } from "../../reasoning/objectiveTracker.js";
+import { initTracker } from "../../reasoning/objectiveTracker.js";
 import { verifyObjective } from "../../verification/objectiveVerifier.js";
-import { resolveCurrentState } from "../../world/currentStateResolver.js";
-import { generateTransitions } from "../../reasoning/transitionGenerator.js";
-import { createExecutionContext, updateExecutionContext, generateExecutionSummary } from "../../world/executionContext.js";
-import { checkDeadEnd } from "../state/agentState.js";
+import { createExecutionContext, generateExecutionSummary } from "../../world/executionContext.js";
+import { loadAgentSession } from "../state/agentSession.js";
 
-function getLatestObservation(observations, fallbackObs) {
-  if (!observations || observations.length === 0) return fallbackObs;
-  const failedObservation = observations.find(obs => !obs.success);
-  let latest = failedObservation || observations[observations.length - 1];
-  
-  const obsWithPageState = [...observations].reverse().find(obs => obs?.pageState);
-  if (latest && !latest.pageState && obsWithPageState?.pageState) {
-    latest = { ...latest, pageState: obsWithPageState.pageState };
-  }
-  return latest;
-}
+import { processObjectives } from "./objectiveLoop.js";
+import { processTransitions } from "./transitionLoop.js";
+import { selectCapabilityAndPlan } from "./executionLoop.js";
+import { handleCapabilityFailure, executeAndVerify, handleNoCapabilityMatched } from "./verificationLoop.js";
 
 function printMetrics(goal, startTime, startLlmCalls) {
   const durationSec = ((Date.now() - startTime) / 1000).toFixed(1);
@@ -144,409 +132,135 @@ async function _runAgentInternal({
     };
   }
 
-  let totalActions = 0;
+  let totalActions = { val: 0 };
   const MAX_GOAL_ACTIONS = 30;
   goal.blacklistedCapabilities = [];
   
   const failedTransitions = {}; 
   const transitionRetries = {};
   const objectiveRetries = {};
-  let totalGoalRetries = 0;
-  let lastResolvedState = null;
+  let totalGoalRetries = { val: 0 };
+  let lastResolvedState = { val: null };
 
   const transitionAuditHistory = [];
 
   while (true) {
-    const resolvedCurState = resolveCurrentState(browserState, lastResolvedState);
-    lastResolvedState = resolvedCurState;
+    const objResult = await processObjectives({
+      goal,
+      browserState,
+      latestObs,
+      intent,
+      context,
+      lastResolvedState
+    });
 
-    if (latestObs) {
-      const needsLlmExtraction = (intent.intent === "extract_information" || goal.tracker.objectives.some(o => o.desiredState === "information_extracted"));
-      if (needsLlmExtraction) {
-        const preUpdateCalls = llmCallCount;
-        await updateExecutionContext(context, latestObs, resolvedCurState);
-        goal.metrics.planning_calls += (llmCallCount - preUpdateCalls);
-      } else {
-        const pageUrl = latestObs.pageState?.url || latestObs.url;
-        const pageTitle = latestObs.pageState?.title || latestObs.title;
-        if (pageUrl && !context.visitedPages.some(p => p.url === pageUrl)) {
-          context.visitedPages.push({
-            url: pageUrl,
-            title: pageTitle || "",
-            timestamp: new Date().toISOString()
-          });
-        }
+    if (objResult.shouldExit) {
+      return objResult.exitValue;
+    }
+    if (objResult.shouldContinue) {
+      lastResolvedState.val = objResult.resolvedCurState;
+      continue;
+    }
+
+    const { resolvedCurState, currentObj } = objResult;
+
+    const transResult = processTransitions({
+      goal,
+      resolvedCurState,
+      currentObj,
+      failedTransitions,
+      latestObs,
+      context,
+      totalActions: totalActions.val,
+      MAX_GOAL_ACTIONS
+    });
+
+    if (transResult.shouldExit) {
+      return transResult.exitValue;
+    }
+
+    const { activeTransition } = transResult;
+
+    const { capability, plan } = selectCapabilityAndPlan({
+      goal,
+      activeTransition,
+      browserState
+    });
+
+    if (capability && !plan) {
+      const failResult = await handleCapabilityFailure({
+        goal,
+        activeTransition,
+        currentObj,
+        browserState,
+        latestObs,
+        context,
+        transitionRetries,
+        objectiveRetries,
+        totalGoalRetries,
+        failedTransitions,
+        executePlan,
+        totalActions,
+        capability
+      });
+
+      if (failResult.shouldExit) {
+        return failResult.exitValue;
       }
-    }
-
-    const intervention = checkForHumanIntervention(browserState);
-    if (intervention) {
-      console.log(`[HUMAN_INTERVENTION] State: ${intervention.state}, Reason: ${intervention.reason}`);
-      const summary = generateExecutionSummary(context, goal.tracker);
-      saveAgentSession(goal, goal.tracker, context, intervention.state);
-      return {
-        success: false,
-        reason: intervention.state,
-        observation: latestObs,
-        contextSummary: summary
-      };
-    }
-
-    const hasQuestions = context.completedQuestions.length > 0 || context.openQuestions.length > 0;
-    const allQuestionsResolved = hasQuestions && context.openQuestions.length === 0;
-    if (allQuestionsResolved) {
-      console.log("[GOAL COMPLETE] Early exit: All execution-context open questions have been successfully answered.");
-      while (goal.tracker.currentIndex < goal.tracker.objectives.length) {
-        updateTracker(goal.tracker, goal.tracker.currentIndex, "completed");
-      }
-      const summary = generateExecutionSummary(context, goal.tracker);
-      console.log("EXECUTION SUMMARY:", JSON.stringify(summary, null, 2));
-      return {
-        success: true,
-        confidence: 0.95,
-        observation: latestObs,
-        contextSummary: summary
-      };
-    }
-
-    while (goal.tracker.currentIndex < goal.tracker.objectives.length) {
-      const currentObj = goal.tracker.objectives[goal.tracker.currentIndex];
-      if (verifyObjective(currentObj, browserState)) {
-        updateTracker(goal.tracker, goal.tracker.currentIndex, "completed");
-        console.log(`[OBJECTIVE] Achieved via state: ${currentObj.desiredState}`);
-      } else {
-        break;
-      }
-    }
-
-    if (goal.tracker.currentIndex >= goal.tracker.objectives.length) {
-      console.log("[GOAL COMPLETE] All objectives met.");
-      const summary = generateExecutionSummary(context, goal.tracker);
-      console.log("EXECUTION SUMMARY:", JSON.stringify(summary, null, 2));
-      return {
-        success: true,
-        confidence: 0.95,
-        observation: latestObs,
-        contextSummary: summary
-      };
-    }
-
-    const currentObj = goal.tracker.objectives[goal.tracker.currentIndex];
-    context.currentObjective = currentObj;
-
-    if (currentObj.openQuestions && currentObj.openQuestions.length > 0) {
-      const objQuestionsResolved = currentObj.openQuestions.every(q => 
-        context.completedQuestions.some(cq => cq.question === q)
-      );
-      if (objQuestionsResolved) {
-        console.log(`[OBJECTIVE COMPLETE] Early exit: All information gaps for objective "${currentObj.desiredState}" resolved.`);
-        updateTracker(goal.tracker, goal.tracker.currentIndex, "completed");
-        continue;
-      }
-    }
-
-    updateTracker(goal.tracker, goal.tracker.currentIndex, "in_progress");
-
-    const transitions = generateTransitions(resolvedCurState, currentObj, failedTransitions);
-    if (transitions.length === 0) {
-      console.log("[AGENT] No transitions generated. Target might be reached.");
-      const summary = generateExecutionSummary(context, goal.tracker);
-      console.log("EXECUTION SUMMARY:", JSON.stringify(summary, null, 2));
-      return {
-        success: true,
-        confidence: 0.9,
-        observation: latestObs,
-        contextSummary: summary
-      };
-    }
-
-    const activeTransition = transitions[0];
-
-    console.log(`
-=========================================
-CURRENT STATE: ${resolvedCurState.platform}_${resolvedCurState.currentState} (query="${resolvedCurState.parameters.query || ""}")
-DESIRED STATE: ${currentObj.platform}_${currentObj.desiredState} (query="${currentObj.parameters.query || ""}")
-TRANSITIONS: ${transitions.map(t => `${t.id} (${t.score.toFixed(2)})`).join(", ")}
-ACTIVE TRANSITION: ${activeTransition.id} (confidence: ${activeTransition.confidence})
-=========================================
-`);
-    console.log("[TRANSITION]", activeTransition);
-
-    if (totalActions > MAX_GOAL_ACTIONS) {
-      console.log(`[BUDGET] Goal exceeded max actions of ${MAX_GOAL_ACTIONS}`);
-      const summary = generateExecutionSummary(context, goal.tracker);
-      console.log("EXECUTION SUMMARY:", JSON.stringify(summary, null, 2));
-      return {
-        success: false,
-        reason: "goal_action_budget_exceeded",
-        observation: latestObs,
-        contextSummary: summary
-      };
-    }
-
-    const capability = routeCapability(activeTransition, goal.blacklistedCapabilities);
-    let plan = null;
-    let executeSuccess = false;
-
-    console.log("[CAPABILITY]", capability ? capability.name : "None");
-
-    console.log(`[CAPABILITY DIAGNOSTIC]
-  Transition: ${activeTransition.id}
-  Selected Capability: ${capability ? capability.name : "None"}
-  Capability Input (desiredState): ${activeTransition.desiredState}
-  Capability Input (parameters): ${JSON.stringify(activeTransition.parameters)}`);
-
-    if (capability) {
-      console.log("DEBUG BROWSER STATE KEYS:", Object.keys(browserState));
-      console.log("DEBUG BROWSER STATE INPUTS:", browserState.inputs);
-      capability.executions++;
-      const capabilityResult = capability.execute(activeTransition, browserState) || { success: false, reason: "No response from capability execute" };
-      
-      console.log("[ACTIONS]", capabilityResult.actions || []);
-      console.log(`[CAPABILITY DIAGNOSTIC] Capability Output:`, JSON.stringify(capabilityResult, null, 2));
-
-      if (capabilityResult.success && capabilityResult.actions && capabilityResult.actions.length > 0) {
-        plan = createPlan(goal.id, capabilityResult.actions);
-      } else {
-        console.warn(`[CAPABILITY FAILURE] Capability matched but returned invalid execution plan. Reason: ${capabilityResult.reason || "Empty actions or success=false"}`);
-        
-        recordCapabilityExecution(goal.tracker, capability.name, "failure", 0);
-        capability.failures++;
-        capability.successRate = capability.successes / capability.executions;
-
-        const failure = { 
-          type: "element_missing", 
-          message: `Capability "${capability.name}" failed to generate plan: ${capabilityResult.reason || "empty actions"}`, 
-          browserState 
-        };
-        console.log("[RECOVERY]", failure.message);
-        goal.tracker.lastFailure = failure.message;
-        goal.tracker.attemptCount++;
-
-        const transitionId = activeTransition.id;
-        transitionRetries[transitionId] = (transitionRetries[transitionId] || 0) + 1;
-        objectiveRetries[currentObj.id] = (objectiveRetries[currentObj.id] || 0) + 1;
-        totalGoalRetries++;
-
-        if (totalGoalRetries >= 10 || objectiveRetries[currentObj.id] >= 5) {
-          console.log(`[LIMITS EXCEEDED] Goal retries: ${totalGoalRetries}/10, Objective retries: ${objectiveRetries[currentObj.id]}/5. Requiring manual intervention.`);
-          const summary = generateExecutionSummary(context, goal.tracker);
-          saveAgentSession(goal, goal.tracker, context, "WAITING_FOR_MANUAL_ACTION", activeTransition);
-          return {
-            success: false,
-            reason: "WAITING_FOR_MANUAL_ACTION",
-            observation: latestObs,
-            contextSummary: summary
-          };
-        }
-
-        const escalationRetryCount = transitionRetries[transitionId] - 1;
-        const recoveryResult = determineRecovery(failure, activeTransition, capability, escalationRetryCount);
-        if (recoveryResult && recoveryResult.escalate) {
-          if (recoveryResult.escalate === "alternative_capability") {
-            console.log(`[RECOVERY ESCALATION] Blacklisting capability: ${capability.name}`);
-            goal.blacklistedCapabilities.push(capability.name);
-          } else if (recoveryResult.escalate === "alternative_transition") {
-            console.log(`[RECOVERY ESCALATION] Blacklisting transition: ${transitionId}`);
-            failedTransitions[transitionId] = (failedTransitions[transitionId] || 0) + 1;
-          } else if (recoveryResult.escalate === "human_loop") {
-            console.log(`[RECOVERY ESCALATION] Pausing execution. Escalating to state: ${recoveryResult.state}`);
-            const summary = generateExecutionSummary(context, goal.tracker);
-            saveAgentSession(goal, goal.tracker, context, recoveryResult.state, activeTransition);
-            return {
-              success: false,
-              reason: recoveryResult.state,
-              observation: latestObs,
-              contextSummary: summary
-            };
-          }
-        } else if (recoveryResult && Array.isArray(recoveryResult)) {
-          console.log(`[RECOVERY] Executing simple recovery actions for failure: ${failure.type}`);
-          const recPlan = createPlan(goal.id, recoveryResult);
-          const recResult = await executePlan(recPlan);
-          const recObs = recResult.observations || [];
-          latestObs = getLatestObservation(recObs, latestObs);
-          browserState = latestObs?.pageState || latestObs || {};
-          totalActions += recPlan.actions.length;
-          updateWorldModel(goal, latestObs);
-        }
-      }
+      latestObs = failResult.latestObs;
+      browserState = failResult.browserState;
     }
 
     if (plan) {
-      setPlan(plan);
-      console.log("EXECUTING PLAN:", JSON.stringify(plan, null, 2));
+      const execResult = await executeAndVerify({
+        goal,
+        activeTransition,
+        currentObj,
+        browserState,
+        latestObs,
+        context,
+        plan,
+        capability,
+        executePlan,
+        totalActions,
+        lastResolvedState,
+        resolvedCurState,
+        transitionAuditHistory,
+        transitionRetries,
+        objectiveRetries,
+        totalGoalRetries,
+        failedTransitions
+      });
 
-      const result = await executePlan(plan);
-      console.log("EXECUTE RESULT:", JSON.stringify(result, null, 2));
-
-      const observations = result.observations || [];
-      latestObs = getLatestObservation(observations, latestObs);
-      browserState = latestObs?.pageState || latestObs || {};
-
-      totalActions += plan.actions.length;
-      setObservation(latestObs);
-      updateWorldModel(goal, latestObs);
-      const resolvedNextState = resolveCurrentState(browserState, lastResolvedState);
-      lastResolvedState = resolvedNextState;
-      recordTransition(goal.tracker, activeTransition, resolvedCurState, resolvedNextState);
-
-      const targetVerified = capability.verify(activeTransition, latestObs);
-      console.log("[VERIFY RESULT]", targetVerified);
-      console.log(`[VERIFICATION] transition: ${activeTransition.id}, verified: ${targetVerified}`);
-
-      const env = resolvedCurState.environment || "generic";
-      if (capability) {
-        if (!capability.success_by_environment) {
-          capability.success_by_environment = {};
-        }
-        if (!capability.success_by_environment[env]) {
-          capability.success_by_environment[env] = { executions: 0, successes: 0, successRate: 1.0 };
-        }
-        capability.success_by_environment[env].executions++;
+      if (execResult.shouldExit) {
+        return execResult.exitValue;
       }
-
-      if (targetVerified) {
-        console.log(`[VERIFICATION] Target state verified successfully for transition: ${activeTransition.id}`);
-        recordCapabilityExecution(goal.tracker, capability.name, "success");
-        if (capability) {
-          capability.successes++;
-          capability.successRate = capability.successes / capability.executions;
-          capability.success_by_environment[env].successes++;
-          capability.success_by_environment[env].successRate = 
-            capability.success_by_environment[env].successes / capability.success_by_environment[env].executions;
-        }
-        executeSuccess = true;
-      } else {
-        console.log(`[VERIFICATION] Target state verification failed for transition: ${activeTransition.id}`);
-        
-        const finalCheckState = resolveCurrentState(browserState, lastResolvedState);
-        if (verifyObjective(currentObj, finalCheckState)) {
-          console.log(`[RECOVERY BYPASS] Re-resolved state satisfies active objective "${currentObj.desiredState}". Skipping recovery.`);
-          updateTracker(goal.tracker, goal.tracker.currentIndex, "completed");
-          executeSuccess = true;
-          
-          if (capability) {
-            capability.successes++;
-            capability.successRate = capability.successes / capability.executions;
-            capability.success_by_environment[env].successes++;
-            capability.success_by_environment[env].successRate = 
-              capability.success_by_environment[env].successes / capability.success_by_environment[env].executions;
-          }
-          recordCapabilityExecution(goal.tracker, capability.name, "success");
-          continue;
-        }
-
-        recordCapabilityExecution(goal.tracker, capability.name, "failure", 0);
-        if (capability) {
-          capability.failures++;
-          capability.successRate = capability.successes / capability.executions;
-          capability.success_by_environment[env].successRate = 
-            capability.success_by_environment[env].successes / capability.success_by_environment[env].executions;
-        }
-
-        const failure = diagnoseFailure(activeTransition, browserState, result);
-        console.log("[RECOVERY]", failure.message);
-        goal.tracker.lastFailure = failure.message;
-        goal.tracker.attemptCount++;
-
-        const transitionId = activeTransition.id;
-        transitionRetries[transitionId] = (transitionRetries[transitionId] || 0) + 1;
-        objectiveRetries[currentObj.id] = (objectiveRetries[currentObj.id] || 0) + 1;
-        totalGoalRetries++;
-
-        if (totalGoalRetries >= 10 || objectiveRetries[currentObj.id] >= 5) {
-          console.log(`[LIMITS EXCEEDED] Goal retries: ${totalGoalRetries}/10, Objective retries: ${objectiveRetries[currentObj.id]}/5. Requiring manual intervention.`);
-          const summary = generateExecutionSummary(context, goal.tracker);
-          saveAgentSession(goal, goal.tracker, context, "WAITING_FOR_MANUAL_ACTION", activeTransition);
-          return {
-            success: false,
-            reason: "WAITING_FOR_MANUAL_ACTION",
-            observation: latestObs,
-            contextSummary: summary
-          };
-        }
-
-        const lastThreeStuck = checkDeadEnd(transitionAuditHistory, resolvedCurState, transitionId, failure);
-        
-        let escalationRetryCount = transitionRetries[transitionId] - 1;
-        if (lastThreeStuck) {
-          console.log(`[DEAD-END DETECTED] Same state, transition, and failure type hit 3 times. Forcing escalation.`);
-          escalationRetryCount = 3;
-        }
-
-        const postFailIntervention = checkForHumanIntervention(browserState);
-        if (postFailIntervention) {
-          console.log(`[HUMAN_INTERVENTION] Post-failure state: ${postFailIntervention.state}, Reason: ${postFailIntervention.reason}`);
-          const summary = generateExecutionSummary(context, goal.tracker);
-          saveAgentSession(goal, goal.tracker, context, postFailIntervention.state, activeTransition);
-          return {
-            success: false,
-            reason: postFailIntervention.state,
-            observation: latestObs,
-            contextSummary: summary
-          };
-        }
-
-        const recoveryResult = determineRecovery(failure, activeTransition, capability, escalationRetryCount);
-        if (recoveryResult && recoveryResult.escalate) {
-          if (recoveryResult.escalate === "alternative_capability") {
-            console.log(`[RECOVERY ESCALATION] Blacklisting capability: ${capability.name}`);
-            goal.blacklistedCapabilities.push(capability.name);
-          } else if (recoveryResult.escalate === "alternative_transition") {
-            console.log(`[RECOVERY ESCALATION] Blacklisting transition: ${transitionId}`);
-            failedTransitions[transitionId] = (failedTransitions[transitionId] || 0) + 1;
-          } else if (recoveryResult.escalate === "human_loop") {
-            console.log(`[RECOVERY ESCALATION] Pausing execution. Escalating to state: ${recoveryResult.state}`);
-            const summary = generateExecutionSummary(context, goal.tracker);
-            saveAgentSession(goal, goal.tracker, context, recoveryResult.state, activeTransition);
-            return {
-              success: false,
-              reason: recoveryResult.state,
-              observation: latestObs,
-              contextSummary: summary
-            };
-          }
-        } else if (recoveryResult && Array.isArray(recoveryResult)) {
-          console.log(`[RECOVERY] Executing simple recovery actions for failure: ${failure.type}`);
-          const recPlan = createPlan(goal.id, recoveryResult);
-          const recResult = await executePlan(recPlan);
-          const recObs = recResult.observations || [];
-          latestObs = getLatestObservation(recObs, latestObs);
-          browserState = latestObs?.pageState || latestObs || {};
-          totalActions += recPlan.actions.length;
-          updateWorldModel(goal, latestObs);
-
-          const postRecoveryVerified = capability.verify(activeTransition, latestObs);
-          if (postRecoveryVerified) {
-            console.log("[RECOVERY] Target state verified after recovery.");
-            executeSuccess = true;
-          } else {
-            console.log("[RECOVERY] Target state verification still failed after recovery.");
-          }
-        }
+      if (execResult.shouldContinue) {
+        latestObs = execResult.latestObs;
+        browserState = execResult.browserState;
+        continue;
       }
-    } else {
-      console.log("[AGENT] No capability matched or no execution plan generated. Attempting recovery...");
-      const failure = { type: "element_missing", message: "No capability matched transition", browserState };
-      const recoveryActions = determineRecovery(failure, activeTransition, null, 0);
-      if (recoveryActions && Array.isArray(recoveryActions)) {
-        const recPlan = createPlan(goal.id, recoveryActions);
-        const recResult = await executePlan(recPlan);
-        const recObs = recResult.observations || [];
-        latestObs = getLatestObservation(recObs, latestObs);
-        browserState = latestObs?.pageState || latestObs || {};
-        totalActions += recPlan.actions.length;
-        updateWorldModel(goal, latestObs);
-      } else {
-        console.log("[AGENT] Recovery failed to generate actions.");
-        const summary = generateExecutionSummary(context, goal.tracker);
-        return {
-          success: false,
-          reason: "no_plan_or_recovery",
-          observation: latestObs,
-          contextSummary: summary
-        };
+      latestObs = execResult.latestObs;
+      browserState = execResult.browserState;
+    }
+
+    if (!capability) {
+      const noCapResult = await handleNoCapabilityMatched({
+        goal,
+        activeTransition,
+        browserState,
+        latestObs,
+        executePlan,
+        totalActions
+      });
+
+      if (noCapResult.shouldExit) {
+        return noCapResult.exitValue;
+      }
+      if (noCapResult.shouldContinue) {
+        latestObs = noCapResult.latestObs;
+        browserState = noCapResult.browserState;
+        continue;
       }
     }
 

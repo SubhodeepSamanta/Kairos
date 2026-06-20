@@ -81,19 +81,20 @@ export function resolveCurrentState(observation, previousResolvedState = null) {
     );
     const hasSearchInput = (browser.inputs || []).some(input => input.purpose === "search_input");
 
-    if (query || url.includes("/search") || url.includes("/results") || pageType.includes("results") || (hasResultLinks && hasSearchInput)) {
+    const pathname = urlObj ? urlObj.pathname.split("/").filter(Boolean) : [];
+    const isHomePath = pathname.length === 0 || (pathname.length === 1 && ["feed", "home", "index.html", "index.php"].includes(pathname[0]));
+    const isHomeUrl = isHomePath || pageType.includes("home");
+
+    if (pageType === "logged_in" || pageType.includes("logged_in")) {
+      currentState = "logged_in";
+    } else if (isHomeUrl && !query && !url.includes("/search") && !url.includes("/results") && !pageType.includes("results")) {
+      currentState = "home";
+    } else if (query || url.includes("/search") || url.includes("/results") || pageType.includes("results") || (hasResultLinks && hasSearchInput)) {
       currentState = "results";
     } else if ((platform === "youtube" && (url.includes("/watch") || url.includes("v="))) || pageType.includes("video_playing") || pageType.includes("watch")) {
       currentState = "video_playing";
     } else {
-      const pathname = urlObj ? urlObj.pathname.split("/").filter(Boolean) : [];
-      if (pathname.length === 0 || pageType.includes("home")) {
-        currentState = "home";
-      } else if (pathname.length === 1 && ["feed", "home", "index.html", "index.php"].includes(pathname[0])) {
-        currentState = "home";
-      } else {
-        currentState = "content";
-      }
+      currentState = "content";
     }
   }
 

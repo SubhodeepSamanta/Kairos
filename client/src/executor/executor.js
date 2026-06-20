@@ -18,10 +18,12 @@ export async function executePlan(plan) {
 
     if (action.type === ACTIONS.PRESS_KEY) {
       const page = getCurrentPage();
-      try {
-        await page.waitForLoadState("domcontentloaded", { timeout: 3000 });
-      } catch {}
-      await page.waitForTimeout(500);
+      if (page) {
+        try {
+          await page.waitForLoadState("domcontentloaded", { timeout: 3000 });
+        } catch {}
+      }
+      await new Promise(resolve => setTimeout(resolve, 500));
     }
 
     const after = await createSnapshot();
@@ -50,10 +52,12 @@ export async function executePlan(plan) {
 
     if (result.success && shouldRead) {
       const page = getCurrentPage();
-      try {
-        await page.waitForLoadState("domcontentloaded", { timeout: 3000 });
-      } catch {}
-      await page.waitForTimeout(500);
+      if (page) {
+        try {
+          await page.waitForLoadState("domcontentloaded", { timeout: 3000 });
+        } catch {}
+      }
+      await new Promise(resolve => setTimeout(resolve, 500));
 
       result.pageState = await readPage();
       console.log("AUTO READ:", action.type, result.pageState?.url);

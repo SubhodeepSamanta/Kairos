@@ -196,6 +196,31 @@ export function buildObjectives(intent) {
       });
       break;
     }
+    case "authenticate": {
+      objectives.push({
+        id: "obj1",
+        desiredState: "home",
+        platform,
+        parameters: {},
+        successConditions: [`URL contains ${platform}`],
+        priority: 5,
+        dependencies: [],
+        confidence: 1.0,
+        openQuestions: []
+      });
+      objectives.push({
+        id: "obj2",
+        desiredState: "logged_in",
+        platform,
+        parameters: { email: intent.email, password: intent.password },
+        successConditions: ["logged in"],
+        priority: 4,
+        dependencies: ["obj1"],
+        confidence: 1.0,
+        openQuestions: []
+      });
+      break;
+    }
 
     default:
       objectives.push({
