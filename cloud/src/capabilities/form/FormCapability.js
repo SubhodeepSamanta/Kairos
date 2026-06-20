@@ -1,4 +1,4 @@
-import { resolveCurrentState } from "../world/currentStateResolver.js";
+import { resolveCurrentState } from "../../world/currentStateResolver.js";
 
 export const FormCapability = {
   name: "FormCapability",

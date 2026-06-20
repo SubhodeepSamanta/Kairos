@@ -1,5 +1,5 @@
-import { resolveCurrentState } from "../world/currentStateResolver.js";
-import { evaluateState } from "../verification/objectiveVerifier.js";
+import { resolveCurrentState } from "../../world/currentStateResolver.js";
+import { evaluateState } from "../../verification/objectiveVerifier.js";
 
 export const SearchCapability = {
   name: "SearchCapability",

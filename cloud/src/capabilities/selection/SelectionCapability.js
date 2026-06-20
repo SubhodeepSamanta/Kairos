@@ -1,4 +1,4 @@
-import { resolveCurrentState } from "../world/currentStateResolver.js";
+import { resolveCurrentState } from "../../world/currentStateResolver.js";
 
 const ORDINALS = {
   "first": 0, "1st": 0, "top": 0,

@@ -1,11 +1,7 @@
 const state = {
-
   goal: null,
-
   plan: null,
-
   observation: null,
-
   browser: null,
   intent: null
 };
@@ -41,8 +37,7 @@ export function getPlan() {
 export function setObservation(
   observation
 ) {
-  state.observation =
-    observation;
+  state.observation = observation;
 }
 
 export function getObservation() {
@@ -52,8 +47,7 @@ export function getObservation() {
 export function setBrowserState(
   browser
 ) {
-  state.browser =
-    browser;
+  state.browser = browser;
 }
 
 export function getBrowserState() {

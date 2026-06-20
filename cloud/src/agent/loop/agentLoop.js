@@ -1,19 +1,19 @@
-import { createPlan } from "../shared/schemas/plan.js";
-import { routeCapability } from "../capabilities/router.js";
-import { determineRecovery, diagnoseFailure } from "./recovery.js";
-import { checkForHumanIntervention, saveAgentSession, loadAgentSession } from "./agentSession.js";
-import { llmCallCount } from "../llm/provider.js";
-import { updateWorldModel, addFinding } from "../world/worldModel.js";
-import { extractDataFromPage } from "../planner/extractor.js";
-import { setIntent, setGoal, setPlan, setObservation } from "./state.js";
-import { parseIntent } from "../planner/intentParser.js";
-import { buildObjectives } from "../planner/objectiveBuilder.js";
-import { initTracker, updateTracker, recordTransition, recordCapabilityExecution } from "../planner/objectiveTracker.js";
-import { verifyObjective } from "../verification/objectiveVerifier.js";
-import { resolveCurrentState } from "../world/currentStateResolver.js";
-import { generateTransitions } from "../planner/transitionGenerator.js";
-import { createExecutionContext, updateExecutionContext, generateExecutionSummary } from "../world/executionContext.js";
-import { checkDeadEnd } from "./agentState.js";
+import { createPlan } from "../../shared/schemas/plan.js";
+import { routeCapability } from "../../capabilities/router.js";
+import { determineRecovery, diagnoseFailure } from "../recovery/recovery.js";
+import { checkForHumanIntervention, saveAgentSession, loadAgentSession } from "../state/agentSession.js";
+import { llmCallCount } from "../../llm/provider.js";
+import { updateWorldModel, addFinding } from "../../world/worldModel.js";
+import { extractDataFromPage } from "../../reasoning/extractor.js";
+import { setIntent, setGoal, setPlan, setObservation } from "../state/state.js";
+import { parseIntent } from "../../reasoning/intentParser.js";
+import { buildObjectives } from "../../reasoning/objectiveBuilder.js";
+import { initTracker, updateTracker, recordTransition, recordCapabilityExecution } from "../../reasoning/objectiveTracker.js";
+import { verifyObjective } from "../../verification/objectiveVerifier.js";
+import { resolveCurrentState } from "../../world/currentStateResolver.js";
+import { generateTransitions } from "../../reasoning/transitionGenerator.js";
+import { createExecutionContext, updateExecutionContext, generateExecutionSummary } from "../../world/executionContext.js";
+import { checkDeadEnd } from "../state/agentState.js";
 
 function getLatestObservation(observations, fallbackObs) {
   if (!observations || observations.length === 0) return fallbackObs;

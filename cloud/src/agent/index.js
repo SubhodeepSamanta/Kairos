@@ -1,2 +1,2 @@
-import { runAgent } from "./agentLoop.js";
+import { runAgent } from "./loop/agentLoop.js";
 export { runAgent };

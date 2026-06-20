@@ -1,19 +1,12 @@
-import {
-  getBrowserState
-} from "./state.js";
-
-import { rankElements }
-from "./ranker.js";
+import { getBrowserState } from "./state.js";
+import { rankElements } from "../ranking/ranker.js";
 
 const MAX_INPUTS = 20;
 const MAX_BUTTONS = 30;
 const MAX_LINKS = 30;
 
 export function buildBrowserContext() {
-
-  const browser =
-    getBrowserState();
-
+  const browser = getBrowserState();
   if (!browser) {
     return "";
   }
@@ -88,23 +81,14 @@ export function buildBrowserContext() {
 
   return context;
 }
-export function buildRelevantBrowserContext(
-  intent = ""
-) {
 
-  const browser =
-    getBrowserState();
-
+export function buildRelevantBrowserContext(intent = "") {
+  const browser = getBrowserState();
   if (!browser) {
     return "";
   }
 
-  const ranked =
-    rankElements(
-      intent,
-      browser
-    );
-
+  const ranked = rankElements(intent, browser);
   let context = "";
 
   if (browser.pageType) {
@@ -112,24 +96,19 @@ export function buildRelevantBrowserContext(
   }
 
   if (browser.url) {
-    context +=
-      `URL:\n${browser.url}\n\n`;
+    context += `URL:\n${browser.url}\n\n`;
   }
 
   if (browser.title) {
-    context +=
-      `Title:\n${browser.title}\n\n`;
+    context += `Title:\n${browser.title}\n\n`;
   }
 
-  // Filter & Compress based on pageType
   let filteredRanked = ranked;
   if (browser.pageType && browser.pageType !== "generic") {
-    // Keep elements with semantic purpose, plus higher ranked ones
     filteredRanked = ranked.filter(item => 
       (item.purpose && item.purpose !== "generic") || 
       item.score > 10
     );
-    // If we filtered out too much, fall back to top ranked elements
     if (filteredRanked.length < 5) {
       filteredRanked = ranked;
     }
@@ -155,35 +134,20 @@ export function buildRelevantBrowserContext(
     return 0;
   };
 
-  const inputs =
-    filteredRanked
-      .filter(
-        item =>
-          item.category ===
-          "input"
-      )
+  const inputs = filteredRanked
+      .filter(item => item.category === "input")
       .sort(sortProtectedFirst)
-      .slice(0, 10); // Compressed down from 15
+      .slice(0, 10);
 
-  const buttons =
-    filteredRanked
-      .filter(
-        item =>
-          item.category ===
-          "button"
-      )
+  const buttons = filteredRanked
+      .filter(item => item.category === "button")
       .sort(sortProtectedFirst)
-      .slice(0, 15); // Compressed down from 20
+      .slice(0, 15);
 
-  const links =
-    filteredRanked
-      .filter(
-        item =>
-          item.category ===
-          "link"
-      )
+  const links = filteredRanked
+      .filter(item => item.category === "link")
       .sort(sortProtectedFirst)
-      .slice(0, 15); // Compressed down from 20
+      .slice(0, 15);
 
   if (inputs.length) {
     context += "Inputs:\n";

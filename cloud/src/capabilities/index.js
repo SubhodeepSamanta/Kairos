@@ -1,7 +1,7 @@
-export { NavigationCapability } from "./NavigationCapability.js";
-export { SearchCapability } from "./SearchCapability.js";
-export { ResultCapability, SelectionCapability } from "./SelectionCapability.js";
-export { MediaCapability } from "./MediaCapability.js";
-export { ExtractionCapability } from "./ExtractionCapability.js";
-export { FormCapability } from "./FormCapability.js";
-export { TabCapability } from "./TabCapability.js";
+export { NavigationCapability } from "./navigation/NavigationCapability.js";
+export { SearchCapability } from "./search/SearchCapability.js";
+export { ResultCapability, SelectionCapability } from "./selection/SelectionCapability.js";
+export { MediaCapability } from "./media/MediaCapability.js";
+export { ExtractionCapability } from "./extraction/ExtractionCapability.js";
+export { FormCapability } from "./form/FormCapability.js";
+export { TabCapability } from "./tab/TabCapability.js";

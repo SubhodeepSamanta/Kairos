@@ -3,7 +3,7 @@ import { log } from "../utils/logger.js";
 import {
   getAgentState,
   setBrowserState
-} from "../agent/state.js";
+} from "../agent/state/state.js";
 import { createGoal } from "../shared/schemas/goal.js";
 import { runAgent } from "../agent/index.js";
 import { routeMessage } from "../router/router.js";
