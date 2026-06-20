@@ -92,5 +92,18 @@ export function classifyPage(url, title, elements = {}) {
     }
   }
 
-  return { site, environment, pageType, legacyPageType: pageType };
+  const capabilities = ["content_available"];
+  if (hasSearchInput || hasSearchLauncher) capabilities.push("search_available");
+  if (hasResultLinks) {
+    capabilities.push("results_available");
+    capabilities.push("selection_available");
+  }
+  if (hasMediaControls || hasVideoLinks) capabilities.push("media_available");
+  if (inputs.length > 0) capabilities.push("form_available");
+  if (links.length > 0) capabilities.push("navigation_available");
+  if (hasAuthInputs) capabilities.push("authentication_available");
+
+  console.log(`[SEMANTIC CLASSIFIER] pageType="${pageType}" capabilities=${JSON.stringify(capabilities)}`);
+
+  return { site, environment, pageType, legacyPageType: pageType, capabilities };
 }

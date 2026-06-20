@@ -17,7 +17,17 @@ export const SearchCapability = {
     if (!query) return { success: false, reason: "No search query provided in transition parameters" };
 
     const actions = [];
-    const searchInput = (browserState.inputs || []).find(input => input.purpose === "search_input");
+    let matchedBySemantic = false;
+    let fallbackToLegacy = false;
+
+    let searchInput = (browserState.inputs || []).find(input => input.semanticType === "search_input");
+    if (searchInput) {
+      matchedBySemantic = true;
+    } else {
+      searchInput = (browserState.inputs || []).find(input => input.purpose === "search_input");
+      if (searchInput) fallbackToLegacy = true;
+    }
+
     if (searchInput) {
       actions.push({
         type: "type",
@@ -38,11 +48,20 @@ export const SearchCapability = {
           seconds: 3
         }
       });
+      console.log(`[SEMANTIC CAPABILITY] name="SearchCapability" matched_by_semantic=${matchedBySemantic} fallback_to_legacy=${fallbackToLegacy}`);
       return { success: true, actions };
     }
 
-    const searchLauncher = (browserState.buttons || []).find(btn => btn.purpose === "search_launcher") ||
-                           (browserState.links || []).find(link => link.purpose === "search_launcher");
+    let searchLauncher = (browserState.buttons || []).find(btn => btn.semanticType === "search_trigger") ||
+                         (browserState.links || []).find(link => link.semanticType === "search_trigger");
+    if (searchLauncher) {
+      matchedBySemantic = true;
+    } else {
+      searchLauncher = (browserState.buttons || []).find(btn => btn.purpose === "search_launcher") ||
+                       (browserState.links || []).find(link => link.purpose === "search_launcher");
+      if (searchLauncher) fallbackToLegacy = true;
+    }
+
     if (searchLauncher) {
       actions.push({
         type: "click",
@@ -50,10 +69,18 @@ export const SearchCapability = {
           element: searchLauncher.id
         }
       });
+      console.log(`[SEMANTIC CAPABILITY] name="SearchCapability" matched_by_semantic=${matchedBySemantic} fallback_to_legacy=${fallbackToLegacy}`);
       return { success: true, actions };
     }
 
-    const searchBtn = (browserState.buttons || []).find(btn => btn.purpose === "search_button");
+    let searchBtn = (browserState.buttons || []).find(btn => btn.semanticType === "search_trigger");
+    if (searchBtn) {
+      matchedBySemantic = true;
+    } else {
+      searchBtn = (browserState.buttons || []).find(btn => btn.purpose === "search_button");
+      if (searchBtn) fallbackToLegacy = true;
+    }
+
     if (searchBtn) {
       actions.push({
         type: "click",
@@ -61,6 +88,7 @@ export const SearchCapability = {
           element: searchBtn.id
         }
       });
+      console.log(`[SEMANTIC CAPABILITY] name="SearchCapability" matched_by_semantic=${matchedBySemantic} fallback_to_legacy=${fallbackToLegacy}`);
       return { success: true, actions };
     }
 

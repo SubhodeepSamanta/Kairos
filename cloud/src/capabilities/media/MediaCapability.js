@@ -13,7 +13,20 @@ export const MediaCapability = {
     return transition.desiredState === "video_playing" || transition.desiredState === "audio_playing";
   },
   execute(transition, browserState) {
-    const videoLink = (browserState.links || []).find(link => link.purpose === "video_link" || (link.href && link.href.includes("/watch")));
+    let matchedBySemantic = false;
+    let fallbackToLegacy = false;
+
+    let videoLink = (browserState.links || []).find(link => link.semanticType === "media_element" || link.semanticType === "content_item");
+    if (videoLink) {
+      matchedBySemantic = true;
+    } else {
+      videoLink = (browserState.links || []).find(link => link.purpose === "video_link" || (link.href && link.href.includes("/watch")));
+      if (videoLink) {
+        fallbackToLegacy = true;
+      }
+    }
+
+    console.log(`[SEMANTIC CAPABILITY] name="MediaCapability" matched_by_semantic=${matchedBySemantic} fallback_to_legacy=${fallbackToLegacy}`);
     if (videoLink) {
       return {
         success: true,

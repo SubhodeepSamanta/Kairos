@@ -40,6 +40,7 @@ export async function readLinks(page) {
     const cls = classifyElement(linkObj, "link");
     linkObj.purpose = cls.purpose;
     linkObj.confidence = cls.confidence;
+    linkObj.semanticType = cls.semanticType;
     links.push(linkObj);
   }
   return links;

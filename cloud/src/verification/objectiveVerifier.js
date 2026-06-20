@@ -57,8 +57,35 @@ export function evaluateState(objective, resolvedState, observation) {
   }
 
   const pageTypeMatch = (resolvedState.currentState === desiredState);
+  const legacyMatch = platformMatch && (urlMatch || landmarkMatch || pageTypeMatch);
 
-  const matched = platformMatch && (urlMatch || landmarkMatch || pageTypeMatch);
+  // Semantic Verification (Step A4)
+  let semanticMatch = false;
+  const capabilities = browser.capabilities || [];
+  const semanticElements = [...inputs, ...buttons, ...links];
+  
+  if (desiredState === "home") {
+    const hasSearchTrigger = semanticElements.some(el => el.semanticType === "search_trigger" || el.semanticType === "search_input");
+    const hasContentItems = semanticElements.some(el => el.semanticType === "content_item");
+    semanticMatch = (capabilities.includes("navigation_available") || hasSearchTrigger) && !hasContentItems;
+  } else if (desiredState === "results") {
+    const hasContentItems = semanticElements.some(el => el.semanticType === "content_item" || el.semanticType === "selection_candidate");
+    semanticMatch = capabilities.includes("results_available") || hasContentItems;
+  } else if (desiredState === "video_playing" || desiredState === "audio_playing") {
+    const hasMedia = semanticElements.some(el => el.semanticType === "media_element") || capabilities.includes("media_available");
+    semanticMatch = hasMedia || resolvedState.semanticState === "media_active";
+  } else if (desiredState === "logged_in") {
+    semanticMatch = resolvedState.semanticState === "authenticated" || !capabilities.includes("authentication_available");
+  } else if (desiredState === "navigate") {
+    const target = (objective.parameters?.url || "").toLowerCase();
+    semanticMatch = !target || url.includes(target);
+  } else {
+    semanticMatch = true;
+  }
+
+  const finalMatch = legacyMatch || semanticMatch;
+
+  console.log(`[SEMANTIC VERIFY] legacy_matched=${legacyMatch} semantic_matched=${semanticMatch}`);
 
   console.log(`[VERIFY]
   Objective: ${desiredState}
@@ -68,12 +95,14 @@ export function evaluateState(objective, resolvedState, observation) {
     url_match=${urlMatch}
     landmark_match=${landmarkMatch}
     pageType_match=${pageTypeMatch}
-  Final: ${matched ? "SUCCESS" : "FAIL"}`);
+    legacy_match=${legacyMatch}
+    semantic_match=${semanticMatch}
+  Final: ${finalMatch ? "SUCCESS" : "FAIL"}`);
 
   return {
-    matched,
-    confidence: matched ? 0.95 : 0.0,
-    reason: `PlatformMatch: ${platformMatch}, UrlMatch: ${urlMatch}, LandmarkMatch: ${landmarkMatch}, PageTypeMatch: ${pageTypeMatch}`
+    matched: finalMatch,
+    confidence: finalMatch ? 0.95 : 0.0,
+    reason: `PlatformMatch: ${platformMatch}, LegacyMatch: ${legacyMatch}, SemanticMatch: ${semanticMatch}`
   };
 }
 

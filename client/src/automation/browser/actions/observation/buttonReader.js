@@ -42,6 +42,7 @@ export async function readButtons(page) {
     const cls = classifyElement(btnObj, "button");
     btnObj.purpose = cls.purpose;
     btnObj.confidence = cls.confidence;
+    btnObj.semanticType = cls.semanticType;
     buttons.push(btnObj);
   }
   return buttons;

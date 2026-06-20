@@ -26,9 +26,25 @@ export const ResultCapability = {
       targetIdx = ORDINALS[ordinal.toLowerCase()];
     }
 
-    const candidateLinks = (browserState.links || []).filter(link => {
-      return ["result_link", "video_link", "product_link", "post_link", "search_link"].includes(link.purpose);
+    let matchedBySemantic = false;
+    let fallbackToLegacy = false;
+
+    let candidateLinks = (browserState.links || []).filter(link => {
+      return link.semanticType === "content_item" || link.semanticType === "selection_candidate";
     });
+
+    if (candidateLinks.length > 0) {
+      matchedBySemantic = true;
+    } else {
+      candidateLinks = (browserState.links || []).filter(link => {
+        return ["result_link", "video_link", "product_link", "post_link", "search_link"].includes(link.purpose);
+      });
+      if (candidateLinks.length > 0) {
+        fallbackToLegacy = true;
+      }
+    }
+
+    console.log(`[SEMANTIC CAPABILITY] name="ResultCapability" matched_by_semantic=${matchedBySemantic} fallback_to_legacy=${fallbackToLegacy}`);
 
     if (candidateLinks.length > targetIdx) {
       const targetLink = candidateLinks[targetIdx];

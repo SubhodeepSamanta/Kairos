@@ -10,6 +10,7 @@ export function resolveCurrentState(observation, previousResolvedState = null) {
   let platform = "generic";
   let currentState = "content";
   let query = "";
+  let isHomeUrl = false;
 
   const ENVIRONMENT_MAP = {
     "google": "search_site",
@@ -83,7 +84,7 @@ export function resolveCurrentState(observation, previousResolvedState = null) {
 
     const pathname = urlObj ? urlObj.pathname.split("/").filter(Boolean) : [];
     const isHomePath = pathname.length === 0 || (pathname.length === 1 && ["feed", "home", "index.html", "index.php"].includes(pathname[0]));
-    const isHomeUrl = isHomePath || pageType.includes("home");
+    isHomeUrl = isHomePath || pageType.includes("home");
 
     if (pageType === "logged_in" || pageType.includes("logged_in")) {
       currentState = "logged_in";
@@ -98,13 +99,33 @@ export function resolveCurrentState(observation, previousResolvedState = null) {
     }
   }
 
-  return {
-    platform,
-    environment,
-    currentState,
-    parameters: {
-      query,
-      url
+    const capabilities = browser.capabilities || [];
+    let semanticState = "content_viewing";
+    if (pageType === "logged_in" || pageType.includes("logged_in")) {
+      semanticState = "authenticated";
+    } else if (isHomeUrl && !query) {
+      semanticState = "home_active";
+    } else if (capabilities.includes("results_available") || query) {
+      semanticState = "results_viewing";
+    } else if (capabilities.includes("media_available")) {
+      semanticState = "media_active";
+    } else if (capabilities.includes("authentication_available")) {
+      semanticState = "auth_active";
+    } else if (capabilities.includes("form_available")) {
+      semanticState = "form_active";
     }
-  };
+
+    console.log(`[SEMANTIC STATE] legacyState="${currentState}" semanticState="${semanticState}"`);
+
+    return {
+      platform,
+      environment,
+      currentState,
+      legacyState: currentState,
+      semanticState,
+      parameters: {
+        query,
+        url
+      }
+    };
 }

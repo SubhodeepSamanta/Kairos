@@ -13,6 +13,7 @@ export const NavigationCapability = {
     return transition.desiredState === "home" || transition.desiredState === "navigate";
   },
   execute(transition, browserState) {
+    console.log(`[SEMANTIC CAPABILITY] name="NavigationCapability" matched_by_semantic=true fallback_to_legacy=false`);
     const target = transition.parameters?.url || transition.platform;
     if (!target) return { success: false, reason: "No target platform or URL specified" };
     

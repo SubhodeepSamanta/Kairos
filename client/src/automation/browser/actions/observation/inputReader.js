@@ -42,6 +42,7 @@ export async function readInputs(page) {
     const cls = classifyElement(inputObj, "input");
     inputObj.purpose = cls.purpose;
     inputObj.confidence = cls.confidence;
+    inputObj.semanticType = cls.semanticType;
     inputs.push(inputObj);
   }
   return inputs;

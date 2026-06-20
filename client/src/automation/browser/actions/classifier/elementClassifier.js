@@ -121,5 +121,23 @@ export function classifyElement(el, role) {
     }
   }
 
-  return { purpose, confidence };
+  let semanticType = "interactive_control";
+
+  if (purpose === "search_input") {
+    semanticType = "search_input";
+  } else if (purpose === "search_launcher" || purpose === "search_link" || purpose === "search_button") {
+    semanticType = "search_trigger";
+  } else if (["video_link", "product_link", "post_link", "result_link"].includes(purpose)) {
+    semanticType = "content_item";
+  } else if (["login_email", "login_password", "signup_email", "job_title_input", "location_input"].includes(purpose)) {
+    semanticType = "input_element";
+  } else if (["add_to_cart_button", "checkout_button", "login_button", "signup_button", "post_button"].includes(purpose)) {
+    semanticType = "action_button";
+  } else if (["home_link", "profile_link"].includes(purpose)) {
+    semanticType = "navigation_element";
+  } else if (purpose === "media_control") {
+    semanticType = "media_element";
+  }
+
+  return { purpose, confidence, semanticType };
 }

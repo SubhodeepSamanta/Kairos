@@ -24,7 +24,7 @@ export function diagnoseFailure(transition, browserState, executionResult) {
   }
 
   if (transition.desiredState === "results") {
-    const searchInput = (browserState.inputs || []).find(input => input.purpose === "search_input");
+    const searchInput = (browserState.inputs || []).find(input => input.semanticType === "search_input" || input.purpose === "search_input");
     if (!searchInput) {
       return { type: "element_missing", message: "Search input element not found", browserState };
     }
@@ -32,6 +32,7 @@ export function diagnoseFailure(transition, browserState, executionResult) {
 
   if (transition.desiredState === "result_selected" || transition.desiredState === "product_details") {
     const candidateLinks = (browserState.links || []).filter(link => 
+      link.semanticType === "content_item" || link.semanticType === "selection_candidate" ||
       ["result_link", "video_link", "product_link", "post_link", "search_link"].includes(link.purpose)
     );
     if (candidateLinks.length === 0) {

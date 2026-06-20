@@ -13,9 +13,34 @@ export const FormCapability = {
   },
   execute(transition, browserState) {
     const actions = [];
-    const emailInput = (browserState.inputs || []).find(input => input.purpose === "login_email");
-    const passwordInput = (browserState.inputs || []).find(input => input.purpose === "login_password");
-    const submitBtn = (browserState.buttons || []).find(btn => btn.purpose === "login_button" || btn.purpose === "submit_button");
+    let matchedBySemantic = false;
+    let fallbackToLegacy = false;
+
+    let emailInput = (browserState.inputs || []).find(input => input.semanticType === "input_element" && (input.type === "email" || (input.name && input.name.includes("email"))));
+    if (emailInput) {
+      matchedBySemantic = true;
+    } else {
+      emailInput = (browserState.inputs || []).find(input => input.purpose === "login_email");
+      if (emailInput) fallbackToLegacy = true;
+    }
+
+    let passwordInput = (browserState.inputs || []).find(input => input.semanticType === "input_element" && (input.type === "password" || (input.name && input.name.includes("pass"))));
+    if (passwordInput) {
+      matchedBySemantic = true;
+    } else {
+      passwordInput = (browserState.inputs || []).find(input => input.purpose === "login_password");
+      if (passwordInput) fallbackToLegacy = true;
+    }
+
+    let submitBtn = (browserState.buttons || []).find(btn => btn.semanticType === "action_button" || btn.semanticType === "primary_action");
+    if (submitBtn) {
+      matchedBySemantic = true;
+    } else {
+      submitBtn = (browserState.buttons || []).find(btn => btn.purpose === "login_button" || btn.purpose === "submit_button");
+      if (submitBtn) fallbackToLegacy = true;
+    }
+
+    console.log(`[SEMANTIC CAPABILITY] name="FormCapability" matched_by_semantic=${matchedBySemantic} fallback_to_legacy=${fallbackToLegacy}`);
 
     if (emailInput && !emailInput.value) {
       actions.push({
