@@ -96,12 +96,21 @@ export function resolveCurrentState(observation, previousResolvedState = null) {
     } catch (e) {
     }
 
-    const hasResultLinks = (browser.links || []).some(link =>
-      [
-        "primary_content",
-        "content_item",
-        "selection_candidate"
-      ].includes(link.semanticType)
+    const hasResultLinks = (browser.links || []).some(
+      link =>
+        (
+          [
+            "primary_content",
+            "content_item",
+            "selection_candidate"
+          ].includes(link.semanticType)
+        ) &&
+        (
+          link.href?.includes("/watch") ||
+          link.href?.includes("/live") ||
+          link.href?.includes("/shorts") ||
+          link.purpose === "video_link"
+        )
     );
     const hasSearchInput = (browser.inputs || []).some(input => input.purpose === "search_input");
 

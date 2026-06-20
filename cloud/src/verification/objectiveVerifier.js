@@ -38,6 +38,8 @@ export function evaluateState(objective, resolvedState, observation) {
   } else if (desiredState === "navigate") {
     const target = (objective.parameters?.url || "").toLowerCase();
     urlMatch = !target || url.includes(target);
+  } else if (desiredState === "result_selected" || desiredState === "product_details") {
+    urlMatch = (resolvedState.currentState === "content");
   } else {
     urlMatch = true;
   }
@@ -60,7 +62,7 @@ export function evaluateState(objective, resolvedState, observation) {
   } else if (desiredState === "login") {
     landmarkMatch = (resolvedState.currentState === "login");
   } else if (desiredState === "result_selected" || desiredState === "product_details") {
-    landmarkMatch = true;
+    landmarkMatch = (resolvedState.currentState === "content");
   } else {
     landmarkMatch = true;
   }
@@ -88,6 +90,8 @@ export function evaluateState(objective, resolvedState, observation) {
   } else if (desiredState === "navigate") {
     const target = (objective.parameters?.url || "").toLowerCase();
     semanticMatch = !target || url.includes(target);
+  } else if (desiredState === "result_selected" || desiredState === "product_details") {
+    semanticMatch = (resolvedState.currentState === "content");
   } else {
     semanticMatch = true;
   }

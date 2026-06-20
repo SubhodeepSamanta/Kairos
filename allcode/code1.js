@@ -3,9 +3,11 @@ const path = require("path");
 
 const rootDir = path.resolve(__dirname, "..");
 const filesToCollect = [
+"cloud/src/world/currentStateResolver.js",
+"cloud/src/world/stateNormalization.js",
 "cloud/src/capabilities/selection/SelectionCapability.js",
-"cloud/src/reasoning/transitionGenerator.js",
 "cloud/src/capabilities/router.js",
+"cloud/src/agent/loop/transitionLoop.js",
 ];
 
 const outputFile = path.join(__dirname, "code.md");

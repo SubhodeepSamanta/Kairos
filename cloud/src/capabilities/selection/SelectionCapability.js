@@ -14,6 +14,9 @@ const ORDINALS = {
 function scoreCandidate(link) {
   let score = 0;
 
+  if (link.href?.includes("/watch"))
+    score += 500;
+
   if (link.semanticType === "primary_content")
     score += 100;
 
@@ -23,7 +26,7 @@ function scoreCandidate(link) {
   if (link.purpose === "video_link")
     score += 50;
 
-  if (link.href?.includes("/watch") || link.href?.includes("/shorts") || link.href?.includes("/live"))
+  if (link.href?.includes("/shorts") || link.href?.includes("/live"))
     score += 100;
 
   if (link.text?.length > 5)
@@ -177,7 +180,7 @@ export const ResultCapability = {
   verify(transition, observation) {
     if (!observation) return false;
     const resolved = resolveCurrentState(observation);
-    return resolved.currentState !== "results" && observation.success !== false;
+    return resolved.currentState === "content";
   },
   recover(failure, transition) {
     console.log(`[RECOVERY] ResultCapability handling failure: ${failure.type}`);
