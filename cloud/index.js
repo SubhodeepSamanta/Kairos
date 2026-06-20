@@ -23,7 +23,7 @@ import {
 import { extractMemory } from "./src/memory/extract.js";
 import { storeMemory } from "./src/memory/store.js";
 import { retrieveMemory } from "./src/memory/retrieve.js";
-import { runAgent } from "./src/planner/agent.js";
+import { runAgent } from "./src/agent/index.js";
 
 await connectDatabase();
 await createMemoryTables();

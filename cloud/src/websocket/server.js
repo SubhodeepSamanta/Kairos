@@ -5,7 +5,7 @@ import {
   setBrowserState
 } from "../agent/state.js";
 import { createGoal } from "../shared/schemas/goal.js";
-import { runAgent } from "../planner/agent.js";
+import { runAgent } from "../agent/index.js";
 import { routeMessage } from "../router/router.js";
 import { chatReply } from "../chat/chat.js";
 import { extractMemory } from "../memory/extract.js";

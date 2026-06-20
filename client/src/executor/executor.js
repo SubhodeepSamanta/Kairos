@@ -1,7 +1,7 @@
 import { ACTIONS } from "../shared/schemas/action.js";
 import { executeDeviceAction } from "./deviceAdapter.js";
 import { createSnapshot } from "../automation/browser/actions/snapshot.js";
-import { readPage } from "../automation/browser/actions/read.js";
+import { readPage } from "../automation/browser/actions/observation/read.js";
 import { getCurrentPage } from "../automation/browser/browser.js";
 
 export async function executePlan(plan) {
