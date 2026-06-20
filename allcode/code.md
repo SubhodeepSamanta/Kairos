@@ -1,423 +1,11 @@
 
 ## File List
 
-- [cloud/src/reasoning/intentParser.js](file:///c:/Users/USER/Desktop/Kairos/cloud/src/reasoning/intentParser.js)
-- [cloud/src/reasoning/objectiveBuilder.js](file:///c:/Users/USER/Desktop/Kairos/cloud/src/reasoning/objectiveBuilder.js)
 - [cloud/src/capabilities/selection/SelectionCapability.js](file:///c:/Users/USER/Desktop/Kairos/cloud/src/capabilities/selection/SelectionCapability.js)
+- [cloud/src/reasoning/transitionGenerator.js](file:///c:/Users/USER/Desktop/Kairos/cloud/src/reasoning/transitionGenerator.js)
 - [cloud/src/capabilities/router.js](file:///c:/Users/USER/Desktop/Kairos/cloud/src/capabilities/router.js)
 
 ## Contents
-
-### cloud/src/reasoning/intentParser.js
-
-```javascript
-import { askLLM } from "../llm/provider.js";
-
-function extractJson(text) {
-  const start = text.indexOf("{");
-  const end = text.lastIndexOf("}");
-  if (start === -1 || end === -1) return text;
-  return text.slice(start, end + 1);
-}
-
-export async function parseIntent(goalText) {
-  const text = goalText.toLowerCase().trim();
-
-  // Regex-based fast parsing for standard patterns
-  // "open youtube", "go to github"
-  let match = text.match(/^(?:open|go\s+to|navigate\s+to|visit)\s+([a-z0-9.]+)(?:\.com|\.org)?$/i);
-  if (match) {
-    return {
-      intent: "navigate",
-      platform: match[1].trim()
-    };
-  }
-
-  match = text.match(/^(?:login|sign\s+in|authenticate)(?:\s+to|\s+on)?\s+([a-z0-9.]+)(?:\.com|\.org)?$/i);
-  if (match) {
-    return {
-      intent: "authenticate",
-      platform: match[1].trim()
-    };
-  }
-
-  // "search github for react"
-  match = text.match(/^search\s+([a-z0-9.]+)\s+for\s+(.+)$/i);
-  if (match) {
-    return {
-      intent: "search",
-      platform: match[1].trim(),
-      query: match[2].trim()
-    };
-  }
-
-  // "search for react on github"
-  match = text.match(/^search\s+for\s+(.+?)\s+on\s+([a-z0-9.]+)$/i);
-  if (match) {
-    return {
-      intent: "search",
-      platform: match[2].trim(),
-      query: match[1].trim()
-    };
-  }
-
-  // "play lofi on youtube"
-  match = text.match(/^play\s+(.+?)\s+on\s+([a-z0-9.]+)$/i);
-  if (match && (text.includes("youtube") || text.includes("lofi") || text.includes("video"))) {
-    return {
-      intent: "play_video",
-      platform: match[2].trim(),
-      query: match[1].trim()
-    };
-  }
-
-  // "find latest ai news on bing", "extract latest ai news on twitter"
-  match = text.match(/^(?:find|extract|get)\s+(.+?)\s+on\s+([a-z0-9.]+)$/i);
-  if (match) {
-    return {
-      intent: "extract_information",
-      topic: match[1].trim(),
-      platform: match[2].trim()
-    };
-  }
-
-  // "find latest ai news", "extract latest ai news"
-  match = text.match(/^(?:find|extract|get)\s+(.+)$/i);
-  if (match) {
-    return {
-      intent: "extract_information",
-      topic: match[1].trim()
-    };
-  }
-
-  match = text.match(
-    /^(?:play|watch|open|click)\s+(first|second|third|fourth|fifth)\s+(?:video|result|link|item)$/i
-  );
-
-  if (match) {
-    return {
-      intent: "select_result",
-      ordinal: match[1],
-      targetType: "video",
-      useCurrentPage: true,
-      originalGoal: goalText
-    };
-  }
-
-  // Fallback to LLM
-  const systemPrompt = `You are an Intent Parser. Parse the user goal into structured JSON.
-Supported intents:
-- "search" (fields: intent, platform, query)
-- "play_video" (fields: intent, platform, query)
-- "extract_information" (fields: intent, topic)
-- "navigate" (fields: intent, url or platform)
-- "authenticate" (fields: intent, platform)
-- "generic" (fields: intent)
-
-Return ONLY JSON.
-
-Examples:
-"search github for react" -> {"intent": "search", "platform": "github", "query": "react"}
-"play lofi on youtube" -> {"intent": "play_video", "platform": "youtube", "query": "lofi"}
-"find latest AI news" -> {"intent": "extract_information", "topic": "AI news"}
-`;
-
-  try {
-    const response = await askLLM(systemPrompt, goalText);
-    return JSON.parse(extractJson(response));
-  } catch (err) {
-    console.error("[intentParser] Fallback failed:", err);
-    return {
-      intent: "generic",
-      originalGoal: goalText
-    };
-  }
-}
-```
-
-### cloud/src/reasoning/objectiveBuilder.js
-
-```javascript
-export function buildObjectives(intent) {
-  const objectives = [];
-  const platform =
-    intent.useCurrentPage
-      ? null
-      : (intent.platform || "google");
-
-  // Check for compound goals or sub-actions in intent context
-  const originalGoal = (intent.originalGoal || "").toLowerCase();
-  
-  const hasExtract = originalGoal.includes("extract") || originalGoal.includes("get") || originalGoal.includes("find");
-  const hasSearch = originalGoal.includes("search") || originalGoal.includes("find");
-  
-  if (hasSearch && hasExtract) {
-    // Multi-objective compound goal scenario
-    objectives.push({
-      id: "obj1",
-      desiredState: "home",
-      platform,
-      parameters: {},
-      successConditions: [`URL contains ${platform}`],
-      priority: 5,
-      dependencies: [],
-      confidence: 1.0,
-      openQuestions: []
-    });
-    
-    const query = intent.query || intent.topic || "query";
-    objectives.push({
-      id: "obj2",
-      desiredState: "results",
-      platform,
-      parameters: { query },
-      successConditions: [`URL contains ${platform}`, `query contains ${query}`],
-      priority: 4,
-      dependencies: ["obj1"],
-      confidence: 1.0,
-      openQuestions: []
-    });
-    
-    objectives.push({
-      id: "obj3",
-      desiredState: "result_selected",
-      platform,
-      parameters: { ordinal: "first" },
-      successConditions: ["URL is detailed result page"],
-      priority: 3,
-      dependencies: ["obj2"],
-      confidence: 1.0,
-      openQuestions: []
-    });
-    
-    const extractionQuery = originalGoal.includes("star") ? "extract stars count" : (originalGoal.includes("price") ? "extract price" : "extract details");
-    objectives.push({
-      id: "obj4",
-      desiredState: "information_extracted",
-      platform,
-      parameters: { query: extractionQuery },
-      successConditions: ["data extracted"],
-      priority: 2,
-      dependencies: ["obj3"],
-      confidence: 1.0,
-      openQuestions: [`What is the extracted data?`]
-    });
-    
-    return objectives;
-  }
-
-  // Standard intent mapping
-  switch (intent.intent) {
-    case "search": {
-      objectives.push({
-        id: "obj1",
-        desiredState: "home",
-        platform,
-        parameters: {},
-        successConditions: [`URL contains ${platform}`],
-        priority: 5,
-        dependencies: [],
-        confidence: 1.0,
-        openQuestions: []
-      });
-      objectives.push({
-        id: "obj2",
-        desiredState: "results",
-        platform,
-        parameters: { query: intent.query },
-        successConditions: [`URL contains ${platform}`, `query contains ${intent.query}`],
-        priority: 4,
-        dependencies: ["obj1"],
-        confidence: 1.0,
-        openQuestions: []
-      });
-      break;
-    }
-
-    case "play_video": {
-      objectives.push({
-        id: "obj1",
-        desiredState: "home",
-        platform,
-        parameters: {},
-        successConditions: [`URL contains ${platform}`],
-        priority: 5,
-        dependencies: [],
-        confidence: 1.0,
-        openQuestions: []
-      });
-      objectives.push({
-        id: "obj2",
-        desiredState: "results",
-        platform,
-        parameters: { query: intent.query },
-        successConditions: [`URL contains ${platform}`, `query contains ${intent.query}`],
-        priority: 4,
-        dependencies: ["obj1"],
-        confidence: 1.0,
-        openQuestions: []
-      });
-      objectives.push({
-        id: "obj3",
-        desiredState: "result_selected",
-        platform,
-        parameters: {
-          ordinal: "first"
-        },
-        successConditions: [
-          "content selected"
-        ],
-        priority: 3,
-        dependencies: ["obj2"],
-        confidence: 1.0,
-        openQuestions: []
-      });
-      objectives.push({
-        id: "obj4",
-        desiredState: "content",
-        platform,
-        parameters: { query: intent.query },
-        successConditions: [`URL contains ${platform}`, `video is playing`],
-        priority: 2,
-        dependencies: ["obj3"],
-        confidence: 1.0,
-        openQuestions: []
-      });
-      break;
-    }
-
-    case "extract_information": {
-      objectives.push({
-        id: "obj1",
-        desiredState: "home",
-        platform,
-        parameters: {},
-        successConditions: [`URL contains ${platform}`],
-        priority: 5,
-        dependencies: [],
-        confidence: 1.0,
-        openQuestions: []
-      });
-      objectives.push({
-        id: "obj2",
-        desiredState: "results",
-        platform,
-        parameters: { query: intent.topic },
-        successConditions: [`URL contains ${platform}`, `query contains ${intent.topic}`],
-        priority: 4,
-        dependencies: ["obj1"],
-        confidence: 1.0,
-        openQuestions: []
-      });
-      
-      const infoQuestions = [];
-      const topicLower = (intent.topic || "").toLowerCase();
-      if (topicLower.includes("job") || topicLower.includes("intern") || topicLower.includes("career")) {
-        infoQuestions.push(
-          "What is the application deadline?",
-          "What is the location?",
-          "What are the requirements?",
-          "What is the application link?"
-        );
-      } else {
-        infoQuestions.push(`What is the extracted data for "${intent.topic}"?`);
-      }
-
-      objectives.push({
-        id: "obj3",
-        desiredState: "information_extracted",
-        platform,
-        parameters: { topic: intent.topic },
-        successConditions: ["data is extracted"],
-        priority: 3,
-        dependencies: ["obj2"],
-        confidence: 1.0,
-        openQuestions: infoQuestions
-      });
-      break;
-    }
-
-    case "select_result": {
-      objectives.push({
-        id: "obj1",
-        desiredState: "result_selected",
-        platform,
-        parameters: {
-          ordinal: intent.ordinal
-        },
-        successConditions: [
-          "content selected"
-        ],
-        priority: 5,
-        dependencies: [],
-        confidence: 1.0,
-        openQuestions: []
-      });
-
-      break;
-    }
-
-    case "navigate": {
-      const url = intent.url || intent.platform || "google.com";
-      const domain = url.toLowerCase().replace(/https?:\/\/(www\.)?/, "").split("/")[0];
-      const platformName = domain.replace(/\.com|\.org|\.net/g, "");
-      objectives.push({
-        id: "obj1",
-        desiredState: "home",
-        platform: platformName,
-        parameters: { url },
-        successConditions: [`URL contains ${domain}`],
-        priority: 5,
-        dependencies: [],
-        confidence: 1.0,
-        openQuestions: []
-      });
-      break;
-    }
-    case "authenticate": {
-      objectives.push({
-        id: "obj1",
-        desiredState: "home",
-        platform,
-        parameters: {},
-        successConditions: [`URL contains ${platform}`],
-        priority: 5,
-        dependencies: [],
-        confidence: 1.0,
-        openQuestions: []
-      });
-      objectives.push({
-        id: "obj2",
-        desiredState: "login",
-        platform,
-        parameters: { email: intent.email, password: intent.password },
-        successConditions: ["logged in"],
-        priority: 4,
-        dependencies: ["obj1"],
-        confidence: 1.0,
-        openQuestions: []
-      });
-      break;
-    }
-
-    default:
-      objectives.push({
-        id: "obj1",
-        desiredState: "goal_completed",
-        platform: "generic",
-        parameters: { goal: intent.originalGoal },
-        successConditions: ["goal completed"],
-        priority: 5,
-        dependencies: [],
-        confidence: 1.0,
-        openQuestions: []
-      });
-      break;
-  }
-
-  return objectives;
-}
-```
 
 ### cloud/src/capabilities/selection/SelectionCapability.js
 
@@ -434,6 +22,27 @@ const ORDINALS = {
   "next": "next",
   "previous": "previous"
 };
+
+function scoreCandidate(link) {
+  let score = 0;
+
+  if (link.semanticType === "primary_content")
+    score += 100;
+
+  if (link.semanticType === "content_item")
+    score += 50;
+
+  if (link.purpose === "video_link")
+    score += 50;
+
+  if (link.href?.includes("/watch") || link.href?.includes("/shorts") || link.href?.includes("/live"))
+    score += 100;
+
+  if (link.text?.length > 5)
+    score += 10;
+
+  return score;
+}
 
 export const ResultCapability = {
   name: "ResultCapability",
@@ -479,21 +88,32 @@ export const ResultCapability = {
     let fallbackToLegacy = false;
 
     let candidateLinks = (browserState.links || []).filter(link => {
-      return link.semanticType === "content_item" || link.semanticType === "selection_candidate";
+      return link.semanticType === "primary_content";
     });
 
     if (candidateLinks.length > 0) {
       matchedBySemantic = true;
     } else {
       candidateLinks = (browserState.links || []).filter(link => {
-        return ["result_link", "video_link", "product_link", "post_link", "search_link"].includes(link.purpose);
+        return link.semanticType === "content_item" || link.semanticType === "selection_candidate";
       });
       if (candidateLinks.length > 0) {
-        fallbackToLegacy = true;
+        matchedBySemantic = true;
+      } else {
+        candidateLinks = (browserState.links || []).filter(link => {
+          return ["result_link", "video_link", "product_link", "post_link", "search_link"].includes(link.purpose);
+        });
+        if (candidateLinks.length > 0) {
+          fallbackToLegacy = true;
+        }
       }
     }
 
     console.log(`[SEMANTIC CAPABILITY] name="ResultCapability" matched_by_semantic=${matchedBySemantic} fallback_to_legacy=${fallbackToLegacy}`);
+
+    candidateLinks.sort((a, b) => {
+      return scoreCandidate(b) - scoreCandidate(a);
+    });
 
     let resolvedIdx = targetIdx;
     if (ordKey === "last") {
@@ -569,6 +189,164 @@ export const ResultCapability = {
 };
 
 export const SelectionCapability = ResultCapability;
+```
+
+### cloud/src/reasoning/transitionGenerator.js
+
+```javascript
+import { createTask } from "../shared/schemas/task.js";
+import { normalizeObjective, normalizeResolvedState, transitionId } from "../world/stateNormalization.js";
+
+export function generateTransitions(currentState, desiredObjective, failedTransitions = {}) {
+  console.log("[TRANSITION GENERATOR INPUT RECEIVED currentState]");
+  console.log(JSON.stringify(currentState, null, 2));
+  console.log("[TRANSITION GENERATOR INPUT RECEIVED desiredObjective]");
+  console.log(JSON.stringify(desiredObjective, null, 2));
+
+  const normalizedCurrentState = normalizeResolvedState(currentState);
+  const normalizedDesiredObjective = normalizeObjective(desiredObjective);
+
+  console.log("[TRANSITION INPUT]");
+  console.log(JSON.stringify({
+    currentPlatform: normalizedCurrentState.platform,
+    currentState: normalizedCurrentState.currentState,
+    desiredPlatform: normalizedDesiredObjective.platform,
+    desiredState: normalizedDesiredObjective.desiredState,
+    parameters: normalizedDesiredObjective.parameters
+  }, null, 2));
+
+  const candidates = [];
+  const cleanCurPlatform = (normalizedCurrentState.platform || "").toLowerCase();
+  const cleanCurState = (normalizedCurrentState.currentState || "").toLowerCase();
+  const cleanObjPlatform = (normalizedDesiredObjective.platform || "").toLowerCase();
+  const desiredState = normalizedDesiredObjective.desiredState;
+  const legacyDesiredState = (normalizedDesiredObjective.legacyDesiredState || desiredState || "").toLowerCase();
+  const legacyDesiredSegment = legacyDesiredState.startsWith(`${cleanObjPlatform}_`) ? legacyDesiredState : `${cleanObjPlatform}_${legacyDesiredState}`;
+
+  // Candidate 1: Transition to target platform's home first if platforms don't match
+  if (cleanCurPlatform !== cleanObjPlatform && 
+      desiredState !== "home" && 
+      desiredState !== "goal_completed") {
+    
+    const transId = transitionId(cleanCurState, "home");
+    const legacyTransId = `${cleanCurPlatform}_${cleanCurState}_to_${cleanObjPlatform}_home`;
+    const failureCount = failedTransitions[transId] || failedTransitions[legacyTransId] || 0;
+    
+    // Calculate score & confidence
+    let score = 0.8 - (failureCount * 0.25);
+    let confidence = parseFloat(Math.max(0.1, 0.9 - (failureCount * 0.3)).toFixed(2));
+    
+    candidates.push({
+      id: transId,
+      legacyId: legacyTransId,
+      desiredState: "home",
+      state: "home",
+      platform: normalizedDesiredObjective.platform,
+      parameters: {},
+      score,
+      confidence
+    });
+  }
+
+  // Candidate 2: Direct transition to the desired final state
+  const directTransId = transitionId(cleanCurState, desiredState);
+  const legacyDirectTransId = `${cleanCurPlatform}_${cleanCurState}_to_${legacyDesiredSegment}`;
+  const directFailureCount = failedTransitions[directTransId] || failedTransitions[legacyDirectTransId] || 0;
+  
+  // Final state has higher direct priority if we are already on the right platform
+  let directScore = (cleanCurPlatform === cleanObjPlatform ? 1.0 : 0.7) - (directFailureCount * 0.25);
+  let directConfidence = parseFloat(Math.max(0.1, 0.95 - (directFailureCount * 0.3)).toFixed(2));
+
+  candidates.push({
+    id: directTransId,
+    legacyId: legacyDirectTransId,
+    desiredState,
+    state: desiredState,
+    legacyDesiredState: desiredObjective.desiredState,
+    platform: normalizedDesiredObjective.platform,
+    parameters: normalizedDesiredObjective.parameters || {},
+    score: directScore,
+    confidence: directConfidence
+  });
+
+  // Candidate 3: Navigation Fallback to target platform home if stuck
+  const fallbackTransId = transitionId(cleanCurState, "home");
+  const legacyFallbackTransId = `${cleanCurPlatform}_${cleanCurState}_to_${cleanObjPlatform}_home`;
+  const fallbackFailureCount = failedTransitions[fallbackTransId] || failedTransitions[legacyFallbackTransId] || 0;
+  if (desiredState !== "home" && cleanCurState !== "home") {
+    candidates.push({
+      id: fallbackTransId,
+      legacyId: legacyFallbackTransId,
+      desiredState: "home",
+      state: "home",
+      platform: normalizedDesiredObjective.platform,
+      parameters: {},
+      score: 0.4 - (fallbackFailureCount * 0.2),
+      confidence: parseFloat(Math.max(0.1, 0.7 - (fallbackFailureCount * 0.2)).toFixed(2))
+    });
+  }
+
+  // Sort candidate transitions by score in descending order
+  candidates.sort((a, b) => b.score - a.score);
+
+  console.log(`[STATE MACHINE] Generated and ranked transitions:`, JSON.stringify(candidates.map(c => ({ id: c.id, score: c.score.toFixed(2), conf: c.confidence })), null, 2));
+
+  console.log("[TRANSITION OUTPUT]");
+  console.log(JSON.stringify(candidates, null, 2));
+
+  return candidates;
+}
+
+export function generateTasksForTransitions(transitions) {
+  return transitions.map(trans => {
+    const platform = trans.platform || "generic";
+    const platformUrl = platform.includes(".") ? platform : (platform === "generic" ? "https://google.com" : `https://${platform}.com`);
+
+    switch (trans.desiredState) {
+      case "home":
+        return createTask({
+          objective: `reach_${platform}_home`,
+          intent: { type: "navigate", action: "navigate", target: platformUrl },
+          successCriteria: [`URL contains ${platform}`]
+        });
+
+      case "results":
+        return createTask({
+          objective: `reach_${platform}_results`,
+          intent: { type: "search", action: "search", query: trans.parameters.query },
+          successCriteria: [`URL contains ${platform}`]
+        });
+
+      case "content":
+        return createTask({
+          objective: `reach_${platform}_content`,
+          intent: { type: "media", action: "play", query: trans.parameters.query },
+          successCriteria: [`URL contains ${platform}`]
+        });
+
+      case "login":
+        return createTask({
+          objective: `reach_${platform}_login`,
+          intent: { type: "authenticate", action: "login", email: trans.parameters.email, password: trans.parameters.password },
+          successCriteria: ["logged in"]
+        });
+
+      case "information_extracted":
+        return createTask({
+          objective: "reach_information_extracted",
+          intent: { type: "extract", action: "extract", topic: trans.parameters.topic },
+          successCriteria: ["data is extracted"]
+        });
+
+      default:
+        return createTask({
+          objective: "reach_goal_completed",
+          intent: { type: "generic" },
+          successCriteria: ["goal completed"]
+        });
+    }
+  });
+}
 ```
 
 ### cloud/src/capabilities/router.js

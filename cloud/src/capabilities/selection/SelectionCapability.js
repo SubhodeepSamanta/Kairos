@@ -99,6 +99,18 @@ export const ResultCapability = {
 
     console.log(`[SEMANTIC CAPABILITY] name="ResultCapability" matched_by_semantic=${matchedBySemantic} fallback_to_legacy=${fallbackToLegacy}`);
 
+    const currentPlatform =
+      browserState.site?.toLowerCase();
+
+    if (currentPlatform === "youtube") {
+      candidateLinks =
+        candidateLinks.filter(
+          l =>
+            l.href?.includes("/watch") ||
+            l.href?.includes("/live")
+        );
+    }
+
     candidateLinks.sort((a, b) => {
       return scoreCandidate(b) - scoreCandidate(a);
     });
@@ -169,9 +181,6 @@ export const ResultCapability = {
   },
   recover(failure, transition) {
     console.log(`[RECOVERY] ResultCapability handling failure: ${failure.type}`);
-    if (failure.type === "element_missing" || failure.type === "verification_failed") {
-      return [{ type: "scroll", params: { direction: "down", amount: 300 } }];
-    }
     return null;
   }
 };

@@ -45,7 +45,7 @@ export const SearchCapability = {
       actions.push({
         type: "wait",
         params: {
-          seconds: 3
+          seconds: 1
         }
       });
       console.log(`[SEMANTIC CAPABILITY] name="SearchCapability" matched_by_semantic=${matchedBySemantic} fallback_to_legacy=${fallbackToLegacy}`);

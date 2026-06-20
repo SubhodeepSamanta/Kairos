@@ -7,7 +7,10 @@ function extractJson(text) {
   return text.slice(start, end + 1);
 }
 
-export async function parseIntent(goalText) {
+export async function parseIntent(
+  goalText,
+  browserContext = {}
+) {
   const text = goalText.toLowerCase().trim();
 
   // Regex-based fast parsing for standard patterns
@@ -111,7 +114,16 @@ Examples:
 
   try {
     const response = await askLLM(systemPrompt, goalText);
-    return JSON.parse(extractJson(response));
+    const parsedIntent = JSON.parse(extractJson(response));
+    if (
+      parsedIntent.intent === "search" &&
+      !parsedIntent.platform &&
+      browserContext.currentPlatform
+    ) {
+      parsedIntent.platform =
+        browserContext.currentPlatform;
+    }
+    return parsedIntent;
   } catch (err) {
     console.error("[intentParser] Fallback failed:", err);
     return {

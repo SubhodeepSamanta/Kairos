@@ -3,9 +3,8 @@ const path = require("path");
 
 const rootDir = path.resolve(__dirname, "..");
 const filesToCollect = [
-"cloud/src/reasoning/intentParser.js",
-"cloud/src/reasoning/objectiveBuilder.js",
 "cloud/src/capabilities/selection/SelectionCapability.js",
+"cloud/src/reasoning/transitionGenerator.js",
 "cloud/src/capabilities/router.js",
 ];
 

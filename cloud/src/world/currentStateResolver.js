@@ -96,8 +96,12 @@ export function resolveCurrentState(observation, previousResolvedState = null) {
     } catch (e) {
     }
 
-    const hasResultLinks = (browser.links || []).some(link => 
-      ["result_link", "video_link", "product_link", "post_link", "search_link"].includes(link.purpose)
+    const hasResultLinks = (browser.links || []).some(link =>
+      [
+        "primary_content",
+        "content_item",
+        "selection_candidate"
+      ].includes(link.semanticType)
     );
     const hasSearchInput = (browser.inputs || []).some(input => input.purpose === "search_input");
 

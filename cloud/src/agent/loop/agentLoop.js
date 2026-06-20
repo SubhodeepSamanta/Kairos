@@ -93,7 +93,22 @@ async function _runAgentInternal({
   let browserState = latestObs?.pageState || latestObs || {};
 
   const preIntentCalls = llmCallCount;
-  const intent = await parseIntent(goal.objective);
+  const intent = await parseIntent(
+    goal.objective,
+    {
+      currentPlatform:
+        browserState.site,
+
+      currentPageType:
+        browserState.pageType,
+
+      currentUrl:
+        browserState.url,
+
+      currentTitle:
+        browserState.title
+    }
+  );
   goal.metrics.intent_calls = llmCallCount - preIntentCalls;
   goal.intent = intent;
   setIntent(intent);

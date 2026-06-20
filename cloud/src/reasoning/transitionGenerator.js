@@ -23,12 +23,13 @@ export function generateTransitions(currentState, desiredObjective, failedTransi
   const cleanCurPlatform = (normalizedCurrentState.platform || "").toLowerCase();
   const cleanCurState = (normalizedCurrentState.currentState || "").toLowerCase();
   const cleanObjPlatform = (normalizedDesiredObjective.platform || "").toLowerCase();
+  const targetPlatform = cleanObjPlatform || cleanCurPlatform;
   const desiredState = normalizedDesiredObjective.desiredState;
   const legacyDesiredState = (normalizedDesiredObjective.legacyDesiredState || desiredState || "").toLowerCase();
   const legacyDesiredSegment = legacyDesiredState.startsWith(`${cleanObjPlatform}_`) ? legacyDesiredState : `${cleanObjPlatform}_${legacyDesiredState}`;
 
   // Candidate 1: Transition to target platform's home first if platforms don't match
-  if (cleanCurPlatform !== cleanObjPlatform && 
+  if (cleanCurPlatform !== targetPlatform && 
       desiredState !== "home" && 
       desiredState !== "goal_completed") {
     
@@ -58,7 +59,7 @@ export function generateTransitions(currentState, desiredObjective, failedTransi
   const directFailureCount = failedTransitions[directTransId] || failedTransitions[legacyDirectTransId] || 0;
   
   // Final state has higher direct priority if we are already on the right platform
-  let directScore = (cleanCurPlatform === cleanObjPlatform ? 1.0 : 0.7) - (directFailureCount * 0.25);
+  let directScore = (cleanCurPlatform === targetPlatform ? 1.0 : 0.7) - (directFailureCount * 0.25);
   let directConfidence = parseFloat(Math.max(0.1, 0.95 - (directFailureCount * 0.3)).toFixed(2));
 
   candidates.push({

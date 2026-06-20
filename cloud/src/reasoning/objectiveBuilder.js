@@ -1,9 +1,6 @@
 export function buildObjectives(intent) {
   const objectives = [];
-  const platform =
-    intent.useCurrentPage
-      ? null
-      : (intent.platform || "google");
+  const platform = intent.platform || null;
 
   // Check for compound goals or sub-actions in intent context
   const originalGoal = (intent.originalGoal || "").toLowerCase();
