@@ -23,13 +23,15 @@ export function generateTransitions(currentState, desiredObjective, failedTransi
   const cleanCurPlatform = (normalizedCurrentState.platform || "").toLowerCase();
   const cleanCurState = (normalizedCurrentState.currentState || "").toLowerCase();
   const cleanObjPlatform = (normalizedDesiredObjective.platform || "").toLowerCase();
-  const targetPlatform = cleanObjPlatform || cleanCurPlatform;
+  const targetPlatform = cleanObjPlatform && cleanObjPlatform !== "generic" ? cleanObjPlatform : cleanCurPlatform;
   const desiredState = normalizedDesiredObjective.desiredState;
   const legacyDesiredState = (normalizedDesiredObjective.legacyDesiredState || desiredState || "").toLowerCase();
   const legacyDesiredSegment = legacyDesiredState.startsWith(`${cleanObjPlatform}_`) ? legacyDesiredState : `${cleanObjPlatform}_${legacyDesiredState}`;
 
   // Candidate 1: Transition to target platform's home first if platforms don't match
   if (cleanCurPlatform !== targetPlatform && 
+      targetPlatform &&
+      targetPlatform !== "generic" &&
       desiredState !== "home" && 
       desiredState !== "goal_completed") {
     
@@ -104,11 +106,14 @@ export function generateTransitions(currentState, desiredObjective, failedTransi
 
 export function generateTasksForTransitions(transitions) {
   return transitions.map(trans => {
-    const platform = trans.platform || "generic";
-    const platformUrl = platform.includes(".") ? platform : (platform === "generic" ? "https://google.com" : `https://${platform}.com`);
+    const platform = trans.platform || "";
+    const platformUrl = platform.includes(".") ? platform : platform ? `https://${platform}.com` : null;
 
     switch (trans.desiredState) {
       case "home":
+        if (!platformUrl) {
+          return null;
+        }
         return createTask({
           objective: `reach_${platform}_home`,
           intent: { type: "navigate", action: "navigate", target: platformUrl },

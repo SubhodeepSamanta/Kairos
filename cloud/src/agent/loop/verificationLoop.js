@@ -75,8 +75,13 @@ export async function handleCapabilityFailure({
   const recoveryResult = determineRecovery(failure, activeTransition, capability, escalationRetryCount);
   if (recoveryResult && recoveryResult.escalate) {
     if (recoveryResult.escalate === "alternative_capability") {
-      console.log(`[RECOVERY ESCALATION] Blacklisting capability: ${capability.name}`);
-      goal.blacklistedCapabilities.push(capability.name);
+      const failureCount = transitionRetries[transitionId] || 0;
+      if (failureCount >= 3 && capability.name !== "ResultCapability" && capability.name !== "SelectionCapability") {
+        console.log(`[RECOVERY ESCALATION] Blacklisting capability: ${capability.name}`);
+        goal.blacklistedCapabilities.push(capability.name);
+      } else {
+        console.log(`[RECOVERY ESCALATION] Skipping blacklisting for capability: ${capability.name} (failureCount: ${failureCount})`);
+      }
     } else if (recoveryResult.escalate === "alternative_transition") {
       console.log(`[RECOVERY ESCALATION] Blacklisting transition: ${transitionId}`);
       failedTransitions[transitionId] = (failedTransitions[transitionId] || 0) + 1;
@@ -248,8 +253,13 @@ export async function executeAndVerify({
     const recoveryResult = determineRecovery(failure, activeTransition, capability, escalationRetryCount);
     if (recoveryResult && recoveryResult.escalate) {
       if (recoveryResult.escalate === "alternative_capability") {
-        console.log(`[RECOVERY ESCALATION] Blacklisting capability: ${capability.name}`);
-        goal.blacklistedCapabilities.push(capability.name);
+        const failureCount = transitionRetries[transitionId] || 0;
+        if (failureCount >= 3 && capability.name !== "ResultCapability" && capability.name !== "SelectionCapability") {
+          console.log(`[RECOVERY ESCALATION] Blacklisting capability: ${capability.name}`);
+          goal.blacklistedCapabilities.push(capability.name);
+        } else {
+          console.log(`[RECOVERY ESCALATION] Skipping blacklisting for capability: ${capability.name} (failureCount: ${failureCount})`);
+        }
       } else if (recoveryResult.escalate === "alternative_transition") {
         console.log(`[RECOVERY ESCALATION] Blacklisting transition: ${transitionId}`);
         failedTransitions[transitionId] = (failedTransitions[transitionId] || 0) + 1;

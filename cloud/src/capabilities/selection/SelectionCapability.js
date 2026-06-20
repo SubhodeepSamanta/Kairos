@@ -11,11 +11,22 @@ const ORDINALS = {
   "previous": "previous"
 };
 
-function scoreCandidate(link) {
+function scoreCandidate(link, position) {
   let score = 0;
+  const href = (link.href || "").toLowerCase();
+  const text = (link.text || "").toLowerCase();
 
-  if (link.href?.includes("/watch"))
-    score += 500;
+  if (href.includes("/watch"))
+    score += 1000;
+
+  if (href.includes("/shorts"))
+    score -= 500;
+
+  if (text.includes("now playing"))
+    score += 100;
+
+  if (position < 10)
+    score += 50;
 
   if (link.semanticType === "primary_content")
     score += 100;
@@ -26,10 +37,10 @@ function scoreCandidate(link) {
   if (link.purpose === "video_link")
     score += 50;
 
-  if (link.href?.includes("/shorts") || link.href?.includes("/live"))
+  if (href.includes("/live"))
     score += 100;
 
-  if (link.text?.length > 5)
+  if (text.length > 5)
     score += 10;
 
   return score;
@@ -115,7 +126,22 @@ export const ResultCapability = {
     }
 
     candidateLinks.sort((a, b) => {
-      return scoreCandidate(b) - scoreCandidate(a);
+      const posA = (browserState.links || []).indexOf(a);
+      const posB = (browserState.links || []).indexOf(b);
+      return scoreCandidate(b, posB) - scoreCandidate(a, posA);
+    });
+
+    candidateLinks.forEach(c => {
+      const pos = (browserState.links || []).indexOf(c);
+      console.log(
+        "[RESULT PICK]",
+        {
+          id: c.id,
+          text: c.text,
+          href: c.href,
+          score: scoreCandidate(c, pos)
+        }
+      );
     });
 
     let resolvedIdx = targetIdx;
@@ -125,6 +151,10 @@ export const ResultCapability = {
 
     if (candidateLinks.length > resolvedIdx && resolvedIdx >= 0) {
       const targetLink = candidateLinks[resolvedIdx];
+      console.log(
+        "[RESULT PICK WINNER]",
+        targetLink
+      );
       console.log("[RESULT PICK]");
       console.log(JSON.stringify({
         ordinal,
