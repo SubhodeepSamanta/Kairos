@@ -1,3 +1,5 @@
+import { normalizeResolvedState } from "../world/stateNormalization.js";
+
 export function initTracker(objectives) {
   return {
     objectives: objectives.map(obj => ({
@@ -30,15 +32,18 @@ export function updateTracker(tracker, index, status) {
 }
 
 export function recordTransition(tracker, transition, fromState, toState) {
+  const normalizedFromState = normalizeResolvedState(fromState);
+  const normalizedToState = normalizeResolvedState(toState);
+
   tracker.transitionHistory.push({
     transitionId: transition.id,
-    from: fromState,
-    to: toState,
+    from: normalizedFromState,
+    to: normalizedToState,
     timestamp: new Date().toISOString()
   });
   
-  const fromStr = `${fromState.platform}_${fromState.currentState}`;
-  const toStr = `${toState.platform}_${toState.currentState}`;
+  const fromStr = `${normalizedFromState.platform}:${normalizedFromState.currentState}`;
+  const toStr = `${normalizedToState.platform}:${normalizedToState.currentState}`;
   
   if (!tracker.visitedStates.includes(fromStr)) {
     tracker.visitedStates.push(fromStr);

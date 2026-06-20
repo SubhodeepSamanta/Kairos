@@ -1,6 +1,10 @@
 import { resolveCurrentState } from "../world/currentStateResolver.js";
+import { normalizeObjective, normalizeResolvedState } from "../world/stateNormalization.js";
 
 export function evaluateState(objective, resolvedState, observation) {
+  objective = normalizeObjective(objective);
+  resolvedState = normalizeResolvedState(resolvedState);
+
   const browser = observation?.pageState || observation || {};
   const url = (observation?.url || browser?.url || "").toLowerCase();
   const title = (observation?.title || browser?.title || "").toLowerCase();
@@ -17,6 +21,7 @@ export function evaluateState(objective, resolvedState, observation) {
 
   let urlMatch = false;
   const desiredState = objective.desiredState;
+  const legacyDesiredState = objective.legacyDesiredState;
 
   if (desiredState === "home") {
     urlMatch = url.length > 0 && (url.endsWith("/") || url.includes("home") || title.includes("home") || (!url.includes("search") && !url.includes("watch") && !url.includes("/results")));
@@ -26,8 +31,10 @@ export function evaluateState(objective, resolvedState, observation) {
     else if (env === "media_site" && (url.includes("/results") || url.includes("search_query") || url.includes("/search"))) urlMatch = true;
     else if (env === "commerce_site" && (url.includes("/s?") || url.includes("/s/") || url.includes("/search") || url.includes("/results"))) urlMatch = true;
     else if (url.includes("search") || url.includes("results") || url.includes("query")) urlMatch = true;
-  } else if (desiredState === "video_playing") {
+  } else if (desiredState === "content") {
     urlMatch = url.includes("/watch") || url.includes("watch?v=") || url.includes("/shorts/") || url.includes("lofi123");
+  } else if (desiredState === "login") {
+    urlMatch = url.includes("login") || url.includes("signin") || url.includes("auth") || legacyDesiredState === "logged_in";
   } else if (desiredState === "navigate") {
     const target = (objective.parameters?.url || "").toLowerCase();
     urlMatch = !target || url.includes(target);
@@ -48,8 +55,10 @@ export function evaluateState(objective, resolvedState, observation) {
   } else if (desiredState === "results") {
     const hasResultLinks = links.some(l => ["result_link", "video_link", "product_link", "post_link", "search_link"].includes(l.purpose));
     landmarkMatch = hasResultLinks && (resolvedState.currentState === "results");
-  } else if (desiredState === "video_playing") {
-    landmarkMatch = (resolvedState.currentState === "video_playing");
+  } else if (desiredState === "content") {
+    landmarkMatch = (resolvedState.currentState === "content");
+  } else if (desiredState === "login") {
+    landmarkMatch = (resolvedState.currentState === "login");
   } else if (desiredState === "result_selected" || desiredState === "product_details") {
     landmarkMatch = true;
   } else {
@@ -71,10 +80,10 @@ export function evaluateState(objective, resolvedState, observation) {
   } else if (desiredState === "results") {
     const hasContentItems = semanticElements.some(el => el.semanticType === "content_item" || el.semanticType === "selection_candidate");
     semanticMatch = capabilities.includes("results_available") || hasContentItems;
-  } else if (desiredState === "video_playing" || desiredState === "audio_playing") {
+  } else if (desiredState === "content") {
     const hasMedia = semanticElements.some(el => el.semanticType === "media_element") || capabilities.includes("media_available");
-    semanticMatch = hasMedia || resolvedState.semanticState === "media_active";
-  } else if (desiredState === "logged_in") {
+    semanticMatch = hasMedia || resolvedState.semanticState === "media_active" || resolvedState.currentState === "content";
+  } else if (desiredState === "login") {
     semanticMatch = resolvedState.semanticState === "authenticated" || !capabilities.includes("authentication_available");
   } else if (desiredState === "navigate") {
     const target = (objective.parameters?.url || "").toLowerCase();

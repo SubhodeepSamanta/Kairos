@@ -7,6 +7,7 @@ import {
   FormCapability,
   ExtractionCapability
 } from "./index.js";
+import { normalizeTransition, toLegacyCapabilityTransition } from "../world/stateNormalization.js";
 
 const CAPABILITIES = [
   TabCapability,
@@ -19,7 +20,10 @@ const CAPABILITIES = [
 ];
 
 export function routeCapability(transition, blacklistedCapabilities = []) {
-  console.log(`[ROUTER] Routing transition: "${transition.id}" (desiredState: "${transition.desiredState}")`);
+  const normalizedTransition = normalizeTransition(transition);
+  const capabilityTransition = toLegacyCapabilityTransition(normalizedTransition);
+
+  console.log(`[ROUTER] Routing transition: "${normalizedTransition.id}" (desiredState: "${normalizedTransition.desiredState}")`);
   
   let bestCap = null;
   let bestScore = -1;
@@ -29,7 +33,7 @@ export function routeCapability(transition, blacklistedCapabilities = []) {
       console.log(`[ROUTER] Capability ${cap.name} is blacklisted. Bypassing.`);
       continue;
     }
-    if (cap.canHandle(transition)) {
+    if (cap.canHandle(normalizedTransition) || cap.canHandle(capabilityTransition)) {
       const score = cap.successRate * cap.confidence;
       console.log(`[ROUTER] Capability ${cap.name} matched. Score: ${score.toFixed(2)} (successRate=${cap.successRate.toFixed(2)}, confidence=${cap.confidence.toFixed(2)})`);
       if (score > bestScore) {
@@ -41,7 +45,18 @@ export function routeCapability(transition, blacklistedCapabilities = []) {
   
   if (bestCap) {
     console.log(`[ROUTER] Routed to highest confidence capability: ${bestCap.name} (score: ${bestScore.toFixed(2)})`);
-    return bestCap;
+    return {
+      ...bestCap,
+      execute(browserTransition, browserState) {
+        return bestCap.execute(toLegacyCapabilityTransition(browserTransition), browserState);
+      },
+      verify(browserTransition, observation) {
+        return bestCap.verify(toLegacyCapabilityTransition(browserTransition), observation);
+      },
+      recover(failure, browserTransition) {
+        return bestCap.recover(failure, toLegacyCapabilityTransition(browserTransition));
+      }
+    };
   }
   
   console.log("[ROUTER] No matching capability found.");

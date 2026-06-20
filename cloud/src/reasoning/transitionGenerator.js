@@ -1,27 +1,35 @@
 import { createTask } from "../shared/schemas/task.js";
+import { normalizeObjective, normalizeResolvedState, transitionId } from "../world/stateNormalization.js";
 
 export function generateTransitions(currentState, desiredObjective, failedTransitions = {}) {
+  const normalizedCurrentState = normalizeResolvedState(currentState);
+  const normalizedDesiredObjective = normalizeObjective(desiredObjective);
+
   console.log("[TRANSITION INPUT]");
   console.log(JSON.stringify({
-    currentPlatform: currentState.platform,
-    currentState: currentState.currentState,
-    desiredPlatform: desiredObjective.platform,
-    desiredState: desiredObjective.desiredState,
-    parameters: desiredObjective.parameters
+    currentPlatform: normalizedCurrentState.platform,
+    currentState: normalizedCurrentState.currentState,
+    desiredPlatform: normalizedDesiredObjective.platform,
+    desiredState: normalizedDesiredObjective.desiredState,
+    parameters: normalizedDesiredObjective.parameters
   }, null, 2));
 
   const candidates = [];
-  const cleanCurPlatform = (currentState.platform || "").toLowerCase();
-  const cleanCurState = (currentState.currentState || "").toLowerCase();
-  const cleanObjPlatform = (desiredObjective.platform || "").toLowerCase();
+  const cleanCurPlatform = (normalizedCurrentState.platform || "").toLowerCase();
+  const cleanCurState = (normalizedCurrentState.currentState || "").toLowerCase();
+  const cleanObjPlatform = (normalizedDesiredObjective.platform || "").toLowerCase();
+  const desiredState = normalizedDesiredObjective.desiredState;
+  const legacyDesiredState = (normalizedDesiredObjective.legacyDesiredState || desiredState || "").toLowerCase();
+  const legacyDesiredSegment = legacyDesiredState.startsWith(`${cleanObjPlatform}_`) ? legacyDesiredState : `${cleanObjPlatform}_${legacyDesiredState}`;
 
   // Candidate 1: Transition to target platform's home first if platforms don't match
   if (cleanCurPlatform !== cleanObjPlatform && 
-      desiredObjective.desiredState !== "home" && 
-      desiredObjective.desiredState !== "goal_completed") {
+      desiredState !== "home" && 
+      desiredState !== "goal_completed") {
     
-    const transId = `${cleanCurPlatform}_${cleanCurState}_to_${cleanObjPlatform}_home`;
-    const failureCount = failedTransitions[transId] || 0;
+    const transId = transitionId(cleanCurState, "home");
+    const legacyTransId = `${cleanCurPlatform}_${cleanCurState}_to_${cleanObjPlatform}_home`;
+    const failureCount = failedTransitions[transId] || failedTransitions[legacyTransId] || 0;
     
     // Calculate score & confidence
     let score = 0.8 - (failureCount * 0.25);
@@ -29,8 +37,10 @@ export function generateTransitions(currentState, desiredObjective, failedTransi
     
     candidates.push({
       id: transId,
+      legacyId: legacyTransId,
       desiredState: "home",
-      platform: desiredObjective.platform,
+      state: "home",
+      platform: normalizedDesiredObjective.platform,
       parameters: {},
       score,
       confidence
@@ -38,8 +48,9 @@ export function generateTransitions(currentState, desiredObjective, failedTransi
   }
 
   // Candidate 2: Direct transition to the desired final state
-  const directTransId = `${cleanCurPlatform}_${cleanCurState}_to_${cleanObjPlatform}_${desiredObjective.desiredState}`;
-  const directFailureCount = failedTransitions[directTransId] || 0;
+  const directTransId = transitionId(cleanCurState, desiredState);
+  const legacyDirectTransId = `${cleanCurPlatform}_${cleanCurState}_to_${legacyDesiredSegment}`;
+  const directFailureCount = failedTransitions[directTransId] || failedTransitions[legacyDirectTransId] || 0;
   
   // Final state has higher direct priority if we are already on the right platform
   let directScore = (cleanCurPlatform === cleanObjPlatform ? 1.0 : 0.7) - (directFailureCount * 0.25);
@@ -47,21 +58,27 @@ export function generateTransitions(currentState, desiredObjective, failedTransi
 
   candidates.push({
     id: directTransId,
-    desiredState: desiredObjective.desiredState,
-    platform: desiredObjective.platform,
-    parameters: desiredObjective.parameters || {},
+    legacyId: legacyDirectTransId,
+    desiredState,
+    state: desiredState,
+    legacyDesiredState: desiredObjective.desiredState,
+    platform: normalizedDesiredObjective.platform,
+    parameters: normalizedDesiredObjective.parameters || {},
     score: directScore,
     confidence: directConfidence
   });
 
   // Candidate 3: Navigation Fallback to target platform home if stuck
-  const fallbackTransId = `${cleanCurPlatform}_${cleanCurState}_to_${cleanObjPlatform}_home`;
-  const fallbackFailureCount = failedTransitions[fallbackTransId] || 0;
-  if (desiredObjective.desiredState !== "home" && cleanCurState !== "home") {
+  const fallbackTransId = transitionId(cleanCurState, "home");
+  const legacyFallbackTransId = `${cleanCurPlatform}_${cleanCurState}_to_${cleanObjPlatform}_home`;
+  const fallbackFailureCount = failedTransitions[fallbackTransId] || failedTransitions[legacyFallbackTransId] || 0;
+  if (desiredState !== "home" && cleanCurState !== "home") {
     candidates.push({
       id: fallbackTransId,
+      legacyId: legacyFallbackTransId,
       desiredState: "home",
-      platform: desiredObjective.platform,
+      state: "home",
+      platform: normalizedDesiredObjective.platform,
       parameters: {},
       score: 0.4 - (fallbackFailureCount * 0.2),
       confidence: parseFloat(Math.max(0.1, 0.7 - (fallbackFailureCount * 0.2)).toFixed(2))
@@ -99,11 +116,18 @@ export function generateTasksForTransitions(transitions) {
           successCriteria: [`URL contains ${platform}`]
         });
 
-      case "video_playing":
+      case "content":
         return createTask({
-          objective: `reach_${platform}_video_playing`,
+          objective: `reach_${platform}_content`,
           intent: { type: "media", action: "play", query: trans.parameters.query },
           successCriteria: [`URL contains ${platform}`]
+        });
+
+      case "login":
+        return createTask({
+          objective: `reach_${platform}_login`,
+          intent: { type: "authenticate", action: "login", email: trans.parameters.email, password: trans.parameters.password },
+          successCriteria: ["logged in"]
         });
 
       case "information_extracted":

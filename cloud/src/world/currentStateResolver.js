@@ -1,3 +1,5 @@
+import { normalizeResolvedState } from "./stateNormalization.js";
+
 export function resolveCurrentState(observation, previousResolvedState = null) {
   const pageState = observation?.pageState || observation || {};
   console.log("[STATE RESOLVER INPUT]");
@@ -104,13 +106,13 @@ export function resolveCurrentState(observation, previousResolvedState = null) {
     isHomeUrl = isHomePath || pageType.includes("home");
 
     if (pageType === "logged_in" || pageType.includes("logged_in")) {
-      currentState = "logged_in";
+      currentState = "login";
     } else if (isHomeUrl && !query && !url.includes("/search") && !url.includes("/results") && !pageType.includes("results")) {
       currentState = "home";
     } else if (query || url.includes("/search") || url.includes("/results") || pageType.includes("results") || (hasResultLinks && hasSearchInput)) {
       currentState = "results";
     } else if ((platform === "youtube" && (url.includes("/watch") || url.includes("v="))) || pageType.includes("video_playing") || pageType.includes("watch")) {
-      currentState = "video_playing";
+      currentState = "content";
     } else {
       currentState = "content";
     }
@@ -134,11 +136,16 @@ export function resolveCurrentState(observation, previousResolvedState = null) {
 
     console.log(`[SEMANTIC STATE] legacyState="${currentState}" semanticState="${semanticState}"`);
 
+    const legacyState = pageType.includes("logged_in")
+      ? "logged_in"
+      : (pageType.includes("video_playing") ? "video_playing" : currentState);
+
     const resolvedState = {
       platform,
       environment,
       currentState,
-      legacyState: currentState,
+      state: currentState,
+      legacyState,
       semanticState,
       parameters: {
         query,
@@ -146,8 +153,10 @@ export function resolveCurrentState(observation, previousResolvedState = null) {
       }
     };
 
-    console.log("[STATE RESOLVER OUTPUT]");
-    console.log(JSON.stringify(resolvedState, null, 2));
+    const normalizedResolvedState = normalizeResolvedState(resolvedState);
 
-    return resolvedState;
+    console.log("[STATE RESOLVER OUTPUT]");
+    console.log(JSON.stringify(normalizedResolvedState, null, 2));
+
+    return normalizedResolvedState;
 }

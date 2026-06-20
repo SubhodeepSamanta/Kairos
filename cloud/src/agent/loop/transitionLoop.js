@@ -31,8 +31,8 @@ export function processTransitions({
 
   console.log(`
 =========================================
-CURRENT STATE: ${resolvedCurState.platform}_${resolvedCurState.currentState} (query="${resolvedCurState.parameters?.query || ""}")
-DESIRED STATE: ${currentObj.platform}_${currentObj.desiredState} (query="${currentObj.parameters?.query || ""}")
+CURRENT STATE: platform="${resolvedCurState.platform}" state="${resolvedCurState.currentState}" (query="${resolvedCurState.parameters?.query || ""}")
+DESIRED STATE: platform="${currentObj.platform}" state="${currentObj.desiredState}" (query="${currentObj.parameters?.query || ""}")
 TRANSITIONS: ${transitions.map(t => `${t.id} (${t.score.toFixed(2)})`).join(", ")}
 ACTIVE TRANSITION: ${activeTransition.id} (confidence: ${activeTransition.confidence})
 =========================================

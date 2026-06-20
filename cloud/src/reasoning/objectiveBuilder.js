@@ -116,7 +116,7 @@ export function buildObjectives(intent) {
       });
       objectives.push({
         id: "obj3",
-        desiredState: "video_playing",
+        desiredState: "content",
         platform,
         parameters: { query: intent.query },
         successConditions: [`URL contains ${platform}`, `video is playing`],
@@ -210,7 +210,7 @@ export function buildObjectives(intent) {
       });
       objectives.push({
         id: "obj2",
-        desiredState: "logged_in",
+        desiredState: "login",
         platform,
         parameters: { email: intent.email, password: intent.password },
         successConditions: ["logged in"],
