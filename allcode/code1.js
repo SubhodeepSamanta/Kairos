@@ -3,9 +3,10 @@ const path = require("path");
 
 const rootDir = path.resolve(__dirname, "..");
 const filesToCollect = [
-"client/src/automation/browser/actions/snapshot.js",
-"client/src/automation/browser/actions/click.js",
-"cloud/src/agent/worldModel.js",
+"cloud/src/reasoning/intentParser.js",
+"cloud/src/reasoning/objectiveBuilder.js",
+"cloud/src/capabilities/selection/SelectionCapability.js",
+"cloud/src/capabilities/router.js",
 ];
 
 const outputFile = path.join(__dirname, "code.md");

@@ -77,6 +77,20 @@ export async function parseIntent(goalText) {
     };
   }
 
+  match = text.match(
+    /^(?:play|watch|open|click)\s+(first|second|third|fourth|fifth)\s+(?:video|result|link|item)$/i
+  );
+
+  if (match) {
+    return {
+      intent: "select_result",
+      ordinal: match[1],
+      targetType: "video",
+      useCurrentPage: true,
+      originalGoal: goalText
+    };
+  }
+
   // Fallback to LLM
   const systemPrompt = `You are an Intent Parser. Parse the user goal into structured JSON.
 Supported intents:

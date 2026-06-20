@@ -2,6 +2,11 @@ import { createTask } from "../shared/schemas/task.js";
 import { normalizeObjective, normalizeResolvedState, transitionId } from "../world/stateNormalization.js";
 
 export function generateTransitions(currentState, desiredObjective, failedTransitions = {}) {
+  console.log("[TRANSITION GENERATOR INPUT RECEIVED currentState]");
+  console.log(JSON.stringify(currentState, null, 2));
+  console.log("[TRANSITION GENERATOR INPUT RECEIVED desiredObjective]");
+  console.log(JSON.stringify(desiredObjective, null, 2));
+
   const normalizedCurrentState = normalizeResolvedState(currentState);
   const normalizedDesiredObjective = normalizeObjective(desiredObjective);
 

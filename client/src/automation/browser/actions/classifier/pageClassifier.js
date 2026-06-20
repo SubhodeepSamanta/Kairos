@@ -92,6 +92,21 @@ export function classifyPage(url, title, elements = {}) {
     }
   }
 
+  const isYoutubeResults =
+    urlLower.includes("search_query=");
+
+  const isYoutubeWatch =
+    urlLower.includes("/watch");
+
+  const isYoutubeShort =
+    urlLower.includes("/shorts");
+
+  if (isYoutubeResults)
+    pageType = "result_page";
+
+  if (isYoutubeWatch || isYoutubeShort)
+    pageType = "video_page";
+
   const capabilities = ["content_available"];
   if (hasSearchInput || hasSearchLauncher) capabilities.push("search_available");
   if (hasResultLinks) {

@@ -50,7 +50,23 @@ export async function readPage() {
 
   const cappedButtons = sortedButtons.slice(0, 50);
   const cappedInputs = sortedInputs.slice(0, 20);
-  const cappedLinks = sortedLinks.slice(0, 50);
+  const cappedLinks = sortedLinks.slice(0, 200);
+
+  const watchLinksBefore = links.filter(l => l.href && l.href.includes("/watch")).length;
+  const watchLinksAfter = cappedLinks.filter(l => l.href && l.href.includes("/watch")).length;
+
+  console.log("[OBSERVATION PIPELINE DIAGNOSTIC]");
+  console.log(JSON.stringify({
+    url,
+    totalLinks: links.length,
+    returnedLinks: cappedLinks.length,
+    totalButtons: buttons.length,
+    returnedButtons: cappedButtons.length,
+    totalInputs: inputs.length,
+    returnedInputs: cappedInputs.length,
+    watchLinksBeforeSlicing: watchLinksBefore,
+    watchLinksAfterSlicing: watchLinksAfter
+  }, null, 2));
 
   const tabs = await listTabs().catch(() => []);
   const activeTab = tabs.find(t => t.active) || null;
@@ -59,6 +75,16 @@ export async function readPage() {
   const site = classification.site;
   const environment = classification.environment || "generic";
   const genericPageType = classification.pageType;
+
+  console.log("[PAGE CLASSIFIER DIAGNOSTIC]");
+  console.log(JSON.stringify({
+    url,
+    pageType,
+    genericPageType,
+    environment,
+    site,
+    classificationCapabilities: classification.capabilities
+  }, null, 2));
 
   console.log("PAGE TYPE:", pageType, "SITE:", site, "ENVIRONMENT:", environment, "GENERIC TYPE:", genericPageType);
   console.log(

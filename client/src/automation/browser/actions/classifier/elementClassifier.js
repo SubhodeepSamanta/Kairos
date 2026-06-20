@@ -106,7 +106,7 @@ export function classifyElement(el, role) {
     } else if (href.includes("/cart") || href.includes("/basket") || combined.includes("cart")) {
       purpose = "cart_link";
       confidence = 0.9;
-    } else if (href.includes("/watch")) {
+    } else if (href.includes("/watch") || href.includes("/shorts") || href.includes("/live")) {
       purpose = "video_link";
       confidence = 0.9;
     } else if (href.includes("/dp/") || href.includes("/gp/")) {
@@ -127,7 +127,9 @@ export function classifyElement(el, role) {
     semanticType = "search_input";
   } else if (purpose === "search_launcher" || purpose === "search_link" || purpose === "search_button") {
     semanticType = "search_trigger";
-  } else if (["video_link", "product_link", "post_link", "result_link"].includes(purpose)) {
+  } else if (["video_link", "product_link", "result_link"].includes(purpose)) {
+    semanticType = "primary_content";
+  } else if (purpose === "post_link") {
     semanticType = "content_item";
   } else if (["login_email", "login_password", "signup_email", "job_title_input", "location_input"].includes(purpose)) {
     semanticType = "input_element";

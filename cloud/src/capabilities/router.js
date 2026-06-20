@@ -20,6 +20,9 @@ const CAPABILITIES = [
 ];
 
 export function routeCapability(transition, blacklistedCapabilities = []) {
+  console.log("[CAPABILITY ROUTER INPUT]");
+  console.log(JSON.stringify({ transition, blacklistedCapabilities }, null, 2));
+
   const normalizedTransition = normalizeTransition(transition);
   const capabilityTransition = toLegacyCapabilityTransition(normalizedTransition);
 
@@ -45,6 +48,9 @@ export function routeCapability(transition, blacklistedCapabilities = []) {
   
   if (bestCap) {
     console.log(`[ROUTER] Routed to highest confidence capability: ${bestCap.name} (score: ${bestScore.toFixed(2)})`);
+    console.log("[CAPABILITY ROUTER OUTPUT]");
+    console.log(JSON.stringify({ name: bestCap.name, successRate: bestCap.successRate, confidence: bestCap.confidence }, null, 2));
+
     return {
       ...bestCap,
       execute(browserTransition, browserState) {
@@ -60,5 +66,6 @@ export function routeCapability(transition, blacklistedCapabilities = []) {
   }
   
   console.log("[ROUTER] No matching capability found.");
+  console.log("[CAPABILITY ROUTER OUTPUT] null");
   return null;
 }

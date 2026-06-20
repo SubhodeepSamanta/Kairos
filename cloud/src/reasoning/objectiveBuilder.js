@@ -1,6 +1,9 @@
 export function buildObjectives(intent) {
   const objectives = [];
-  const platform = intent.platform || "google";
+  const platform =
+    intent.useCurrentPage
+      ? null
+      : (intent.platform || "google");
 
   // Check for compound goals or sub-actions in intent context
   const originalGoal = (intent.originalGoal || "").toLowerCase();
@@ -116,14 +119,29 @@ export function buildObjectives(intent) {
       });
       objectives.push({
         id: "obj3",
+        desiredState: "result_selected",
+        platform,
+        parameters: {
+          ordinal: "first"
+        },
+        successConditions: [
+          "content selected"
+        ],
+        priority: 3,
+        dependencies: ["obj2"],
+        confidence: 1.0,
+        openQuestions: []
+      });
+      objectives.push({
+        id: "obj4",
         desiredState: "content",
         platform,
         parameters: { query: intent.query },
         successConditions: [`URL contains ${platform}`, `video is playing`],
-        priority: 3,
-        dependencies: ["obj2"],
+        priority: 2,
+        dependencies: ["obj3"],
         confidence: 1.0,
-        openQuestions: ["What is the video length?", "Who uploaded the video?"]
+        openQuestions: []
       });
       break;
     }
@@ -176,6 +194,26 @@ export function buildObjectives(intent) {
         confidence: 1.0,
         openQuestions: infoQuestions
       });
+      break;
+    }
+
+    case "select_result": {
+      objectives.push({
+        id: "obj1",
+        desiredState: "result_selected",
+        platform,
+        parameters: {
+          ordinal: intent.ordinal
+        },
+        successConditions: [
+          "content selected"
+        ],
+        priority: 5,
+        dependencies: [],
+        confidence: 1.0,
+        openQuestions: []
+      });
+
       break;
     }
 

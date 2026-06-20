@@ -13,6 +13,9 @@ export const MediaCapability = {
     return transition.desiredState === "video_playing" || transition.desiredState === "audio_playing";
   },
   execute(transition, browserState) {
+    console.log("[CAPABILITY INPUT TRANSITION]");
+    console.log(JSON.stringify(transition, null, 2));
+
     console.log("[MEDIA CAPABILITY INPUT]");
     console.log(JSON.stringify({
       currentUrl: browserState.url,
