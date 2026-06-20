@@ -11,7 +11,16 @@ export async function executePlan(plan) {
   const results = [];
 
   for (const action of plan.actions) {
+    console.log("[ACTION START]");
+    console.log(action);
     console.log("\nACTION:", action.type, action.params);
+
+    let pageStateBefore = null;
+    if (action.type === ACTIONS.CLICK || action.type === "click") {
+      try {
+        pageStateBefore = await readPage();
+      } catch {}
+    }
 
     const before = await createSnapshot();
     const result = await executeAction(action);
@@ -57,11 +66,56 @@ export async function executePlan(plan) {
           await page.waitForLoadState("domcontentloaded", { timeout: 3000 });
         } catch {}
       }
-      await new Promise(resolve => setTimeout(resolve, 500));
 
-      result.pageState = await readPage();
+      if (action.type === ACTIONS.CLICK || action.type === "click") {
+        const maxTimeout = 8000;
+        const interval = 250;
+        const startTime = Date.now();
+
+        const prevUrl = pageStateBefore?.url || before.url || "";
+        const prevPageType = pageStateBefore?.pageType || "";
+        const prevSemanticState = pageStateBefore?.semanticState || "";
+
+        console.log(`[SPA WAIT] Start polling. Previous URL: ${prevUrl} | Previous PageType: ${prevPageType} | Previous State: ${prevSemanticState}`);
+
+        let lastReadState = await readPage();
+        let currentUrl = lastReadState.url || "";
+        let currentPageType = lastReadState.pageType || "";
+        let currentSemanticState = lastReadState.semanticState || "";
+
+        while (Date.now() - startTime < maxTimeout) {
+          if (
+            currentUrl !== prevUrl ||
+            currentPageType !== prevPageType ||
+            currentSemanticState !== prevSemanticState
+          ) {
+            console.log(`[SPA WAIT] State change detected! Stopping wait.`);
+            break;
+          }
+
+          await new Promise(resolve => setTimeout(resolve, interval));
+          lastReadState = await readPage();
+          currentUrl = lastReadState.url || "";
+          currentPageType = lastReadState.pageType || "";
+          currentSemanticState = lastReadState.semanticState || "";
+
+          console.log(`[SPA WAIT] Polling...
+  Previous URL: ${prevUrl} | Current URL: ${currentUrl}
+  Previous PageType: ${prevPageType} | Current PageType: ${currentPageType}
+  Previous State: ${prevSemanticState} | Current State: ${currentSemanticState}`);
+        }
+
+        result.pageState = lastReadState;
+      } else {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        result.pageState = await readPage();
+      }
+
       console.log("AUTO READ:", action.type, result.pageState?.url);
     }
+
+    console.log("[ACTION RESULT]");
+    console.log(result);
 
     results.push(result);
   }

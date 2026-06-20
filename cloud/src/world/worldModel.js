@@ -20,6 +20,12 @@ export function updateWorldModel(
   const world = goal.world;
   if (!world) return;
 
+  const previousState = {
+    url: world.lastUrl,
+    title: world.lastTitle,
+    stateHash: world.lastStateHash
+  };
+
   if (observation?.pageState?.tabs) {
     world.tabs = observation.pageState.tabs;
   } else if (observation?.tabs) {
@@ -110,6 +116,21 @@ export function updateWorldModel(
       }
     }
   }
+
+  const finalState = {
+    url: world.lastUrl,
+    title: world.lastTitle,
+    stateHash: world.lastStateHash
+  };
+  console.log("[WORLD MODEL UPDATE]");
+  console.log(JSON.stringify({
+    previousState,
+    incomingState: {
+      url: observation?.pageState?.url || observation?.url,
+      title: observation?.pageState?.title || observation?.title
+    },
+    finalState
+  }, null, 2));
 }
 
 export function recordCompletedTask(

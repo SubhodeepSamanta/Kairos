@@ -13,6 +13,21 @@ export const MediaCapability = {
     return transition.desiredState === "video_playing" || transition.desiredState === "audio_playing";
   },
   execute(transition, browserState) {
+    console.log("[MEDIA CAPABILITY INPUT]");
+    console.log(JSON.stringify({
+      currentUrl: browserState.url,
+      currentSite: browserState.site,
+      currentPageType: browserState.pageType,
+      linksCount: browserState.links?.length || 0
+    }, null, 2));
+
+    console.log("[MEDIA CANDIDATES]");
+    console.log(JSON.stringify(
+      browserState.links?.slice(0, 20),
+      null,
+      2
+    ));
+
     let matchedBySemantic = false;
     let fallbackToLegacy = false;
 
@@ -27,6 +42,10 @@ export const MediaCapability = {
     }
 
     console.log(`[SEMANTIC CAPABILITY] name="MediaCapability" matched_by_semantic=${matchedBySemantic} fallback_to_legacy=${fallbackToLegacy}`);
+    
+    console.log("[MEDIA SELECTED]");
+    console.log(JSON.stringify(videoLink, null, 2));
+
     if (videoLink) {
       return {
         success: true,

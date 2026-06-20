@@ -1,9 +1,26 @@
 export function resolveCurrentState(observation, previousResolvedState = null) {
+  const pageState = observation?.pageState || observation || {};
+  console.log("[STATE RESOLVER INPUT]");
+  console.log(JSON.stringify({
+    title: pageState?.title,
+    url: pageState?.url,
+    pageType: pageState?.pageType,
+    site: pageState?.site,
+    activeTab: pageState?.activeTab,
+    tabs: pageState?.tabs?.map(t => ({
+      title: t.title,
+      url: t.url,
+      active: t.active
+    }))
+  }, null, 2));
+
   const browser = observation?.pageState || observation || {};
   const url = (observation?.url || browser?.url || "").toLowerCase();
   const title = (observation?.title || browser?.title || "").toLowerCase();
   
   if ((!url || url === "about:blank") && previousResolvedState) {
+    console.log("[STATE RESOLVER OUTPUT]");
+    console.log(JSON.stringify(previousResolvedState, null, 2));
     return previousResolvedState;
   }
   
@@ -117,7 +134,7 @@ export function resolveCurrentState(observation, previousResolvedState = null) {
 
     console.log(`[SEMANTIC STATE] legacyState="${currentState}" semanticState="${semanticState}"`);
 
-    return {
+    const resolvedState = {
       platform,
       environment,
       currentState,
@@ -128,4 +145,9 @@ export function resolveCurrentState(observation, previousResolvedState = null) {
         url
       }
     };
+
+    console.log("[STATE RESOLVER OUTPUT]");
+    console.log(JSON.stringify(resolvedState, null, 2));
+
+    return resolvedState;
 }

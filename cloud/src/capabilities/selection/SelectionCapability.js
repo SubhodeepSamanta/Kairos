@@ -20,11 +20,26 @@ export const ResultCapability = {
     return transition.desiredState === "result_selected" || transition.desiredState === "product_details";
   },
   execute(transition, browserState) {
+    console.log("[SELECTION INPUT]");
+    console.log(JSON.stringify({
+      currentUrl: browserState.url,
+      currentSite: browserState.site,
+      currentPageType: browserState.pageType,
+      linksCount: browserState.links?.length || 0
+    }, null, 2));
+
     let targetIdx = 0;
     const ordinal = transition.parameters?.ordinal || "first";
     if (ordinal && ORDINALS[ordinal.toLowerCase()] !== undefined) {
       targetIdx = ORDINALS[ordinal.toLowerCase()];
     }
+
+    console.log("[SELECTION CANDIDATES]");
+    console.log(JSON.stringify(
+      browserState.links?.slice(0, 20),
+      null,
+      2
+    ));
 
     let matchedBySemantic = false;
     let fallbackToLegacy = false;
@@ -48,6 +63,8 @@ export const ResultCapability = {
 
     if (candidateLinks.length > targetIdx) {
       const targetLink = candidateLinks[targetIdx];
+      console.log("[SELECTION SELECTED]");
+      console.log(JSON.stringify(targetLink, null, 2));
       return {
         success: true,
         actions: [{
@@ -62,6 +79,8 @@ export const ResultCapability = {
     const allLinks = (browserState.links || []).filter(link => link.purpose !== "home_link" && link.purpose !== "profile_link");
     if (allLinks.length > targetIdx) {
       const targetLink = allLinks[targetIdx];
+      console.log("[SELECTION SELECTED]");
+      console.log(JSON.stringify(targetLink, null, 2));
       return {
         success: true,
         actions: [{

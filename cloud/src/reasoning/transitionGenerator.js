@@ -1,6 +1,15 @@
 import { createTask } from "../shared/schemas/task.js";
 
 export function generateTransitions(currentState, desiredObjective, failedTransitions = {}) {
+  console.log("[TRANSITION INPUT]");
+  console.log(JSON.stringify({
+    currentPlatform: currentState.platform,
+    currentState: currentState.currentState,
+    desiredPlatform: desiredObjective.platform,
+    desiredState: desiredObjective.desiredState,
+    parameters: desiredObjective.parameters
+  }, null, 2));
+
   const candidates = [];
   const cleanCurPlatform = (currentState.platform || "").toLowerCase();
   const cleanCurState = (currentState.currentState || "").toLowerCase();
@@ -63,6 +72,9 @@ export function generateTransitions(currentState, desiredObjective, failedTransi
   candidates.sort((a, b) => b.score - a.score);
 
   console.log(`[STATE MACHINE] Generated and ranked transitions:`, JSON.stringify(candidates.map(c => ({ id: c.id, score: c.score.toFixed(2), conf: c.confidence })), null, 2));
+
+  console.log("[TRANSITION OUTPUT]");
+  console.log(JSON.stringify(candidates, null, 2));
 
   return candidates;
 }

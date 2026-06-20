@@ -188,6 +188,15 @@ export async function executeAndVerify({
       capability.success_by_environment[env].successes / capability.success_by_environment[env].executions;
 
     const failure = diagnoseFailure(activeTransition, browserState, result);
+
+    console.log("[RECOVERY TRIGGER]");
+    console.log(JSON.stringify({
+      objective: currentObj,
+      currentState: resolvedCurState,
+      verificationResult: { targetVerified },
+      failedTransition: activeTransition
+    }, null, 2));
+
     console.log("[RECOVERY]", failure.message);
     goal.tracker.lastFailure = failure.message;
     goal.tracker.attemptCount++;
