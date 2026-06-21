@@ -2,88 +2,95 @@ export function classifyPage(url, title, elements = {}) {
   const urlLower = (url || "").toLowerCase();
   const titleLower = (title || "").toLowerCase();
 
-  let site = "generic";
-  let environment = "generic";
-
-  if (urlLower && urlLower !== "about:blank") {
-    try {
-      const host = new URL(urlLower).hostname;
-      site = host.replace("www.", "").split(".")[0] || "generic";
-    } catch {
-      site = "generic";
-    }
-  }
-
   const inputs = elements.inputs || [];
   const buttons = elements.buttons || [];
   const links = elements.links || [];
 
-  const hasSearchInput = inputs.some(x => x.purpose === "search_input" || x.purpose === "navigation_target");
-  const hasSearchLauncher = buttons.some(x => x.purpose === "action_target") ||
-                             links.some(x => x.purpose === "navigation_target");
-  const hasResultLinks = links.some(x => x.purpose === "primary_content");
-  
-  const hasAuthInputs = inputs.some(x => x.purpose === "form_input") ||
-                        buttons.some(x => x.purpose === "action_target" && /sign|log/i.test(x.text || ""));
+  const pageText = `${titleLower} ${urlLower}`.toLowerCase();
 
   let pageType = "generic";
+
+  const hasSearchInput = inputs.some(input => input.purpose === "search_input" || input.purpose === "navigation_target");
+  const hasSearchLauncher = buttons.some(button => button.purpose === "action_target") ||
+                             links.some(link => link.purpose === "navigation_target");
+  const hasResultElements = links.some(link => link.purpose === "primary_content");
+  const hasFormInputs = inputs.some(input => input.purpose === "form_input");
+  const hasUserContent = buttons.some(button => /submit|continue|next|proceed|go|start/i.test(button.text || "")) ||
+                         links.some(link => /read|view|watch|play|consume|article|post|item/i.test(link.text || ""));
 
   const isHomePath = (() => {
     try {
       const path = new URL(urlLower).pathname.replace(/\/+$/, "");
-      return path === "" || path === "/" || path === "/home" || path === "/feed" || path === "/main";
+      return path === "" || path === "/";
     } catch {
       return false;
     }
   })();
 
-  const pageText = `${titleLower} ${urlLower}`;
+  const hasMediaElements = inputs.some(input => /video|audio|media|play|pause|seek|volume/i.test(input.text || "")) ||
+                            buttons.some(button => /video|audio|media|play|pause|seek|volume|i.test(button.text || "")) ||
+                            links.some(link => /video|audio|media|play|pause|seek|volume|i.test(link.text || ""));
 
-  if (isHomePath) {
-    pageType = "search interface";
-  } else if ((hasSearchInput || hasSearchLauncher) && hasResultLinks) {
-    pageType = "search results";
-  } else if (/watch|video|shorts|play|media|live/i.test(pageText)) {
-    pageType = "media content";
-  } else if (/detail|product|item|dp|wiki/i.test(pageText)) {
-    pageType = "content detail";
-  } else if (hasAuthInputs || /login|signin|signup|register|auth/i.test(pageText)) {
-    pageType = "form";
-  } else if (/profile|user|account/i.test(pageText)) {
-    pageType = "profile";
-  } else if (/settings|config|preferences/i.test(pageText)) {
-    pageType = "settings";
-  } else if (/dashboard|console|panel/i.test(pageText)) {
-    pageType = "dashboard";
-  } else if (/jobs|listing|search/i.test(pageText)) {
-    pageType = "listing page";
+  const hasAuthenticationElements = inputs.some(input => /password|username|login|email|sign/i.test(input.text || "")) ||
+                                     buttons.some(button => /sign|log|in|auth/i.test(button.text || "")) ||
+                                     /login|signin|signup|auth/i.test(pageText);
+
+  const hasInteractiveFeatures = hasSearchInput || hasSearchLauncher || hasResultElements || hasFormInputs || hasUserContent || hasMediaElements || hasAuthenticationElements;
+
+  if (pageText.includes("article") || pageText.includes("blog") || pageText.includes("post") || pageText.includes("story") || pageText.includes("news") || pageText.length > 1500) {
+    pageType = "content_presentation";
+  } else if (hasSearchInput || hasSearchLauncher || (hasInteractiveFeatures && isHomePath)) {
+    pageType = "content_discovery";
+  } else if (hasMediaElements) {
+    pageType = "media_interaction";
+  } else if (hasFormInputs && hasAuthenticationElements) {
+    pageType = "access_control";
+  } else if (hasFormInputs && hasResultElements) {
+    pageType = "data_interaction";
+  } else if (hasResultElements) {
+    pageType = "content_selection";
+  } else if (hasUserContent) {
+    pageType = "interaction_enabling";
+  } else if (hasInteractiveFeatures) {
+    pageType = "user_interface";
   }
 
-  // Classify environment dynamically
-  if (/search|query/i.test(pageText)) {
-    environment = "search_site";
-  } else if (/video|music|play|watch|stream/i.test(pageText)) {
-    environment = "media_site";
-  } else if (/shop|buy|cart|checkout|price|store/i.test(pageText)) {
-    environment = "commerce_site";
-  } else if (/wiki|doc|article|knowledge/i.test(pageText)) {
-    environment = "knowledge_site";
-  } else if (/job|career|profile|portfolio/i.test(pageText)) {
-    environment = "professional_site";
-  }
+  const environment = detectEnvironment(pageText, hasMediaElements, hasSearchInput, hasFormInputs, hasAuthenticationElements);
 
   const capabilities = ["content_available"];
   if (hasSearchInput || hasSearchLauncher) capabilities.push("search_available");
-  if (hasResultLinks) {
-    capabilities.push("results_available");
+  if (hasResultElements) {
     capabilities.push("selection_available");
+    capabilities.push("content_consumption");
   }
-  if (pageType === "media content") capabilities.push("media_available");
-  if (inputs.length > 0) capabilities.push("form_available");
-  if (links.length > 0) capabilities.push("navigation_available");
-  if (hasAuthInputs) capabilities.push("authentication_available");
+  if (hasMediaElements) capabilities.push("media_interaction");
+  if (hasFormInputs) capabilities.push("data_entry");
+  if (hasAuthenticationElements) capabilities.push("access_required");
+  if (hasUserContent) capabilities.push("action_facilitation");
 
   console.log(`[SEMANTIC CLASSIFIER] pageType="${pageType}" capabilities=${JSON.stringify(capabilities)}`);
 
-  return { site, environment, pageType, legacyPageType: pageType, capabilities };
+  return {
+    site: "generic",
+    environment,
+    pageType,
+    legacyPageType: pageType,
+    capabilities
+  };
+}
+
+function detectEnvironment(pageText, hasMediaElements, hasSearchInput, hasFormInputs, hasAuthenticationElements) {
+  if (hasSearchInput && (pageText.includes("search") || pageText.includes("results") || pageText.includes("find"))) {
+    return "search_environment";
+  } else if (hasMediaElements && (pageText.includes("video") || pageText.includes("watch") || pageText.includes("play"))) {
+    return "media_environment";
+  } else if (hasFormInputs && (pageText.includes("form") || pageText.includes("submit") || pageText.includes("login"))) {
+    return "interaction_environment";
+  } else if (hasAuthenticationElements) {
+    return "access_environment";
+  } else if (pageText.includes("wiki") || pageText.includes("knowledge") || pageText.includes("help")) {
+    return "knowledge_environment";
+  }
+
+  return "generic_environment";
 }

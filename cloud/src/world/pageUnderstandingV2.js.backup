@@ -65,6 +65,11 @@ function inferPagePurpose(resolvedState, browser = {}, elements = []) {
   const pageText = (browser.text || "").toLowerCase();
   const hasPasswordInput = (browser.inputs || []).some(input => input.type === "password");
 
+  let pathname = "";
+  try {
+    pathname = new URL(url).pathname;
+  } catch (e) {}
+
   // 1. Check for modal/overlay constraints
   const closeBtn = (browser.buttons || []).some(btn => 
     btn.purpose === "confirmation_action" || 
@@ -74,80 +79,66 @@ function inferPagePurpose(resolvedState, browser = {}, elements = []) {
     return "modal flow";
   }
 
-  // 2. Content access flow (remove platform-specific naming)
-  const hasInteractiveElements = (browser.inputs || []).length > 0 || 
-    (browser.buttons || []).length > 0 || 
-    (browser.links || []).length > 0;
+  // 2. Authentication/login flow
+  if (resolvedState.currentState === "login" || hasPasswordInput || /login|signin|sign-in|auth|register|signup/i.test(pathname) || /sign in|log in|create account/i.test(title)) {
+    return "login flow";
+  }
 
-  // 3. User input opportunities
-  const hasSearchIntent = elements.some(el => 
-    el.semanticType === "search_input" || 
-    el.purpose === "search_input" ||
-    el.actionHints.includes("search") ||
-    /search|query|find|lookup/i.test(el.label || "")
+  // 3. Search results
+  const isSearchUrl = /\/search|\/results|[?&](q|query|search_query)=/.test(url);
+  const hasResultElements = elements.some(e => 
+    e.semanticType === "content_item" || 
+    e.semanticType === "selection_candidate" ||
+    e.purpose === "primary_content"
   );
-
-  const hasNavigationOptions = elements.some(el => 
-    el.semanticType === "navigation_element" ||
-    el.actionHints.includes("navigate") ||
-    el.actionHints.includes("click") ||
-    /home|profile|menu|navigation/i.test(el.label || "")
-  );
-
-  const hasContentItems = elements.some(el => 
-    el.purpose === "primary_content" ||
-    /read|view|watch|play|consume|article|post|item/i.test(el.label || "")
-  );
-
-  const hasActionButtons = elements.some(el => 
-    el.purpose === "action_target" ||
-    /submit|continue|next|proceed|go|start/i.test(el.label || "")
-  );
-
-  const hasFormInputElements = elements.some(el => 
-    el.purpose === "input_element" ||
-    (browser.inputs || []).length > 0
-  );
-
-  // Semantic classification based on user interaction patterns
-
-  if (hasPasswordInput || /credential|authentication|access|sign|log in/i.test(title) || /login|signin|auth|protected/i.test(url)) {
-    return "access_control";
+  if (resolvedState.currentState === "results" || (isSearchUrl && hasResultElements) || (title.includes("results") && hasResultElements)) {
+    return "search results";
   }
 
-  if (hasSearchIntent && hasNavigationOptions && hasContentItems) {
-    return "search_workflow";
+  // 4. Media player / Video content
+  if (resolvedState.currentState === "content" && (url.includes("/watch") || url.includes("/shorts") || /video|play|media|stream/i.test(title) || (browser.capabilities || []).includes("media_available"))) {
+    return "media content";
   }
 
-  if (hasNavigationOptions && hasContentItems) {
-    return "content_navigation";
+  // 5. Product detail
+  if (elements.some(e => e.semanticType === "product_item" || /price|buy|add to cart|checkout/i.test(e.label)) && /detail|product|dp/i.test(pathname)) {
+    return "product detail";
   }
 
-  if (hasContentItems) {
-    return "content_delivery";
+  // 6. Settings
+  if (resolvedState.currentState === "settings" || /settings|preferences|config/i.test(pathname) || /settings|preferences/i.test(title)) {
+    return "settings";
   }
 
-  if (hasFormInputElements && hasActionButtons) {
-    return "data_interaction";
+  // 7. Profile
+  if (/profile|account|my-account/i.test(pathname) || /profile|my account/i.test(title)) {
+    return "profile";
   }
 
-  if (hasActionButtons && hasSearchIntent) {
-    return "search_interface";
+  // 8. Resource detail (Repository details, etc.)
+  if (elements.some(e => e.semanticType === "repository_item" || e.purpose === "primary_content") || /repo|details/i.test(pathname)) {
+    return "resource detail";
   }
 
-  if (hasInteractiveElements) {
-    if (hasSearchIntent) {
-      return "search_task";
-    }
-    if (hasContentItems && hasNavigationOptions) {
-      return "navigation_task";
-    }
-    if (hasFormInputElements) {
-      return "form_interaction";
-    }
-    if (hasActionButtons) {
-      return "action_based";
-    }
+  // 9. Dashboard
+  if (/dashboard|feed/i.test(url) || /dashboard|console/i.test(title)) {
+    return "dashboard";
+  }
+
+  // 10. Form
+  const inputCount = (browser.inputs || []).length;
+  if (inputCount >= 3) {
+    return "form";
+  }
+
+  // 11. Article
+  if (/wiki|article|post|blog/i.test(url) || pageText.length > 1000) {
+    return "article";
+  }
+
+  // 12. Search interface
+  if (resolvedState.currentState === "home" || (browser.inputs || []).some(input => input.purpose === "search_input")) {
+    return "search interface";
   }
 
   return "generic";

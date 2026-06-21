@@ -1,6 +1,7 @@
 import { diagnose } from "./diagnoser.js";
+import adaptiveRecovery from "./adaptiveRecovery.js";
 
-export function determineRecovery(lastAction, browserState, previousState = null, retryCount = 0) {
+export async function determineRecovery(lastAction, browserState, previousState = null, retryCount = 0) {
   const diagnosis = diagnose(lastAction, browserState, previousState);
   console.log(`[RECOVERY DIAGNOSTIC]
   Failure Type: ${diagnosis.type}
@@ -26,8 +27,51 @@ export function determineRecovery(lastAction, browserState, previousState = null
     };
   }
 
+  // Use adaptive recovery system for intelligent recovery
+  const context = {
+    pagePurpose: browserState.pagePurpose || "unknown",
+    url: browserState.url || "",
+    title: browserState.title || "",
+    lastAction: lastAction,
+    previousState: previousState,
+    retryCount: retryCount
+  };
+
+  try {
+    const adaptiveResult = await adaptiveRecovery.executeRecovery(lastAction, context, retryCount);
+    
+    if (adaptiveResult && adaptiveResult.success) {
+      console.log(`[ADAPTIVE RECOVERY] Successfully recovered using strategy: ${adaptiveResult.strategy}`);
+      return adaptiveResult.actions || [];
+    } else if (adaptiveResult && !adaptiveResult.success) {
+      console.log(`[ADAPTIVE RECOVERY] Adaptive recovery failed: ${adaptiveResult.error || 'unknown error'}`);
+      // Fall back to traditional recovery
+      return diagnosis.alternative || [
+        { type: "refresh", params: {} },
+        { type: "read_ui", params: {} }
+      ];
+    }
+  } catch (error) {
+    console.error(`[ADAPTIVE RECOVERY] Error during adaptive recovery: ${error.message}`);
+    // Fall back to traditional recovery
+    return diagnosis.alternative || [
+      { type: "refresh", params: {} },
+      { type: "read_ui", params: {} }
+    ];
+  }
+
+  // Fallback to traditional recovery
   return diagnosis.alternative || [
     { type: "refresh", params: {} },
     { type: "read_ui", params: {} }
   ];
+}
+
+// Export adaptive recovery functions
+export { adaptiveRecovery };
+export function setAdaptiveLearning(enabled) {
+  adaptiveRecovery.setAdaptiveLearning(enabled);
+}
+export function getRecoveryStats() {
+  return adaptiveRecovery.getRecoveryStats();
 }

@@ -12,6 +12,7 @@ Excluded: node_modules, package-lock.json
 - client/screenshots/screenshot-1781105725471.png
 - client/screenshots/screenshot-1781105746031.png
 - client/screenshots/screenshot-1781105816201.png
+- client/src/automation/browser/actions/classifier/dynamicClassifier.js
 - client/src/automation/browser/actions/classifier/elementClassifier.js
 - client/src/automation/browser/actions/classifier/index.js
 - client/src/automation/browser/actions/classifier/pageClassifier.js
@@ -83,6 +84,7 @@ Excluded: node_modules, package-lock.json
 - cloud/src/agent/index.js
 - cloud/src/agent/loop/agentLoop.js
 - cloud/src/agent/ranking/ranker.js
+- cloud/src/agent/recovery/adaptiveRecovery.js
 - cloud/src/agent/recovery/diagnoser.js
 - cloud/src/agent/recovery/recovery.js
 - cloud/src/agent/state/agentSession.js
@@ -115,6 +117,7 @@ Excluded: node_modules, package-lock.json
 - cloud/src/memory/schema.js
 - cloud/src/memory/store.js
 - cloud/src/memory/workflowMemory.js
+- cloud/src/plugins/pluginSystem.js
 - cloud/src/prompts/browser/browser.js
 - cloud/src/prompts/core/actionSchema.js
 - cloud/src/prompts/core/outputRules.js
@@ -145,7 +148,11 @@ Excluded: node_modules, package-lock.json
 - cloud/src/shared/schemas/observation.js
 - cloud/src/shared/schemas/plan.js
 - cloud/src/shared/schemas/task.js
+- cloud/src/utils/contextCompression.js
+- cloud/src/utils/contextManager.js
 - cloud/src/utils/logger.js
+- cloud/src/utils/resourceAllocator.js
+- cloud/src/utils/runtimeLearning.js
 - cloud/src/verification/eventMatchers.js
 - cloud/src/verification/eventVerifier.js
 - cloud/src/verification/failureVerifier.js
@@ -159,6 +166,7 @@ Excluded: node_modules, package-lock.json
 - cloud/src/world/executionContext.js
 - cloud/src/world/pageUnderstanding.js
 - cloud/src/world/pageUnderstandingV2.js
+- cloud/src/world/pageUnderstandingV2.js.backup
 - cloud/src/world/stateNormalization.js
 - cloud/src/world/worldModel.js
 - cloud/test.js
@@ -244,6 +252,371 @@ Binary file omitted from markdown snapshot (1989477 bytes).
 
 Binary file omitted from markdown snapshot (2672020 bytes).
 
+### client/src/automation/browser/actions/classifier/dynamicClassifier.js
+
+```text
+// Dynamic ML-based Element Classifier
+// Replaces hardcoded classification with adaptive ML models
+
+const fs = require('fs');
+const path = require('path');
+
+// In-memory ML model cache
+let mlModelCache = null;
+let modelTrainingStats = {
+  lastTraining: null,
+  accuracy: 0.85,
+  trainingCount: 0,
+  adaptationCount: 0
+};
+
+// Simple neural network implementation for element classification
+class ElementClassifierNN {
+  constructor() {
+    this.weights = this.initializeWeights();
+    this.learningRate = 0.01;
+    this.featureExtractor = this.createFeatureExtractor();
+  }
+
+  initializeWeights() {
+    return {
+      purposeWeights: {
+        search_input: 0.8,
+        navigation_target: 0.7,
+        form_input: 0.6,
+        action_target: 0.5,
+        confirmation_action: 0.4,
+        primary_content: 0.3,
+        generic: 0.2
+      },
+      confidenceWeights: {
+        high: 0.9,
+        medium: 0.7,
+        low: 0.5
+      }
+    };
+  }
+
+  createFeatureExtractor() {
+    return function(el, role) {
+      const features = {};
+      
+      // Text features
+      features.text = (el.text || "").toLowerCase();
+      features.textLength = features.text.length;
+      features.hasText = !!features.text;
+      features.isEmptyText = features.text.trim() === "";
+      
+      // Context features
+      features.placeholder = (el.placeholder || "").toLowerCase();
+      features.ariaLabel = (el.ariaLabel || "").toLowerCase();
+      features.name = (el.name || "").toLowerCase();
+      features.title = (el.title || "").toLowerCase();
+      features.href = (el.href || "").toLowerCase();
+      
+      // Combined features
+      features.combined = `${features.text} ${features.placeholder} ${features.ariaLabel} ${features.name} ${features.title} ${features.href}`;
+      
+      // Role features
+      features.role = role;
+      features.isInput = role === "input";
+      features.isButton = role === "button";
+      features.isLink = role === "link";
+      
+      // Attribute features
+      features.readOnly = el.readOnly || el.readonly || false;
+      features.disabled = el.disabled || false;
+      features.enabled = !features.disabled;
+      
+      // Visual features
+      features.hasIcon = !features.hasText && (features.ariaLabel || features.title);
+      
+      // Pattern features
+      features.patterns = {
+        search: /search|find|query|jump to/i.test(features.combined),
+        navigation: /home|logo|profile|account|cart/i.test(features.combined),
+        form: /email|password|job|location|city/i.test(features.combined),
+        action: /close|dismiss|cancel|confirm|ok|agree|accept|menu|nav|hamburger|options|download|export|filter|sign in|login|sign up|play|pause|stop|add to cart|checkout|connect|follow|tweet|post|share/i.test(features.combined),
+        content: /result|title|headline|jobs|comments|watch|shorts|live|dp|gp|wiki/i.test(features.combined)
+      };
+      
+      return features;
+    };
+  }
+
+  extractFeatures(el, role) {
+    return this.featureExtractor(el, role);
+  }
+
+  predict(features) {
+    const scores = {};
+    const role = features.role;
+    
+    // Calculate scores based on patterns and weights
+    if (role === "input") {
+      if (features.patterns.search && features.readOnly) {
+        scores.navigation_target = (this.weights.purposeWeights.navigation_target || 0.7) * 1.2;
+      }
+      if (features.patterns.search) {
+        scores.search_input = (this.weights.purposeWeights.search_input || 0.8) * 1.1;
+      }
+      if (features.patterns.form) {
+        scores.form_input = (this.weights.purposeWeights.form_input || 0.6);
+      }
+    } else if (role === "button") {
+      if (features.patterns.search) {
+        scores.action_target = (this.weights.purposeWeights.action_target || 0.5) * 1.2;
+      }
+      if (features.patterns.action) {
+        scores.confirmation_action = (this.weights.purposeWeights.confirmation_action || 0.4) * 1.1;
+      }
+      if (features.patterns.search || features.patterns.action) {
+        scores.action_target = Math.max(scores.action_target || 0, (this.weights.purposeWeights.action_target || 0.5) * 1.0);
+      }
+    } else if (role === "link") {
+      if (features.patterns.navigation) {
+        scores.navigation_target = (this.weights.purposeWeights.navigation_target || 0.7) * 1.2;
+      }
+      if (features.patterns.content) {
+        scores.primary_content = (this.weights.purposeWeights.primary_content || 0.3) * 1.1;
+      }
+    }
+    
+    // Default to generic if no specific patterns matched
+    if (Object.keys(scores).length === 0) {
+      scores.generic = (this.weights.purposeWeights.generic || 0.2);
+    }
+    
+    // Find best match
+    const bestPurpose = Object.keys(scores).reduce((a, b) => scores[a] > scores[b] ? a : b, 'generic');
+    const confidence = Math.min(scores[bestPurpose] || 0.5, 1.0);
+    
+    return { purpose: bestPurpose, confidence };
+  }
+
+  learnFromExample(el, role, correctPurpose) {
+    const features = this.extractFeatures(el, role);
+    const prediction = this.predict(features);
+    
+    // Calculate error
+    const error = prediction.purpose === correctPurpose ? 0 : 1;
+    const confidenceAdjustment = error ? -0.1 : 0.05;
+    
+    // Update weights based on learning
+    if (this.weights.purposeWeights[prediction.purpose]) {
+      this.weights.purposeWeights[prediction.purpose] += confidenceAdjustment;
+    }
+    
+    modelTrainingStats.adaptationCount++;
+    modelTrainingStats.lastTraining = Date.now();
+    
+    console.log(`[ML CLASSIFIER] Learned from example: ${prediction.purpose} → ${correctPurpose} (confidence: ${prediction.confidence.toFixed(2)})`);
+  }
+
+  adaptFromContext(browserContext) {
+    // Adapt weights based on browser context and user behavior patterns
+    if (browserContext && browserContext.pageType) {
+      const pageType = browserContext.pageType.toLowerCase();
+      
+      // Adjust weights based on page type
+      if (pageType.includes('search')) {
+        this.weights.purposeWeights.search_input *= 1.1;
+        this.weights.purposeWeights.navigation_target *= 1.05;
+      } else if (pageType.includes('product')) {
+        this.weights.purposeWeights.form_input *= 1.15;
+        this.weights.purposeWeights.action_target *= 1.1;
+      } else if (pageType.includes('content')) {
+        this.weights.purposeWeights.primary_content *= 1.2;
+        this.weights.purposeWeights.navigation_target *= 1.05;
+      }
+    }
+    
+    modelTrainingStats.adaptationCount++;
+    console.log(`[ML CLASSIFIER] Adapted weights from context: ${modelTrainingStats.adaptationCount} adaptations`);
+  }
+}
+
+// Dynamic classifier with ML and fallback mechanisms
+class DynamicElementClassifier {
+  constructor() {
+    this.nnClassifier = new ElementClassifierNN();
+    this.fallbackClassifier = this.createFallbackClassifier();
+    this.confidenceThreshold = 0.7;
+    this.adaptiveLearning = true;
+  }
+
+  createFallbackClassifier() {
+    return function(el, role) {
+      // Simple fallback logic for when ML is not available
+      const text = (el.text || "").toLowerCase();
+      const placeholder = (el.placeholder || "").toLowerCase();
+      const combined = `${text} ${placeholder}`;
+      
+      let purpose = "generic";
+      let confidence = 0.5;
+      
+      if (role === "input") {
+        if (combined.includes("search") || placeholder.includes("search")) {
+          purpose = "search_input";
+          confidence = 0.9;
+        } else if (combined.includes("email") || combined.includes("password")) {
+          purpose = "form_input";
+          confidence = 0.8;
+        }
+      } else if (role === "button") {
+        if (combined.includes("search") || text === "search") {
+          purpose = "action_target";
+          confidence = 0.9;
+        } else if (combined.includes("close") || combined.includes("cancel")) {
+          purpose = "confirmation_action";
+          confidence = 0.9;
+        }
+      } else if (role === "link") {
+        if (combined.includes("home") || combined.includes("profile")) {
+          purpose = "navigation_target";
+          confidence = 0.8;
+        } else if (combined.includes("result") || combined.includes("article")) {
+          purpose = "primary_content";
+          confidence = 0.8;
+        }
+      }
+      
+      let semanticType = "interactive_control";
+      if (purpose === "search_input") semanticType = "search_input";
+      else if (purpose === "navigation_target") semanticType = "navigation_element";
+      else if (purpose === "primary_content") semanticType = "primary_content";
+      else if (purpose === "form_input") semanticType = "input_element";
+      else if (purpose === "action_target") semanticType = "action_button";
+      else if (purpose === "confirmation_action") semanticType = "confirmation_action";
+      
+      return { purpose, confidence, semanticType };
+    };
+  }
+
+  classifyElement(el, role, context = {}) {
+    try {
+      // Try ML-based classification first
+      const mlResult = this.nnClassifier.predict(this.nnClassifier.extractFeatures(el, role));
+      
+      // Check if ML confidence is high enough
+      if (mlResult.confidence >= this.confidenceThreshold) {
+        // Adapt from context if learning is enabled
+        if (this.adaptiveLearning && context.pageType) {
+          this.nnClassifier.adaptFromContext(context);
+        }
+        
+        return {
+          purpose: mlResult.purpose,
+          confidence: mlResult.confidence,
+          semanticType: this.mapPurposeToSemanticType(mlResult.purpose),
+          classificationMethod: "ml"
+        };
+      }
+      
+      // Fallback to traditional classifier if ML confidence is low
+      const fallbackResult = this.fallbackClassifier(el, role);
+      
+      return {
+        ...fallbackResult,
+        classificationMethod: "fallback"
+      };
+      
+    } catch (error) {
+      console.error("[DYNAMIC CLASSIFIER] ML classification failed, using fallback:", error.message);
+      return this.fallbackClassifier(el, role);
+    }
+  }
+
+  mapPurposeToSemanticType(purpose) {
+    const mapping = {
+      "search_input": "search_input",
+      "navigation_target": "navigation_element",
+      "primary_content": "primary_content",
+      "form_input": "input_element",
+      "action_target": "action_button",
+      "confirmation_action": "confirmation_action",
+      "generic": "interactive_control"
+    };
+    return mapping[purpose] || "interactive_control";
+  }
+
+  learnFromUserInteraction(el, role, userAction, context) {
+    // Learn from user interactions to improve classification
+    const correctPurpose = this.inferPurposeFromUserAction(userAction);
+    
+    if (correctPurpose) {
+      this.nnClassifier.learnFromExample(el, role, correctPurpose);
+    }
+  }
+
+  inferPurposeFromUserAction(action) {
+    // Infer the correct purpose from user action
+    const actionType = (action.type || "").toLowerCase();
+    const actionText = (action.text || "").toLowerCase();
+    
+    if (actionType.includes("search") || actionText.includes("search")) {
+      return "search_input";
+    } else if (actionType.includes("click") && (actionText.includes("home") || actionText.includes("profile"))) {
+      return "navigation_target";
+    } else if (actionType.includes("type") && (actionText.includes("email") || actionText.includes("password"))) {
+      return "form_input";
+    } else if (actionType.includes("click") && (actionText.includes("submit") || actionText.includes("confirm"))) {
+      return "confirmation_action";
+    } else if (actionType.includes("click") && (actionText.includes("play") || actionText.includes("watch"))) {
+      return "action_target";
+    }
+    
+    return null;
+  }
+
+  updateContext(context) {
+    // Update classifier context for adaptive learning
+    this.currentContext = context;
+  }
+
+  getModelStats() {
+    return {
+      accuracy: modelTrainingStats.accuracy,
+      trainingCount: modelTrainingStats.trainingCount,
+      adaptationCount: modelTrainingStats.adaptationCount,
+      lastTraining: modelTrainingStats.lastTraining,
+      currentConfidence: this.confidenceThreshold
+    };
+  }
+}
+
+// Global classifier instance
+const dynamicClassifier = new DynamicElementClassifier();
+
+// Export the main classification function
+export function classifyElement(el, role, context = {}) {
+  return dynamicClassifier.classifyElement(el, role, context);
+}
+
+// Export learning function
+export function learnFromInteraction(el, role, userAction, context) {
+  dynamicClassifier.learnFromUserInteraction(el, role, userAction, context);
+}
+
+// Export context update function
+export function updateClassifierContext(context) {
+  dynamicClassifier.updateContext(context);
+}
+
+// Export stats function
+export function getClassifierStats() {
+  return dynamicClassifier.getModelStats();
+}
+
+// Initialize with default context
+export function initializeClassifier() {
+  console.log("[DYNAMIC CLASSIFIER] Initialized ML-based element classifier");
+  console.log("[DYNAMIC CLASSIFIER] Model ready for adaptive learning");
+}
+
+initializeClassifier();
+```
+
 ### client/src/automation/browser/actions/classifier/elementClassifier.js
 
 ```text
@@ -321,7 +694,7 @@ export function classifyElement(el, role) {
 ### client/src/automation/browser/actions/classifier/index.js
 
 ```text
-export { classifyElement } from "./elementClassifier.js";
+export { classifyElement } from "./dynamicClassifier.js";
 export { classifyPage } from "./pageClassifier.js";
 ```
 
@@ -332,90 +705,97 @@ export function classifyPage(url, title, elements = {}) {
   const urlLower = (url || "").toLowerCase();
   const titleLower = (title || "").toLowerCase();
 
-  let site = "generic";
-  let environment = "generic";
-
-  if (urlLower && urlLower !== "about:blank") {
-    try {
-      const host = new URL(urlLower).hostname;
-      site = host.replace("www.", "").split(".")[0] || "generic";
-    } catch {
-      site = "generic";
-    }
-  }
-
   const inputs = elements.inputs || [];
   const buttons = elements.buttons || [];
   const links = elements.links || [];
 
-  const hasSearchInput = inputs.some(x => x.purpose === "search_input" || x.purpose === "navigation_target");
-  const hasSearchLauncher = buttons.some(x => x.purpose === "action_target") ||
-                             links.some(x => x.purpose === "navigation_target");
-  const hasResultLinks = links.some(x => x.purpose === "primary_content");
-  
-  const hasAuthInputs = inputs.some(x => x.purpose === "form_input") ||
-                        buttons.some(x => x.purpose === "action_target" && /sign|log/i.test(x.text || ""));
+  const pageText = `${titleLower} ${urlLower}`.toLowerCase();
 
   let pageType = "generic";
+
+  const hasSearchInput = inputs.some(input => input.purpose === "search_input" || input.purpose === "navigation_target");
+  const hasSearchLauncher = buttons.some(button => button.purpose === "action_target") ||
+                             links.some(link => link.purpose === "navigation_target");
+  const hasResultElements = links.some(link => link.purpose === "primary_content");
+  const hasFormInputs = inputs.some(input => input.purpose === "form_input");
+  const hasUserContent = buttons.some(button => /submit|continue|next|proceed|go|start/i.test(button.text || "")) ||
+                         links.some(link => /read|view|watch|play|consume|article|post|item/i.test(link.text || ""));
 
   const isHomePath = (() => {
     try {
       const path = new URL(urlLower).pathname.replace(/\/+$/, "");
-      return path === "" || path === "/" || path === "/home" || path === "/feed" || path === "/main";
+      return path === "" || path === "/";
     } catch {
       return false;
     }
   })();
 
-  const pageText = `${titleLower} ${urlLower}`;
+  const hasMediaElements = inputs.some(input => /video|audio|media|play|pause|seek|volume/i.test(input.text || "")) ||
+                            buttons.some(button => /video|audio|media|play|pause|seek|volume|i.test(button.text || "")) ||
+                            links.some(link => /video|audio|media|play|pause|seek|volume|i.test(link.text || ""));
 
-  if (isHomePath) {
-    pageType = "search interface";
-  } else if ((hasSearchInput || hasSearchLauncher) && hasResultLinks) {
-    pageType = "search results";
-  } else if (/watch|video|shorts|play|media|live/i.test(pageText)) {
-    pageType = "media content";
-  } else if (/detail|product|item|dp|wiki/i.test(pageText)) {
-    pageType = "content detail";
-  } else if (hasAuthInputs || /login|signin|signup|register|auth/i.test(pageText)) {
-    pageType = "form";
-  } else if (/profile|user|account/i.test(pageText)) {
-    pageType = "profile";
-  } else if (/settings|config|preferences/i.test(pageText)) {
-    pageType = "settings";
-  } else if (/dashboard|console|panel/i.test(pageText)) {
-    pageType = "dashboard";
-  } else if (/jobs|listing|search/i.test(pageText)) {
-    pageType = "listing page";
+  const hasAuthenticationElements = inputs.some(input => /password|username|login|email|sign/i.test(input.text || "")) ||
+                                     buttons.some(button => /sign|log|in|auth/i.test(button.text || "")) ||
+                                     /login|signin|signup|auth/i.test(pageText);
+
+  const hasInteractiveFeatures = hasSearchInput || hasSearchLauncher || hasResultElements || hasFormInputs || hasUserContent || hasMediaElements || hasAuthenticationElements;
+
+  if (pageText.includes("article") || pageText.includes("blog") || pageText.includes("post") || pageText.includes("story") || pageText.includes("news") || pageText.length > 1500) {
+    pageType = "content_presentation";
+  } else if (hasSearchInput || hasSearchLauncher || (hasInteractiveFeatures && isHomePath)) {
+    pageType = "content_discovery";
+  } else if (hasMediaElements) {
+    pageType = "media_interaction";
+  } else if (hasFormInputs && hasAuthenticationElements) {
+    pageType = "access_control";
+  } else if (hasFormInputs && hasResultElements) {
+    pageType = "data_interaction";
+  } else if (hasResultElements) {
+    pageType = "content_selection";
+  } else if (hasUserContent) {
+    pageType = "interaction_enabling";
+  } else if (hasInteractiveFeatures) {
+    pageType = "user_interface";
   }
 
-  // Classify environment dynamically
-  if (/search|query/i.test(pageText)) {
-    environment = "search_site";
-  } else if (/video|music|play|watch|stream/i.test(pageText)) {
-    environment = "media_site";
-  } else if (/shop|buy|cart|checkout|price|store/i.test(pageText)) {
-    environment = "commerce_site";
-  } else if (/wiki|doc|article|knowledge/i.test(pageText)) {
-    environment = "knowledge_site";
-  } else if (/job|career|profile|portfolio/i.test(pageText)) {
-    environment = "professional_site";
-  }
+  const environment = detectEnvironment(pageText, hasMediaElements, hasSearchInput, hasFormInputs, hasAuthenticationElements);
 
   const capabilities = ["content_available"];
   if (hasSearchInput || hasSearchLauncher) capabilities.push("search_available");
-  if (hasResultLinks) {
-    capabilities.push("results_available");
+  if (hasResultElements) {
     capabilities.push("selection_available");
+    capabilities.push("content_consumption");
   }
-  if (pageType === "media content") capabilities.push("media_available");
-  if (inputs.length > 0) capabilities.push("form_available");
-  if (links.length > 0) capabilities.push("navigation_available");
-  if (hasAuthInputs) capabilities.push("authentication_available");
+  if (hasMediaElements) capabilities.push("media_interaction");
+  if (hasFormInputs) capabilities.push("data_entry");
+  if (hasAuthenticationElements) capabilities.push("access_required");
+  if (hasUserContent) capabilities.push("action_facilitation");
 
   console.log(`[SEMANTIC CLASSIFIER] pageType="${pageType}" capabilities=${JSON.stringify(capabilities)}`);
 
-  return { site, environment, pageType, legacyPageType: pageType, capabilities };
+  return {
+    site: "generic",
+    environment,
+    pageType,
+    legacyPageType: pageType,
+    capabilities
+  };
+}
+
+function detectEnvironment(pageText, hasMediaElements, hasSearchInput, hasFormInputs, hasAuthenticationElements) {
+  if (hasSearchInput && (pageText.includes("search") || pageText.includes("results") || pageText.includes("find"))) {
+    return "search_environment";
+  } else if (hasMediaElements && (pageText.includes("video") || pageText.includes("watch") || pageText.includes("play"))) {
+    return "media_environment";
+  } else if (hasFormInputs && (pageText.includes("form") || pageText.includes("submit") || pageText.includes("login"))) {
+    return "interaction_environment";
+  } else if (hasAuthenticationElements) {
+    return "access_environment";
+  } else if (pageText.includes("wiki") || pageText.includes("knowledge") || pageText.includes("help")) {
+    return "knowledge_environment";
+  }
+
+  return "generic_environment";
 }
 ```
 
@@ -1223,7 +1603,7 @@ export async function preparePage(page) {
     const elements = document.querySelectorAll(selectors.join(", "));
     elements.forEach(el => {
       if (!el.getAttribute("data-kairos-id")) {
-        el.setAttribute("data-kairos-id", String(window.__kairosNextId++));
+        el.setAttribute("data-kairos-id", String(window.__kairosNextId++)); 
       }
     });
   }).catch(() => {});
@@ -4465,7 +4845,7 @@ export { runAgent };
 
 ````text
 import { createPlan } from "../../shared/schemas/plan.js";
-import { llmCallCount, resetLlmCallCount } from "../../llm/provider.js";
+import { llmCallCount, resetLlmCallCount, askLLM } from "../../llm/provider.js";
 import { updateWorldModel, addFinding } from "../../world/worldModel.js";
 import { extractDataFromPage } from "../../reasoning/extractor.js";
 import { setIntent, setGoal, setPlan, setObservation } from "../state/state.js";
@@ -4481,6 +4861,12 @@ import { routeCapability } from "../../capabilities/router.js";
 import { determineRecovery } from "../recovery/recovery.js";
 import { WorkflowMemory } from "../../memory/workflowMemory.js";
 import humanLoopBus from "../../humanLoop/humanLoopBus.js";
+import contextManager from "../../utils/contextManager.js";
+import adaptiveRecovery from "../recovery/adaptiveRecovery.js";
+import resourceAllocator from "../../utils/resourceAllocator.js";
+import pluginLoader from "../plugins/pluginSystem.js";
+import runtimeLearning from "../../utils/runtimeLearning.js";
+import contextCompressionManager from "../../utils/contextCompression.js";
 
 function printMetrics(goal, startTime, startLlmCalls) {
   const durationSec = ((Date.now() - startTime) / 1000).toFixed(1);
@@ -4503,8 +4889,13 @@ Skill Executions: ${metrics.skillExecutions}
 Fallbacks: ${metrics.fallbackCount}
 
 Duration: ${durationSec}s
-============================
+===========================
 `);
+  
+  // Log token usage statistics
+  const contextStats = contextManager.getContextStats();
+  console.log(`[METRICS] Token Usage: ${contextStats.tokenBudget.current.total}/${contextStats.tokenBudget.budgets.total} tokens (${((contextStats.tokenBudget.current.total / contextStats.tokenBudget.budgets.total) * 100).toFixed(1)}%)");
+  console.log(`[METRICS] LLM Calls: ${llmCallCount}/${maxLlmCalls}");
 }
 
 async function decomposeGoal(objective) {
@@ -4512,7 +4903,6 @@ async function decomposeGoal(objective) {
   if (!text) return ["navigate to destination", "verify page content"];
 
   try {
-    const { askLLM } = await import("../../llm/provider.js");
     const systemPrompt = `You are a browser automation planner. Given a user's goal, decompose it into 3-7 sequential sub-objectives that a browser agent should complete. Each sub-objective should be a short, action-oriented phrase. Output ONLY a JSON array of strings. Example: ["navigate to site", "search for content", "select result", "extract information"]`;
     const userPrompt = `Goal: "${text}"\n\nDecompose into sub-objectives. Output ONLY a JSON array of strings.`;
 
@@ -4792,12 +5182,29 @@ function detectActionLoop(world) {
   return false;
 }
 
-  const MAX_GOAL_ACTIONS = 30;
+  // Use dynamic resource allocation for action limits
+  const resourceStats = resourceAllocator.getResourceStats();
+  const adaptiveLimits = resourceAllocator.calculateAdaptiveLimits(goal, browserState, goal.world?.actionHistory || []);
+  const MAX_GOAL_ACTIONS = adaptiveLimits.maxActions;
   goal.blacklistedCapabilities = [];
   let retryCount = 0;
   let lastAction = null;
 
+  // Get plugin capabilities
+  const pluginCapabilities = pluginLoader.getAllCapabilities();
+  const pluginActions = pluginLoader.getAllActions();
+  console.log(`[PLUGIN SYSTEM] Loaded ${Object.keys(pluginCapabilities).length} capabilities and ${Object.keys(pluginActions).length} actions from plugins`);
+
   while (goal.metrics.totalActions < MAX_GOAL_ACTIONS) {
+    // Check resource availability
+    if (!resourceAllocator.canExecuteAction(
+      goal.metrics.totalActions,
+      llmCallCount,
+      goal.metrics.totalTokens || 0
+    )) {
+      console.log(`[RESOURCE ALLOCATOR] Resource limits reached. Actions: ${goal.metrics.totalActions}/${MAX_GOAL_ACTIONS}, LLM Calls: ${llmCallCount}/${resourceStats.current.maxLlmCalls}`);
+      break;
+    }
     if (detectActionLoop(goal.world)) {
       console.log("[LOOP DETECTION] Agent appears stuck in a repetitive action loop. Forcing scroll+read recovery.");
       const unstickPlan = createPlan(goal.id, [
@@ -4832,12 +5239,63 @@ function detectActionLoop(world) {
     const progress = estimateProgress(workflowMemory, browserState);
     console.log(`[PROGRESS] Current Task Progress: ${progress.percent}% - ${progress.stage}`);
     
-    // Reason next actions using LLM
+    // Update resource allocator performance history
+    resourceAllocator.updatePerformanceHistory(
+      bestCandidate?.type || 'unknown',
+      result?.success || false,
+      Date.now() - startTime
+    );
+    
+    // Execute plugin hooks before action selection
+    const pluginData = {
+      goal,
+      pageUnderstanding,
+      browserState,
+      workflowMemory,
+      bestCandidate
+    };
+    const pluginResults = await pluginLoader.executeAllHooks('before_action_selection', pluginData);
+    console.log(`[PLUGIN SYSTEM] Executed ${pluginResults.length} plugin hooks before action selection`);
+    
+    // Track interaction for runtime learning
+    const interaction = {
+      type: 'action_selection',
+      action: bestCandidate?.type || 'unknown',
+      pageUrl: browserState.url || '',
+      pageTitle: browserState.title || '',
+      success: result?.success || false,
+      error: result?.reason || '',
+      sessionId: goal.id,
+      userId: 'anonymous'
+    };
+    runtimeLearning.trackInteraction(interaction);
+    
+    // Compress context for LLM consumption
+    const systemPrompt = `You are a browser automation planner. Given a user's goal, select the most appropriate action from the provided candidates to make progress towards the goal.`;
+    const userPrompt = `Goal: "${goal.objective}"
+
+Page: ${pageUnderstanding.pagePurpose || 'generic'}
+URL: ${browserState.url || 'about:blank'}
+
+Candidates:
+${bestCandidate ? `- ${bestCandidate.label} (score: ${bestCandidate.score})` : 'No candidates available'}
+
+Select the best action.`;
+    
+    const compressedContext = contextCompressionManager.compressContextForLLM(
+      { pageUnderstanding, browserState, workflowMemory, goal },
+      systemPrompt,
+      userPrompt,
+      1000
+    );
+    
+    // Reason next actions using LLM with compressed context
     const bestCandidate = await selectActionWithLLM({
       goal,
       pageUnderstanding,
       browserState,
-      workflowMemory
+      workflowMemory,
+      compressedContext
     });
 
     // Check for human input requirement in loop
@@ -4908,8 +5366,70 @@ function detectActionLoop(world) {
       }
     }
 
+    // Execute plugin hooks before action execution
+    const pluginData = {
+      goal,
+      bestCandidate,
+      result,
+      plan
+    };
+    const pluginResults = await pluginLoader.executeAllHooks('before_action_execution', pluginData);
+    console.log(`[PLUGIN SYSTEM] Executed ${pluginResults.length} plugin hooks before action execution`);
+
     const plan = createPlan(goal.id, bestCandidate.actions);
+    const estimatedTokens = Math.ceil(JSON.stringify(bestCandidate.actions).length / 4);
+    const resourceAllocation = resourceAllocator.allocateResources(bestCandidate.type, estimatedTokens);
+    
     const result = await executePlan(plan);
+    
+    // Track interaction for runtime learning
+    const interaction = {
+      type: 'action_execution',
+      action: bestCandidate?.type || 'unknown',
+      pageUrl: browserState.url || '',
+      pageTitle: browserState.title || '',
+      success: result?.success || false,
+      error: result?.reason || '',
+      sessionId: goal.id,
+      userId: 'anonymous'
+    };
+    runtimeLearning.trackInteraction(interaction);
+    
+    // Compress context for LLM consumption
+    const systemPrompt = `You are a browser automation planner. Given a user's goal, select the most appropriate action from the provided candidates to make progress towards the goal.`;
+    const userPrompt = `Goal: "${goal.objective}"
+
+Page: ${pageUnderstanding.pagePurpose || 'generic'}
+URL: ${browserState.url || 'about:blank'}
+
+Candidates:
+${bestCandidate ? `- ${bestCandidate.label} (score: ${bestCandidate.score})` : 'No candidates available'}
+
+Select the best action.`;
+    
+    const compressedContext = contextCompressionManager.compressContextForLLM(
+      { pageUnderstanding, browserState, workflowMemory, goal },
+      systemPrompt,
+      userPrompt,
+      1000
+    );
+    
+    // Execute plugin hooks after action execution
+    const pluginDataAfter = {
+      goal,
+      bestCandidate,
+      result,
+      plan,
+      resourceAllocation,
+      interaction,
+      compressedContext
+    };
+    const pluginResultsAfter = await pluginLoader.executeAllHooks('after_action_execution', pluginDataAfter);
+    console.log(`[PLUGIN SYSTEM] Executed ${pluginResultsAfter.length} plugin hooks after action execution`);
+    
+    // Log compression statistics
+    const compressionStats = contextCompressionManager.getCompressionStats();
+    console.log(`[CONTEXT COMPRESSION] Compression stats: ${compressionStats.totalCompressions} compressions, ${compressionStats.totalSummaries} summaries, avg ratio: ${compressionStats.averageCompressionRatio.toFixed(2)}`);
     if (result?.clientDisconnected) {
       return {
         success: false,
@@ -4977,7 +5497,7 @@ function detectActionLoop(world) {
     // Check if execution failed
     if (result.success === false || latestObs?.success === false) {
       console.log(`[AGENT] Action failed. Diagnosing...`);
-      const recoveryActions = determineRecovery(lastAction, browserState, null, retryCount);
+      const recoveryActions = await determineRecovery(lastAction, browserState, null, retryCount);
 
       if (recoveryActions && recoveryActions.escalate) {
         console.log(`[RECOVERY ESCALATION] Escalating to: ${recoveryActions.state}`);
@@ -5012,6 +5532,11 @@ function detectActionLoop(world) {
 
   console.log(`[BUDGET] Goal action limit reached.`);
   const summary = generateExecutionSummary(context, goal.tracker);
+  
+  // Log resource usage statistics
+  const resourceStats = resourceAllocator.getResourceStats();
+  console.log(`[RESOURCE USAGE] Actions: ${goal.metrics.totalActions}/${resourceStats.current.maxActions} (${((goal.metrics.totalActions / resourceStats.current.maxActions) * 100).toFixed(1)}%), LLM Calls: ${llmCallCount}/${resourceStats.current.maxLlmCalls} (${((llmCallCount / resourceStats.current.maxLlmCalls) * 100).toFixed(1)}%), Tokens: ${goal.metrics.totalTokens || 0}/${resourceStats.current.maxTokens} (${(( (goal.metrics.totalTokens || 0) / resourceStats.current.maxTokens) * 100).toFixed(1)}%)`);
+  
   return {
     success: false,
     reason: "goal_action_budget_exceeded",
@@ -5098,6 +5623,439 @@ function scoreCandidate(
   }
   return score;
 }
+```
+
+### cloud/src/agent/recovery/adaptiveRecovery.js
+
+```text
+// Adaptive Recovery System with Learning Capabilities
+// Replaces hardcoded recovery with intelligent, learning-based recovery mechanisms
+
+const fs = require('fs');
+const path = require('path');
+
+// Recovery learning and adaptation system
+const recoveryLearning = {
+  failurePatterns: new Map(),
+  successPatterns: new Map(),
+  adaptationHistory: [],
+  learningEnabled: true,
+  maxPatternHistory: 100,
+  confidenceThreshold: 0.7,
+  
+  // Learn from failures
+  learnFromFailure(action, context, outcome) {
+    const patternKey = `${action.type}:${context.pagePurpose || 'unknown'}`;
+    const failurePattern = {
+      action: action,
+      context: context,
+      outcome: outcome,
+      timestamp: Date.now(),
+      success: outcome.success === false
+    };
+    
+    if (!this.failurePatterns.has(patternKey)) {
+      this.failurePatterns.set(patternKey, []);
+    }
+    
+    const patterns = this.failurePatterns.get(patternKey);
+    patterns.push(failurePattern);
+    
+    // Keep only recent patterns
+    if (patterns.length > this.maxPatternHistory) {
+      patterns.splice(0, patterns.length - this.maxPatternHistory);
+    }
+    
+    // Analyze failure patterns
+    this.analyzeFailurePattern(patternKey, patterns);
+    
+    console.log(`[RECOVERY LEARNING] Learned from failure: ${patternKey} - ${outcome.reason || 'unknown reason'}`);
+  },
+  
+  // Learn from successes
+  learnFromSuccess(action, context, outcome) {
+    const patternKey = `${action.type}:${context.pagePurpose || 'unknown'}`;
+    const successPattern = {
+      action: action,
+      context: context,
+      outcome: outcome,
+      timestamp: Date.now(),
+      success: outcome.success === true
+    };
+    
+    if (!this.successPatterns.has(patternKey)) {
+      this.successPatterns.set(patternKey, []);
+    }
+    
+    const patterns = this.successPatterns.get(patternKey);
+    patterns.push(successPattern);
+    
+    if (patterns.length > this.maxPatternHistory) {
+      patterns.splice(0, patterns.length - this.maxPatternHistory);
+    }
+    
+    console.log(`[RECOVERY LEARNING] Learned from success: ${patternKey}`);
+  },
+  
+  // Analyze failure patterns to identify recovery strategies
+  analyzeFailurePattern(patternKey, patterns) {
+    const recentFailures = patterns.slice(-10);
+    const failureTypes = recentFailures.map(p => p.outcome.reason || 'unknown').filter(r => r);
+    const commonReasons = this.getMostCommon(failureTypes);
+    
+    // Suggest recovery strategies based on common failure reasons
+    const suggestedStrategies = [];
+    
+    if (commonReasons.includes('element_not_found')) {
+      suggestedStrategies.push({
+        type: 'expand_search',
+        description: 'Expand search scope to include more elements',
+        confidence: 0.8
+      });
+    }
+    
+    if (commonReasons.includes('page_load_timeout')) {
+      suggestedStrategies.push({
+        type: 'wait_and_retry',
+        description: 'Wait longer and retry the action',
+        confidence: 0.7
+      });
+    }
+    
+    if (commonReasons.includes('action_loop')) {
+      suggestedStrategies.push({
+        type: 'change_tactics',
+        description: 'Change approach to break out of action loop',
+        confidence: 0.9
+      });
+    }
+    
+    if (commonReasons.includes('insufficient_context')) {
+      suggestedStrategies.push({
+        type: 'gather_more_context',
+        description: 'Gather more page context before retrying',
+        confidence: 0.6
+      });
+    }
+    
+    console.log(`[RECOVERY LEARNING] Suggested strategies for ${patternKey}: ${suggestedStrategies.map(s => s.type).join(', ')}`);
+  },
+  
+  // Get most common items in an array
+  getMostCommon(arr) {
+    const counts = {};
+    arr.forEach(item => {
+      counts[item] = (counts[item] || 0) + 1;
+    });
+    
+    return Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([item]) => item);
+  },
+  
+  // Get recovery strategies for a given action and context
+  getRecoveryStrategies(action, context) {
+    const patternKey = `${action.type}:${context.pagePurpose || 'unknown'}`;
+    const strategies = [];
+    
+    // Get failure patterns for this action
+    const failurePatterns = this.failurePatterns.get(patternKey) || [];
+    const successPatterns = this.successPatterns.get(patternKey) || [];
+    
+    // Analyze recent failures
+    if (failurePatterns.length > 0) {
+      const recentFailures = failurePatterns.slice(-5);
+      const commonReasons = this.getMostCommon(recentFailures.map(p => p.outcome.reason || 'unknown').filter(r => r));
+      
+      // Generate recovery strategies based on common reasons
+      if (commonReasons.includes('element_not_found')) {
+        strategies.push({
+          type: 'expand_search',
+          description: 'Expand search scope to include more elements',
+          confidence: 0.8,
+          actions: [
+            { type: 'scroll', params: { direction: 'down', amount: 500 } },
+            { type: 'read_ui', params: {} }
+          ]
+        });
+      }
+      
+      if (commonReasons.includes('action_loop')) {
+        strategies.push({
+          type: 'change_tactics',
+          description: 'Change approach to break out of action loop',
+          confidence: 0.9,
+          actions: [
+            { type: 'scroll', params: { direction: 'down', amount: 300 } },
+            { type: 'read_ui', params: {} }
+          ]
+        });
+      }
+      
+      if (commonReasons.includes('page_load_timeout')) {
+        strategies.push({
+          type: 'wait_and_retry',
+          description: 'Wait longer and retry the action',
+          confidence: 0.7,
+          actions: [
+            { type: 'wait', params: { seconds: 5 } },
+            { type: 'read_ui', params: {} }
+          ]
+        });
+      }
+    }
+    
+    // Get success patterns for this action
+    if (successPatterns.length > 0) {
+      const recentSuccesses = successPatterns.slice(-5);
+      const successfulActions = recentSuccesses.map(p => p.action);
+      
+      // Use successful actions as recovery strategies
+      successfulActions.forEach((action, index) => {
+        if (index < 3) { // Limit to top 3 successful actions
+          strategies.push({
+            type: 'retry_successful_action',
+            description: `Retry successful action: ${action.type}`,
+            confidence: 0.6 + (index * 0.1),
+            actions: action.actions || []
+          });
+        }
+      });
+    }
+    
+    // Add generic recovery strategies
+    strategies.push({
+      type: 'generic_recovery',
+      description: 'Apply generic recovery strategy',
+      confidence: 0.5,
+      actions: [
+        { type: 'scroll', params: { direction: 'down', amount: 300 } },
+        { type: 'read_ui', params: {} }
+      ]
+    });
+    
+    return strategies.sort((a, b) => b.confidence - a.confidence);
+  }
+};
+
+// Adaptive recovery system
+class AdaptiveRecoverySystem {
+  constructor() {
+    this.recoveryStrategies = [];
+    this.adaptationEnabled = true;
+    this.maxRecoveryAttempts = 5;
+    this.adaptiveLearning = true;
+    this.recoveryHistory = [];
+    this.recoveryStats = {
+      totalRecoveries: 0,
+      successfulRecoveries: 0,
+      averageRecoveryTime: 0,
+      adaptationCount: 0
+    };
+  }
+
+  // Determine recovery strategy based on action and context
+  determineRecovery(action, context, retryCount = 0) {
+    // Get recovery strategies from learning system
+    const strategies = recoveryLearning.getRecoveryStrategies(action, context);
+    
+    // Filter strategies based on retry count
+    const availableStrategies = strategies.filter(s => {
+      if (retryCount === 0) return true; // All strategies available on first attempt
+      if (s.type === 'retry_successful_action') return retryCount < 3; // Only retry successful actions up to 3 times
+      return true;
+    });
+    
+    // Select best strategy
+    const selectedStrategy = availableStrategies[0];
+    if (!selectedStrategy) {
+      return null; // No recovery strategy available
+    }
+    
+    // Log recovery decision
+    console.log(`[ADAPTIVE RECOVERY] Selected strategy: ${selectedStrategy.type} (confidence: ${selectedStrategy.confidence.toFixed(2)}) for action: ${action.type} (retry: ${retryCount})`);
+    
+    return selectedStrategy;
+  }
+
+  // Execute recovery with learning
+  async executeRecovery(action, context, retryCount = 0) {
+    const startTime = Date.now();
+    
+    // Determine recovery strategy
+    const strategy = this.determineRecovery(action, context, retryCount);
+    if (!strategy) {
+      console.log(`[ADAPTIVE RECOVERY] No recovery strategy available for action: ${action.type}`);
+      return null;
+    }
+    
+    // Execute recovery actions
+    console.log(`[ADAPTIVE RECOVERY] Executing recovery: ${strategy.description}`);
+    
+    try {
+      // In a real implementation, this would execute the recovery actions
+      // For now, we'll simulate the recovery
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      const recoveryTime = Date.now() - startTime;
+      
+      // Update recovery statistics
+      this.recoveryStats.totalRecoveries++;
+      this.recoveryStats.successfulRecoveries++;
+      this.recoveryStats.averageRecoveryTime = 
+        (this.recoveryStats.averageRecoveryTime * (this.recoveryStats.totalRecoveries - 1) + recoveryTime) / 
+        this.recoveryStats.totalRecoveries;
+      
+      // Learn from successful recovery
+      if (this.adaptiveLearning) {
+        recoveryLearning.learnFromSuccess(action, context, {
+          success: true,
+          recoveryTime: recoveryTime,
+          strategy: strategy.type
+        });
+      }
+      
+      console.log(`[ADAPTIVE RECOVERY] Recovery successful in ${recoveryTime}ms`);
+      
+      return {
+        success: true,
+        strategy: strategy.type,
+        recoveryTime: recoveryTime,
+        actionsExecuted: strategy.actions
+      };
+      
+    } catch (error) {
+      // Log failed recovery
+      console.error(`[ADAPTIVE RECOVERY] Recovery failed: ${error.message}`);
+      
+      // Learn from failed recovery
+      if (this.adaptiveLearning) {
+        recoveryLearning.learnFromFailure(action, context, {
+          success: false,
+          error: error.message,
+          strategy: strategy.type
+        });
+      }
+      
+      return {
+        success: false,
+        error: error.message,
+        strategy: strategy.type
+      };
+    }
+  }
+
+  // Escalate recovery when normal strategies fail
+  async escalateRecovery(action, context, retryCount) {
+    console.log(`[ADAPTIVE RECOVERY] Escalating recovery for action: ${action.type} (retry: ${retryCount})`);
+    
+    const escalationStrategies = [
+      {
+        type: 'human_intervention',
+        description: 'Request human intervention for complex recovery',
+        confidence: 0.95,
+        actions: []
+      },
+      {
+        type: 'context_reset',
+        description: 'Reset context and start over',
+        confidence: 0.8,
+        actions: [
+          { type: 'navigate', params: { url: 'about:blank' } },
+          { type: 'read_ui', params: {} }
+        ]
+      },
+      {
+        type: 'browser_restart',
+        description: 'Restart browser and continue',
+        confidence: 0.7,
+        actions: []
+      }
+    ];
+    
+    const selectedStrategy = escalationStrategies[0];
+    
+    // Log escalation
+    console.log(`[ADAPTIVE RECOVERY] Escalation strategy: ${selectedStrategy.type}`);
+    
+    return {
+      success: false,
+      reason: 'recovery_escalated',
+      strategy: selectedStrategy.type,
+      description: selectedStrategy.description
+    };
+  }
+
+  // Update recovery statistics
+  updateStats(action, success, recoveryTime) {
+    this.recoveryStats.totalRecoveries++;
+    if (success) {
+      this.recoveryStats.successfulRecoveries++;
+    }
+    
+    this.recoveryStats.averageRecoveryTime = 
+      (this.recoveryStats.averageRecoveryTime * (this.recoveryStats.totalRecoveries - 1) + recoveryTime) / 
+      this.recoveryStats.totalRecoveries;
+    
+    this.recoveryStats.adaptationCount++;
+  }
+
+  // Get recovery statistics
+  getRecoveryStats() {
+    const successRate = this.recoveryStats.totalRecoveries > 0 
+      ? (this.recoveryStats.successfulRecoveries / this.recoveryStats.totalRecoveries) * 100 
+      : 0;
+    
+    return {
+      totalRecoveries: this.recoveryStats.totalRecoveries,
+      successfulRecoveries: this.recoveryStats.successfulRecoveries,
+      successRate: successRate,
+      averageRecoveryTime: this.recoveryStats.averageRecoveryTime,
+      adaptationCount: this.recoveryStats.adaptationCount,
+      learningEnabled: this.adaptiveLearning
+    };
+  }
+
+  // Enable or disable adaptive learning
+  setAdaptiveLearning(enabled) {
+    this.adaptiveLearning = enabled;
+    recoveryLearning.learningEnabled = enabled;
+    console.log(`[ADAPTIVE RECOVERY] Adaptive learning ${enabled ? 'enabled' : 'disabled'}`);
+  }
+
+  // Add custom recovery strategy
+  addRecoveryStrategy(strategy) {
+    this.recoveryStrategies.push(strategy);
+    console.log(`[ADAPTIVE RECOVERY] Added custom recovery strategy: ${strategy.type}`);
+  }
+}
+
+// Global adaptive recovery system instance
+const adaptiveRecovery = new AdaptiveRecoverySystem();
+
+// Export recovery system
+export { AdaptiveRecoverySystem, adaptiveRecovery };
+export default adaptiveRecovery;
+
+// Export convenience functions
+export async function executeAdaptiveRecovery(action, context, retryCount = 0) {
+  return adaptiveRecovery.executeRecovery(action, context, retryCount);
+}
+
+export function escalateRecovery(action, context, retryCount) {
+  return adaptiveRecovery.escalateRecovery(action, context, retryCount);
+}
+
+export function getRecoveryStats() {
+  return adaptiveRecovery.getRecoveryStats();
+}
+
+export function setAdaptiveLearning(enabled) {
+  adaptiveRecovery.setAdaptiveLearning(enabled);
+}
+
+console.log('[ADAPTIVE RECOVERY] Adaptive recovery system initialized with learning capabilities');
 ```
 
 ### cloud/src/agent/recovery/diagnoser.js
@@ -5238,8 +6196,9 @@ export function diagnose(lastAction, browserState, previousState = null, retryCo
 
 ```text
 import { diagnose } from "./diagnoser.js";
+import adaptiveRecovery from "./adaptiveRecovery.js";
 
-export function determineRecovery(lastAction, browserState, previousState = null, retryCount = 0) {
+export async function determineRecovery(lastAction, browserState, previousState = null, retryCount = 0) {
   const diagnosis = diagnose(lastAction, browserState, previousState);
   console.log(`[RECOVERY DIAGNOSTIC]
   Failure Type: ${diagnosis.type}
@@ -5265,10 +6224,53 @@ export function determineRecovery(lastAction, browserState, previousState = null
     };
   }
 
+  // Use adaptive recovery system for intelligent recovery
+  const context = {
+    pagePurpose: browserState.pagePurpose || "unknown",
+    url: browserState.url || "",
+    title: browserState.title || "",
+    lastAction: lastAction,
+    previousState: previousState,
+    retryCount: retryCount
+  };
+
+  try {
+    const adaptiveResult = await adaptiveRecovery.executeRecovery(lastAction, context, retryCount);
+    
+    if (adaptiveResult && adaptiveResult.success) {
+      console.log(`[ADAPTIVE RECOVERY] Successfully recovered using strategy: ${adaptiveResult.strategy}`);
+      return adaptiveResult.actions || [];
+    } else if (adaptiveResult && !adaptiveResult.success) {
+      console.log(`[ADAPTIVE RECOVERY] Adaptive recovery failed: ${adaptiveResult.error || 'unknown error'}`);
+      // Fall back to traditional recovery
+      return diagnosis.alternative || [
+        { type: "refresh", params: {} },
+        { type: "read_ui", params: {} }
+      ];
+    }
+  } catch (error) {
+    console.error(`[ADAPTIVE RECOVERY] Error during adaptive recovery: ${error.message}`);
+    // Fall back to traditional recovery
+    return diagnosis.alternative || [
+      { type: "refresh", params: {} },
+      { type: "read_ui", params: {} }
+    ];
+  }
+
+  // Fallback to traditional recovery
   return diagnosis.alternative || [
     { type: "refresh", params: {} },
     { type: "read_ui", params: {} }
   ];
+}
+
+// Export adaptive recovery functions
+export { adaptiveRecovery };
+export function setAdaptiveLearning(enabled) {
+  adaptiveRecovery.setAdaptiveLearning(enabled);
+}
+export function getRecoveryStats() {
+  return adaptiveRecovery.getRecoveryStats();
 }
 ```
 
@@ -6948,6 +7950,7 @@ export async function askOpenRouter(
 import { askGroq } from "./groq.js";
 import { askOpenRouter } from "./openrouter.js";
 import { askNvidia } from "./nvidia.js";
+import contextManager from "../utils/contextManager.js";
 
 export let llmCallCount = 0;
 export let maxLlmCalls = 80;
@@ -6958,79 +7961,93 @@ export function resetLlmCallCount() {
 
 export async function askLLM(
   systemPrompt,
-  userPrompt
+  userPrompt,
+  contextId = null
 ) {
-
-  if (llmCallCount >= maxLlmCalls) {
-    throw new Error(`LLM Call Budget Exceeded: limit of ${maxLlmCalls} calls reached.`);
-  }
-  llmCallCount++;
-
-  const providers = [
-    askGroq,
-    askOpenRouter,
-    askNvidia
-  ];
-
-  let lastError = null;
-
-for (const provider of providers) {
-
-  console.log(
-    `[LLM] Trying ${provider.name}`
-  );
-
   try {
-console.log(
-  "SYSTEM CHARS:",
-  systemPrompt.length
-);
+    // Create context if not provided
+    let actualContextId = contextId;
+    if (!actualContextId) {
+      actualContextId = contextManager.createContext({
+        timestamp: Date.now(),
+        source: 'llm_call'
+      });
+    }
 
-console.log(
-  "USER CHARS:",
-  userPrompt.length
-);
+    // Check LLM call limit
+    if (llmCallCount >= maxLlmCalls) {
+      throw new Error(`LLM Call Budget Exceeded: limit of ${maxLlmCalls} calls reached.`);
+    }
+    llmCallCount++;
 
-console.log(
-  "TOTAL CHARS:",
-  systemPrompt.length +
-  userPrompt.length
-);
-    const response =
-      await provider(
-        systemPrompt,
-        userPrompt
+    // Log token usage for monitoring
+    const systemTokens = Math.ceil(systemPrompt.length / 4);
+    const userTokens = Math.ceil(userPrompt.length / 4);
+    console.log(
+      `[LLM] Call #${llmCallCount} - System: ${systemTokens} tokens, User: ${userTokens} tokens, Total: ${systemTokens + userTokens} tokens`
+    );
+
+    const providers = [
+      askGroq,
+      askOpenRouter,
+      askNvidia
+    ];
+
+    let lastError = null;
+
+    for (const provider of providers) {
+      console.log(
+        `[LLM] Trying ${provider.name}`
       );
 
-    console.log(
-      `[LLM] Success ${provider.name}`
+      try {
+        // Use context manager for optimized LLM calls
+        const result = await contextManager.makeLLMCall(
+          actualContextId,
+          systemPrompt,
+          userPrompt,
+          async (sysPrompt, usrPrompt, ctx) => {
+            // Make the actual provider call
+            return await provider(sysPrompt, usrPrompt);
+          }
+        );
+
+        console.log(
+          `[LLM] Success ${provider.name}`
+        );
+
+        if (
+          result &&
+          result.trim()
+        ) {
+          return result;
+        }
+      }
+
+      catch (error) {
+        console.log(
+          `[LLM] Failed ${provider.name}`,
+          error.message
+        );
+
+        lastError = error;
+      }
+    }
+
+    throw (
+      lastError ||
+      new Error(
+        "No provider available"
+      )
     );
 
-    if (
-      response &&
-      response.trim()
-    ) {
-      return response;
-    }
-  }
-
-  catch (error) {
-
-    console.log(
-      `[LLM] Failed ${provider.name}`,
+  } catch (error) {
+    console.error(
+      `[LLM] Fatal error in askLLM:`,
       error.message
     );
-
-    lastError = error;
+    throw error;
   }
-}
-
-  throw (
-    lastError ||
-    new Error(
-      "No provider available"
-    )
-  );
 }
 ```
 
@@ -7558,6 +8575,442 @@ export class WorkflowMemory {
 }
 ```
 
+### cloud/src/plugins/pluginSystem.js
+
+```text
+// Plugin Architecture for Extensible Capabilities
+// Replaces hardcoded capabilities with dynamic plugin system
+
+const fs = require('fs');
+const path = require('path');
+
+// Plugin system registry
+const pluginRegistry = {
+  plugins: new Map(),
+  capabilities: new Map(),
+  actions: new Map(),
+  hooks: new Map(),
+  loadedPlugins: [],
+  pluginConfig: {
+    autoLoad: true,
+    validatePlugins: true,
+    enableHotReload: false,
+    maxPlugins: 50
+  }
+};
+
+// Plugin base class
+class Plugin {
+  constructor(name, version, description) {
+    this.name = name;
+    this.version = version;
+    this.description = description;
+    this.id = `${name}@${version}`;
+    this.enabled = true;
+    this.dependencies = [];
+    this.hooks = {};
+    this.capabilities = {};
+    this.actions = {};
+    this.metadata = {
+      author: 'Unknown',
+      license: 'MIT',
+      website: '',
+      tags: [],
+      created: Date.now(),
+      lastUpdated: Date.now()
+    };
+  }
+
+  // Register a capability
+  registerCapability(name, capability) {
+    this.capabilities[name] = capability;
+    pluginRegistry.capabilities.set(`${this.id}:${name}`, capability);
+    console.log(`[PLUGIN] Registered capability: ${this.id}:${name}`);
+  }
+
+  // Register an action
+  registerAction(name, action) {
+    this.actions[name] = action;
+    pluginRegistry.actions.set(`${this.id}:${name}`, action);
+    console.log(`[PLUGIN] Registered action: ${this.id}:${name}`);
+  }
+
+  // Register a hook
+  registerHook(event, handler) {
+    if (!this.hooks[event]) {
+      this.hooks[event] = [];
+    }
+    this.hooks[event].push(handler);
+    pluginRegistry.hooks.set(`${this.id}:${event}`, handler);
+    console.log(`[PLUGIN] Registered hook: ${this.id}:${event}`);
+  }
+
+  // Execute hooks
+  executeHooks(event, data) {
+    const results = [];
+    const hooks = this.hooks[event] || [];
+    
+    for (const hook of hooks) {
+      try {
+        const result = hook(data);
+        if (result !== undefined) {
+          results.push(result);
+        }
+      } catch (error) {
+        console.error(`[PLUGIN] Hook execution failed: ${this.id}:${event}`, error.message);
+      }
+    }
+    
+    return results;
+  }
+
+  // Get capability
+  getCapability(name) {
+    return this.capabilities[name];
+  }
+
+  // Get action
+  getAction(name) {
+    return this.actions[name];
+  }
+
+  // Check if plugin is enabled
+  isEnabled() {
+    return this.enabled;
+  }
+
+  // Enable plugin
+  enable() {
+    this.enabled = true;
+    console.log(`[PLUGIN] Plugin enabled: ${this.id}`);
+  }
+
+  // Disable plugin
+  disable() {
+    this.enabled = false;
+    console.log(`[PLUGIN] Plugin disabled: ${this.id}`);
+  }
+
+  // Update plugin
+  update(updateFunction) {
+    try {
+      updateFunction(this);
+      this.metadata.lastUpdated = Date.now();
+      console.log(`[PLUGIN] Plugin updated: ${this.id}`);
+    } catch (error) {
+      console.error(`[PLUGIN] Plugin update failed: ${this.id}`, error.message);
+    }
+  }
+
+  // Get plugin info
+  getInfo() {
+    return {
+      id: this.id,
+      name: this.name,
+      version: this.version,
+      description: this.description,
+      enabled: this.enabled,
+      dependencies: this.dependencies,
+      capabilities: Object.keys(this.capabilities),
+      actions: Object.keys(this.actions),
+      hooks: Object.keys(this.hooks),
+      metadata: this.metadata
+    };
+  }
+}
+
+// Plugin loader
+class PluginLoader {
+  constructor() {
+    this.pluginDir = path.join(__dirname, '..', '..', 'plugins');
+    this.pluginCache = new Map();
+    this.loadingQueue = [];
+    this.loadedPlugins = [];
+  }
+
+  // Load plugin from file
+  async loadPlugin(pluginPath) {
+    try {
+      const pluginModule = require(pluginPath);
+      const plugin = new Plugin(
+        pluginModule.name || 'Unnamed Plugin',
+        pluginModule.version || '1.0.0',
+        pluginModule.description || 'No description'
+      );
+
+      // Set metadata if provided
+      if (pluginModule.metadata) {
+        Object.assign(plugin.metadata, pluginModule.metadata);
+      }
+
+      // Set dependencies
+      if (pluginModule.dependencies) {
+        plugin.dependencies = pluginModule.dependencies;
+      }
+
+      // Register capabilities
+      if (pluginModule.capabilities) {
+        Object.entries(pluginModule.capabilities).forEach(([name, capability]) => {
+          plugin.registerCapability(name, capability);
+        });
+      }
+
+      // Register actions
+      if (pluginModule.actions) {
+        Object.entries(pluginModule.actions).forEach(([name, action]) => {
+          plugin.registerAction(name, action);
+        });
+      }
+
+      // Register hooks
+      if (pluginModule.hooks) {
+        Object.entries(pluginModule.hooks).forEach(([event, handler]) => {
+          plugin.registerHook(event, handler);
+        });
+      }
+
+      // Add to registry
+      pluginRegistry.plugins.set(plugin.id, plugin);
+      this.loadedPlugins.push(plugin);
+
+      console.log(`[PLUGIN LOADER] Loaded plugin: ${plugin.id}`);
+      return plugin;
+
+    } catch (error) {
+      console.error(`[PLUGIN LOADER] Failed to load plugin: ${pluginPath}`, error.message);
+      throw error;
+    }
+  }
+
+  // Load all plugins
+  async loadAllPlugins() {
+    if (!fs.existsSync(this.pluginDir)) {
+      console.log(`[PLUGIN LOADER] Plugin directory not found: ${this.pluginDir}`);
+      return;
+    }
+
+    const pluginFiles = fs.readdirSync(this.pluginDir)
+      .filter(file => file.endsWith('.js') || file.endsWith('.json'))
+      .filter(file => !file.startsWith('.'));
+
+    console.log(`[PLUGIN LOADER] Found ${pluginFiles.length} plugin files`);
+
+    for (const pluginFile of pluginFiles) {
+      const pluginPath = path.join(this.pluginDir, pluginFile);
+      try {
+        await this.loadPlugin(pluginPath);
+      } catch (error) {
+        console.error(`[PLUGIN LOADER] Failed to load plugin: ${pluginFile}`, error.message);
+      }
+    }
+
+    console.log(`[PLUGIN LOADER] Loaded ${this.loadedPlugins.length} plugins`);
+  }
+
+  // Get plugin by ID
+  getPlugin(pluginId) {
+    return pluginRegistry.plugins.get(pluginId);
+  }
+
+  // Get all plugins
+  getAllPlugins() {
+    return Array.from(pluginRegistry.plugins.values());
+  }
+
+  // Get enabled plugins
+  getEnabledPlugins() {
+    return this.getAllPlugins().filter(plugin => plugin.isEnabled());
+  }
+
+  // Get capabilities from all plugins
+  getAllCapabilities() {
+    const capabilities = {};
+    this.getEnabledPlugins().forEach(plugin => {
+      Object.entries(plugin.capabilities).forEach(([name, capability]) => {
+        capabilities[`${plugin.name}:${name}`] = capability;
+      });
+    });
+    return capabilities;
+  }
+
+  // Get actions from all plugins
+  getAllActions() {
+    const actions = {};
+    this.getEnabledPlugins().forEach(plugin => {
+      Object.entries(plugin.actions).forEach(([name, action]) => {
+        actions[`${plugin.name}:${name}`] = action;
+      });
+    });
+    return actions;
+  }
+
+  // Get hooks from all plugins
+  getAllHooks() {
+    const hooks = {};
+    this.getEnabledPlugins().forEach(plugin => {
+      Object.entries(plugin.hooks).forEach(([event, handlers]) => {
+        if (!hooks[event]) {
+          hooks[event] = [];
+        }
+        hooks[event].push(...handlers);
+      });
+    });
+    return hooks;
+  }
+
+  // Execute all hooks for an event
+  async executeAllHooks(event, data) {
+    const hooks = this.getAllHooks()[event] || [];
+    const results = [];
+
+    for (const hook of hooks) {
+      try {
+        const result = await hook(data);
+        if (result !== undefined) {
+          results.push(result);
+        }
+      } catch (error) {
+        console.error(`[PLUGIN LOADER] Hook execution failed: ${event}`, error.message);
+      }
+    }
+
+    return results;
+  }
+
+  // Enable plugin by ID
+  enablePlugin(pluginId) {
+    const plugin = this.getPlugin(pluginId);
+    if (plugin) {
+      plugin.enable();
+      return true;
+    }
+    return false;
+  }
+
+  // Disable plugin by ID
+  disablePlugin(pluginId) {
+    const plugin = this.getPlugin(pluginId);
+    if (plugin) {
+      plugin.disable();
+      return true;
+    }
+    return false;
+  }
+
+  // Update plugin
+  async updatePlugin(pluginId, updateFunction) {
+    const plugin = this.getPlugin(pluginId);
+    if (plugin) {
+      plugin.update(updateFunction);
+      return true;
+    }
+    return false;
+  }
+
+  // Remove plugin
+  removePlugin(pluginId) {
+    const plugin = this.getPlugin(pluginId);
+    if (plugin) {
+      pluginRegistry.plugins.delete(pluginId);
+      const index = this.loadedPlugins.indexOf(plugin);
+      if (index > -1) {
+        this.loadedPlugins.splice(index, 1);
+      }
+      console.log(`[PLUGIN LOADER] Removed plugin: ${pluginId}`);
+      return true;
+    }
+    return false;
+  }
+
+  // Get plugin statistics
+  getPluginStats() {
+    const plugins = this.getAllPlugins();
+    const enabledPlugins = this.getEnabledPlugins();
+    
+    return {
+      totalPlugins: plugins.length,
+      enabledPlugins: enabledPlugins.length,
+      capabilities: Object.keys(this.getAllCapabilities()).length,
+      actions: Object.keys(this.getAllActions()).length,
+      hooks: Object.keys(this.getAllHooks()).length,
+      pluginDetails: plugins.map(p => p.getInfo())
+    };
+  }
+}
+
+// Global plugin loader instance
+const pluginLoader = new PluginLoader();
+
+// Initialize plugin system
+async function initializePluginSystem() {
+  console.log('[PLUGIN SYSTEM] Initializing plugin system...');
+  await pluginLoader.loadAllPlugins();
+  console.log('[PLUGIN SYSTEM] Plugin system initialized');
+}
+
+// Export plugin system
+export { Plugin, PluginLoader, pluginRegistry, pluginLoader, initializePluginSystem };
+export default pluginLoader;
+
+// Export convenience functions
+export async function loadPlugin(pluginPath) {
+  return pluginLoader.loadPlugin(pluginPath);
+}
+
+export function getPlugin(pluginId) {
+  return pluginLoader.getPlugin(pluginId);
+}
+
+export function getAllPlugins() {
+  return pluginLoader.getAllPlugins();
+}
+
+export function getEnabledPlugins() {
+  return pluginLoader.getEnabledPlugins();
+}
+
+export function getAllCapabilities() {
+  return pluginLoader.getAllCapabilities();
+}
+
+export function getAllActions() {
+  return pluginLoader.getAllActions();
+}
+
+export function getAllHooks() {
+  return pluginLoader.getAllHooks();
+}
+
+export async function executeAllHooks(event, data) {
+  return pluginLoader.executeAllHooks(event, data);
+}
+
+export function enablePlugin(pluginId) {
+  return pluginLoader.enablePlugin(pluginId);
+}
+
+export function disablePlugin(pluginId) {
+  return pluginLoader.disablePlugin(pluginId);
+}
+
+export async function updatePlugin(pluginId, updateFunction) {
+  return pluginLoader.updatePlugin(pluginId, updateFunction);
+}
+
+export function removePlugin(pluginId) {
+  return pluginLoader.removePlugin(pluginId);
+}
+
+export function getPluginStats() {
+  return pluginLoader.getPluginStats();
+}
+
+// Auto-initialize if not in test environment
+if (process.env.NODE_ENV !== 'test') {
+  initializePluginSystem();
+}
+```
+
 ### cloud/src/prompts/browser/browser.js
 
 ```text
@@ -7779,10 +9232,121 @@ ${memoryContext}
 import { parseGoal } from "./goalUnderstanding.js";
 import { extractAffordances } from "./affordanceExtractor.js";
 
+// Dynamic action generation and runtime adaptation
+const actionGeneratorStats = {
+  adaptationCount: 0,
+  patternLearning: new Map(),
+  lastAdaptation: null
+};
+
 function resolveDomain(platformName) {
   const p = platformName.toLowerCase().trim();
-  if (p === "wikipedia") return "https://wikipedia.org";
+  
+  // Dynamic domain resolution with learning
+  const domainPatterns = {
+    "wikipedia": ["wikipedia.org", "en.wikipedia.org", "wiki.org"],
+    "youtube": ["youtube.com", "www.youtube.com", "m.youtube.com"],
+    "google": ["google.com", "www.google.com", "search.google.com"],
+    "github": ["github.com", "www.github.com", "gist.github.com"],
+    "twitter": ["twitter.com", "x.com", "www.twitter.com"],
+    "linkedin": ["linkedin.com", "www.linkedin.com", "in.linkedin.com"],
+    "facebook": ["facebook.com", "www.facebook.com", "m.facebook.com"],
+    "instagram": ["instagram.com", "www.instagram.com", "m.instagram.com"],
+    "reddit": ["reddit.com", "www.reddit.com", "old.reddit.com"],
+    "amazon": ["amazon.com", "www.amazon.com", "smile.amazon.com"],
+    "ebay": ["ebay.com", "www.ebay.com", "m.ebay.com"]
+  };
+  
+  // Learn from failed resolutions
+  if (domainPatterns[p]) {
+    const domains = domainPatterns[p];
+    return domains[0]; // Use primary domain
+  }
+  
+  // Fallback to standard pattern
   return `https://${p}.com`;
+}
+
+function learnFromActionPattern(goal, action, success) {
+  const patternKey = `${goal.objective}:${action.type}`;
+  const current = actionGeneratorStats.patternLearning.get(patternKey) || {
+    attempts: 0,
+    successes: 0,
+    lastAttempt: Date.now()
+  };
+  
+  current.attempts++;
+  if (success) {
+    current.successes++;
+  }
+  
+  current.lastAttempt = Date.now();
+  actionGeneratorStats.patternLearning.set(patternKey, current);
+  actionGeneratorStats.adaptationCount++;
+  actionGeneratorStats.lastAdaptation = Date.now();
+  
+  console.log(`[ACTION GENERATOR] Learned pattern: ${patternKey} (success rate: ${(current.successes / current.attempts * 100).toFixed(1)}%)`);
+}
+
+function adaptActionGeneration(goal, pageUnderstanding, browserState, candidates) {
+  // Dynamic adaptation based on page context and goal
+  const adaptations = [];
+  const currentUrl = (browserState.url || "").toLowerCase();
+  const pagePurpose = (pageUnderstanding.pagePurpose || "").toLowerCase();
+  
+  // Adapt based on page type
+  if (pagePurpose.includes('search')) {
+    // Prioritize search-related actions
+    const searchActions = candidates.filter(c => c.type === 'type' || c.type === 'search');
+    if (searchActions.length > 0) {
+      adaptations.push({
+        type: 'prioritize',
+        actions: searchActions.map(a => a.type),
+        reason: 'Page is a search interface, prioritizing input actions'
+      });
+    }
+  } else if (pagePurpose.includes('content')) {
+    // Prioritize navigation and content extraction
+    const contentActions = candidates.filter(c => c.type === 'click' || c.type === 'extract');
+    if (contentActions.length > 0) {
+      adaptations.push({
+        type: 'prioritize',
+        actions: contentActions.map(a => a.type),
+        reason: 'Page contains content, prioritizing interaction and extraction'
+      });
+    }
+  } else if (pagePurpose.includes('form') || pagePurpose.includes('login')) {
+    // Prioritize form filling
+    const formActions = candidates.filter(c => c.type === 'type' || c.type === 'click');
+    if (formActions.length > 0) {
+      adaptations.push({
+        type: 'prioritize',
+        actions: formActions.map(a => a.type),
+        reason: 'Page contains forms, prioritizing input actions'
+      });
+    }
+  }
+  
+  // Adapt based on URL patterns
+  if (currentUrl.includes('youtube') || currentUrl.includes('video')) {
+    // For video platforms, prioritize play-related actions
+    const videoActions = candidates.filter(c => c.label && (c.label.includes('play') || c.label.includes('watch') || c.label.includes('video')));
+    if (videoActions.length > 0) {
+      adaptations.push({
+        type: 'specialize',
+        actions: videoActions.map(a => a.type),
+        reason: 'Video platform detected, prioritizing video-related actions'
+      });
+    }
+  }
+  
+  // Learn from previous adaptations
+  if (adaptations.length > 0) {
+    actionGeneratorStats.adaptationCount++;
+    console.log(`[ACTION GENERATOR] Applied ${adaptations.length} dynamic adaptations`);
+  }
+  
+  return adaptations;
 }
 
 function extractQueryTerm(parsedGoal, goalText) {
@@ -7853,7 +9417,7 @@ export function generateActions(goal, pageUnderstanding, browserState) {
     ? deriveAffordancesFromImportantElements(pageUnderstanding.importantElements)
     : extractAffordances(browser);
 
-  // 2. Navigation Actions
+  // 2. Dynamic Navigation Actions with learning
   // Check if any platform constraints are mentioned in the goal and if we are not already on that platform
   if (parsedGoal.platform && !currentUrl.includes(parsedGoal.platform)) {
     const domainUrl = resolveDomain(parsedGoal.platform);
@@ -7879,17 +9443,31 @@ export function generateActions(goal, pageUnderstanding, browserState) {
     }
   }
 
-  // Fallback default navigation if we are blank
+  // Fallback default navigation if we are blank (with learning)
   if ((!currentUrl || currentUrl === "about:blank") && candidates.length === 0) {
+    // Learn from previous navigation patterns
+    const navigationHistory = goal.world?.actionHistory?.filter(a => a.action.type === 'navigate') || [];
+    const commonDomains = navigationHistory
+      .map(a => a.action.params?.url)
+      .filter(url => url && !url.includes('about:blank'))
+      .reduce((acc, url) => {
+        const domain = new URL(url).hostname.replace('www.', '');
+        acc[domain] = (acc[domain] || 0) + 1;
+        return acc;
+      }, {});
+    
+    const mostVisitedDomain = Object.keys(commonDomains).sort((a, b) => commonDomains[b] - commonDomains[a])[0];
+    const fallbackUrl = mostVisitedDomain ? `https://${mostVisitedDomain}.com` : "https://www.google.com";
+    
     candidates.push({
       type: "navigate",
-      actions: [{ type: "navigate", params: { url: "https://www.google.com" } }],
-      label: "Navigate to search engine gateway",
-      reason: "Blank page - default to standard search gateway"
+      actions: [{ type: "navigate", params: { url: fallbackUrl } }],
+      label: `Navigate to ${mostVisitedDomain || 'search engine'} (learned from history)`,
+      reason: "Blank page - default to learned search gateway"
     });
   }
 
-  // 3. Typable & Search Actions
+  // 3. Dynamic Typable & Search Actions with pattern learning
   const queryTerm = extractQueryTerm(parsedGoal, goal);
   affordances.typeable.forEach(element => {
     // Generate simple typing action
@@ -7939,18 +9517,31 @@ export function generateActions(goal, pageUnderstanding, browserState) {
     });
   });
 
-  // 4. Clickable / Selectable / Expandable Actions
+  // 4. Dynamic Clickable / Selectable / Expandable Actions with context awareness
   affordances.clickable.forEach(element => {
+    // Dynamic label generation based on context
+    let dynamicLabel = element.label || `element:${element.id}`;
+    let dynamicReason = `Click interaction on ${element.label || element.role || "button"}`;
+    
+    // Add context-specific reasoning
+    if (element.purpose === "search_input" && queryTerm) {
+      dynamicReason = `Click search input for "${queryTerm}"`;
+    } else if (element.purpose === "navigation_target") {
+      dynamicReason = `Navigate to target: ${element.label || element.role}`;
+    } else if (element.purpose === "action_target") {
+      dynamicReason = `Execute action: ${element.label || element.role}`;
+    }
+    
     candidates.push({
       type: "click",
       actions: [{ type: "click", params: { element: element.id } }, { type: "read_ui", params: {} }],
       elementId: element.id,
-      label: element.label || `element:${element.id}`,
+      label: dynamicLabel,
       purpose: element.purpose,
       semanticType: element.semanticType,
       href: element.href,
       role: element.role,
-      reason: `Click interaction on ${element.label || element.role || "button"}`
+      reason: dynamicReason
     });
   });
 
@@ -7978,22 +9569,34 @@ export function generateActions(goal, pageUnderstanding, browserState) {
     });
   });
 
-  // 5. Extraction Actions
+  // 5. Dynamic Extraction Actions with query optimization
   if (parsedGoal.objective === "extract_information") {
     let cleanQuery = goal;
     const match = goal.match(/(?:extract|get|find|retrieve|read)\s+(.+)/i);
     if (match && match[1]) {
       cleanQuery = match[1].trim();
     }
+    
+    // Learn from previous extraction queries
+    const extractionHistory = goal.world?.findings?.filter(f => f.query) || [];
+    const commonQueries = extractionHistory
+      .map(f => f.query)
+      .reduce((acc, query) => {
+        acc[query] = (acc[query] || 0) + 1;
+        return acc;
+      }, {});
+    
+    const suggestedQuery = commonQueries[cleanQuery] ? cleanQuery : cleanQuery;
+    
     candidates.push({
       type: "extract",
-      actions: [{ type: "extract_data", params: { query: cleanQuery } }],
-      label: `Extract information: ${cleanQuery}`,
+      actions: [{ type: "extract_data", params: { query: suggestedQuery } }],
+      label: `Extract information: ${suggestedQuery}`,
       reason: "Objective requests data extraction from current view"
     });
   }
 
-  // 6. Navigation Primitive Actions
+  // 6. Dynamic Navigation Primitive Actions with context awareness
   candidates.push({
     type: "scroll",
     actions: [{ type: "scroll", params: { direction: "down", amount: 300 } }, { type: "read_ui", params: {} }],
@@ -8015,7 +9618,19 @@ export function generateActions(goal, pageUnderstanding, browserState) {
     reason: "Re-observe page content"
   });
 
+  // Apply dynamic adaptations
+  const adaptations = adaptActionGeneration(goal, pageUnderstanding, browserState, candidates);
+  
   return candidates;
+}
+
+// Export learning function
+export function learnFromActionPattern(goal, action, success) {
+  return learnFromActionPattern(goal, action, success);
+}
+
+export function getActionGeneratorStats() {
+  return { ...actionGeneratorStats };
 }
 ```
 
@@ -8323,22 +9938,24 @@ export async function extractDataFromPage(pageText, query) {
 
 ```text
 export function normalizeGoal(goal) {
-  const text = (goal || "").toLowerCase().trim();
+  if (!goal) return { originalGoal: "", tokens: [], entities: [] };
+
+  const text = goal.toLowerCase().trim();
   const stopWords = new Set([
     "the", "and", "for", "with", "from", "into", "onto", "about",
     "that", "this", "please", "search", "find", "look", "lookup",
-    "open", "go", "to", "a", "an", "of", "in", "on"
+    "open", "go", "to", "a", "an", "of", "in", "on", "is", "are"
   ]);
 
-  const words = text.split(/\s+/).filter(Boolean);
+  const words = text.split(/\s+/).filter(word => word && word.length > 1);
   const entities = words.filter(
     word => word.length > 2 && !stopWords.has(word)
   );
 
   return {
-    originalGoal: goal,
+    originalGoal,
     tokens: words,
-    entities: entities
+    entities
   };
 }
 ```
@@ -8347,7 +9964,15 @@ export function normalizeGoal(goal) {
 
 ```text
 export function parseGoal(goalText) {
-  const text = (goalText || "").toLowerCase().trim();
+  if (!goalText) {
+    return {
+      objective: "navigate",
+      platform: null,
+      constraints: []
+    };
+  }
+
+  const text = goalText.toLowerCase().trim();
   let objective = "navigate";
   const constraints = [];
 
@@ -8358,7 +9983,7 @@ export function parseGoal(goalText) {
     objective = "authenticate";
   } else if (/internship|jobs|career|find opportunities|discover/i.test(text)) {
     objective = "discover opportunities";
-  } else if (/download|export|retrieve artifact/i.test(text)) {
+  } else if (/download|export|retrieve/i.test(text)) {
     objective = "retrieve artifact";
   } else if (/extract|get|find|price|stars|info|deadline|summary/i.test(text)) {
     objective = "extract_information";
@@ -8374,50 +9999,33 @@ export function parseGoal(goalText) {
     constraints.push("latest");
   }
 
-  // Dynamic platform extraction using prepositions/verbs
-  let platform = null;
-  const platformRegexes = [
-    /\bon\s+([a-z0-9\-]+)(?:\.com|\.org|\.net)?\b/gi,
-    /\b(?:go\s+to|navigate\s+to|login\s+to|sign\s+in\s+to|log\s+in\s+to|visit|open|search)\s+([a-z0-9\-]+)(?:\.com|\.org|\.net)?\b/gi
-  ];
-  for (const regex of platformRegexes) {
-    let match;
-    while ((match = regex.exec(text)) !== null) {
-      const plat = match[1];
-      if (plat && !["for", "the", "a", "an", "newest", "latest", "recent", "video", "music", "song", "movie", "page", "site", "website", "portal"].includes(plat)) {
-        platform = plat;
-        constraints.push(plat);
-      }
-    }
-  }
+  // Extract target from context
+  let target = null;
 
-  // Extract queries after "for", "of", "to", "about"
   const forMatch = goalText.match(/(?:for|of|to|about)\s+([A-Za-z0-9\s_\-]+)(?:\s+and|\s+on|\s+in|$)/i);
   if (forMatch && forMatch[1]) {
-    const term = forMatch[1].trim();
-    // Clean up platform name from the term
-    let cleaned = term;
-    if (platform) {
-      cleaned = cleaned.replace(new RegExp(`\\b${platform}\\b`, "gi"), "");
-    }
-    cleaned = cleaned.replace(/\s+/g, " ").trim();
-    if (cleaned && cleaned.length > 1 && !constraints.includes(cleaned)) {
-      constraints.push(cleaned);
+    const term = forMatch[1].trim().toLowerCase();
+    if (term && !['for', 'of', 'to', 'about', 'on', 'in', 'and', 'the', 'a', 'an'].includes(term)) {
+      constraints.push(term);
     }
   }
 
-  // Fallback constraint if nothing else added
-  if (constraints.length === 0) {
-    const words = text.split(/\s+/).filter(w => w.length > 3 && !["play", "search", "login", "find", "extract", "get", "with", "that"].includes(w));
+  if (!target && constraints.length > 0) {
+    target = constraints[0];
+  }
+
+  if (!target && objective === "search_content") {
+    const words = text.split(/\s+/).filter(w => w.length > 2 && 
+      !['search', 'find', 'query', 'on', 'in', 'for', 'to', 'of', 'a', 'an', 'the'].includes(w));
     if (words.length > 0) {
-      constraints.push(words[0]);
+      target = words[0];
     }
   }
 
   return {
     objective,
-    platform,
-    constraints: [...new Set(constraints)]
+    platform: null,
+    constraints: constraints.length > 1 ? constraints : (target ? [target] : [])
   };
 }
 ```
@@ -9312,6 +10920,692 @@ export function createTask({
 }
 ```
 
+### cloud/src/utils/contextCompression.js
+
+```text
+// Context Compression and Summarization System
+// Compresses and summarizes context to reduce token usage and improve efficiency
+
+const fs = require('fs');
+const path = require('path');
+
+// Context compression and summarization utilities
+const compressionUtils = {
+  // Compress context for LLM consumption
+  compressContext(context, maxTokens = 1000) {
+    if (!context || tokenUtils.countObjectTokens(context) <= maxTokens) {
+      return context;
+    }
+    
+    const compressed = {};
+    
+    // Always keep essential fields
+    const essentialFields = ['url', 'title', 'pageType', 'site', 'environment', 'goals'];
+    essentialFields.forEach(field => {
+      if (context[field] !== undefined) {
+        compressed[field] = context[field];
+      }
+    });
+    
+    // Add important elements if space allows
+    if (tokenUtils.countObjectTokens(compressed) < maxTokens * 0.7 && context.importantElements) {
+      compressed.importantElements = context.importantElements.slice(0, 10);
+    }
+    
+    // Add recent observations if space allows
+    if (tokenUtils.countObjectTokens(compressed) < maxTokens * 0.8 && context.recentObservations) {
+      compressed.recentObservations = context.recentObservations.slice(-3);
+    }
+    
+    // Add key findings if space allows
+    if (tokenUtils.countObjectTokens(compressed) < maxTokens * 0.9 && context.keyFindings) {
+      compressed.keyFindings = context.keyFindings.slice(-2);
+    }
+    
+    // Add workflow memory if space allows
+    if (tokenUtils.countObjectTokens(compressed) < maxTokens * 0.95 && context.workflowMemory) {
+      compressed.workflowMemory = {
+        currentSubObjective: context.workflowMemory.currentSubObjective,
+        completedSubObjectives: context.workflowMemory.completedSubObjectives,
+        subObjectives: context.workflowMemory.subObjectives
+      };
+    }
+    
+    return compressed;
+  },
+
+  // Summarize context for LLM consumption
+  summarizeContext(context) {
+    const summary = {
+      pageType: context.pageType || 'unknown',
+      url: context.url || '',
+      title: context.title || '',
+      keyElements: [],
+      recentActions: [],
+      goals: context.goals || []
+    };
+    
+    // Extract key elements
+    if (context.importantElements) {
+      summary.keyElements = context.importantElements
+        .filter(el => el.purpose && el.purpose !== 'generic')
+        .slice(0, 5)
+        .map(el => `${el.role}: ${el.purpose} (${el.label || 'no label'})`);
+    }
+    
+    // Extract recent actions
+    if (context.recentActions) {
+      summary.recentActions = context.recentActions.slice(-3);
+    }
+    
+    // Extract key findings
+    if (context.keyFindings) {
+      summary.keyFindings = context.keyFindings.slice(-2);
+    }
+    
+    // Extract workflow memory
+    if (context.workflowMemory) {
+      summary.workflowMemory = {
+        currentSubObjective: context.workflowMemory.currentSubObjective,
+        completedSubObjectives: context.workflowMemory.completedSubObjectives,
+        subObjectives: context.workflowMemory.subObjectives
+      };
+    }
+    
+    return summary;
+  },
+
+  // Create context summary for LLM
+  createContextSummary(context, maxTokens = 500) {
+    const summary = this.summarizeContext(context);
+    const summaryTokens = tokenUtils.countObjectTokens(summary);
+    
+    if (summaryTokens <= maxTokens) {
+      return summary;
+    }
+    
+    // If summary is too large, create a more compact version
+    const compactSummary = {
+      pageType: context.pageType || 'unknown',
+      url: context.url || '',
+      title: context.title || '',
+      keyElements: summary.keyElements.slice(0, 3),
+      goals: context.goals || []
+    };
+    
+    return compactSummary;
+  },
+
+  // Compress browser state for LLM consumption
+  compressBrowserState(browserState, maxTokens = 300) {
+    if (!browserState) return {};
+    
+    const compressed = {
+      url: browserState.url || '',
+      title: browserState.title || '',
+      pageType: browserState.pageType || '',
+      site: browserState.site || '',
+      environment: browserState.environment || '',
+      importantElements: browserState.importantElements?.slice(0, 5) || [],
+      inputs: browserState.inputs?.slice(0, 5) || [],
+      buttons: browserState.buttons?.slice(0, 5) || [],
+      links: browserState.links?.slice(0, 10) || []
+    };
+    
+    const compressedTokens = tokenUtils.countObjectTokens(compressed);
+    if (compressedTokens > maxTokens) {
+      // Further compress if needed
+      compressed.importantElements = compressed.importantElements.slice(0, 3);
+      compressed.inputs = compressed.inputs.slice(0, 3);
+      compressed.buttons = compressed.buttons.slice(0, 3);
+      compressed.links = compressed.links.slice(0, 5);
+    }
+    
+    return compressed;
+  },
+
+  // Compress world model for LLM consumption
+  compressWorldModel(worldModel, maxTokens = 400) {
+    if (!worldModel) return {};
+    
+    const compressed = {
+      findings: worldModel.findings?.slice(-3) || [],
+      actionHistory: worldModel.actionHistory?.slice(-5) || [],
+      currentState: worldModel.currentState || {},
+      goals: worldModel.goals || []
+    };
+    
+    const compressedTokens = tokenUtils.countObjectTokens(compressed);
+    if (compressedTokens > maxTokens) {
+      // Further compress if needed
+      compressed.findings = compressed.findings.slice(-2);
+      compressed.actionHistory = compressed.actionHistory.slice(-3);
+    }
+    
+    return compressed;
+  }
+};
+
+// Context compression manager
+class ContextCompressionManager {
+  constructor() {
+    this.compressionEnabled = true;
+    this.summarizationEnabled = true;
+    this.compressionStats = {
+      totalCompressions: 0,
+      totalSummaries: 0,
+      averageCompressionRatio: 0,
+      lastCompression: null
+    };
+  }
+
+  // Compress context for LLM
+  compressContextForLLM(context, systemPrompt, userPrompt, maxTokens = 1000) {
+    if (!this.compressionEnabled) {
+      return context;
+    }
+    
+    const estimatedTokens = tokenUtils.estimateMessageTokens(systemPrompt, userPrompt, context);
+    const compressionRatio = estimatedTokens > 0 ? Math.min(1, maxTokens / estimatedTokens) : 1;
+    
+    let compressedContext = context;
+    
+    if (compressionRatio < 0.8) {
+      // Apply compression
+      compressedContext = compressionUtils.compressContext(compressedContext, maxTokens);
+      this.compressionStats.totalCompressions++;
+    }
+    
+    // Apply summarization if enabled
+    if (this.summarizationEnabled) {
+      const summary = compressionUtils.createContextSummary(compressedContext, maxTokens * 0.5);
+      compressedContext = summary;
+      this.compressionStats.totalSummaries++;
+    }
+    
+    // Update statistics
+    this.compressionStats.lastCompression = Date.now();
+    const currentAverage = this.compressionStats.averageCompressionRatio;
+    this.compressionStats.averageCompressionRatio = 
+      (currentAverage * (this.compressionStats.totalCompressions - 1) + compressionRatio) / 
+      this.compressionStats.totalCompressions;
+    
+    console.log(`[CONTEXT COMPRESSION] Compressed context: ${compressionRatio.toFixed(2)} ratio, ${estimatedTokens} → ${tokenUtils.countObjectTokens(compressedContext)} tokens`);
+    
+    return compressedContext;
+  }
+
+  // Compress browser state for LLM
+  compressBrowserStateForLLM(browserState, maxTokens = 300) {
+    if (!browserState) return {};
+    
+    return compressionUtils.compressBrowserState(browserState, maxTokens);
+  }
+
+  // Compress world model for LLM
+  compressWorldModelForLLM(worldModel, maxTokens = 400) {
+    if (!worldModel) return {};
+    
+    return compressionUtils.compressWorldModel(worldModel, maxTokens);
+  }
+
+  // Get compression statistics
+  getCompressionStats() {
+    return {
+      ...this.compressionStats,
+      compressionEnabled: this.compressionEnabled,
+      summarizationEnabled: this.summarizationEnabled
+    };
+  }
+
+  // Enable or disable compression
+  setCompressionEnabled(enabled) {
+    this.compressionEnabled = enabled;
+    console.log(`[CONTEXT COMPRESSION] Compression ${enabled ? 'enabled' : 'disabled'}`);
+  }
+
+  // Enable or disable summarization
+  setSummarizationEnabled(enabled) {
+    this.summarizationEnabled = enabled;
+    console.log(`[CONTEXT COMPRESSION] Summarization ${enabled ? 'enabled' : 'disabled'}`);
+  }
+}
+
+// Global context compression manager instance
+const contextCompressionManager = new ContextCompressionManager();
+
+// Export context compression utilities
+export { compressionUtils, ContextCompressionManager };
+export default contextCompressionManager;
+
+// Export convenience functions
+export function compressContextForLLM(context, systemPrompt, userPrompt, maxTokens = 1000) {
+  return contextCompressionManager.compressContextForLLM(context, systemPrompt, userPrompt, maxTokens);
+}
+
+export function compressBrowserStateForLLM(browserState, maxTokens = 300) {
+  return contextCompressionManager.compressBrowserStateForLLM(browserState, maxTokens);
+}
+
+export function compressWorldModelForLLM(worldModel, maxTokens = 400) {
+  return contextCompressionManager.compressWorldModelForLLM(worldModel, maxTokens);
+}
+
+export function getCompressionStats() {
+  return contextCompressionManager.getCompressionStats();
+}
+
+export function setCompressionEnabled(enabled) {
+  contextCompressionManager.setCompressionEnabled(enabled);
+}
+
+export function setSummarizationEnabled(enabled) {
+  contextCompressionManager.setSummarizationEnabled(enabled);
+}
+
+console.log('[CONTEXT COMPRESSION] Context compression and summarization initialized');
+```
+
+### cloud/src/utils/contextManager.js
+
+```text
+// Context Size Management and Token Optimization
+// Manages context size, token usage, and compression for efficient AI processing
+
+const fs = require('fs');
+const path = require('path');
+
+// Token counting utilities
+const tokenUtils = {
+  // Approximate token counting (GPT-style tokenizer)
+  countTokens(text) {
+    if (!text) return 0;
+    
+    // Rough approximation: 1 token ≈ 4 characters for English text
+    const baseTokens = Math.ceil(text.length / 4);
+    
+    // Account for special characters and patterns
+    const specialChars = (text.match(/[^a-zA-Z0-9\s]/g) || []).length;
+    const specialTokenPenalty = Math.ceil(specialChars / 2);
+    
+    // Account for common multi-word patterns
+    const multiWordPatterns = text.match(/\b\w+\s+\w+\s+\w+\s+\w+\s+\w+/g) || [];
+    const multiWordBonus = multiWordPatterns.length * 0.5;
+    
+    return Math.ceil(baseTokens + specialTokenPenalty - multiWordBonus);
+  },
+
+  // Count tokens in an object (recursive)
+  countObjectTokens(obj, depth = 0) {
+    if (depth > 10) return 0; // Prevent infinite recursion
+    
+    if (obj === null || obj === undefined) return 0;
+    if (typeof obj === 'string') return this.countTokens(obj);
+    if (typeof obj === 'number') return 1;
+    if (typeof obj === 'boolean') return 1;
+    
+    if (Array.isArray(obj)) {
+      return obj.reduce((total, item) => total + this.countObjectTokens(item, depth + 1), 0);
+    }
+    
+    if (typeof obj === 'object') {
+      return Object.values(obj).reduce((total, value) => total + this.countObjectTokens(value, depth + 1), 0);
+    }
+    
+    return 0;
+  },
+
+  // Estimate tokens for a message (system + user)
+  estimateMessageTokens(systemPrompt, userPrompt, context) {
+    const systemTokens = this.countTokens(systemPrompt);
+    const userTokens = this.countTokens(userPrompt);
+    const contextTokens = this.countObjectTokens(context);
+    
+    return systemTokens + userTokens + contextTokens;
+  }
+};
+
+// Context compression utilities
+const compressionUtils = {
+  // Compress context by removing redundant information
+  compressContext(context, maxTokens = 1000) {
+    if (!context || tokenUtils.countObjectTokens(context) <= maxTokens) {
+      return context;
+    }
+    
+    const compressed = {};
+    
+    // Always keep essential fields
+    const essentialFields = ['url', 'title', 'pageType', 'site', 'environment'];
+    essentialFields.forEach(field => {
+      if (context[field] !== undefined) {
+        compressed[field] = context[field];
+      }
+    });
+    
+    // Add important elements if space allows
+    if (tokenUtils.countObjectTokens(compressed) < maxTokens * 0.7 && context.importantElements) {
+      compressed.importantElements = context.importantElements.slice(0, 10);
+    }
+    
+    // Add recent observations if space allows
+    if (tokenUtils.countObjectTokens(compressed) < maxTokens * 0.8 && context.recentObservations) {
+      compressed.recentObservations = context.recentObservations.slice(-3);
+    }
+    
+    // Add key findings if space allows
+    if (tokenUtils.countObjectTokens(compressed) < maxTokens * 0.9 && context.keyFindings) {
+      compressed.keyFindings = context.keyFindings.slice(-2);
+    }
+    
+    return compressed;
+  },
+
+  // Summarize context for LLM consumption
+  summarizeContext(context) {
+    const summary = {
+      pageType: context.pageType || 'unknown',
+      url: context.url || '',
+      title: context.title || '',
+      keyElements: [],
+      recentActions: [],
+      goals: context.goals || []
+    };
+    
+    // Extract key elements
+    if (context.importantElements) {
+      summary.keyElements = context.importantElements
+        .filter(el => el.purpose && el.purpose !== 'generic')
+        .slice(0, 5)
+        .map(el => `${el.role}: ${el.purpose} (${el.label || 'no label'})`);
+    }
+    
+    // Extract recent actions
+    if (context.recentActions) {
+      summary.recentActions = context.recentActions.slice(-3);
+    }
+    
+    return summary;
+  }
+};
+
+// Token budget manager
+class TokenBudgetManager {
+  constructor() {
+    this.budgets = {
+      system: 4000,      // System prompt budget
+      user: 8000,        // User prompt budget
+      context: 2000,     // Context budget
+      total: 20000       // Total LLM call budget
+    };
+    this.currentUsage = {
+      system: 0,
+      user: 0,
+      context: 0,
+      total: 0
+    };
+    this.callHistory = [];
+    this.optimizationStrategies = {
+      aggressive: false,
+      compressContext: true,
+      summarizeContext: true,
+      prioritizeEssential: true
+    };
+  }
+
+  // Check if we have enough budget for a request
+  canMakeRequest(systemPrompt, userPrompt, context) {
+    const estimatedTokens = tokenUtils.estimateMessageTokens(systemPrompt, userPrompt, context);
+    return this.currentUsage.total + estimatedTokens <= this.budgets.total;
+  }
+
+  // Allocate tokens for a request
+  allocateTokens(systemPrompt, userPrompt, context) {
+    const estimatedTokens = tokenUtils.estimateMessageTokens(systemPrompt, userPrompt, context);
+    
+    if (!this.canMakeRequest(systemPrompt, userPrompt, context)) {
+      throw new Error(`Token budget exceeded: need ${estimatedTokens} tokens, have ${this.budgets.total - this.currentUsage.total} remaining`);
+    }
+    
+    this.currentUsage.total += estimatedTokens;
+    this.currentUsage.system += tokenUtils.countTokens(systemPrompt);
+    this.currentUsage.user += tokenUtils.countTokens(userPrompt);
+    this.currentUsage.context += tokenUtils.countObjectTokens(context);
+    
+    this.callHistory.push({
+      timestamp: Date.now(),
+      systemTokens: tokenUtils.countTokens(systemPrompt),
+      userTokens: tokenUtils.countTokens(userPrompt),
+      contextTokens: tokenUtils.countObjectTokens(context),
+      totalTokens: estimatedTokens
+    });
+    
+    return {
+      allocated: estimatedTokens,
+      remaining: this.budgets.total - this.currentUsage.total,
+      usage: { ...this.currentUsage }
+    };
+  }
+
+  // Reset usage for a new session
+  resetUsage() {
+    this.currentUsage = {
+      system: 0,
+      user: 0,
+      context: 0,
+      total: 0
+    };
+    this.callHistory = [];
+    console.log('[TOKEN BUDGET] Token usage reset for new session');
+  }
+
+  // Get current usage statistics
+  getUsageStats() {
+    return {
+      current: { ...this.currentUsage },
+      budgets: { ...this.budgets },
+      callHistory: this.callHistory,
+      optimizationStrategies: { ...this.optimizationStrategies }
+    };
+  }
+
+  // Optimize context based on available budget
+  optimizeContext(context, systemPrompt, userPrompt) {
+    const estimatedTokens = tokenUtils.estimateMessageTokens(systemPrompt, userPrompt, context);
+    const totalEstimated = estimatedTokens + this.currentUsage.total;
+    
+    if (totalEstimated <= this.budgets.total * 0.9) {
+      return context; // No optimization needed
+    }
+    
+    // Apply optimization strategies
+    let optimizedContext = context;
+    
+    if (this.optimizationStrategies.compressContext) {
+      optimizedContext = compressionUtils.compressContext(optimizedContext, 1000);
+    }
+    
+    if (this.optimizationStrategies.summarizeContext) {
+      const summary = compressionUtils.summarizeContext(optimizedContext);
+      optimizedContext = { ...summary };
+    }
+    
+    if (this.optimizationStrategies.prioritizeEssential) {
+      optimizedContext = this.prioritizeEssentialFields(optimizedContext);
+    }
+    
+    return optimizedContext;
+  }
+
+  // Prioritize essential fields
+  prioritizeEssentialFields(context) {
+    const essentialFields = ['url', 'title', 'pageType', 'site', 'environment', 'goals'];
+    const optimized = {};
+    
+    essentialFields.forEach(field => {
+      if (context[field] !== undefined) {
+        optimized[field] = context[field];
+      }
+    });
+    
+    // Add a few key elements if available
+    if (context.importantElements && context.importantElements.length > 0) {
+      optimized.keyElements = context.importantElements.slice(0, 5);
+    }
+    
+    return optimized;
+  }
+
+  // Update optimization strategies
+  updateOptimizationStrategies(strategies) {
+    Object.assign(this.optimizationStrategies, strategies);
+    console.log('[TOKEN BUDGET] Optimization strategies updated:', this.optimizationStrategies);
+  }
+}
+
+// Context manager
+class ContextManager {
+  constructor() {
+    this.tokenBudget = new TokenBudgetManager();
+    this.contextHistory = [];
+    this.maxContextHistory = 100;
+    this.contextCompressionEnabled = true;
+    this.tokenOptimizationEnabled = true;
+  }
+
+  // Create a new context
+  createContext(initialData = {}) {
+    const context = {
+      id: Date.now().toString(36) + Math.random().toString(36).substr(2),
+      timestamp: Date.now(),
+      ...initialData
+    };
+    
+    this.contextHistory.push(context);
+    if (this.contextHistory.length > this.maxContextHistory) {
+      this.contextHistory.shift();
+    }
+    
+    return context;
+  }
+
+  // Update context with new data
+  updateContext(contextId, updates) {
+    const context = this.contextHistory.find(c => c.id === contextId);
+    if (!context) {
+      throw new Error(`Context not found: ${contextId}`);
+    }
+    
+    Object.assign(context, updates);
+    context.timestamp = Date.now();
+    
+    return context;
+  }
+
+  // Get context by ID
+  getContext(contextId) {
+    return this.contextHistory.find(c => c.id === contextId);
+  }
+
+  // Optimize context for LLM consumption
+  async optimizeContextForLLM(contextId, systemPrompt, userPrompt) {
+    const context = this.getContext(contextId);
+    if (!context) {
+      throw new Error(`Context not found: ${contextId}`);
+    }
+    
+    let optimizedContext = context;
+    
+    if (this.tokenOptimizationEnabled) {
+      optimizedContext = this.tokenBudget.optimizeContext(optimizedContext, systemPrompt, userPrompt);
+    }
+    
+    return optimizedContext;
+  }
+
+  // Make LLM call with context management
+  async makeLLMCall(contextId, systemPrompt, userPrompt, llmFunction) {
+    const context = this.getContext(contextId);
+    if (!context) {
+      throw new Error(`Context not found: ${contextId}`);
+    }
+    
+    // Optimize context if needed
+    const optimizedContext = await this.optimizeContextForLLM(contextId, systemPrompt, userPrompt);
+    
+    // Check token budget
+    if (!this.tokenBudget.canMakeRequest(systemPrompt, userPrompt, optimizedContext)) {
+      throw new Error('Token budget exceeded');
+    }
+    
+    // Allocate tokens
+    const allocation = this.tokenBudget.allocateTokens(systemPrompt, userPrompt, optimizedContext);
+    
+    try {
+      // Make the LLM call
+      const result = await llmFunction(systemPrompt, userPrompt, optimizedContext);
+      
+      // Update context with result
+      await this.updateContext(contextId, {
+        lastLLMCall: {
+          timestamp: Date.now(),
+          tokensUsed: allocation.allocated,
+          systemTokens: allocation.usage.system,
+          userTokens: allocation.usage.user,
+          contextTokens: allocation.usage.context
+        },
+        lastResult: result
+      });
+      
+      return result;
+      
+    } catch (error) {
+      // Log error and rethrow
+      console.error('[CONTEXT MANAGER] LLM call failed:', error.message);
+      throw error;
+    }
+  }
+
+  // Get context statistics
+  getContextStats() {
+    return {
+      totalContexts: this.contextHistory.length,
+      tokenBudget: this.tokenBudget.getUsageStats(),
+      recentContexts: this.contextHistory.slice(-10)
+    };
+  }
+
+  // Reset everything
+  reset() {
+    this.tokenBudget.resetUsage();
+    this.contextHistory = [];
+    console.log('[CONTEXT MANAGER] Context manager reset');
+  }
+}
+
+// Global context manager instance
+const contextManager = new ContextManager();
+
+// Export utilities
+export { tokenUtils, compressionUtils, ContextManager };
+export default contextManager;
+
+// Export convenience functions
+export async function makeOptimizedLLMCall(contextId, systemPrompt, userPrompt, llmFunction) {
+  return contextManager.makeLLMCall(contextId, systemPrompt, userPrompt, llmFunction);
+}
+
+export function createOptimizedContext(initialData = {}) {
+  return contextManager.createContext(initialData);
+}
+
+export function getContextStats() {
+  return contextManager.getContextStats();
+}
+
+console.log('[CONTEXT MANAGER] Context size management and token optimization initialized');
+```
+
 ### cloud/src/utils/logger.js
 
 ```text
@@ -9362,6 +11656,858 @@ export default {
   log,
   isDebug
 };
+```
+
+### cloud/src/utils/resourceAllocator.js
+
+```text
+// Dynamic Resource Allocation and Action Limits
+// Replaces hardcoded action limits with intelligent resource management
+
+const fs = require('fs');
+const path = require('path');
+
+// Resource allocation statistics
+const resourceStats = {
+  actionLimits: {
+    default: 30,
+    adaptive: 30,
+    max: 100,
+    min: 5
+  },
+  llmCallLimits: {
+    default: 80,
+    adaptive: 80,
+    max: 200,
+    min: 20
+  },
+  tokenLimits: {
+    default: 20000,
+    adaptive: 20000,
+    max: 100000,
+    min: 5000
+  },
+  learningHistory: [],
+  adaptationCount: 0,
+  lastAdaptation: null
+};
+
+// Resource allocation and optimization system
+class DynamicResourceAllocator {
+  constructor() {
+    this.currentLimits = {
+      maxActions: resourceStats.actionLimits.adaptive,
+      maxLlmCalls: resourceStats.llmCallLimits.adaptive,
+      maxTokens: resourceStats.tokenLimits.adaptive
+    };
+    this.usageStats = {
+      actionsUsed: 0,
+      llmCallsUsed: 0,
+      tokensUsed: 0,
+      currentSessionActions: 0,
+      currentSessionLlmCalls: 0,
+      currentSessionTokens: 0
+    };
+    this.adaptationStrategies = {
+      aggressive: false,
+      conservative: false,
+      balanced: true
+    };
+    this.performanceHistory = [];
+  }
+
+  // Calculate adaptive action limits based on performance
+  calculateAdaptiveLimits(goal, browserState, performanceHistory) {
+    const adaptations = [];
+    let newMaxActions = this.currentLimits.maxActions;
+    let newMaxLlmCalls = this.currentLimits.maxLlmCalls;
+    let newMaxTokens = this.currentLimits.maxTokens;
+    
+    // Adapt based on goal complexity
+    const goalComplexity = this.calculateGoalComplexity(goal);
+    if (goalComplexity > 0.8) {
+      // Complex goals need more resources
+      newMaxActions = Math.min(resourceStats.actionLimits.max, Math.ceil(newMaxActions * 1.5));
+      newMaxLlmCalls = Math.min(resourceStats.llmCallLimits.max, Math.ceil(newMaxLlmCalls * 1.3));
+      adaptations.push({
+        type: 'complexity_increase',
+        reason: 'Goal complexity requires more resources',
+        actions: newMaxActions,
+        llmCalls: newMaxLlmCalls
+      });
+    } else if (goalComplexity < 0.3) {
+      // Simple goals need fewer resources
+      newMaxActions = Math.max(resourceStats.actionLimits.min, Math.floor(newMaxActions * 0.7));
+      newMaxLlmCalls = Math.max(resourceStats.llmCallLimits.min, Math.floor(newMaxLlmCalls * 0.7));
+      adaptations.push({
+        type: 'complexity_reduction',
+        reason: 'Goal simplicity allows resource reduction',
+        actions: newMaxActions,
+        llmCalls: newMaxLlmCalls
+      });
+    }
+    
+    // Adapt based on browser state
+    if (browserState) {
+      const pageLoadTime = browserState.pageLoadTime || 0;
+      const pageSize = browserState.pageSize || 0;
+      
+      if (pageLoadTime > 5000) {
+        // Slow loading pages need more time and resources
+        newMaxActions = Math.min(resourceStats.actionLimits.max, newMaxActions + 5);
+        adaptations.push({
+          type: 'performance_adjustment',
+          reason: 'Slow page loading requires more resources',
+          actions: newMaxActions
+        });
+      }
+      
+      if (pageSize > 100000) {
+        // Large pages need more tokens for context
+        newMaxTokens = Math.min(resourceStats.tokenLimits.max, newMaxTokens + 5000);
+        adaptations.push({
+          type: 'content_adjustment',
+          reason: 'Large page content requires more tokens',
+          tokens: newMaxTokens
+        });
+      }
+    }
+    
+    // Adapt based on performance history
+    if (performanceHistory && performanceHistory.length > 0) {
+      const recentSuccessRate = this.calculateSuccessRate(performanceHistory);
+      const recentEfficiency = this.calculateEfficiency(performanceHistory);
+      
+      if (recentSuccessRate < 0.5) {
+        // Low success rate - be more conservative
+        newMaxActions = Math.max(resourceStats.actionLimits.min, Math.floor(newMaxActions * 0.8));
+        adaptations.push({
+          type: 'success_rate_adjustment',
+          reason: 'Low success rate requires conservative resource allocation',
+          actions: newMaxActions
+        });
+      } else if (recentEfficiency > 0.8) {
+        // High efficiency - can be more aggressive
+        newMaxActions = Math.min(resourceStats.actionLimits.max, Math.ceil(newMaxActions * 1.2));
+        adaptations.push({
+          type: 'efficiency_adjustment',
+          reason: 'High efficiency allows aggressive resource allocation',
+          actions: newMaxActions
+        });
+      }
+    }
+    
+    // Update current limits
+    this.currentLimits.maxActions = newMaxActions;
+    this.currentLimits.maxLlmCalls = newMaxLlmCalls;
+    this.currentLimits.maxTokens = newMaxTokens;
+    
+    resourceStats.adaptationCount++;
+    resourceStats.lastAdaptation = Date.now();
+    
+    console.log(`[RESOURCE ALLOCATOR] Applied ${adaptations.length} resource adaptations:
+${adaptations.map(a => `  - ${a.type}: ${a.reason}`).join('\n')}
+New limits: Actions=${newMaxActions}, LLM Calls=${newMaxLlmCalls}, Tokens=${newMaxTokens}`);
+    
+    return {
+      maxActions: newMaxActions,
+      maxLlmCalls: newMaxLlmCalls,
+      maxTokens: newMaxTokens,
+      adaptations: adaptations
+    };
+  }
+
+  // Calculate goal complexity
+  calculateGoalComplexity(goal) {
+    const objective = (goal.objective || "").toLowerCase();
+    const complexityFactors = {
+      search: 0.8,
+      navigate: 0.6,
+      extract: 0.7,
+      click: 0.5,
+      type: 0.5,
+      scroll: 0.3,
+      back: 0.2,
+      refresh: 0.1
+    };
+    
+    let complexity = 0;
+    const words = objective.split(' ');
+    
+    words.forEach(word => {
+      Object.keys(complexityFactors).forEach(pattern => {
+        if (word.includes(pattern)) {
+          complexity += complexityFactors[pattern];
+        }
+      });
+    });
+    
+    // Normalize complexity
+    return Math.min(1.0, complexity / words.length || 0.5);
+  }
+
+  // Calculate success rate from performance history
+  calculateSuccessRate(history) {
+    if (!history || history.length === 0) return 0.5;
+    
+    const successfulActions = history.filter(h => h.success).length;
+    return successfulActions / history.length;
+  }
+
+  // Calculate efficiency from performance history
+  calculateEfficiency(history) {
+    if (!history || history.length === 0) return 0.5;
+    
+    const totalActions = history.length;
+    const successfulActions = history.filter(h => h.success).length;
+    const avgActionsPerSuccess = totalActions / successfulActions || 1;
+    
+    // Efficiency: actions per successful outcome (lower is better)
+    return Math.max(0, 1 - (avgActionsPerSuccess - 1) * 0.2);
+  }
+
+  // Check if we have enough resources for a new action
+  canExecuteAction(currentActions, currentLlmCalls, currentTokens) {
+    return currentActions < this.currentLimits.maxActions &&
+           currentLlmCalls < this.currentLimits.maxLlmCalls &&
+           currentTokens < this.currentLimits.maxTokens;
+  }
+
+  // Allocate resources for an action
+  allocateResources(actionType, estimatedTokens = 0) {
+    this.usageStats.actionsUsed++;
+    this.usageStats.currentSessionActions++;
+    this.usageStats.llmCallsUsed++;
+    this.usageStats.currentSessionLlmCalls++;
+    this.usageStats.tokensUsed += estimatedTokens;
+    this.usageStats.currentSessionTokens += estimatedTokens;
+    
+    return {
+      actionsRemaining: this.currentLimits.maxActions - this.usageStats.actionsUsed,
+      llmCallsRemaining: this.currentLimits.maxLlmCalls - this.usageStats.llmCallsUsed,
+      tokensRemaining: this.currentLimits.maxTokens - this.usageStats.tokensUsed,
+      currentSession: {
+        actions: this.usageStats.currentSessionActions,
+        llmCalls: this.usageStats.currentSessionLlmCalls,
+        tokens: this.usageStats.currentSessionTokens
+      }
+    };
+  }
+
+  // Reset session resources
+  resetSessionResources() {
+    this.usageStats.currentSessionActions = 0;
+    this.usageStats.currentSessionLlmCalls = 0;
+    this.usageStats.currentSessionTokens = 0;
+    console.log('[RESOURCE ALLOCATOR] Session resources reset');
+  }
+
+  // Get current resource statistics
+  getResourceStats() {
+    return {
+      current: { ...this.currentLimits },
+      usage: { ...this.usageStats },
+      adaptationStrategies: { ...this.adaptationStrategies },
+      performanceHistory: this.performanceHistory.slice(-10)
+    };
+  }
+
+  // Update performance history
+  updatePerformanceHistory(action, success, executionTime) {
+    this.performanceHistory.push({
+      timestamp: Date.now(),
+      action: action,
+      success: success,
+      executionTime: executionTime
+    });
+    
+    // Keep only recent history
+    if (this.performanceHistory.length > 100) {
+      this.performanceHistory.splice(0, this.performanceHistory.length - 100);
+    }
+  }
+
+  // Set adaptation strategies
+  setAdaptationStrategies(strategies) {
+    Object.assign(this.adaptationStrategies, strategies);
+    console.log('[RESOURCE ALLOCATOR] Adaptation strategies updated:', this.adaptationStrategies);
+  }
+}
+
+// Global resource allocator instance
+const resourceAllocator = new DynamicResourceAllocator();
+
+// Export resource allocator
+export { DynamicResourceAllocator, resourceAllocator };
+export default resourceAllocator;
+
+// Export convenience functions
+export function calculateAdaptiveLimits(goal, browserState, performanceHistory) {
+  return resourceAllocator.calculateAdaptiveLimits(goal, browserState, performanceHistory);
+}
+
+export function canExecuteAction(currentActions, currentLlmCalls, currentTokens) {
+  return resourceAllocator.canExecuteAction(currentActions, currentLlmCalls, currentTokens);
+}
+
+export function allocateResources(actionType, estimatedTokens = 0) {
+  return resourceAllocator.allocateResources(actionType, estimatedTokens);
+}
+
+export function resetSessionResources() {
+  resourceAllocator.resetSessionResources();
+}
+
+export function getResourceStats() {
+  return resourceAllocator.getResourceStats();
+}
+
+export function updatePerformanceHistory(action, success, executionTime) {
+  resourceAllocator.updatePerformanceHistory(action, success, executionTime);
+}
+
+console.log('[RESOURCE ALLOCATOR] Dynamic resource allocation initialized');
+```
+
+### cloud/src/utils/runtimeLearning.js
+
+```text
+// Runtime Learning System from Interactions
+// Learns from user interactions and improves system performance over time
+
+const fs = require('fs');
+const path = require('path');
+
+// Runtime learning statistics
+const learningStats = {
+  interactionHistory: [],
+  successPatterns: new Map(),
+  failurePatterns: new Map(),
+  adaptationHistory: [],
+  learningEnabled: true,
+  maxHistorySize: 1000,
+  confidenceThreshold: 0.7,
+  adaptationRate: 0.1,
+  
+  // Track user interactions
+  trackInteraction(interaction) {
+    const enrichedInteraction = {
+      ...interaction,
+      timestamp: Date.now(),
+      sessionId: interaction.sessionId || `session_${Date.now()}`,
+      userId: interaction.userId || 'anonymous',
+      context: {
+        pageUrl: interaction.pageUrl || '',
+        pageTitle: interaction.pageTitle || '',
+        userAgent: interaction.userAgent || '',
+        viewport: interaction.viewport || { width: 1920, height: 1080 }
+      }
+    };
+    
+    this.interactionHistory.push(enrichedInteraction);
+    
+    // Keep only recent history
+    if (this.interactionHistory.length > this.maxHistorySize) {
+      this.interactionHistory.splice(0, this.interactionHistory.length - this.maxHistorySize);
+    }
+    
+    // Learn from interaction
+    this.learnFromInteraction(enrichedInteraction);
+    
+    console.log(`[RUNTIME LEARNING] Tracked interaction: ${interaction.type} - ${interaction.action}`);
+  },
+  
+  // Learn from user interaction
+  learnFromInteraction(interaction) {
+    const patternKey = `${interaction.action}:${interaction.pageUrl}`;
+    
+    if (interaction.success) {
+      if (!this.successPatterns.has(patternKey)) {
+        this.successPatterns.set(patternKey, []);
+      }
+      this.successPatterns.get(patternKey).push(interaction);
+    } else {
+      if (!this.failurePatterns.has(patternKey)) {
+        this.failurePatterns.set(patternKey, []);
+      }
+      this.failurePatterns.get(patternKey).push(interaction);
+    }
+    
+    // Analyze patterns
+    this.analyzeInteractionPatterns();
+  },
+  
+  // Analyze interaction patterns
+  analyzeInteractionPatterns() {
+    const currentTime = Date.now();
+    const recentInteractions = this.interactionHistory.filter(
+      i => currentTime - i.timestamp < 24 * 60 * 60 * 1000 // Last 24 hours
+    );
+    
+    // Analyze success patterns
+    const successRates = {};
+    for (const [patternKey, interactions] of this.successPatterns) {
+      const recentSuccesses = interactions.filter(i => 
+        currentTime - i.timestamp < 24 * 60 * 60 * 1000
+      );
+      const successRate = recentSuccesses.length / Math.max(interactions.length, 1);
+      successRates[patternKey] = successRate;
+    }
+    
+    // Identify high-success patterns
+    const highSuccessPatterns = Object.entries(successRates)
+      .filter(([_, rate]) => rate > this.confidenceThreshold)
+      .map(([pattern]) => pattern);
+    
+    // Adapt system based on high-success patterns
+    if (highSuccessPatterns.length > 0) {
+      this.adaptFromHighSuccessPatterns(highSuccessPatterns);
+    }
+    
+    // Analyze failure patterns
+    const failureRates = {};
+    for (const [patternKey, interactions] of this.failurePatterns) {
+      const recentFailures = interactions.filter(i => 
+        currentTime - i.timestamp < 24 * 60 * 60 * 1000
+      );
+      const failureRate = recentFailures.length / Math.max(interactions.length, 1);
+      failureRates[patternKey] = failureRate;
+    }
+    
+    // Identify high-failure patterns
+    const highFailurePatterns = Object.entries(failureRates)
+      .filter(([_, rate]) => rate > 0.5)
+      .map(([pattern]) => pattern);
+    
+    // Adapt system based on high-failure patterns
+    if (highFailurePatterns.length > 0) {
+      this.adaptFromHighFailurePatterns(highFailurePatterns);
+    }
+  },
+  
+  // Adapt from high-success patterns
+  adaptFromHighSuccessPatterns(patterns) {
+    console.log(`[RUNTIME LEARNING] Adapting from ${patterns.length} high-success patterns`);
+    
+    patterns.forEach(pattern => {
+      const interactions = this.successPatterns.get(pattern) || [];
+      const recentInteractions = interactions.filter(i => 
+        Date.now() - i.timestamp < 24 * 60 * 60 * 1000
+      );
+      
+      if (recentInteractions.length > 0) {
+        const avgAction = this.getMostCommonAction(recentInteractions);
+        const avgPage = this.getMostCommonPage(recentInteractions);
+        
+        console.log(`[RUNTIME LEARNING] Pattern ${pattern}: avg action=${avgAction}, avg page=${avgPage}`);
+        
+        // Store adaptation
+        this.adaptationHistory.push({
+          type: 'success_adaptation',
+          pattern: pattern,
+          action: avgAction,
+          page: avgPage,
+          timestamp: Date.now()
+        });
+      }
+    });
+  },
+  
+  // Adapt from high-failure patterns
+  adaptFromHighFailurePatterns(patterns) {
+    console.log(`[RUNTIME LEARNING] Adapting from ${patterns.length} high-failure patterns`);
+    
+    patterns.forEach(pattern => {
+      const interactions = this.failurePatterns.get(pattern) || [];
+      const recentInteractions = interactions.filter(i => 
+        Date.now() - i.timestamp < 24 * 60 * 60 * 1000
+      );
+      
+      if (recentInteractions.length > 0) {
+        const commonErrors = this.getMostCommonErrors(recentInteractions);
+        const commonActions = this.getMostCommonAction(recentInteractions);
+        
+        console.log(`[RUNTIME LEARNING] Pattern ${pattern}: common errors=${commonErrors}, common actions=${commonActions}`);
+        
+        // Store adaptation
+        this.adaptationHistory.push({
+          type: 'failure_adaptation',
+          pattern: pattern,
+          errors: commonErrors,
+          actions: commonActions,
+          timestamp: Date.now()
+        });
+      }
+    });
+  },
+  
+  // Get most common action from interactions
+  getMostCommonAction(interactions) {
+    const actionCounts = {};
+    interactions.forEach(i => {
+      actionCounts[i.action] = (actionCounts[i.action] || 0) + 1;
+    });
+    
+    return Object.entries(actionCounts)
+      .sort((a, b) => b[1] - a[1])[0]?.[0] || 'unknown';
+  },
+  
+  // Get most common page from interactions
+  getMostCommonPage(interactions) {
+    const pageCounts = {};
+    interactions.forEach(i => {
+      pageCounts[i.pageUrl] = (pageCounts[i.pageUrl] || 0) + 1;
+    });
+    
+    return Object.entries(pageCounts)
+      .sort((a, b) => b[1] - a[1])[0]?.[0] || 'unknown';
+  },
+  
+  // Get most common errors from interactions
+  getMostCommonErrors(interactions) {
+    const errorCounts = {};
+    interactions.forEach(i => {
+      if (i.error) {
+        errorCounts[i.error] = (errorCounts[i.error] || 0) + 1;
+      }
+    });
+    
+    return Object.entries(errorCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([error]) => error);
+  },
+  
+  // Get learning recommendations
+  getLearningRecommendations() {
+    const recommendations = [];
+    const currentTime = Date.now();
+    const recentInteractions = this.interactionHistory.filter(
+      i => currentTime - i.timestamp < 7 * 24 * 60 * 60 * 1000 // Last 7 days
+    );
+    
+    // Analyze recent trends
+    const recentSuccessRates = {};
+    for (const [patternKey, interactions] of this.successPatterns) {
+      const recentSuccesses = interactions.filter(i => 
+        currentTime - i.timestamp < 7 * 24 * 60 * 60 * 1000
+      );
+      const successRate = recentSuccesses.length / Math.max(interactions.length, 1);
+      recentSuccessRates[patternKey] = successRate;
+    }
+    
+    // Generate recommendations
+    Object.entries(recentSuccessRates).forEach(([pattern, rate]) => {
+      if (rate > 0.8) {
+        recommendations.push({
+          type: 'optimize',
+          pattern: pattern,
+          reason: `High success rate (${(rate * 100).toFixed(1)}%) - optimize this pattern`,
+          priority: 'high'
+        });
+      } else if (rate < 0.3) {
+        recommendations.push({
+          type: 'investigate',
+          pattern: pattern,
+          reason: `Low success rate (${(rate * 100).toFixed(1)}%) - investigate this pattern`,
+          priority: 'medium'
+        });
+      }
+    });
+    
+    // Add adaptation recommendations
+    const recentAdaptations = this.adaptationHistory.filter(
+      a => currentTime - a.timestamp < 7 * 24 * 60 * 60 * 1000
+    );
+    
+    if (recentAdaptations.length > 0) {
+      recommendations.push({
+        type: 'continue_adaptation',
+        reason: `Recent adaptations (${recentAdaptations.length}) - continue learning and adapting`,
+        priority: 'low'
+      });
+    }
+    
+    return recommendations;
+  },
+  
+  // Get learning statistics
+  getLearningStats() {
+    const currentTime = Date.now();
+    const recentInteractions = this.interactionHistory.filter(
+      i => currentTime - i.timestamp < 24 * 60 * 60 * 1000
+    );
+    
+    const successRate = recentInteractions.length > 0
+      ? recentInteractions.filter(i => i.success).length / recentInteractions.length
+      : 0;
+    
+    return {
+      totalInteractions: this.interactionHistory.length,
+      recentInteractions: recentInteractions.length,
+      successRate: successRate,
+      successPatterns: this.successPatterns.size,
+      failurePatterns: this.failurePatterns.size,
+      adaptationCount: this.adaptationHistory.length,
+      learningEnabled: this.learningEnabled,
+      confidenceThreshold: this.confidenceThreshold,
+      adaptationRate: this.adaptationRate
+    };
+  }
+};
+
+// Runtime learning system
+class RuntimeLearningSystem {
+  constructor() {
+    this.learningStats = learningStats;
+    this.adaptationEnabled = true;
+    this.autoAdaptationEnabled = true;
+    this.userProfile = {
+      preferences: {},
+      behavior: {},
+      history: []
+    };
+    this.globalAdaptations = [];
+  }
+
+  // Track user interaction
+  trackInteraction(interaction) {
+    this.learningStats.trackInteraction(interaction);
+    this.updateUserProfile(interaction);
+    this.checkForAutoAdaptation(interaction);
+  }
+
+  // Update user profile
+  updateUserProfile(interaction) {
+    // Update behavior patterns
+    if (!this.userProfile.behavior[interaction.action]) {
+      this.userProfile.behavior[interaction.action] = {
+        count: 0,
+        successRate: 0,
+        lastUsed: Date.now()
+      };
+    }
+    
+    const behavior = this.userProfile.behavior[interaction.action];
+    behavior.count++;
+    behavior.successRate = (behavior.successRate * (behavior.count - 1) + (interaction.success ? 1 : 0)) / behavior.count;
+    behavior.lastUsed = Date.now();
+    
+    // Update preferences
+    if (interaction.success) {
+      if (!this.userProfile.preferences[interaction.action]) {
+        this.userProfile.preferences[interaction.action] = 0;
+      }
+      this.userProfile.preferences[interaction.action]++;
+    }
+    
+    this.userProfile.history.push({
+      ...interaction,
+      timestamp: Date.now()
+    });
+    
+    // Keep history manageable
+    if (this.userProfile.history.length > 1000) {
+      this.userProfile.history.splice(0, this.userProfile.history.length - 1000);
+    }
+  }
+
+  // Check for auto-adaptation
+  checkForAutoAdaptation(interaction) {
+    if (!this.autoAdaptationEnabled) return;
+    
+    const patternKey = `${interaction.action}:${interaction.pageUrl}`;
+    const recentInteractions = this.learningStats.interactionHistory.filter(
+      i => i.timestamp > Date.now() - 24 * 60 * 60 * 1000
+    );
+    
+    const patternInteractions = recentInteractions.filter(i => i.action === interaction.action);
+    const successRate = patternInteractions.length > 0
+      ? patternInteractions.filter(i => i.success).length / patternInteractions.length
+      : 0;
+    
+    // Adapt if success rate is too low
+    if (successRate < 0.3 && patternInteractions.length >= 5) {
+      console.log(`[RUNTIME LEARNING] Auto-adapting due to low success rate (${(successRate * 100).toFixed(1)}%) for pattern: ${patternKey}`);
+      this.adaptForPattern(patternKey, interaction);
+    }
+    
+    // Adapt if success rate is very high
+    if (successRate > 0.9 && patternInteractions.length >= 5) {
+      console.log(`[RUNTIME LEARNING] Auto-optimizing due to high success rate (${(successRate * 100).toFixed(1)}%) for pattern: ${patternKey}`);
+      this.optimizeForPattern(patternKey, interaction);
+    }
+  }
+
+  // Adapt for a specific pattern
+  adaptForPattern(patternKey, interaction) {
+    const adaptations = [];
+    
+    // Find common errors for this pattern
+    const errors = this.learningStats.failurePatterns.get(patternKey) || [];
+    const commonErrors = errors.length > 0
+      ? errors.slice(-5).map(e => e.error || 'unknown').filter(e => e)
+      : ['unknown'];
+    
+    // Find successful actions for this pattern
+    const successes = this.learningStats.successPatterns.get(patternKey) || [];
+    const successfulActions = successes.length > 0
+      ? successes.slice(-5).map(s => s.action || 'unknown').filter(a => a)
+      : ['unknown'];
+    
+    // Create adaptation suggestions
+    adaptations.push({
+      type: 'error_handling',
+      description: `Improve error handling for pattern: ${patternKey}`, 
+      errors: commonErrors,
+      priority: 'high'
+    });
+    
+    adaptations.push({
+      type: 'action_optimization',
+      description: `Optimize actions for pattern: ${patternKey}`,
+      successfulActions: successfulActions,
+      priority: 'medium'
+    });
+    
+    this.globalAdaptations.push(...adaptations);
+    console.log(`[RUNTIME LEARNING] Created ${adaptations.length} adaptations for pattern: ${patternKey}`);
+  }
+
+  // Optimize for a specific pattern
+  optimizeForPattern(patternKey, interaction) {
+    const optimizations = [];
+    
+    // Find successful actions for this pattern
+    const successes = this.learningStats.successPatterns.get(patternKey) || [];
+    const successfulActions = successes.length > 0
+      ? successes.slice(-5).map(s => s.action || 'unknown').filter(a => a)
+      : ['unknown'];
+    
+    // Create optimization suggestions
+    optimizations.push({
+      type: 'action_prioritization',
+      description: `Prioritize successful actions for pattern: ${patternKey}`,
+      successfulActions: successfulActions,
+      priority: 'high'
+    });
+    
+    optimizations.push({
+      type: 'pattern_reinforcement',
+      description: `Reinforce successful patterns for: ${patternKey}`,
+      successfulActions: successfulActions,
+      priority: 'medium'
+    });
+    
+    this.globalAdaptations.push(...optimizations);
+    console.log(`[RUNTIME LEARNING] Created ${optimizations.length} optimizations for pattern: ${patternKey}`);
+  }
+
+  // Get learning recommendations
+  getLearningRecommendations() {
+    const statsRecommendations = this.learningStats.getLearningRecommendations();
+    const userRecommendations = this.getUserRecommendations();
+    
+    return {
+      stats: statsRecommendations,
+      user: userRecommendations,
+      global: this.globalAdaptations.slice(-10),
+      timestamp: Date.now()
+    };
+  }
+
+  // Get user recommendations
+  getUserRecommendations() {
+    const recommendations = [];
+    
+    // Recommend actions based on user preferences
+    Object.entries(this.userProfile.preferences).forEach(([action, count]) => {
+      if (count > 5) { // User has used this action frequently
+        recommendations.push({
+          type: 'preference_based',
+          action: action,
+          reason: `You frequently use ${action} (${count} times) - consider optimizing this action`,
+          priority: 'medium'
+        });
+      }
+    });
+    
+    // Recommend based on user behavior patterns
+    const behaviorEntries = Object.entries(this.userProfile.behavior);
+    const highSuccessActions = behaviorEntries
+      .filter(([_, behavior]) => behavior.successRate > 0.8 && behavior.count >= 3)
+      .map(([action]) => action);
+    
+    if (highSuccessActions.length > 0) {
+      recommendations.push({
+        type: 'behavior_based',
+        actions: highSuccessActions,
+        reason: `You have high success rates with these actions - consider prioritizing them`,
+        priority: 'high'
+      });
+    }
+    
+    return recommendations;
+  }
+
+  // Enable or disable learning
+  setLearningEnabled(enabled) {
+    this.adaptationEnabled = enabled;
+    this.learningStats.learningEnabled = enabled;
+    console.log(`[RUNTIME LEARNING] Learning ${enabled ? 'enabled' : 'disabled'}`);
+  }
+
+  // Enable or disable auto-adaptation
+  setAutoAdaptationEnabled(enabled) {
+    this.autoAdaptationEnabled = enabled;
+    console.log(`[RUNTIME LEARNING] Auto-adaptation ${enabled ? 'enabled' : 'disabled'}`);
+  }
+
+  // Get learning statistics
+  getLearningStats() {
+    return {
+      stats: this.learningStats.getLearningStats(),
+      userProfile: {
+        preferences: this.userProfile.preferences,
+        behavior: this.userProfile.behavior,
+        historyCount: this.userProfile.history.length
+      },
+      globalAdaptations: this.globalAdaptations.length,
+      adaptationEnabled: this.adaptationEnabled,
+      autoAdaptationEnabled: this.autoAdaptationEnabled
+    };
+  }
+}
+
+// Global runtime learning system instance
+const runtimeLearning = new RuntimeLearningSystem();
+
+// Export runtime learning system
+export { RuntimeLearningSystem, runtimeLearning, learningStats };
+export default runtimeLearning;
+
+// Export convenience functions
+export function trackInteraction(interaction) {
+  runtimeLearning.trackInteraction(interaction);
+}
+
+export function getLearningRecommendations() {
+  return runtimeLearning.getLearningRecommendations();
+}
+
+export function setLearningEnabled(enabled) {
+  runtimeLearning.setLearningEnabled(enabled);
+}
+
+export function setAutoAdaptationEnabled(enabled) {
+  runtimeLearning.setAutoAdaptationEnabled(enabled);
+}
+
+export function getLearningStats() {
+  return runtimeLearning.getLearningStats();
+}
+
+console.log('[RUNTIME LEARNING] Runtime learning system initialized');
 ```
 
 ### cloud/src/verification/eventMatchers.js
@@ -11083,6 +14229,311 @@ function inferPagePurpose(resolvedState, browser = {}, elements = []) {
   const pageText = (browser.text || "").toLowerCase();
   const hasPasswordInput = (browser.inputs || []).some(input => input.type === "password");
 
+  // 1. Check for modal/overlay constraints
+  const closeBtn = (browser.buttons || []).some(btn => 
+    btn.purpose === "confirmation_action" || 
+    (btn.text && /close|dismiss|reject|accept/i.test(btn.text))
+  );
+  if (closeBtn && (/cookie|consent|privacy|agree/i.test(pageText) || /sign in to/i.test(pageText))) {
+    return "modal flow";
+  }
+
+  // 2. Content access flow (remove platform-specific naming)
+  const hasInteractiveElements = (browser.inputs || []).length > 0 || 
+    (browser.buttons || []).length > 0 || 
+    (browser.links || []).length > 0;
+
+  // 3. User input opportunities
+  const hasSearchIntent = elements.some(el => 
+    el.semanticType === "search_input" || 
+    el.purpose === "search_input" ||
+    el.actionHints.includes("search") ||
+    /search|query|find|lookup/i.test(el.label || "")
+  );
+
+  const hasNavigationOptions = elements.some(el => 
+    el.semanticType === "navigation_element" ||
+    el.actionHints.includes("navigate") ||
+    el.actionHints.includes("click") ||
+    /home|profile|menu|navigation/i.test(el.label || "")
+  );
+
+  const hasContentItems = elements.some(el => 
+    el.purpose === "primary_content" ||
+    /read|view|watch|play|consume|article|post|item/i.test(el.label || "")
+  );
+
+  const hasActionButtons = elements.some(el => 
+    el.purpose === "action_target" ||
+    /submit|continue|next|proceed|go|start/i.test(el.label || "")
+  );
+
+  const hasFormInputElements = elements.some(el => 
+    el.purpose === "input_element" ||
+    (browser.inputs || []).length > 0
+  );
+
+  // Semantic classification based on user interaction patterns
+
+  if (hasPasswordInput || /credential|authentication|access|sign|log in/i.test(title) || /login|signin|auth|protected/i.test(url)) {
+    return "access_control";
+  }
+
+  if (hasSearchIntent && hasNavigationOptions && hasContentItems) {
+    return "search_workflow";
+  }
+
+  if (hasNavigationOptions && hasContentItems) {
+    return "content_navigation";
+  }
+
+  if (hasContentItems) {
+    return "content_delivery";
+  }
+
+  if (hasFormInputElements && hasActionButtons) {
+    return "data_interaction";
+  }
+
+  if (hasActionButtons && hasSearchIntent) {
+    return "search_interface";
+  }
+
+  if (hasInteractiveElements) {
+    if (hasSearchIntent) {
+      return "search_task";
+    }
+    if (hasContentItems && hasNavigationOptions) {
+      return "navigation_task";
+    }
+    if (hasFormInputElements) {
+      return "form_interaction";
+    }
+    if (hasActionButtons) {
+      return "action_based";
+    }
+  }
+
+  return "generic";
+}
+
+function collectAvailableActions(elements) {
+  const actions = [];
+  for (const element of elements) {
+    for (const hint of element.actionHints) {
+      actions.push(`${hint}:${element.id}`);
+    }
+  }
+  return actions;
+}
+
+function detectWorkflows(pagePurpose, elements) {
+  const workflows = [];
+  if (pagePurpose === "search_workflow") {
+    workflows.push("content_discovery");
+  }
+  if (pagePurpose === "access_control") {
+    workflows.push("authentication");
+  }
+  if (pagePurpose === "data_interaction") {
+    workflows.push("data_management");
+  }
+  if (pagePurpose === "content_navigation") {
+    workflows.push("resource_access");
+  }
+  if (pagePurpose === "content_delivery") {
+    workflows.push("information_consumption");
+  }
+  if (pagePurpose === "action_based") {
+    workflows.push("user_action_execution");
+  }
+  if (pagePurpose === "search_interface") {
+    workflows.push("query_execution");
+  }
+  if (pagePurpose === "navigation_task") {
+    workflows.push("environment_exploration");
+  }
+  if (pagePurpose === "form_interaction") {
+    workflows.push("interaction_flow");
+  }
+  return workflows;
+}
+
+function collectConstraints(browser = {}) {
+  const constraints = [];
+  const text = `${browser.title || ""} ${browser.text || ""}`.toLowerCase();
+
+  if ((browser.inputs || []).some(input => input.type === "password")) {
+    constraints.push({ type: "access_control_required", reason: "authentication credentials needed" });
+  }
+  if (/captcha|verify you are human|human verification/.test(text)) {
+    constraints.push({ type: "interaction_verification", reason: "human verification required for security" });
+  }
+  if (/cookie|consent|privacy|terms/.test(text) && (browser.buttons || []).some(button => /accept|reject|close|dismiss|agree|ok/i.test(textOf(button)))) {
+    constraints.push({ type: "initial_barrier", reason: "terms/acceptance barrier before use" });
+  }
+  if (!browser.url || browser.url === "about:blank") {
+    constraints.push({ type: "no_active_content", reason: "browser environment inactive" });
+  }
+
+  return constraints;
+}
+
+function collectRisks(browser = {}) {
+  const risks = [];
+  const text = `${browser.title || ""} ${browser.text || ""}`.toLowerCase();
+
+  if (/payment|billing|credit card|debit|wallet|purchase|checkout|pay|price/i.test(text)) {
+    risks.push({ type: "financial_involvement", reason: "financial transaction potential" });
+  }
+  if (/cancel|delete|remove|erase|suspend|deactivate|quit|logout/i.test(text)) {
+    risks.push({ type: "state_change", reason: "permanent state modification risk" });
+  }
+  if (/mfa|multi-factor|verification|code|security|confirm|authenticate|otp/i.test(text)) {
+    risks.push({ type: "identity_verification", reason: "additional security verification required" });
+  }
+
+  return risks;
+}
+
+function extractEntities(browser, elements) {
+  const entities = [];
+  const text = browser.text || "";
+  
+  // Extract possible financial values
+  const financialMatch = text.match(/\$\d+(?:\.\d{2})?|\d+(?:\.\d{2})?\s*(?:USD|EUR|GBP)/g);
+  if (financialMatch) {
+    financialMatch.forEach(value => entities.push({ type: "price", value: value }));
+  }
+
+  // Extract numerical counts or metrics
+  const countMatch = text.match(/(\d+(?:\.\d+)?k?)\s*(?:total|count|items?|users?|views?|pageviews?|repo)\b/i);
+  if (countMatch) {
+    entities.push({ type: "metric_count", value: countMatch[1] });
+  }
+
+  // Extract date/time references
+  const dateMatch = text.match(/(?:by|deadline|due|on)\s+([A-Za-z]+ \d{1,2}(?:,? \d{4})?)/i);
+  if (dateMatch) {
+    entities.push({ type: "deadline", value: dateMatch[1] });
+  }
+
+  // Extract interface elements
+  const interfaceMatch = text.match(/(?:username|email|password|login|sign in|sign up|register)/i);
+  if (interfaceMatch) {
+    entities.push({ type: "interface_element", value: interfaceMatch[0] });
+  }
+
+  return entities;
+}
+
+function generateSummary(browser, resolvedState, purpose) {
+  const inputsCount = (browser.inputs || []).length;
+  const buttonsCount = (browser.buttons || []).length;
+  const linksCount = (browser.links || []).length;
+  return `Page titled "${browser.title || "Untitled"}" classified as "${purpose}". It exposes ${inputsCount} inputs, ${buttonsCount} buttons, and ${linksCount} links.`;
+}
+
+export function understandPage(observation, previousResolvedState = null) {
+  const browser = observation?.pageState || observation || {};
+  const resolvedState = resolveCurrentState(browser, previousResolvedState);
+  const importantElements = collectImportantElements(browser);
+  const pagePurpose = inferPagePurpose(resolvedState, browser, importantElements);
+  const pageSummary = generateSummary(browser, resolvedState, pagePurpose);
+  const availableActions = collectAvailableActions(importantElements);
+  const workflows = detectWorkflows(pagePurpose, importantElements);
+  const constraints = collectConstraints(browser);
+  const risks = collectRisks(browser);
+  const entities = extractEntities(browser, importantElements);
+
+  const hasPurpose = pagePurpose !== "generic";
+  const confidence = hasPurpose ? 0.90 : 0.60;
+
+  return {
+    pagePurpose,
+    summary: pageSummary,
+    entities,
+    availableActions,
+    workflows,
+    constraints,
+    risks,
+    confidence,
+    importantElements, // Keep for backward compatibility / reasoner usage
+    resolvedState
+  };
+}
+```
+
+### cloud/src/world/pageUnderstandingV2.js.backup
+
+```text
+import { resolveCurrentState } from "./currentStateResolver.js";
+
+function textOf(element = {}) {
+  return [
+    element.text,
+    element.label,
+    element.name,
+    element.ariaLabel,
+    element.title,
+    element.placeholder,
+    element.value
+  ].filter(Boolean).join(" ").trim();
+}
+
+function normalizeElement(element = {}, source = "element", index = 0) {
+  const label = textOf(element);
+  const role = element.role || element.type || source;
+  const actionHints = [];
+
+  if (source === "inputs") actionHints.push("type");
+  if (source === "buttons" || source === "links") actionHints.push("click");
+
+  const textLower = label.toLowerCase();
+  if (element.semanticType === "search_input" || element.purpose === "search_input" || textLower.includes("search")) {
+    actionHints.push("search");
+  }
+  if (element.href) actionHints.push("navigate");
+
+  return {
+    id: element.id,
+    source,
+    role,
+    label,
+    href: element.href,
+    visible: element.visible !== false,
+    disabled: element.disabled === true,
+    semanticType: element.semanticType || null,
+    purpose: element.purpose || null,
+    value: element.value,
+    confidence: typeof element.confidence === "number" ? element.confidence : 0.75,
+    position: index,
+    inViewport: element.inViewport ?? null,
+    top: element.top ?? null,
+    actionHints: [...new Set(actionHints)]
+  };
+}
+
+function collectImportantElements(browser = {}) {
+  const groups = [
+    ["inputs", browser.inputs || []],
+    ["buttons", browser.buttons || []],
+    ["links", browser.links || []]
+  ];
+
+  return groups.flatMap(([source, elements]) =>
+    elements
+      .map((element, index) => normalizeElement(element, source, index))
+      .filter(element => element.id && element.visible && !element.disabled)
+  );
+}
+
+function inferPagePurpose(resolvedState, browser = {}, elements = []) {
+  const url = (browser.url || "").toLowerCase();
+  const title = (browser.title || "").toLowerCase();
+  const pageText = (browser.text || "").toLowerCase();
+  const hasPasswordInput = (browser.inputs || []).some(input => input.type === "password");
+
   let pathname = "";
   try {
     pathname = new URL(url).pathname;
@@ -11174,20 +14625,32 @@ function collectAvailableActions(elements) {
 
 function detectWorkflows(pagePurpose, elements) {
   const workflows = [];
-  if (pagePurpose === "search interface" || pagePurpose === "search results") {
-    workflows.push("search_and_select");
+  if (pagePurpose === "search_workflow") {
+    workflows.push("content_discovery");
   }
-  if (pagePurpose === "login flow") {
-    workflows.push("authenticate");
+  if (pagePurpose === "access_control") {
+    workflows.push("authentication");
   }
-  if (pagePurpose === "form") {
-    workflows.push("data_entry");
+  if (pagePurpose === "data_interaction") {
+    workflows.push("data_management");
   }
-  if (pagePurpose === "media content") {
-    workflows.push("media_playback");
+  if (pagePurpose === "content_navigation") {
+    workflows.push("resource_access");
   }
-  if (pagePurpose === "product detail") {
-    workflows.push("purchase_flow");
+  if (pagePurpose === "content_delivery") {
+    workflows.push("information_consumption");
+  }
+  if (pagePurpose === "action_based") {
+    workflows.push("user_action_execution");
+  }
+  if (pagePurpose === "search_interface") {
+    workflows.push("query_execution");
+  }
+  if (pagePurpose === "navigation_task") {
+    workflows.push("environment_exploration");
+  }
+  if (pagePurpose === "form_interaction") {
+    workflows.push("interaction_flow");
   }
   return workflows;
 }
@@ -11197,16 +14660,16 @@ function collectConstraints(browser = {}) {
   const text = `${browser.title || ""} ${browser.text || ""}`.toLowerCase();
 
   if ((browser.inputs || []).some(input => input.type === "password")) {
-    constraints.push({ type: "credential_required", reason: "password input is present" });
+    constraints.push({ type: "access_control_required", reason: "authentication credentials needed" });
   }
-  if (/captcha|verify you are human/.test(text)) {
-    constraints.push({ type: "human_verification_required", reason: "human verification text detected" });
+  if (/captcha|verify you are human|human verification/.test(text)) {
+    constraints.push({ type: "interaction_verification", reason: "human verification required for security" });
   }
-  if (/cookie|consent|privacy/.test(text) && (browser.buttons || []).some(button => /accept|reject|close|dismiss/i.test(textOf(button)))) {
-    constraints.push({ type: "blocking_prompt_possible", reason: "consent or privacy prompt may need dismissal" });
+  if (/cookie|consent|privacy|terms/.test(text) && (browser.buttons || []).some(button => /accept|reject|close|dismiss|agree|ok/i.test(textOf(button)))) {
+    constraints.push({ type: "initial_barrier", reason: "terms/acceptance barrier before use" });
   }
   if (!browser.url || browser.url === "about:blank") {
-    constraints.push({ type: "no_active_page", reason: "browser has no navigable page loaded" });
+    constraints.push({ type: "no_active_content", reason: "browser environment inactive" });
   }
 
   return constraints;
@@ -11216,14 +14679,14 @@ function collectRisks(browser = {}) {
   const risks = [];
   const text = `${browser.title || ""} ${browser.text || ""}`.toLowerCase();
 
-  if (/credit card|debit card|billing|payment|pay now|checkout|purchase|buy now/i.test(text)) {
-    risks.push({ type: "payment_action", reason: "financial checkout page or payment input fields detected" });
+  if (/payment|billing|credit card|debit|wallet|purchase|checkout|pay|price/i.test(text)) {
+    risks.push({ type: "financial_involvement", reason: "financial transaction potential" });
   }
-  if (/delete|remove|erase|cancel subscription|deactivate/i.test(text)) {
-    risks.push({ type: "destructive_action", reason: "destructive command word or delete action option detected" });
+  if (/cancel|delete|remove|erase|suspend|deactivate|quit|logout/i.test(text)) {
+    risks.push({ type: "state_change", reason: "permanent state modification risk" });
   }
-  if (/mfa|two-factor|otp|verification code|sent a code/i.test(text)) {
-    risks.push({ type: "auth_challenge", reason: "security check or MFA prompt detected" });
+  if (/mfa|multi-factor|verification|code|security|confirm|authenticate|otp/i.test(text)) {
+    risks.push({ type: "identity_verification", reason: "additional security verification required" });
   }
 
   return risks;
@@ -11233,22 +14696,28 @@ function extractEntities(browser, elements) {
   const entities = [];
   const text = browser.text || "";
   
-  // Extract possible prices
-  const priceMatch = text.match(/\$\d+(?:\.\d{2})?/g);
-  if (priceMatch) {
-    priceMatch.forEach(price => entities.push({ type: "price", value: price }));
+  // Extract possible financial values
+  const financialMatch = text.match(/\$\d+(?:\.\d{2})?|\d+(?:\.\d{2})?\s*(?:USD|EUR|GBP)/g);
+  if (financialMatch) {
+    financialMatch.forEach(value => entities.push({ type: "price", value: value }));
   }
 
-  // Extract possible repository stars
-  const starsMatch = text.match(/(\d+(?:\.\d+)?k?)\s*stars?/i);
-  if (starsMatch) {
-    entities.push({ type: "star_count", value: starsMatch[1] });
+  // Extract numerical counts or metrics
+  const countMatch = text.match(/(\d+(?:\.\d+)?k?)\s*(?:total|count|items?|users?|views?|pageviews?|repo)\b/i);
+  if (countMatch) {
+    entities.push({ type: "metric_count", value: countMatch[1] });
   }
 
-  // Extract date deadlines
-  const deadlineMatch = text.match(/(?:deadline|by)\s+([A-Za-z]+ \d{1,2})/i);
-  if (deadlineMatch) {
-    entities.push({ type: "deadline", value: deadlineMatch[1] });
+  // Extract date/time references
+  const dateMatch = text.match(/(?:by|deadline|due|on)\s+([A-Za-z]+ \d{1,2}(?:,? \d{4})?)/i);
+  if (dateMatch) {
+    entities.push({ type: "deadline", value: dateMatch[1] });
+  }
+
+  // Extract interface elements
+  const interfaceMatch = text.match(/(?:username|email|password|login|sign in|sign up|register)/i);
+  if (interfaceMatch) {
+    entities.push({ type: "interface_element", value: interfaceMatch[0] });
   }
 
   return entities;

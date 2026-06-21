@@ -1,5 +1,5 @@
 import { createPlan } from "../../shared/schemas/plan.js";
-import { llmCallCount, resetLlmCallCount } from "../../llm/provider.js";
+import { llmCallCount, resetLlmCallCount, askLLM } from "../../llm/provider.js";
 import { updateWorldModel, addFinding } from "../../world/worldModel.js";
 import { extractDataFromPage } from "../../reasoning/extractor.js";
 import { setIntent, setGoal, setPlan, setObservation } from "../state/state.js";
@@ -15,6 +15,12 @@ import { routeCapability } from "../../capabilities/router.js";
 import { determineRecovery } from "../recovery/recovery.js";
 import { WorkflowMemory } from "../../memory/workflowMemory.js";
 import humanLoopBus from "../../humanLoop/humanLoopBus.js";
+import contextManager from "../../utils/contextManager.js";
+import adaptiveRecovery from "../recovery/adaptiveRecovery.js";
+import resourceAllocator from "../../utils/resourceAllocator.js";
+import pluginLoader from "../plugins/pluginSystem.js";
+import runtimeLearning from "../../utils/runtimeLearning.js";
+import contextCompressionManager from "../../utils/contextCompression.js";
 
 function printMetrics(goal, startTime, startLlmCalls) {
   const durationSec = ((Date.now() - startTime) / 1000).toFixed(1);
@@ -37,8 +43,13 @@ Skill Executions: ${metrics.skillExecutions}
 Fallbacks: ${metrics.fallbackCount}
 
 Duration: ${durationSec}s
-============================
+===========================
 `);
+  
+  // Log token usage statistics
+  const contextStats = contextManager.getContextStats();
+  console.log(`[METRICS] Token Usage: ${contextStats.tokenBudget.current.total}/${contextStats.tokenBudget.budgets.total} tokens (${((contextStats.tokenBudget.current.total / contextStats.tokenBudget.budgets.total) * 100).toFixed(1)}%)");
+  console.log(`[METRICS] LLM Calls: ${llmCallCount}/${maxLlmCalls}");
 }
 
 async function decomposeGoal(objective) {
@@ -46,7 +57,6 @@ async function decomposeGoal(objective) {
   if (!text) return ["navigate to destination", "verify page content"];
 
   try {
-    const { askLLM } = await import("../../llm/provider.js");
     const systemPrompt = `You are a browser automation planner. Given a user's goal, decompose it into 3-7 sequential sub-objectives that a browser agent should complete. Each sub-objective should be a short, action-oriented phrase. Output ONLY a JSON array of strings. Example: ["navigate to site", "search for content", "select result", "extract information"]`;
     const userPrompt = `Goal: "${text}"\n\nDecompose into sub-objectives. Output ONLY a JSON array of strings.`;
 
@@ -326,12 +336,29 @@ function detectActionLoop(world) {
   return false;
 }
 
-  const MAX_GOAL_ACTIONS = 30;
+  // Use dynamic resource allocation for action limits
+  const resourceStats = resourceAllocator.getResourceStats();
+  const adaptiveLimits = resourceAllocator.calculateAdaptiveLimits(goal, browserState, goal.world?.actionHistory || []);
+  const MAX_GOAL_ACTIONS = adaptiveLimits.maxActions;
   goal.blacklistedCapabilities = [];
   let retryCount = 0;
   let lastAction = null;
 
+  // Get plugin capabilities
+  const pluginCapabilities = pluginLoader.getAllCapabilities();
+  const pluginActions = pluginLoader.getAllActions();
+  console.log(`[PLUGIN SYSTEM] Loaded ${Object.keys(pluginCapabilities).length} capabilities and ${Object.keys(pluginActions).length} actions from plugins`);
+
   while (goal.metrics.totalActions < MAX_GOAL_ACTIONS) {
+    // Check resource availability
+    if (!resourceAllocator.canExecuteAction(
+      goal.metrics.totalActions,
+      llmCallCount,
+      goal.metrics.totalTokens || 0
+    )) {
+      console.log(`[RESOURCE ALLOCATOR] Resource limits reached. Actions: ${goal.metrics.totalActions}/${MAX_GOAL_ACTIONS}, LLM Calls: ${llmCallCount}/${resourceStats.current.maxLlmCalls}`);
+      break;
+    }
     if (detectActionLoop(goal.world)) {
       console.log("[LOOP DETECTION] Agent appears stuck in a repetitive action loop. Forcing scroll+read recovery.");
       const unstickPlan = createPlan(goal.id, [
@@ -366,12 +393,63 @@ function detectActionLoop(world) {
     const progress = estimateProgress(workflowMemory, browserState);
     console.log(`[PROGRESS] Current Task Progress: ${progress.percent}% - ${progress.stage}`);
     
-    // Reason next actions using LLM
+    // Update resource allocator performance history
+    resourceAllocator.updatePerformanceHistory(
+      bestCandidate?.type || 'unknown',
+      result?.success || false,
+      Date.now() - startTime
+    );
+    
+    // Execute plugin hooks before action selection
+    const pluginData = {
+      goal,
+      pageUnderstanding,
+      browserState,
+      workflowMemory,
+      bestCandidate
+    };
+    const pluginResults = await pluginLoader.executeAllHooks('before_action_selection', pluginData);
+    console.log(`[PLUGIN SYSTEM] Executed ${pluginResults.length} plugin hooks before action selection`);
+    
+    // Track interaction for runtime learning
+    const interaction = {
+      type: 'action_selection',
+      action: bestCandidate?.type || 'unknown',
+      pageUrl: browserState.url || '',
+      pageTitle: browserState.title || '',
+      success: result?.success || false,
+      error: result?.reason || '',
+      sessionId: goal.id,
+      userId: 'anonymous'
+    };
+    runtimeLearning.trackInteraction(interaction);
+    
+    // Compress context for LLM consumption
+    const systemPrompt = `You are a browser automation planner. Given a user's goal, select the most appropriate action from the provided candidates to make progress towards the goal.`;
+    const userPrompt = `Goal: "${goal.objective}"
+
+Page: ${pageUnderstanding.pagePurpose || 'generic'}
+URL: ${browserState.url || 'about:blank'}
+
+Candidates:
+${bestCandidate ? `- ${bestCandidate.label} (score: ${bestCandidate.score})` : 'No candidates available'}
+
+Select the best action.`;
+    
+    const compressedContext = contextCompressionManager.compressContextForLLM(
+      { pageUnderstanding, browserState, workflowMemory, goal },
+      systemPrompt,
+      userPrompt,
+      1000
+    );
+    
+    // Reason next actions using LLM with compressed context
     const bestCandidate = await selectActionWithLLM({
       goal,
       pageUnderstanding,
       browserState,
-      workflowMemory
+      workflowMemory,
+      compressedContext
     });
 
     // Check for human input requirement in loop
@@ -442,8 +520,70 @@ function detectActionLoop(world) {
       }
     }
 
+    // Execute plugin hooks before action execution
+    const pluginData = {
+      goal,
+      bestCandidate,
+      result,
+      plan
+    };
+    const pluginResults = await pluginLoader.executeAllHooks('before_action_execution', pluginData);
+    console.log(`[PLUGIN SYSTEM] Executed ${pluginResults.length} plugin hooks before action execution`);
+
     const plan = createPlan(goal.id, bestCandidate.actions);
+    const estimatedTokens = Math.ceil(JSON.stringify(bestCandidate.actions).length / 4);
+    const resourceAllocation = resourceAllocator.allocateResources(bestCandidate.type, estimatedTokens);
+    
     const result = await executePlan(plan);
+    
+    // Track interaction for runtime learning
+    const interaction = {
+      type: 'action_execution',
+      action: bestCandidate?.type || 'unknown',
+      pageUrl: browserState.url || '',
+      pageTitle: browserState.title || '',
+      success: result?.success || false,
+      error: result?.reason || '',
+      sessionId: goal.id,
+      userId: 'anonymous'
+    };
+    runtimeLearning.trackInteraction(interaction);
+    
+    // Compress context for LLM consumption
+    const systemPrompt = `You are a browser automation planner. Given a user's goal, select the most appropriate action from the provided candidates to make progress towards the goal.`;
+    const userPrompt = `Goal: "${goal.objective}"
+
+Page: ${pageUnderstanding.pagePurpose || 'generic'}
+URL: ${browserState.url || 'about:blank'}
+
+Candidates:
+${bestCandidate ? `- ${bestCandidate.label} (score: ${bestCandidate.score})` : 'No candidates available'}
+
+Select the best action.`;
+    
+    const compressedContext = contextCompressionManager.compressContextForLLM(
+      { pageUnderstanding, browserState, workflowMemory, goal },
+      systemPrompt,
+      userPrompt,
+      1000
+    );
+    
+    // Execute plugin hooks after action execution
+    const pluginDataAfter = {
+      goal,
+      bestCandidate,
+      result,
+      plan,
+      resourceAllocation,
+      interaction,
+      compressedContext
+    };
+    const pluginResultsAfter = await pluginLoader.executeAllHooks('after_action_execution', pluginDataAfter);
+    console.log(`[PLUGIN SYSTEM] Executed ${pluginResultsAfter.length} plugin hooks after action execution`);
+    
+    // Log compression statistics
+    const compressionStats = contextCompressionManager.getCompressionStats();
+    console.log(`[CONTEXT COMPRESSION] Compression stats: ${compressionStats.totalCompressions} compressions, ${compressionStats.totalSummaries} summaries, avg ratio: ${compressionStats.averageCompressionRatio.toFixed(2)}`);
     if (result?.clientDisconnected) {
       return {
         success: false,
@@ -511,7 +651,7 @@ function detectActionLoop(world) {
     // Check if execution failed
     if (result.success === false || latestObs?.success === false) {
       console.log(`[AGENT] Action failed. Diagnosing...`);
-      const recoveryActions = determineRecovery(lastAction, browserState, null, retryCount);
+      const recoveryActions = await determineRecovery(lastAction, browserState, null, retryCount);
 
       if (recoveryActions && recoveryActions.escalate) {
         console.log(`[RECOVERY ESCALATION] Escalating to: ${recoveryActions.state}`);
@@ -546,6 +686,11 @@ function detectActionLoop(world) {
 
   console.log(`[BUDGET] Goal action limit reached.`);
   const summary = generateExecutionSummary(context, goal.tracker);
+  
+  // Log resource usage statistics
+  const resourceStats = resourceAllocator.getResourceStats();
+  console.log(`[RESOURCE USAGE] Actions: ${goal.metrics.totalActions}/${resourceStats.current.maxActions} (${((goal.metrics.totalActions / resourceStats.current.maxActions) * 100).toFixed(1)}%), LLM Calls: ${llmCallCount}/${resourceStats.current.maxLlmCalls} (${((llmCallCount / resourceStats.current.maxLlmCalls) * 100).toFixed(1)}%), Tokens: ${goal.metrics.totalTokens || 0}/${resourceStats.current.maxTokens} (${(( (goal.metrics.totalTokens || 0) / resourceStats.current.maxTokens) * 100).toFixed(1)}%)`);
+  
   return {
     success: false,
     reason: "goal_action_budget_exceeded",
