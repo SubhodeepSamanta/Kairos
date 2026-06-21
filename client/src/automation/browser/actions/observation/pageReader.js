@@ -17,7 +17,7 @@ export async function preparePage(page) {
     const elements = document.querySelectorAll(selectors.join(", "));
     elements.forEach(el => {
       if (!el.getAttribute("data-kairos-id")) {
-        el.setAttribute("data-kairos-id", String(window.__kairosNextId++));
+        el.setAttribute("data-kairos-id", String(window.__kairosNextId++)); 
       }
     });
   }).catch(() => {});
