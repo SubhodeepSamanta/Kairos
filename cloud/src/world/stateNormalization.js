@@ -100,9 +100,11 @@ export function toLegacyCapabilityTransition(transition = {}) {
   let desiredState = normalized.desiredState;
 
   if (desiredState === "content") {
-    desiredState = normalized.platform === "youtube" ? "video_playing" : (normalized.legacyDesiredState || "content");
+    desiredState = normalized.platform === "youtube" ? "video_playing" : "result_selected";
   } else if (desiredState === "login") {
     desiredState = "logged_in";
+  } else if (desiredState === "settings") {
+    desiredState = "result_selected";
   }
 
   return {

@@ -75,7 +75,13 @@ export const ResultCapability = {
       console.log(`[SEMANTIC CAPABILITY] name="ResultCapability" candidates_count=${candidateLinks.length}`);
     }
 
-    candidateLinks = rankCandidates(candidateLinks, browserState.links || []);
+    const rankingContext = {
+      goal: transition.parameters?.goal || transition.parameters?.query || "",
+      targetType: transition.parameters?.targetType,
+      semanticTarget: transition.semanticTarget || transition.parameters?.semanticTarget,
+      historicalSuccess: transition.parameters?.historicalSuccess || {}
+    };
+    candidateLinks = rankCandidates(candidateLinks, browserState.links || [], rankingContext);
 
     if (isDebug()) {
       candidateLinks.forEach(c => {
@@ -86,7 +92,7 @@ export const ResultCapability = {
             id: c.id,
             text: c.text,
             href: c.href,
-            score: scoreCandidate(c, pos)
+            score: scoreCandidate(c, pos, rankingContext)
           }
         );
       });
@@ -94,7 +100,7 @@ export const ResultCapability = {
       console.log("[TOP CANDIDATES]");
       candidateLinks.slice(0, 5).forEach((c, idx) => {
         const pos = (browserState.links || []).indexOf(c);
-        const score = scoreCandidate(c, pos);
+        const score = scoreCandidate(c, pos, rankingContext);
         console.log(`${idx + 1}. ${(c.text || c.id || "Link")} score=${score}`);
       });
     }

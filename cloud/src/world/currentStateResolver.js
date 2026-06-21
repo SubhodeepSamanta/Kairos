@@ -1,6 +1,35 @@
 import { normalizeResolvedState } from "./stateNormalization.js";
 import { isDebug } from "../utils/logger.js";
 
+function resolveSemanticPageState(browser, url, pageType) {
+  const capabilities = browser.capabilities || [];
+  const elements = [...(browser.inputs || []), ...(browser.buttons || []), ...(browser.links || [])];
+  const semanticTypes = new Set(elements.map(element => element.semanticType).filter(Boolean));
+  const text = `${browser.title || ""} ${browser.text || ""}`.toLowerCase();
+
+  const evidence = `${pageType} ${[...semanticTypes].join(" ")} ${capabilities.join(" ")}`;
+  // Container/page semantics take precedence over the entity cards they contain.
+  // A results page with repository_item or video_item children is still search_results.
+  if (/results|search/.test(pageType) || capabilities.includes("results_available")) return "search_results";
+  if (/\/search|\/results|[?&](q|query|search_query)=/.test(url)) return "search_results";
+
+  if (/checkout|payment/.test(evidence) || semanticTypes.has("checkout_action")) return "checkout_page";
+  if (/repository/.test(evidence) || semanticTypes.has("repository_item")) return "repository_page";
+  if (/channel/.test(evidence) || semanticTypes.has("channel_item")) return "channel_page";
+  if (/product/.test(evidence) || semanticTypes.has("product_item")) return "product_page";
+  if (/profile/.test(evidence) || semanticTypes.has("profile_content")) return "profile_page";
+  if (/settings|preferences/.test(evidence) || semanticTypes.has("settings_control")) return "settings_page";
+  if (/login|sign.?in|auth/.test(evidence) || capabilities.includes("authentication_available")) return "login_page";
+  if (/video|watch|media/.test(evidence) || capabilities.includes("media_available")) return "video_page";
+
+  // URL/text are fallback evidence when the observer has not classified the page.
+  if (/\/settings|\/preferences/.test(url)) return "settings_page";
+  if (/\/login|\/signin|\/auth/.test(url)) return "login_page";
+  if (/\/watch|\/shorts\//.test(url)) return "video_page";
+  if (/sign in|log in/.test(text) && browser.inputs?.some(input => input.type === "password")) return "login_page";
+  return "content_page";
+}
+
 export function resolveCurrentState(observation, previousResolvedState = null) {
   const pageState = observation?.pageState || observation || {};
   if (isDebug()) {
@@ -125,28 +154,26 @@ export function resolveCurrentState(observation, previousResolvedState = null) {
     isHomeUrl = isHomePath || pageType.includes("home");
 
     const capabilities = browser.capabilities || [];
-    semanticState = "content_viewing";
+    semanticState = resolveSemanticPageState(browser, url, pageType);
     if (pageType === "logged_in" || pageType.includes("logged_in")) {
       semanticState = "authenticated";
-    } else if (isHomeUrl && !query) {
+    } else if (isHomeUrl && !query && semanticState !== "search_results") {
       semanticState = "home_active";
-    } else if (capabilities.includes("results_available") || query || url.includes("/search") || url.includes("/results") || pageType.includes("results")) {
-      semanticState = "results_viewing";
-    } else if (capabilities.includes("media_available") || (platform === "youtube" && (url.includes("/watch") || url.includes("v="))) || pageType.includes("video_playing") || pageType.includes("watch")) {
-      semanticState = "media_active";
-    } else if (capabilities.includes("authentication_available")) {
-      semanticState = "auth_active";
-    } else if (capabilities.includes("form_available")) {
-      semanticState = "form_active";
     }
 
     const semanticToLegacy = {
       "authenticated": "login",
-      "auth_active": "login",
+      "login_page": "login",
+      "settings_page": "settings",
       "home_active": "home",
-      "results_viewing": "results",
-      "media_active": "content",
-      "form_active": "content"
+      "search_results": "results",
+      "video_page": "content",
+      "repository_page": "content",
+      "channel_page": "content",
+      "product_page": "content",
+      "checkout_page": "content",
+      "profile_page": "content",
+      "content_page": "content"
     };
 
     if (semanticToLegacy[semanticState]) {

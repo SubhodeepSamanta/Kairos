@@ -2,6 +2,13 @@ import { verifyState } from "./stateVerifier.js";
 import { verifyEvents } from "./eventVerifier.js";
 import { verifyGoal } from "./goalVerifier.js";
 import { isGoalImpossible } from "./failureVerifier.js";
+import { verifyObjective } from "./objectiveVerifier.js";
+
+function getObjective(goal, task) {
+  const candidate = task?.objectiveSpec || task?.context?.objective || goal?.currentObjective;
+  if (candidate?.desiredState || candidate?.state) return candidate;
+  return null;
+}
 
 export async function runUnifiedVerification({
   goal,
@@ -13,6 +20,7 @@ export async function runUnifiedVerification({
   const signals = [];
   let verifiedCount = 0;
   let totalSignals = 0;
+  const objective = getObjective(goal, task);
 
   try {
     const impossibility = await isGoalImpossible({ intent, observations });
@@ -25,7 +33,10 @@ export async function runUnifiedVerification({
   }
 
   try {
-    const stateRes = verifyState({ task, observation });
+    const authoritativeMatch = objective ? verifyObjective(objective, observation) : null;
+    const stateRes = objective
+      ? (authoritativeMatch ? { achieved: true, reason: "Authoritative objective verification succeeded" } : null)
+      : verifyState({ task, observation });
     totalSignals++;
     if (stateRes && stateRes.achieved) {
       verifiedCount++;

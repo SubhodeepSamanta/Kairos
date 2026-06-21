@@ -1,4 +1,5 @@
 import { resolveCurrentState } from "../../world/currentStateResolver.js";
+import { understandPage } from "../../world/pageUnderstanding.js";
 import { updateExecutionContext, generateExecutionSummary } from "../../world/executionContext.js";
 import { checkForHumanIntervention, saveAgentSession } from "../state/agentSession.js";
 import { verifyObjective } from "../../verification/objectiveVerifier.js";
@@ -15,6 +16,8 @@ export async function processObjectives({
   lastResolvedState
 }) {
   const resolvedCurState = resolveCurrentState(browserState, lastResolvedState);
+  const pageUnderstanding = understandPage(browserState, resolvedCurState);
+  context.pageUnderstanding = pageUnderstanding;
   
   if (latestObs) {
     const needsLlmExtraction = (intent.intent === "extract_information" || goal.tracker.objectives.some(o => o.desiredState === "information_extracted"));
@@ -120,5 +123,5 @@ export async function processObjectives({
 
   updateTracker(goal.tracker, goal.tracker.currentIndex, "in_progress");
 
-  return { shouldExit: false, resolvedCurState, currentObj };
+  return { shouldExit: false, resolvedCurState, currentObj, pageUnderstanding };
 }

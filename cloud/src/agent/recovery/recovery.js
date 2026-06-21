@@ -1,3 +1,8 @@
+import { resolveCurrentState } from "../../world/currentStateResolver.js";
+import { rankCandidates } from "../../capabilities/selection/candidateRanker.js";
+import { understandPage } from "../../world/pageUnderstanding.js";
+import { selectActionCandidates } from "../../reasoning/actionSelector.js";
+
 export function diagnoseFailure(transition, browserState, executionResult) {
   if (!browserState) {
     return { type: "timeout", message: "Browser state is empty or timeout occurred", browserState: {} };
@@ -40,11 +45,77 @@ export function diagnoseFailure(transition, browserState, executionResult) {
     }
   }
 
-  return { type: "verification_failed", message: "Target state verification failed", browserState };
+  const observedState = resolveCurrentState(browserState);
+  return {
+    type: "verification_failed",
+    message: `Expected ${transition.desiredState}, observed ${observedState.semanticState}`,
+    expectedState: transition.desiredState,
+    observedState,
+    executionResult,
+    browserState
+  };
 }
 
 export function determineRecovery(failure, transition, capability = null, retryCount = 0) {
   console.log(`[RECOVERY] Processing recovery: retryCount=${retryCount}, failureType="${failure.type}"`);
+
+  const browserState = failure.browserState || {};
+  const observed = failure.observedState || resolveCurrentState(browserState);
+  const pageUnderstanding = understandPage(browserState, observed);
+
+  if (failure.type === "verification_failed" && retryCount === 0) {
+    // First ensure recovery decisions use a fresh observation.
+    if (!browserState.url || (!browserState.links?.length && !browserState.inputs?.length)) {
+      return [{ type: "read_ui", params: {} }];
+    }
+
+    const alternatives = selectActionCandidates({
+      goal: transition.parameters?.goal || transition.parameters?.query || "",
+      inputText: transition.parameters?.query || transition.parameters?.goal || "",
+      pageUnderstanding,
+      limit: 5,
+      minScore: 20
+    }).filter(candidate => candidate.type !== "scroll");
+    const alternative = alternatives[0];
+    if (alternative?.planAction) {
+      const actions = [alternative.planAction];
+      if (alternative.type === "search") {
+        actions.push({ type: "press_key", params: { key: "Enter" } });
+      }
+      actions.push({ type: "read_ui", params: {} });
+      console.log(`[RECOVERY] Trying alternative action "${alternative.type}" from page understanding.`);
+      return actions;
+    }
+
+    if (transition.desiredState === "result_selected" && observed.currentState === "results") {
+      const candidates = (browserState.links || []).filter(link =>
+        link.visible !== false && link.semanticType !== "navigation"
+      );
+      const ranked = rankCandidates(candidates, browserState.links || [], {
+        goal: transition.parameters?.goal,
+        targetType: transition.parameters?.targetType,
+        semanticTarget: transition.semanticTarget
+      });
+      const alternative = ranked[Math.min(retryCount + 1, ranked.length - 1)];
+      if (alternative?.id) {
+        console.log(`[RECOVERY] Still on results; trying alternative candidate "${alternative.text || alternative.id}".`);
+        return [
+          { type: "click", params: { element: alternative.id } },
+          { type: "wait", params: { seconds: 1 } },
+          { type: "read_ui", params: {} }
+        ];
+      }
+    }
+
+    if (transition.desiredState === "results" && observed.currentState === "home") {
+      const searchTrigger = [...(browserState.inputs || []), ...(browserState.buttons || []), ...(browserState.links || [])]
+        .find(element => element.semanticType === "search_input" || element.semanticType === "search_trigger" || element.purpose === "search_input");
+      if (searchTrigger?.id && searchTrigger.semanticType === "search_trigger") {
+        return [{ type: "click", params: { element: searchTrigger.id } }, { type: "read_ui", params: {} }];
+      }
+      return [{ type: "read_ui", params: {} }];
+    }
+  }
 
   if (retryCount === 1) {
     console.log("[RECOVERY ESCALATION] Escalating to: alternative capability");
@@ -83,16 +154,15 @@ export function determineRecovery(failure, transition, capability = null, retryC
       break;
 
     case "element_missing":
-      return [{ type: "scroll", params: { direction: "down", amount: 300 } }];
+      return [{ type: "read_ui", params: {} }];
 
     case "navigation_failed":
+      return [{ type: "read_ui", params: {} }];
+
     case "verification_failed":
     default:
-      if (failure.browserState?.url && failure.browserState.url !== "about:blank") {
-        return [{ type: "refresh", params: {} }];
-      } else {
-        return [{ type: "back", params: {} }];
-      }
+      if (retryCount === 0) return [{ type: "read_ui", params: {} }];
+      return [{ type: "scroll", params: { direction: "down", amount: 300 } }];
   }
 
   return null;

@@ -7,6 +7,15 @@ import {
   evaluateSuccessCriteria,
   matchSearch
 } from "./stateMatchers.js";
+import { evaluateState } from "./objectiveVerifier.js";
+import { resolveCurrentState } from "../world/currentStateResolver.js";
+
+function taskToObjective(task) {
+  const candidate = task?.objectiveSpec || task?.context?.objective || task?.context?.desiredObjective;
+  if (candidate?.desiredState || candidate?.state) return candidate;
+  if (task?.desiredState || task?.state) return task;
+  return null;
+}
 
 export function verifyState({
   task,
@@ -34,6 +43,17 @@ export function verifyState({
     }
   };
 
+  const objective = taskToObjective(task);
+  if (objective) {
+    const resolved = resolveCurrentState(normalizedObservation);
+    const result = evaluateState(objective, resolved, normalizedObservation);
+    return result.matched
+      ? { achieved: true, reason: `Authoritative objective verification: ${result.reason}` }
+      : null;
+  }
+
+  // Compatibility path for legacy task-shaped callers. Browser Operator objective
+  // completion should use objectiveVerifier directly.
   const criteriaResult = evaluateSuccessCriteria(task, normalizedObservation);
   if (criteriaResult !== null) {
     if (criteriaResult === true) {

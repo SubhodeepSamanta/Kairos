@@ -9,6 +9,36 @@ import { updateWorldModel } from "../../world/worldModel.js";
 import { setObservation } from "../state/state.js";
 import { createPlan } from "../../shared/schemas/plan.js";
 import { generateExecutionSummary } from "../../world/executionContext.js";
+import { planObjectives } from "../../reasoning/planner.js";
+
+async function replanRemainingObjectives(goal, browserState, failure) {
+  const observed = resolveCurrentState(browserState);
+  const replanned = await planObjectives(goal.objective, {
+    ...(goal.intent || {}),
+    goal: goal.objective,
+    recoveryContext: failure.message
+  }, {
+    currentPlatform: observed.platform,
+    currentState: observed.currentState,
+    semanticState: observed.semanticState,
+    currentUrl: browserState.url,
+    currentTitle: browserState.title,
+    capabilities: browserState.capabilities || [],
+    failure: failure.message
+  });
+  const completed = goal.tracker.objectives.slice(0, goal.tracker.currentIndex);
+  const offset = completed.length;
+  const continuedPlan = replanned.map((objective, index) => ({
+    ...objective,
+    id: `obj${offset + index + 1}`,
+    dependencies: index > 0
+      ? [`obj${offset + index}`]
+      : (offset > 0 ? [`obj${offset}`] : [])
+  }));
+  goal.tracker.objectives = [...completed, ...continuedPlan];
+  goal.objectives = goal.tracker.objectives;
+  console.log(`[REPLAN] Replaced remaining objectives: ${continuedPlan.map(objective => objective.desiredState).join(" -> ")}`);
+}
 
 function getLatestObservation(observations, fallbackObs) {
   if (!observations || observations.length === 0) return fallbackObs;
@@ -84,8 +114,9 @@ export async function handleCapabilityFailure({
         console.log(`[RECOVERY ESCALATION] Skipping blacklisting for capability: ${capability.name} (failureCount: ${failureCount})`);
       }
     } else if (recoveryResult.escalate === "alternative_transition") {
-      console.log(`[RECOVERY ESCALATION] Blacklisting transition: ${transitionId}`);
+      console.log(`[RECOVERY ESCALATION] Replanning after failed transition: ${transitionId}`);
       failedTransitions[transitionId] = (failedTransitions[transitionId] || 0) + 1;
+      await replanRemainingObjectives(goal, browserState, failure);
     } else if (recoveryResult.escalate === "human_loop") {
       console.log(`[RECOVERY ESCALATION] Pausing execution. Escalating to state: ${recoveryResult.state}`);
       const summary = generateExecutionSummary(context, goal.tracker);
@@ -166,7 +197,7 @@ export async function executeAndVerify({
   lastResolvedState.val = resolvedNextState;
   recordTransition(goal.tracker, activeTransition, resolvedCurState, resolvedNextState);
 
-  const targetVerified = capability.verify(activeTransition, latestObs);
+  const targetVerified = verifyObjective(currentObj, latestObs);
   if (isDebug()) {
     console.log("[VERIFY RESULT]", targetVerified);
     console.log(`[VERIFICATION] transition: ${activeTransition.id}, verified: ${targetVerified}`);
@@ -198,7 +229,7 @@ export async function executeAndVerify({
     }
     
     const finalCheckState = resolveCurrentState(browserState, lastResolvedState.val);
-    if (verifyObjective(currentObj, finalCheckState)) {
+    if (verifyObjective(currentObj, browserState)) {
       console.log(`[RECOVERY BYPASS] Re-resolved state satisfies active objective "${currentObj.desiredState}". Skipping recovery.`);
       updateTracker(goal.tracker, goal.tracker.currentIndex, "completed");
       
@@ -288,8 +319,9 @@ export async function executeAndVerify({
           console.log(`[RECOVERY ESCALATION] Skipping blacklisting for capability: ${capability.name} (failureCount: ${failureCount})`);
         }
       } else if (recoveryResult.escalate === "alternative_transition") {
-        console.log(`[RECOVERY ESCALATION] Blacklisting transition: ${transitionId}`);
+        console.log(`[RECOVERY ESCALATION] Replanning after failed transition: ${transitionId}`);
         failedTransitions[transitionId] = (failedTransitions[transitionId] || 0) + 1;
+        await replanRemainingObjectives(goal, browserState, failure);
       } else if (recoveryResult.escalate === "human_loop") {
         console.log(`[RECOVERY ESCALATION] Pausing execution. Escalating to state: ${recoveryResult.state}`);
         const summary = generateExecutionSummary(context, goal.tracker);
@@ -314,7 +346,7 @@ export async function executeAndVerify({
       totalActions.val += recPlan.actions.length;
       updateWorldModel(goal, latestObs);
 
-      const postRecoveryVerified = capability.verify(activeTransition, latestObs);
+      const postRecoveryVerified = verifyObjective(currentObj, latestObs);
       if (postRecoveryVerified) {
         console.log("[RECOVERY] Target state verified after recovery.");
       } else {

@@ -1,0 +1,264 @@
+{
+  "goalId": "815e2c35-1f37-41d2-8103-745f1319425d",
+  "goalObjective": "open github",
+  "tracker": {
+    "objectives": [
+      {
+        "id": "obj1",
+        "desiredState": "content",
+        "semanticTarget": "github_home",
+        "platform": "github",
+        "parameters": {
+          "goal": "open github",
+          "target": "github"
+        },
+        "successConditions": [
+          "state is content"
+        ],
+        "priority": 1,
+        "dependencies": [],
+        "confidence": 0.8,
+        "openQuestions": [],
+        "achieved": false,
+        "attempts": 5,
+        "startedAt": "2026-06-21T09:34:02.964Z"
+      }
+    ],
+    "currentIndex": 0,
+    "visitedStates": [
+      "generic:content",
+      "github:home"
+    ],
+    "transitionHistory": [
+      {
+        "transitionId": "content_to_home",
+        "from": {
+          "val": {
+            "platform": "github",
+            "environment": "search_site",
+            "currentState": "home",
+            "state": "home",
+            "legacyState": "home",
+            "semanticState": "home_active",
+            "parameters": {
+              "query": "",
+              "url": "https://github.com/"
+            }
+          },
+          "platform": "generic",
+          "currentState": "content",
+          "state": "content"
+        },
+        "to": {
+          "platform": "github",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://github.com/"
+          }
+        },
+        "timestamp": "2026-06-21T09:34:09.813Z"
+      },
+      {
+        "transitionId": "home_to_content",
+        "from": {
+          "platform": "github",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://github.com/"
+          }
+        },
+        "to": {
+          "platform": "github",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://github.com/"
+          }
+        },
+        "timestamp": "2026-06-21T09:34:21.873Z"
+      },
+      {
+        "transitionId": "home_to_content",
+        "from": {
+          "platform": "github",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://github.com/"
+          }
+        },
+        "to": {
+          "platform": "github",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://github.com/"
+          }
+        },
+        "timestamp": "2026-06-21T09:34:26.546Z"
+      },
+      {
+        "transitionId": "content_to_home",
+        "from": {
+          "val": {
+            "platform": "github",
+            "environment": "search_site",
+            "currentState": "home",
+            "state": "home",
+            "legacyState": "home",
+            "semanticState": "home_active",
+            "parameters": {
+              "query": "",
+              "url": "https://github.com/"
+            }
+          },
+          "platform": "generic",
+          "currentState": "content",
+          "state": "content"
+        },
+        "to": {
+          "platform": "github",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://github.com/"
+          }
+        },
+        "timestamp": "2026-06-21T09:34:31.203Z"
+      },
+      {
+        "transitionId": "home_to_content",
+        "from": {
+          "platform": "github",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://github.com/"
+          }
+        },
+        "to": {
+          "platform": "github",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://github.com/"
+          }
+        },
+        "timestamp": "2026-06-21T09:34:34.368Z"
+      }
+    ],
+    "attemptCount": 3,
+    "lastFailure": "Expected content, observed content_viewing",
+    "capabilityMetrics": {
+      "NavigationCapability": {
+        "executions": 2,
+        "successes": 2,
+        "failures": 0,
+        "recoveries": 0
+      },
+      "ResultCapability": {
+        "executions": 3,
+        "successes": 0,
+        "failures": 3,
+        "recoveries": 0
+      }
+    }
+  },
+  "context": {
+    "goal": "open github",
+    "currentObjective": {
+      "id": "obj1",
+      "desiredState": "content",
+      "semanticTarget": "github_home",
+      "platform": "github",
+      "parameters": {
+        "goal": "open github",
+        "target": "github"
+      },
+      "successConditions": [
+        "state is content"
+      ],
+      "priority": 1,
+      "dependencies": [],
+      "confidence": 0.8,
+      "openQuestions": [],
+      "achieved": false,
+      "attempts": 5,
+      "startedAt": "2026-06-21T09:34:02.964Z"
+    },
+    "worldFacts": [],
+    "discoveredEntities": [],
+    "visitedPages": [
+      {
+        "url": "about:blank",
+        "title": "",
+        "timestamp": "2026-06-21T09:34:02.965Z"
+      },
+      {
+        "url": "https://github.com/",
+        "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
+        "timestamp": "2026-06-21T09:34:09.814Z"
+      }
+    ],
+    "openQuestions": [],
+    "completedQuestions": [],
+    "executionSummary": {
+      "objectivesCompleted": 0,
+      "factsCollected": 0,
+      "entitiesDiscovered": 0,
+      "pagesVisited": 2,
+      "unresolvedQuestions": []
+    }
+  },
+  "stateType": "WAITING_FOR_MANUAL_ACTION",
+  "transition": {
+    "id": "home_to_content",
+    "legacyId": "github_home_to_github_content",
+    "desiredState": "content",
+    "state": "content",
+    "legacyDesiredState": "content",
+    "semanticTarget": "github_home",
+    "platform": "github",
+    "parameters": {
+      "goal": "open github",
+      "target": "github"
+    },
+    "score": 1,
+    "confidence": 0.95
+  },
+  "savedAt": "2026-06-21T09:34:34.371Z"
+}

@@ -3,138 +3,63 @@ import { askLLM } from "../llm/provider.js";
 function extractJson(text) {
   const start = text.indexOf("{");
   const end = text.lastIndexOf("}");
-  if (start === -1 || end === -1) return text;
-  return text.slice(start, end + 1);
+  return start >= 0 && end >= start ? text.slice(start, end + 1) : text;
 }
 
-export async function parseIntent(
-  goalText,
-  browserContext = {}
-) {
-  const text = goalText.toLowerCase().trim();
+function applyContext(intent, goalText, browserContext) {
+  const normalized = {
+    ...intent,
+    goal: intent.goal || goalText,
+    originalGoal: goalText
+  };
 
-  // Fast page-action detection for ordinals
-  let match = text.match(
-    /^(?:play|watch|open|click|select|go\s+to|visit)\s+(first|second|third|fourth|fifth|latest)\s+(repository|result|product|article|video|internship|link|item)s?$/i
-  );
+  if (normalized.intent === "search" && !normalized.platform) {
+    normalized.platform = browserContext.currentPlatform || "google";
+  }
+  if (normalized.intent === "action_on_page") {
+    normalized.platform ||= browserContext.currentPlatform || null;
+    normalized.useCurrentPage = true;
+  }
+  return normalized;
+}
 
-  if (match) {
-    return {
-      intent: "page_action",
-      useCurrentPage: true,
-      ordinal: match[1].toLowerCase(),
-      targetType: match[2].toLowerCase(),
-      originalGoal: goalText
-    };
+function parseSimpleIntent(goalText) {
+  const text = goalText.trim();
+  let match = text.match(/^search\s+([a-z0-9.-]+)\s+for\s+(.+)$/i);
+  if (match) return { intent: "search", platform: match[1].trim(), query: match[2].trim() };
+
+  match = text.match(/^(?:search(?:\s+for)?|find)\s+(.+?)(?:\s+on\s+([a-z0-9.-]+))?$/i);
+  if (match) return { intent: "search", query: match[1].trim(), platform: match[2]?.trim() };
+
+  match = text.match(/^(?:open|go\s+to|navigate\s+to|visit)\s+([a-z0-9.-]+)(?:\.com|\.org)?$/i);
+  if (match) return { intent: "navigate", target: match[1].trim(), platform: match[1].trim() };
+
+  if (/^(?:login|sign\s+in|authenticate)\b/i.test(text)) {
+    return { intent: "action_on_page", goal: text };
   }
 
-  // Regex-based fast parsing for standard patterns
-  // "open youtube", "go to github"
-  match = text.match(/^(?:open|go\s+to|navigate\s+to|visit)\s+([a-z0-9.]+)(?:\.com|\.org)?$/i);
-  if (match) {
-    return {
-      intent: "navigate",
-      platform: match[1].trim()
-    };
+  if (/^(?:open|click|select|play|watch|apply|add|sort|filter|go\s+to)\b/i.test(text)) {
+    return { intent: "action_on_page", goal: text };
   }
+  return null;
+}
 
-  match = text.match(/^(?:login|sign\s+in|authenticate)(?:\s+to|\s+on)?\s+([a-z0-9.]+)(?:\.com|\.org)?$/i);
-  if (match) {
-    return {
-      intent: "authenticate",
-      platform: match[1].trim()
-    };
-  }
+export async function parseIntent(goalText, browserContext = {}) {
+  const simpleIntent = parseSimpleIntent(goalText);
+  if (simpleIntent) return applyContext(simpleIntent, goalText, browserContext);
 
-  // "search github for react"
-  match = text.match(/^search\s+([a-z0-9.]+)\s+for\s+(.+)$/i);
-  if (match) {
-    return {
-      intent: "search",
-      platform: match[1].trim(),
-      query: match[2].trim()
-    };
-  }
-
-  // "search for react on github"
-  match = text.match(/^search\s+for\s+(.+?)\s+on\s+([a-z0-9.]+)$/i);
-  if (match) {
-    return {
-      intent: "search",
-      platform: match[2].trim(),
-      query: match[1].trim()
-    };
-  }
-
-  // "play lofi on youtube"
-  match = text.match(/^play\s+(.+?)\s+on\s+([a-z0-9.]+)$/i);
-  if (match && (text.includes("youtube") || text.includes("lofi") || text.includes("video"))) {
-    return {
-      intent: "play_video",
-      platform: match[2].trim(),
-      query: match[1].trim()
-    };
-  }
-
-  // "find latest ai news on bing", "extract latest ai news on twitter"
-  match = text.match(/^(?:find|extract|get)\s+(.+?)\s+on\s+([a-z0-9.]+)$/i);
-  if (match) {
-    return {
-      intent: "extract_information",
-      topic: match[1].trim(),
-      platform: match[2].trim()
-    };
-  }
-
-  // "find latest ai news", "extract latest ai news"
-  match = text.match(/^(?:find|extract|get)\s+(.+)$/i);
-  if (match) {
-    return {
-      intent: "extract_information",
-      topic: match[1].trim()
-    };
-  }
-
-
-
-  // Fallback to LLM
-  const systemPrompt = `You are an Intent Parser. Parse the user goal into structured JSON.
-Supported intents:
-- "search" (fields: intent, platform, query)
-- "play_video" (fields: intent, platform, query)
-- "extract_information" (fields: intent, topic)
-- "navigate" (fields: intent, url or platform)
-- "authenticate" (fields: intent, platform)
-- "page_action" (fields: intent, useCurrentPage, ordinal, targetType)
-- "generic" (fields: intent)
-
-Return ONLY JSON.
-
-Examples:
-"search github for react" -> {"intent": "search", "platform": "github", "query": "react"}
-"play lofi on youtube" -> {"intent": "play_video", "platform": "youtube", "query": "lofi"}
-"find latest AI news" -> {"intent": "extract_information", "topic": "AI news"}
-"open first repository" -> {"intent": "page_action", "useCurrentPage": true, "ordinal": "first", "targetType": "repository"}
-"play first video" -> {"intent": "page_action", "useCurrentPage": true, "ordinal": "first", "targetType": "video"}
-`;
+  const systemPrompt = `Classify what the browser user wants. Do not plan steps and do not extract
+domain-specific entities, ordinals, or target types. Return only JSON using one of:
+{"intent":"search","query":"...","platform":"optional"}
+{"intent":"navigate","target":"...","platform":"optional"}
+{"intent":"action_on_page","goal":"verbatim user goal"}
+{"intent":"generic","goal":"verbatim user goal"}`;
 
   try {
     const response = await askLLM(systemPrompt, goalText);
-    const parsedIntent = JSON.parse(extractJson(response));
-    if (
-      parsedIntent.intent === "search" &&
-      !parsedIntent.platform &&
-      browserContext.currentPlatform
-    ) {
-      parsedIntent.platform =
-        browserContext.currentPlatform;
-    }
-    return parsedIntent;
-  } catch (err) {
-    console.error("[intentParser] Fallback failed:", err);
-    return {
-      intent: "generic",
-      originalGoal: goalText
-    };
+    return applyContext(JSON.parse(extractJson(response)), goalText, browserContext);
+  } catch (error) {
+    console.error("[intentParser] LLM classification failed:", error.message);
+    return applyContext({ intent: "generic", goal: goalText }, goalText, browserContext);
   }
 }

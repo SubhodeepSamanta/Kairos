@@ -20,13 +20,19 @@ export const SearchCapability = {
     let matchedBySemantic = false;
     let fallbackToLegacy = false;
 
-    let searchInput = (browserState.inputs || []).find(input => input.semanticType === "search_input");
-    if (searchInput) {
-      matchedBySemantic = true;
-    } else {
-      searchInput = (browserState.inputs || []).find(input => input.purpose === "search_input");
-      if (searchInput) fallbackToLegacy = true;
-    }
+    const searchInputs = (browserState.inputs || [])
+      .map((input, index) => ({
+        input,
+        score:
+          (input.semanticType === "search_input" ? 100 : 0) +
+          (input.purpose === "search_input" ? 70 : 0) +
+          (/search|find|query/i.test([input.placeholder, input.ariaLabel, input.name].filter(Boolean).join(" ")) ? 35 : 0) +
+          (input.visible === false ? -200 : 20) - index
+      }))
+      .sort((a, b) => b.score - a.score);
+    const searchInput = searchInputs[0]?.score > 0 ? searchInputs[0].input : null;
+    matchedBySemantic = searchInput?.semanticType === "search_input";
+    fallbackToLegacy = Boolean(searchInput && !matchedBySemantic);
 
     if (searchInput) {
       actions.push({
@@ -48,12 +54,21 @@ export const SearchCapability = {
           seconds: 1
         }
       });
+      actions.push({ type: "read_ui", params: {} });
       console.log(`[SEMANTIC CAPABILITY] name="SearchCapability" matched_by_semantic=${matchedBySemantic} fallback_to_legacy=${fallbackToLegacy}`);
       return { success: true, actions };
     }
 
-    let searchLauncher = (browserState.buttons || []).find(btn => btn.semanticType === "search_trigger") ||
-                         (browserState.links || []).find(link => link.semanticType === "search_trigger");
+    const launcherCandidates = [...(browserState.buttons || []), ...(browserState.links || [])]
+      .filter(element => element.visible !== false)
+      .map(element => ({
+        element,
+        score: (element.semanticType === "search_trigger" ? 100 : 0) +
+          (element.purpose === "search_launcher" ? 60 : 0) +
+          (/search|find/i.test([element.text, element.ariaLabel, element.title].filter(Boolean).join(" ")) ? 30 : 0)
+      }))
+      .sort((a, b) => b.score - a.score);
+    let searchLauncher = launcherCandidates[0]?.score > 0 ? launcherCandidates[0].element : null;
     if (searchLauncher) {
       matchedBySemantic = true;
     } else {
@@ -69,6 +84,7 @@ export const SearchCapability = {
           element: searchLauncher.id
         }
       });
+      actions.push({ type: "read_ui", params: {} });
       console.log(`[SEMANTIC CAPABILITY] name="SearchCapability" matched_by_semantic=${matchedBySemantic} fallback_to_legacy=${fallbackToLegacy}`);
       return { success: true, actions };
     }
@@ -88,6 +104,7 @@ export const SearchCapability = {
           element: searchBtn.id
         }
       });
+      actions.push({ type: "read_ui", params: {} });
       console.log(`[SEMANTIC CAPABILITY] name="SearchCapability" matched_by_semantic=${matchedBySemantic} fallback_to_legacy=${fallbackToLegacy}`);
       return { success: true, actions };
     }

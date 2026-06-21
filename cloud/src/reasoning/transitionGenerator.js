@@ -70,8 +70,9 @@ export function generateTransitions(currentState, desiredObjective, failedTransi
     desiredState,
     state: desiredState,
     legacyDesiredState: desiredObjective.desiredState,
+    semanticTarget: normalizedDesiredObjective.semanticTarget,
     platform: normalizedDesiredObjective.platform,
-    parameters: normalizedDesiredObjective.parameters || {},
+      parameters: normalizedDesiredObjective.parameters || {},
     score: directScore,
     confidence: directConfidence
   });

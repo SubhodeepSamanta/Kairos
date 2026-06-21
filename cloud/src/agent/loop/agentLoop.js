@@ -4,7 +4,9 @@ import { updateWorldModel, addFinding } from "../../world/worldModel.js";
 import { extractDataFromPage } from "../../reasoning/extractor.js";
 import { setIntent, setGoal, setPlan, setObservation } from "../state/state.js";
 import { parseIntent } from "../../reasoning/intentParser.js";
-import { buildObjectives } from "../../reasoning/objectiveBuilder.js";
+import { planObjectives } from "../../reasoning/planner.js";
+import { resolveCurrentState } from "../../world/currentStateResolver.js";
+import { understandPage } from "../../world/pageUnderstanding.js";
 import { initTracker } from "../../reasoning/objectiveTracker.js";
 import { verifyObjective } from "../../verification/objectiveVerifier.js";
 import { createExecutionContext, generateExecutionSummary } from "../../world/executionContext.js";
@@ -91,30 +93,29 @@ async function _runAgentInternal({
 
   let latestObs = initObs || goal.world?.history?.[goal.world.history.length - 1]?.observation;
   let browserState = latestObs?.pageState || latestObs || {};
+  const initialResolvedState = resolveCurrentState(browserState);
+  const initialPageUnderstanding = understandPage(browserState, initialResolvedState);
+  const browserContext = {
+    currentPlatform: initialResolvedState.platform !== "generic" ? initialResolvedState.platform : browserState.site,
+    currentState: initialResolvedState.currentState,
+    semanticState: initialResolvedState.semanticState,
+    currentPageType: browserState.pageType,
+    currentUrl: browserState.url,
+    currentTitle: browserState.title,
+    capabilities: browserState.capabilities || [],
+    pageUnderstanding: initialPageUnderstanding
+  };
 
   const preIntentCalls = llmCallCount;
-  const intent = await parseIntent(
-    goal.objective,
-    {
-      currentPlatform:
-        browserState.site,
-
-      currentPageType:
-        browserState.pageType,
-
-      currentUrl:
-        browserState.url,
-
-      currentTitle:
-        browserState.title
-    }
-  );
+  const intent = await parseIntent(goal.objective, browserContext);
   goal.metrics.intent_calls = llmCallCount - preIntentCalls;
   goal.intent = intent;
   setIntent(intent);
   console.log(`[INTENT]\n${goal.objective}\n→ intent=${intent.intent || ""}\n→ platform=${intent.platform || ""}`);
 
-  const objectives = buildObjectives(intent);
+  const prePlanningCalls = llmCallCount;
+  const objectives = await planObjectives(goal.objective, intent, browserContext);
+  goal.metrics.planning_calls = llmCallCount - prePlanningCalls;
   console.log(`[OBJECTIVE]\n${objectives.map(o => o.desiredState).join(" → ")}`);
   goal.objectives = objectives;
   goal.tracker = initTracker(objectives);
@@ -199,7 +200,8 @@ async function _runAgentInternal({
     const { capability, plan } = selectCapabilityAndPlan({
       goal,
       activeTransition,
-      browserState
+      browserState,
+      currentObj
     });
 
     if (capability && !plan) {

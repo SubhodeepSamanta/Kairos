@@ -81,7 +81,7 @@ class BrowserSimulator {
         const link = this.links.find(l => l.id === action.params.element);
         if (link) {
           if (link.purpose === "video_link" || (link.href && link.href.includes("/watch"))) {
-            this.url = `https://youtube.com/watch?v=lofi123`;
+            this.url = `https://youtube.com/watch?v=1`;
             this.pageType = "youtube_video_playing";
             this.title = "Lofi Hip Hop Radio - Radio";
             this.text = "Video length: 2:30. Uploaded by Lofi Records.";
