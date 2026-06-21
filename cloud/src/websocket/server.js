@@ -13,7 +13,7 @@ import { storeMemory } from "../memory/store.js";
 import { retrieveMemory } from "../memory/retrieve.js";
 
 let connectedClient = null;
-let pendingResolve = null;
+const pendingResolvers = new Map();
 const connectorClients = new Set();
 
 function formatAgentResult(agentResult) {
@@ -213,10 +213,7 @@ export function startWebSocketServer(
             return;
           }
 
-          if (
-            data.type === "execution_result" &&
-            pendingResolve
-          ) {
+          if (data.type === "execution_result") {
             const latestObservation =
               data.observations?.[data.observations.length - 1];
 
@@ -225,8 +222,19 @@ export function startWebSocketServer(
             if (pageState) {
               setBrowserState(pageState);
             }
-            pendingResolve(data);
-            pendingResolve = null;
+            const goalId = data.goalId;
+            const resolver = pendingResolvers.get(goalId);
+            if (resolver) {
+              resolver(data);
+              pendingResolvers.delete(goalId);
+            } else {
+              // Fallback: no goalId match found (older client or race), resolve oldest pending
+              const firstKey = pendingResolvers.keys().next().value;
+              if (firstKey !== undefined) {
+                pendingResolvers.get(firstKey)(data);
+                pendingResolvers.delete(firstKey);
+              }
+            }
           }
 
           if (isDebug()) {
@@ -286,8 +294,7 @@ export async function executePlanRemotely(
   return new Promise(
     (resolve) => {
 
-      pendingResolve =
-        resolve;
+      pendingResolvers.set(plan.goalId, resolve);
 
       connectedClient.send(
         JSON.stringify({

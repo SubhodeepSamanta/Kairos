@@ -6,25 +6,11 @@ export async function extractMemory(message) {
     message.toLowerCase().trim();
 
   const actionPrefixes = [
-    "open ",
-    "close ",
-    "focus ",
-    "launch ",
-    "start ",
-    "read ",
-    "click ",
-    "type ",
-    "scroll ",
-    "search",
-    "go ",
-    "navigate ",
-    "new ",
-    "close ",
-    "switch ",
-    "screenshot",
-    "take ",
-    "list ",
-    "restart "
+    "open ", "close ", "focus ", "launch ", "start ", "read ",
+    "click ", "type ", "scroll ", "search", "go ", "navigate ",
+    "new ", "switch ", "screenshot", "take ", "list ", "restart ",
+    "play ", "find ", "get ", "show ", "tell ", "check ", "watch ",
+    "listen ", "compare ", "research ", "analyze ", "visit "
   ];
 
   for (const prefix of actionPrefixes) {

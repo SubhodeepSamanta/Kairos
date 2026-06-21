@@ -5,6 +5,7 @@ export function determineRecovery(lastAction, browserState, previousState = null
   console.log(`[RECOVERY DIAGNOSTIC]
   Failure Type: ${diagnosis.type}
   Details: ${diagnosis.message}
+  Hypothesis: ${diagnosis.hypothesis || "None"}
   Retry Count: ${retryCount}`);
 
   if (diagnosis.escalate) {

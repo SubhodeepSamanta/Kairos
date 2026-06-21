@@ -41,7 +41,13 @@ export async function readPage() {
     const bProtected = PROTECTED_PURPOSES.includes(b.purpose);
     if (aProtected && !bProtected) return -1;
     if (!aProtected && bProtected) return 1;
-    return b.confidence - a.confidence;
+    if (b.confidence !== a.confidence) return b.confidence - a.confidence;
+    // Tiebreaker: prefer elements visible in the initial viewport over ones requiring scroll
+    if (a.inViewport !== b.inViewport) return a.inViewport ? -1 : 1;
+    // Then prefer elements higher on the page (smaller top = appears first to a human reading top-down)
+    const aTop = a.top ?? Infinity;
+    const bTop = b.top ?? Infinity;
+    return aTop - bTop;
   };
 
   const sortedButtons = [...buttons].sort(sortProtectedFirst);

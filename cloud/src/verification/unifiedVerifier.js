@@ -33,10 +33,10 @@ export async function runUnifiedVerification({
   }
 
   try {
-    const authoritativeMatch = objective ? verifyObjective(objective, observation) : null;
+    const authoritativeMatch = objective ? await verifyObjective(objective, observation) : null;
     const stateRes = objective
       ? (authoritativeMatch ? { achieved: true, reason: "Authoritative objective verification succeeded" } : null)
-      : verifyState({ task, observation });
+      : await verifyState({ task, observation });
     totalSignals++;
     if (stateRes && stateRes.achieved) {
       verifiedCount++;

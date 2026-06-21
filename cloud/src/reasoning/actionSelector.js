@@ -1,3 +1,5 @@
+import { parseGoal } from "./goalUnderstanding.js";
+
 function tokenize(value) {
   return new Set((value || "").toLowerCase().match(/[a-z0-9]+/g) || []);
 }
@@ -15,14 +17,30 @@ function overlapScore(goal, text) {
 export function scoreAction(goal, pageUnderstanding, candidate, failedActionHistory = []) {
   let score = 0;
   const goalLower = goal.toLowerCase();
+  const parsedGoal = parseGoal(goal);
   const purpose = pageUnderstanding?.pagePurpose || "generic";
   const label = candidate.label || "";
   const role = candidate.role || "";
   const href = candidate.href || "";
   const textContent = `${label} ${role} ${candidate.reason || ""}`.toLowerCase();
 
-  // 1. Goal Relevance (Word overlap)
+  // 1. Goal Relevance (Objective and Term Overlap)
   score += overlapScore(goal, `${label} ${role} ${href}`);
+
+  // Boost action if it matches the semantic objective
+  if (parsedGoal.objective === "consume media") {
+    if (/play|pause|mute|skip|video|watch|stream/i.test(textContent) || ["primary_content", "media_element"].includes(candidate.semanticType || "") || candidate.purpose === "action_target") {
+      score += 60;
+    }
+  } else if (parsedGoal.objective === "authenticate") {
+    if (/login|signin|sign in|auth|credential|username|password|submit/i.test(textContent)) {
+      score += 50;
+    }
+  } else if (parsedGoal.objective === "extract_information") {
+    if (candidate.type === "extract") {
+      score += 100;
+    }
+  }
 
   // 2. Page Relevance by Purpose
   if (purpose === "search interface") {
@@ -33,11 +51,12 @@ export function scoreAction(goal, pageUnderstanding, candidate, failedActionHist
   } else if (purpose === "search results") {
     const isResultLink = candidate.semanticType === "content_item" || 
                          candidate.semanticType === "selection_candidate" ||
-                         ["result_link", "video_link", "product_link", "post_link"].includes(candidate.purpose || "");
+                         candidate.semanticType === "primary_content" ||
+                         ["primary_content", "navigation_target"].includes(candidate.purpose || "");
     if (candidate.type === "click" && (isResultLink || /watch|details|product|view/i.test(textContent))) {
-      score += 160; // Prioritize clicking results on search results pages
+      score += 160; // Prioritize clicking result links on search results pages
     }
-  } else if (purpose === "video player") {
+  } else if (purpose === "media content") {
     if (candidate.type === "click" && /play|pause|mute|skip|video/i.test(textContent)) {
       score += 80;
     }
@@ -48,15 +67,15 @@ export function scoreAction(goal, pageUnderstanding, candidate, failedActionHist
     if (candidate.type === "click" && /submit|login|sign|confirm/i.test(textContent)) {
       score += 85;
     }
-  } else if (purpose === "checkout") {
-    if (candidate.type === "click" && /pay|checkout|buy|purchase|submit/i.test(textContent)) {
+  } else if (purpose === "product detail") {
+    if (candidate.type === "click" && /buy|cart|checkout|purchase/i.test(textContent)) {
       score += 80;
     }
   } else if (purpose === "settings") {
     if (candidate.type === "click" && /save|apply|enable|disable|toggle/i.test(textContent)) {
       score += 65;
     }
-  } else if (purpose === "catalog") {
+  } else if (purpose === "resource detail") {
     if (candidate.type === "click" && /repo|product|item|view|link/i.test(textContent)) {
       score += 75;
     }
@@ -70,12 +89,18 @@ export function scoreAction(goal, pageUnderstanding, candidate, failedActionHist
     if (/open|go to|visit|navigate|load/i.test(goalLower)) {
       score += 80;
     }
+    const constraints = pageUnderstanding?.constraints || [];
+    const hasNoActivePage = constraints.some(c => c.type === "no_active_page");
+    if (hasNoActivePage) {
+      score += 180;
+    }
     const destUrl = candidate.actions?.[0]?.params?.url || "";
-    for (const platform of ["youtube", "github", "amazon", "google", "wikipedia", "reddit"]) {
-      if (goalLower.includes(platform) && destUrl.includes(platform)) {
+    // Check dynamic matching using parsedGoal constraints
+    parsedGoal.constraints.forEach(constraint => {
+      if (destUrl.includes(constraint)) {
         score += 150;
       }
-    }
+    });
   }
   
   if (candidate.type === "extract" && /extract|get|find|retrieve|read/i.test(goalLower)) score += 100;
@@ -85,12 +110,16 @@ export function scoreAction(goal, pageUnderstanding, candidate, failedActionHist
     score += 30; // Prefer search action over simple type action for search fields
   }
 
-  // Penalize general actions unless necessary
+  // 4. Affordance Confidence
+  if (candidate.confidence) {
+    score += Math.round(candidate.confidence * 20);
+  }
+
+  // 5. Risk & Penalties
   if (candidate.type === "scroll") score -= 30;
   if (candidate.type === "back") score -= 50;
   if (candidate.type === "read_ui") score -= 40;
 
-  // 4. Constraint Handling
   const constraints = pageUnderstanding?.constraints || [];
   const hasBlockingPrompt = constraints.some(c => c.type === "blocking_prompt_possible");
   if (hasBlockingPrompt) {
@@ -102,12 +131,17 @@ export function scoreAction(goal, pageUnderstanding, candidate, failedActionHist
     }
   }
 
+  const hasNoActivePage = constraints.some(c => c.type === "no_active_page");
+  if (hasNoActivePage && candidate.type !== "navigate") {
+    score -= 300;
+  }
+
   const hasHumanVerification = constraints.some(c => c.type === "human_verification_required");
   if (hasHumanVerification && ["type", "click"].includes(candidate.type)) {
     score -= 90;
   }
 
-  // 5. Failure History Penalties
+  // 6. Failure History Penalties
   for (const failed of failedActionHistory) {
     if (failed.action?.type === candidate.type) {
       if (failed.action?.params?.element === candidate.elementId && candidate.elementId) {
@@ -117,6 +151,12 @@ export function scoreAction(goal, pageUnderstanding, candidate, failedActionHist
         score -= 75;
       }
     }
+  }
+
+  // Visual prominence bonus: elements visible without scrolling are more likely
+  // to be the primary/intended target, similar to how a human scans a page top-down.
+  if (candidate.inViewport === true) {
+    score += 10;
   }
 
   return score;

@@ -1,3 +1,7 @@
+const SKILLS = [
+  "navigate", "search", "select", "authenticate", "fill form", "recover", "extract", "compare", "continue workflow", "multi-tab", "research"
+];
+
 const TOPICS = [
   "react", "vue", "angular", "node", "python", "javascript", "golang", "rust",
   "lofi", "jazz", "classical music", "coding music", "rain sounds", "nature sounds",
@@ -8,27 +12,27 @@ const TOPICS = [
 
 const BASE_SCENARIOS = [
   {
-    id: "youtube_base_1",
-    goal: "open youtube",
-    platform: "youtube",
+    id: "nav_base_1",
+    skill: "navigate",
+    goal: "navigate to the main portal",
     expectedState: "home"
   },
   {
-    id: "github_base_1",
-    goal: "open github and search for react",
-    platform: "github",
+    id: "search_base_1",
+    skill: "search",
+    goal: "search the portal for active content",
     expectedState: "results"
   },
   {
     id: "recovery_base_1",
-    goal: "navigate to broken site and dismiss popup",
-    platform: "generic",
+    skill: "recover",
+    goal: "navigate to portal and dismiss popup modal",
     expectedState: "home"
   },
   {
     id: "login_base_1",
-    goal: "login to github",
-    platform: "github",
+    skill: "authenticate",
+    goal: "authenticate and login to portal",
     expectedState: "logged_in"
   }
 ];
@@ -39,30 +43,30 @@ function generateScenarios() {
 
   for (const topic of TOPICS) {
     list.push({
-      id: `youtube_gen_${idCounter++}`,
-      goal: `play first video of ${topic} on youtube`,
-      platform: "youtube",
+      id: `media_gen_${idCounter++}`,
+      skill: "consume_media",
+      goal: `play latest media content of ${topic}`,
       expectedState: "video_playing"
     });
     
     list.push({
-      id: `github_gen_${idCounter++}`,
-      goal: `search github for ${topic} and extract star count`,
-      platform: "github",
+      id: `extract_gen_${idCounter++}`,
+      skill: "extract",
+      goal: `search portal for ${topic} and extract details`,
       expectedState: "information_extracted"
     });
 
     list.push({
-      id: `amazon_gen_${idCounter++}`,
-      goal: `search amazon for ${topic} and get price`,
-      platform: "amazon",
+      id: `compare_gen_${idCounter++}`,
+      skill: "compare",
+      goal: `compare search results for ${topic} and get prices`,
       expectedState: "information_extracted"
     });
 
     list.push({
-      id: `wikipedia_gen_${idCounter++}`,
-      goal: `search wikipedia for ${topic} and get summary`,
-      platform: "wikipedia",
+      id: `research_gen_${idCounter++}`,
+      skill: "research",
+      goal: `research portal for ${topic} and extract summary information`,
       expectedState: "information_extracted"
     });
   }
@@ -71,4 +75,4 @@ function generateScenarios() {
 }
 
 export const SCENARIOS = generateScenarios();
-console.log(`[SCENARIOS] Programmatically generated ${SCENARIOS.length} evaluation tasks.`);
+console.log(`[SCENARIOS] Programmatically generated ${SCENARIOS.length} skill-based evaluation tasks.`);

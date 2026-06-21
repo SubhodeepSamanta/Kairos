@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import { understandPage } from "./pageUnderstanding.js";
+import { understandPage } from "./pageUnderstandingV2.js";
 
 export function computeStateHash(pageState) {
   if (!pageState) return null;
@@ -245,7 +245,7 @@ export function getWorldSummary(
   if (w.recentPageUnderstandings?.length > 0) {
     const latest = w.recentPageUnderstandings[w.recentPageUnderstandings.length - 1];
     parts.push(`Page Purpose: ${latest.pagePurpose}`);
-    parts.push(`Page Summary: ${latest.pageSummary}`);
+    parts.push(`Page Summary: ${latest.summary || latest.pageSummary || ""}`);
   }
 
   if (w.completedTasks.length > 0) {

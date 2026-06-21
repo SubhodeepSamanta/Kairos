@@ -86,6 +86,7 @@ for (
         JSON.stringify({
           type:
             "execution_result",
+          goalId: data.plan.goalId,
           observations
         })
       );

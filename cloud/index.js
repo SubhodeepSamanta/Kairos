@@ -30,6 +30,9 @@ await createMemoryTables();
 
 startWebSocketServer();
 
+import { initCliHumanLoop } from "./src/humanLoop/cliHumanLoop.js";
+initCliHumanLoop();
+
 startTelegramBot(
     env.TELEGRAM_BOT_TOKEN,
 

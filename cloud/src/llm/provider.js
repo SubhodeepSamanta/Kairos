@@ -3,7 +3,7 @@ import { askOpenRouter } from "./openrouter.js";
 import { askNvidia } from "./nvidia.js";
 
 export let llmCallCount = 0;
-export let maxLlmCalls = 40;
+export let maxLlmCalls = 80;
 
 export function resetLlmCallCount() {
   llmCallCount = 0;

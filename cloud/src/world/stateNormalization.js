@@ -1,8 +1,4 @@
 const STATE_ALIASES = {
-  youtube_home: "home",
-  youtube_results: "results",
-  youtube_video: "content",
-  youtube_video_playing: "content",
   video: "content",
   video_playing: "content",
   audio_playing: "content",
@@ -104,13 +100,15 @@ export function normalizeTransition(transition = {}) {
 export function toLegacyCapabilityTransition(transition = {}) {
   const normalized = normalizeTransition(transition);
   let desiredState = normalized.desiredState;
+  const isVideoState = /video|watch|play|stream|media/i.test(normalized.desiredState || "") ||
+                       /video|watch|play|stream|media/i.test(normalized.legacyDesiredState || "");
 
   if (desiredState === "reach_entry_point") {
     desiredState = "home";
   } else if (desiredState === "locate_target") {
     desiredState = "results";
   } else if (desiredState === "interact_with_target") {
-    desiredState = normalized.platform === "youtube" ? "video_playing" : "result_selected";
+    desiredState = isVideoState ? "video_playing" : "result_selected";
   } else if (desiredState === "authenticate_user") {
     desiredState = "login";
   } else if (desiredState === "configure_settings") {
@@ -118,7 +116,7 @@ export function toLegacyCapabilityTransition(transition = {}) {
   } else if (desiredState === "extract_information") {
     desiredState = "information_extracted";
   } else if (desiredState === "content") {
-    desiredState = normalized.platform === "youtube" ? "video_playing" : "result_selected";
+    desiredState = isVideoState ? "video_playing" : "result_selected";
   } else if (desiredState === "login") {
     desiredState = "logged_in";
   } else if (desiredState === "settings") {

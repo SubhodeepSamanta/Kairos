@@ -19,11 +19,13 @@ export function createGoal(objective) {
       completedTasks: [],
       failedTasks: [],
       failedActionHistory: [],
+      actionHistory: [],
       lastAction: null,
       lastOutcome: null,
       history: [],
       lastUrl: null,
-      lastTitle: null
+      lastTitle: null,
+      progressIndicators: { totalActions: 0, unchangedPagesCount: 0 }
     },
 
     createdAt:

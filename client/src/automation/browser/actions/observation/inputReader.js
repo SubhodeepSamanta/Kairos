@@ -6,6 +6,8 @@ export async function readInputs(page) {
   const inputLocators = page.locator("input:not([type='hidden']):not([disabled]), textarea:not([disabled]), [contenteditable='true']");
   const inputCount = await inputLocators.count().catch(() => 0);
 
+  const viewportHeight = await page.evaluate(() => window.innerHeight).catch(() => 800);
+
   for (let i = 0; i < inputCount; i++) {
     const locator = inputLocators.nth(i);
     const visible = await locator.isVisible().catch(() => false);
@@ -26,6 +28,15 @@ export async function readInputs(page) {
     registerElement(id, page.locator(`[data-kairos-id="${id}"]`), metadata.ariaLabel || metadata.placeholder || metadata.name || metadata.type || "input", "input");
 
     const enabled = await locator.isEnabled().catch(() => true);
+    const box = await locator.boundingBox().catch(() => null);
+    const visualInfo = box ? {
+      inViewport: box.y >= 0 && box.y < viewportHeight,
+      top: Math.round(box.y),
+      left: Math.round(box.x),
+      width: Math.round(box.width),
+      height: Math.round(box.height)
+    } : { inViewport: false, top: null, left: null, width: null, height: null };
+
     const inputObj = {
       id: parseInt(id, 10),
       text: metadata.ariaLabel || metadata.placeholder || metadata.name || metadata.type || "input",
@@ -37,7 +48,8 @@ export async function readInputs(page) {
       name: metadata.name,
       title: metadata.title,
       visible: true,
-      enabled
+      enabled,
+      ...visualInfo
     };
     const cls = classifyElement(inputObj, "input");
     inputObj.purpose = cls.purpose;

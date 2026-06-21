@@ -11,32 +11,30 @@ function resolveSemanticPageState(browser, url, pageType) {
 
   // Prioritize explicit content/detail types
   if (/details|product|item|article|post|view/.test(pageType) || semanticTypes.has("product_item") || semanticTypes.has("repository_item")) {
-    if (/repository/.test(evidence)) return "repository_page";
-    if (/product/.test(evidence)) return "product_page";
-    return "content_page";
+    return "content detail";
   }
   if (/video|watch|media/.test(evidence) || capabilities.includes("media_available") || /watch|shorts/.test(url)) {
-    return "video_page";
+    return "media content";
   }
 
-  if (/results|search/.test(pageType) || capabilities.includes("results_available")) return "search_results";
+  if (/results$|search_results/.test(pageType) || capabilities.includes("results_available")) return "search results";
   
   let pathname = "";
   try {
     pathname = new URL(url).pathname.toLowerCase();
   } catch (e) {}
 
-  if (/\/search|\/results/.test(pathname)) return "search_results";
+  if (/\/search|\/results/.test(pathname)) return "search results";
 
-  if (/checkout|payment/.test(evidence) || semanticTypes.has("checkout_action")) return "checkout_page";
-  if (/profile/.test(evidence) || semanticTypes.has("profile_content")) return "profile_page";
-  if (/settings|preferences/.test(evidence) || semanticTypes.has("settings_control")) return "settings_page";
-  if (/login|sign.?in|auth/.test(evidence) || capabilities.includes("authentication_available")) return "login_page";
+  if (/checkout|payment/.test(evidence) || semanticTypes.has("checkout_action")) return "form";
+  if (/profile/.test(evidence) || semanticTypes.has("profile_content")) return "profile";
+  if (/settings|preferences/.test(evidence) || semanticTypes.has("settings_control")) return "settings";
+  if (/login|sign.?in|auth/.test(evidence) || capabilities.includes("authentication_available")) return "form";
 
-  if (/\/settings|\/preferences/.test(url)) return "settings_page";
-  if (/\/login|\/signin|\/auth/.test(url)) return "login_page";
-  if (/sign in|log in/.test(text) && browser.inputs?.some(input => input.type === "password")) return "login_page";
-  return "content_page";
+  if (/\/settings|\/preferences/.test(url)) return "settings";
+  if (/\/login|\/signin|\/auth/.test(url)) return "form";
+  if (/sign in|log in/.test(text) && browser.inputs?.some(input => input.type === "password")) return "form";
+  return "content detail";
 }
 
 export function resolveCurrentState(observation, previousResolvedState = null) {
@@ -75,25 +73,11 @@ export function resolveCurrentState(observation, previousResolvedState = null) {
   let query = "";
   let isHomeUrl = false;
 
-  const ENVIRONMENT_MAP = {
-    "google": "search_site",
-    "github": "search_site",
-    "youtube": "media_site",
-    "amazon": "commerce_site",
-    "reddit": "discussion_site",
-    "wikipedia": "knowledge_site",
-    "linkedin": "professional_site",
-    "twitter": "social_site",
-    "x": "social_site",
-    "instagram": "social_site"
-  };
-
   // Derive platform dynamically from hostname
   if (url && url !== "about:blank") {
     try {
       const host = new URL(url).hostname;
       platform = host.replace("www.", "").split(".")[0] || "generic";
-      if (platform === "youtu") platform = "youtube";
     } catch (e) {
       platform = "generic";
     }
@@ -101,16 +85,36 @@ export function resolveCurrentState(observation, previousResolvedState = null) {
 
   const pageType = (browser.pageType || "").toLowerCase();
   if (platform === "generic" && pageType) {
-    const platforms = ["github", "youtube", "amazon", "google", "linkedin", "instagram", "reddit", "wikipedia"];
-    for (const p of platforms) {
-      if (pageType.includes(p) || title.includes(p)) {
-        platform = p;
-        break;
-      }
+    const parts = pageType.split(/[\_\-]/);
+    const platCandidate = parts[0];
+    const nonPlatWords = ["home", "results", "content", "login", "settings", "blank", "navigate", "details", "product", "article", "video", "search", "auth", "welcome"];
+    if (platCandidate && !nonPlatWords.includes(platCandidate)) {
+      platform = platCandidate;
     }
   }
 
-  let environment = observation?.environment || browser?.environment || ENVIRONMENT_MAP[platform] || "generic";
+  // Derive environment dynamically
+  let environment = observation?.environment || browser?.environment || "generic";
+  if (environment === "generic" && platform !== "generic") {
+    const p = platform.toLowerCase();
+    const u = url.toLowerCase();
+    const t = title.toLowerCase();
+    const text = (browser.text || "").toLowerCase();
+
+    if (/search|query|find/i.test(u) || /search|find/i.test(t)) {
+      environment = "search_site";
+    } else if (/video|watch|play|media|music|stream/i.test(u) || /video|play|stream|media/i.test(t) || /watch/i.test(u)) {
+      environment = "media_site";
+    } else if (/shop|store|buy|price|cart|checkout/i.test(u) || /shop|store|buy|price|cart|checkout/i.test(t) || /add to cart/i.test(text)) {
+      environment = "commerce_site";
+    } else if (/wiki|article|paper|doc/i.test(u) || /wiki|article|document/i.test(t)) {
+      environment = "knowledge_site";
+    } else if (/job|career|profile|portfolio/i.test(u) || /job|career|profile/i.test(t)) {
+      environment = "professional_site";
+    } else {
+      environment = "generic";
+    }
+  }
 
   if (!url || url === "about:blank") {
     currentState = "blank";
@@ -134,19 +138,12 @@ export function resolveCurrentState(observation, previousResolvedState = null) {
 
     const hasResultLinks = (browser.links || []).some(
       link =>
-        (
-          [
-            "primary_content",
-            "content_item",
-            "selection_candidate"
-          ].includes(link.semanticType)
-        ) &&
-        (
-          link.href?.includes("/watch") ||
-          link.href?.includes("/live") ||
-          link.href?.includes("/shorts") ||
-          link.purpose === "video_link"
-        )
+        [
+          "primary_content",
+          "content_item",
+          "selection_candidate"
+        ].includes(link.semanticType) ||
+        link.purpose === "primary_content"
     );
     const hasSearchInput = (browser.inputs || []).some(input => input.purpose === "search_input");
 
@@ -158,23 +155,19 @@ export function resolveCurrentState(observation, previousResolvedState = null) {
     semanticState = resolveSemanticPageState(browser, url, pageType);
     if (pageType === "logged_in" || pageType.includes("logged_in")) {
       semanticState = "authenticated";
-    } else if (isHomeUrl && !query && semanticState !== "search_results") {
+    } else if (isHomeUrl && !query && semanticState !== "search results") {
       semanticState = "home_active";
     }
 
     const semanticToLegacy = {
       "authenticated": "login",
-      "login_page": "login",
-      "settings_page": "settings",
+      "form": "login",
+      "settings": "settings",
       "home_active": "home",
-      "search_results": "results",
-      "video_page": "content",
-      "repository_page": "content",
-      "channel_page": "content",
-      "product_page": "content",
-      "checkout_page": "content",
-      "profile_page": "content",
-      "content_page": "content"
+      "search results": "results",
+      "media content": "content",
+      "content detail": "content",
+      "profile": "content"
     };
 
     if (semanticToLegacy[semanticState]) {
@@ -192,9 +185,10 @@ export function resolveCurrentState(observation, previousResolvedState = null) {
     }
   }
 
+  const isVideoState = semanticState === "media content" || pageType.includes("video_playing");
   const legacyState = pageType.includes("logged_in")
     ? "logged_in"
-    : (pageType.includes("video_playing") ? "video_playing" : currentState);
+    : (isVideoState ? "video_playing" : currentState);
 
   const resolvedState = {
     platform,

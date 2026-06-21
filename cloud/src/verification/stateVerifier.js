@@ -17,7 +17,7 @@ function taskToObjective(task) {
   return null;
 }
 
-export function verifyState({
+export async function verifyState({
   task,
   observation
 }) {
@@ -46,7 +46,7 @@ export function verifyState({
   const objective = taskToObjective(task);
   if (objective) {
     const resolved = resolveCurrentState(normalizedObservation);
-    const result = evaluateState(objective, resolved, normalizedObservation);
+    const result = await evaluateState(objective, resolved, normalizedObservation);
     return result.matched
       ? { achieved: true, reason: `Authoritative objective verification: ${result.reason}` }
       : null;
