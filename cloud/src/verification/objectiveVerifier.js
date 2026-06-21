@@ -1,5 +1,6 @@
 import { resolveCurrentState } from "../world/currentStateResolver.js";
 import { normalizeObjective, normalizeResolvedState } from "../world/stateNormalization.js";
+import { isDebug } from "../utils/logger.js";
 
 export function evaluateState(objective, resolvedState, observation) {
   objective = normalizeObjective(objective);
@@ -98,19 +99,21 @@ export function evaluateState(objective, resolvedState, observation) {
 
   const finalMatch = legacyMatch || semanticMatch;
 
-  console.log(`[SEMANTIC VERIFY] legacy_matched=${legacyMatch} semantic_matched=${semanticMatch}`);
+  if (isDebug()) {
+    console.log(`[SEMANTIC VERIFY] legacy_matched=${legacyMatch} semantic_matched=${semanticMatch}`);
 
-  console.log(`[VERIFY]
-  Objective: ${desiredState}
-  Actual: { platform: "${resolvedState.platform}", state: "${resolvedState.currentState}", url: "${url}" }
-  Checks:
-    platform_match=${platformMatch}
-    url_match=${urlMatch}
-    landmark_match=${landmarkMatch}
-    pageType_match=${pageTypeMatch}
-    legacy_match=${legacyMatch}
-    semantic_match=${semanticMatch}
-  Final: ${finalMatch ? "SUCCESS" : "FAIL"}`);
+    console.log(`[VERIFY]
+    Objective: ${desiredState}
+    Actual: { platform: "${resolvedState.platform}", state: "${resolvedState.currentState}", url: "${url}" }
+    Checks:
+      platform_match=${platformMatch}
+      url_match=${urlMatch}
+      landmark_match=${landmarkMatch}
+      pageType_match=${pageTypeMatch}
+      legacy_match=${legacyMatch}
+      semantic_match=${semanticMatch}
+    Final: ${finalMatch ? "SUCCESS" : "FAIL"}`);
+  }
 
   return {
     matched: finalMatch,

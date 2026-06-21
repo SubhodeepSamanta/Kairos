@@ -1,0 +1,152 @@
+{
+  "goalId": "e31d122c-3d9b-465c-92ac-a98bbdffefb5",
+  "goalObjective": "play first video",
+  "tracker": {
+    "objectives": [
+      {
+        "id": "obj1",
+        "desiredState": "result_selected",
+        "platform": null,
+        "parameters": {
+          "ordinal": "first"
+        },
+        "successConditions": [
+          "content selected"
+        ],
+        "priority": 5,
+        "dependencies": [],
+        "confidence": 1,
+        "openQuestions": [],
+        "achieved": false,
+        "attempts": 5,
+        "startedAt": "2026-06-20T20:58:46.499Z"
+      }
+    ],
+    "currentIndex": 0,
+    "visitedStates": [
+      "youtube:results"
+    ],
+    "transitionHistory": [
+      {
+        "transitionId": "results_to_result_selected",
+        "from": {
+          "platform": "youtube",
+          "environment": "media_site",
+          "currentState": "results",
+          "state": "results",
+          "legacyState": "results",
+          "semanticState": "results_viewing",
+          "parameters": {
+            "query": "lofi",
+            "url": "https://www.youtube.com/results?search_query=lofi"
+          }
+        },
+        "to": {
+          "platform": "youtube",
+          "environment": "media_site",
+          "currentState": "results",
+          "state": "results",
+          "legacyState": "results",
+          "semanticState": "content_viewing",
+          "parameters": {
+            "query": "",
+            "url": "https://www.youtube.com/watch?v=zdfiotwp4og&list=rdzdfiotwp4og&start_radio=1"
+          }
+        },
+        "timestamp": "2026-06-20T20:59:04.185Z"
+      },
+      {
+        "transitionId": "results_to_result_selected",
+        "from": {
+          "platform": "youtube",
+          "environment": "media_site",
+          "currentState": "results",
+          "state": "results",
+          "legacyState": "results",
+          "semanticState": "results_viewing",
+          "parameters": {
+            "query": "lofi",
+            "url": "https://www.youtube.com/results?search_query=lofi"
+          }
+        },
+        "to": {
+          "platform": "youtube",
+          "environment": "media_site",
+          "currentState": "results",
+          "state": "results",
+          "legacyState": "results",
+          "semanticState": "content_viewing",
+          "parameters": {
+            "query": "",
+            "url": "https://www.youtube.com/watch?v=zdfiotwp4og&list=rdzdfiotwp4og&start_radio=1"
+          }
+        },
+        "timestamp": "2026-06-20T20:59:15.165Z"
+      }
+    ],
+    "attemptCount": 5,
+    "lastFailure": "Capability \"ResultCapability\" failed to generate plan: empty actions",
+    "capabilityMetrics": {
+      "ResultCapability": {
+        "executions": 5,
+        "successes": 0,
+        "failures": 5,
+        "recoveries": 0
+      }
+    }
+  },
+  "context": {
+    "goal": "play first video",
+    "currentObjective": {
+      "id": "obj1",
+      "desiredState": "result_selected",
+      "platform": null,
+      "parameters": {
+        "ordinal": "first"
+      },
+      "successConditions": [
+        "content selected"
+      ],
+      "priority": 5,
+      "dependencies": [],
+      "confidence": 1,
+      "openQuestions": [],
+      "achieved": false,
+      "attempts": 5,
+      "startedAt": "2026-06-20T20:58:46.499Z"
+    },
+    "worldFacts": [],
+    "discoveredEntities": [],
+    "visitedPages": [
+      {
+        "url": "https://www.youtube.com/results?search_query=lofi",
+        "title": "lofi - YouTube",
+        "timestamp": "2026-06-20T20:58:46.504Z"
+      }
+    ],
+    "openQuestions": [],
+    "completedQuestions": [],
+    "executionSummary": {
+      "objectivesCompleted": 0,
+      "factsCollected": 0,
+      "entitiesDiscovered": 0,
+      "pagesVisited": 1,
+      "unresolvedQuestions": []
+    }
+  },
+  "stateType": "WAITING_FOR_MANUAL_ACTION",
+  "transition": {
+    "id": "content_to_result_selected",
+    "legacyId": "generic_content_to_generic_result_selected",
+    "desiredState": "result_selected",
+    "state": "result_selected",
+    "legacyDesiredState": "result_selected",
+    "platform": "generic",
+    "parameters": {
+      "ordinal": "first"
+    },
+    "score": 1,
+    "confidence": 0.95
+  },
+  "savedAt": "2026-06-20T20:59:15.256Z"
+}

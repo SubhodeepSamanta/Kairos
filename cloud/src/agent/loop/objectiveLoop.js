@@ -3,6 +3,7 @@ import { updateExecutionContext, generateExecutionSummary } from "../../world/ex
 import { checkForHumanIntervention, saveAgentSession } from "../state/agentSession.js";
 import { verifyObjective } from "../../verification/objectiveVerifier.js";
 import { updateTracker } from "../../reasoning/objectiveTracker.js";
+import { isDebug } from "../../utils/logger.js";
 import { llmCallCount } from "../../llm/provider.js";
 
 export async function processObjectives({
@@ -58,7 +59,11 @@ export async function processObjectives({
       updateTracker(goal.tracker, goal.tracker.currentIndex, "completed");
     }
     const summary = generateExecutionSummary(context, goal.tracker);
-    console.log("EXECUTION SUMMARY:", JSON.stringify(summary, null, 2));
+    if (isDebug()) {
+      console.log("EXECUTION SUMMARY:", JSON.stringify(summary, null, 2));
+    } else {
+      console.log(`[EXECUTION SUMMARY] duration=${summary.durationSec || ""} actions=${summary.totalActions || ""} success=${summary.success || ""}`);
+    }
     return {
       shouldExit: true,
       exitValue: {
@@ -74,7 +79,7 @@ export async function processObjectives({
     const currentObj = goal.tracker.objectives[goal.tracker.currentIndex];
     if (verifyObjective(currentObj, browserState)) {
       updateTracker(goal.tracker, goal.tracker.currentIndex, "completed");
-      console.log(`[OBJECTIVE] Achieved via state: ${currentObj.desiredState}`);
+      console.log(`[OBJECTIVE ACHIEVED] ${currentObj.desiredState}`);
     } else {
       break;
     }
@@ -83,7 +88,11 @@ export async function processObjectives({
   if (goal.tracker.currentIndex >= goal.tracker.objectives.length) {
     console.log("[GOAL COMPLETE] All objectives met.");
     const summary = generateExecutionSummary(context, goal.tracker);
-    console.log("EXECUTION SUMMARY:", JSON.stringify(summary, null, 2));
+    if (isDebug()) {
+      console.log("EXECUTION SUMMARY:", JSON.stringify(summary, null, 2));
+    } else {
+      console.log(`[EXECUTION SUMMARY] duration=${summary.durationSec || ""} actions=${summary.totalActions || ""} success=${summary.success || ""}`);
+    }
     return {
       shouldExit: true,
       exitValue: {

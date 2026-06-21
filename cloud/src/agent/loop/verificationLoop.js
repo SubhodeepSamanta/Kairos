@@ -3,6 +3,7 @@ import { checkForHumanIntervention, saveAgentSession } from "../state/agentSessi
 import { checkDeadEnd } from "../state/agentState.js";
 import { resolveCurrentState } from "../../world/currentStateResolver.js";
 import { verifyObjective } from "../../verification/objectiveVerifier.js";
+import { isDebug } from "../../utils/logger.js";
 import { recordTransition, recordCapabilityExecution, updateTracker } from "../../reasoning/objectiveTracker.js";
 import { updateWorldModel } from "../../world/worldModel.js";
 import { setObservation } from "../state/state.js";
@@ -132,10 +133,27 @@ export async function executeAndVerify({
   totalGoalRetries,
   failedTransitions
 }) {
-  console.log("EXECUTING PLAN:", JSON.stringify(plan, null, 2));
+  if (isDebug()) {
+    console.log("EXECUTING PLAN:", JSON.stringify(plan, null, 2));
+  } else {
+    console.log(`[EXECUTING PLAN] actionsCount=${plan.actions?.length || 0}`);
+  }
 
   const result = await executePlan(plan);
-  console.log("EXECUTE RESULT:", JSON.stringify(result, null, 2));
+  if (isDebug()) {
+    console.log("EXECUTE RESULT:", JSON.stringify(result, null, 2));
+  } else {
+    console.log("[EXECUTE RESULT]", JSON.stringify({
+      action: plan.actions?.[0]?.type,
+      success: result.success,
+      url: browserState.url,
+      pageType: browserState.pageType,
+      site: browserState.site,
+      linksCount: browserState.links?.length,
+      buttonsCount: browserState.buttons?.length,
+      inputsCount: browserState.inputs?.length
+    }));
+  }
 
   const observations = result.observations || [];
   latestObs = getLatestObservation(observations, latestObs);
@@ -149,8 +167,10 @@ export async function executeAndVerify({
   recordTransition(goal.tracker, activeTransition, resolvedCurState, resolvedNextState);
 
   const targetVerified = capability.verify(activeTransition, latestObs);
-  console.log("[VERIFY RESULT]", targetVerified);
-  console.log(`[VERIFICATION] transition: ${activeTransition.id}, verified: ${targetVerified}`);
+  if (isDebug()) {
+    console.log("[VERIFY RESULT]", targetVerified);
+    console.log(`[VERIFICATION] transition: ${activeTransition.id}, verified: ${targetVerified}`);
+  }
 
   const env = resolvedCurState.environment || "generic";
   if (!capability.success_by_environment) {
@@ -162,7 +182,9 @@ export async function executeAndVerify({
   capability.success_by_environment[env].executions++;
 
   if (targetVerified) {
-    console.log(`[VERIFICATION] Target state verified successfully for transition: ${activeTransition.id}`);
+    if (isDebug()) {
+      console.log(`[VERIFICATION] Target state verified successfully for transition: ${activeTransition.id}`);
+    }
     recordCapabilityExecution(goal.tracker, capability.name, "success");
     capability.successes++;
     capability.successRate = capability.successes / capability.executions;
@@ -170,7 +192,10 @@ export async function executeAndVerify({
     capability.success_by_environment[env].successRate = 
       capability.success_by_environment[env].successes / capability.success_by_environment[env].executions;
   } else {
-    console.log(`[VERIFICATION] Target state verification failed for transition: ${activeTransition.id}`);
+    console.log(`[VERIFY FAIL] transition="${activeTransition.id}"`);
+    if (isDebug()) {
+      console.log(`[VERIFICATION] Target state verification failed for transition: ${activeTransition.id}`);
+    }
     
     const finalCheckState = resolveCurrentState(browserState, lastResolvedState.val);
     if (verifyObjective(currentObj, finalCheckState)) {
@@ -194,13 +219,15 @@ export async function executeAndVerify({
 
     const failure = diagnoseFailure(activeTransition, browserState, result);
 
-    console.log("[RECOVERY TRIGGER]");
-    console.log(JSON.stringify({
-      objective: currentObj,
-      currentState: resolvedCurState,
-      verificationResult: { targetVerified },
-      failedTransition: activeTransition
-    }, null, 2));
+    if (isDebug()) {
+      console.log("[RECOVERY TRIGGER]");
+      console.log(JSON.stringify({
+        objective: currentObj,
+        currentState: resolvedCurState,
+        verificationResult: { targetVerified },
+        failedTransition: activeTransition
+      }, null, 2));
+    }
 
     console.log("[RECOVERY]", failure.message);
     goal.tracker.lastFailure = failure.message;

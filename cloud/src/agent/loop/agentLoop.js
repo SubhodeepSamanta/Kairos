@@ -112,10 +112,10 @@ async function _runAgentInternal({
   goal.metrics.intent_calls = llmCallCount - preIntentCalls;
   goal.intent = intent;
   setIntent(intent);
-
-  console.log("INTENT:", JSON.stringify(intent, null, 2));
+  console.log(`[INTENT]\n${goal.objective}\n→ intent=${intent.intent || ""}\n→ platform=${intent.platform || ""}`);
 
   const objectives = buildObjectives(intent);
+  console.log(`[OBJECTIVE]\n${objectives.map(o => o.desiredState).join(" → ")}`);
   goal.objectives = objectives;
   goal.tracker = initTracker(objectives);
 

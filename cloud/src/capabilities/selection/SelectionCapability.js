@@ -1,4 +1,6 @@
 import { resolveCurrentState } from "../../world/currentStateResolver.js";
+import { rankCandidates, scoreCandidate } from "./candidateRanker.js";
+import { isDebug } from "../../utils/logger.js";
 
 const ORDINALS = {
   "first": 0, "1st": 0, "top": 0,
@@ -10,41 +12,6 @@ const ORDINALS = {
   "next": "next",
   "previous": "previous"
 };
-
-function scoreCandidate(link, position) {
-  let score = 0;
-  const href = (link.href || "").toLowerCase();
-  const text = (link.text || "").toLowerCase();
-
-  if (href.includes("/watch"))
-    score += 1000;
-
-  if (href.includes("/shorts"))
-    score -= 500;
-
-  if (text.includes("now playing"))
-    score += 100;
-
-  if (position < 10)
-    score += 50;
-
-  if (link.semanticType === "primary_content")
-    score += 100;
-
-  if (link.semanticType === "content_item")
-    score += 50;
-
-  if (link.purpose === "video_link")
-    score += 50;
-
-  if (href.includes("/live"))
-    score += 100;
-
-  if (text.length > 5)
-    score += 10;
-
-  return score;
-}
 
 export const ResultCapability = {
   name: "ResultCapability",
@@ -58,16 +25,25 @@ export const ResultCapability = {
     return transition.desiredState === "result_selected" || transition.desiredState === "product_details";
   },
   execute(transition, browserState) {
-    console.log("[CAPABILITY INPUT TRANSITION]");
-    console.log(JSON.stringify(transition, null, 2));
+    if (isDebug()) {
+      console.log("[CAPABILITY INPUT TRANSITION]");
+      console.log(JSON.stringify(transition, null, 2));
 
-    console.log("[SELECTION INPUT]");
-    console.log(JSON.stringify({
-      currentUrl: browserState.url,
-      currentSite: browserState.site,
-      currentPageType: browserState.pageType,
-      linksCount: browserState.links?.length || 0
-    }, null, 2));
+      console.log("[SELECTION INPUT]");
+      console.log(JSON.stringify({
+        currentUrl: browserState.url,
+        currentSite: browserState.site,
+        currentPageType: browserState.pageType,
+        linksCount: browserState.links?.length || 0
+      }, null, 2));
+
+      console.log("[SELECTION CANDIDATES]");
+      console.log(JSON.stringify(
+        browserState.links?.slice(0, 20),
+        null,
+        2
+      ));
+    }
 
     let targetIdx = 0;
     const ordinal = transition.parameters?.ordinal || "first";
@@ -86,63 +62,42 @@ export const ResultCapability = {
       2
     ));
 
-    let matchedBySemantic = false;
-    let fallbackToLegacy = false;
-
     let candidateLinks = (browserState.links || []).filter(link => {
-      return link.semanticType === "primary_content";
-    });
-
-    if (candidateLinks.length > 0) {
-      matchedBySemantic = true;
-    } else {
-      candidateLinks = (browserState.links || []).filter(link => {
-        return link.semanticType === "content_item" || link.semanticType === "selection_candidate";
-      });
-      if (candidateLinks.length > 0) {
-        matchedBySemantic = true;
-      } else {
-        candidateLinks = (browserState.links || []).filter(link => {
-          return ["result_link", "video_link", "product_link", "post_link", "search_link"].includes(link.purpose);
-        });
-        if (candidateLinks.length > 0) {
-          fallbackToLegacy = true;
-        }
+      if (link.semanticType) {
+        return link.semanticType !== "navigation";
       }
+      // Backwards compatibility fallback to legacy purpose
+      const legacyPurposes = ["result_link", "video_link", "product_link", "post_link", "search_link", "content_item", "selection_candidate"];
+      return legacyPurposes.includes(link.purpose);
+    });
+
+    if (isDebug()) {
+      console.log(`[SEMANTIC CAPABILITY] name="ResultCapability" candidates_count=${candidateLinks.length}`);
     }
 
-    console.log(`[SEMANTIC CAPABILITY] name="ResultCapability" matched_by_semantic=${matchedBySemantic} fallback_to_legacy=${fallbackToLegacy}`);
+    candidateLinks = rankCandidates(candidateLinks, browserState.links || []);
 
-    const currentPlatform =
-      browserState.site?.toLowerCase();
-
-    if (currentPlatform === "youtube") {
-      candidateLinks =
-        candidateLinks.filter(
-          l =>
-            l.href?.includes("/watch") ||
-            l.href?.includes("/live")
+    if (isDebug()) {
+      candidateLinks.forEach(c => {
+        const pos = (browserState.links || []).indexOf(c);
+        console.log(
+          "[RESULT PICK]",
+          {
+            id: c.id,
+            text: c.text,
+            href: c.href,
+            score: scoreCandidate(c, pos)
+          }
         );
+      });
+    } else {
+      console.log("[TOP CANDIDATES]");
+      candidateLinks.slice(0, 5).forEach((c, idx) => {
+        const pos = (browserState.links || []).indexOf(c);
+        const score = scoreCandidate(c, pos);
+        console.log(`${idx + 1}. ${(c.text || c.id || "Link")} score=${score}`);
+      });
     }
-
-    candidateLinks.sort((a, b) => {
-      const posA = (browserState.links || []).indexOf(a);
-      const posB = (browserState.links || []).indexOf(b);
-      return scoreCandidate(b, posB) - scoreCandidate(a, posA);
-    });
-
-    candidateLinks.forEach(c => {
-      const pos = (browserState.links || []).indexOf(c);
-      console.log(
-        "[RESULT PICK]",
-        {
-          id: c.id,
-          text: c.text,
-          href: c.href,
-          score: scoreCandidate(c, pos)
-        }
-      );
-    });
 
     let resolvedIdx = targetIdx;
     if (ordKey === "last") {
@@ -151,20 +106,24 @@ export const ResultCapability = {
 
     if (candidateLinks.length > resolvedIdx && resolvedIdx >= 0) {
       const targetLink = candidateLinks[resolvedIdx];
-      console.log(
-        "[RESULT PICK WINNER]",
-        targetLink
-      );
-      console.log("[RESULT PICK]");
-      console.log(JSON.stringify({
-        ordinal,
-        resolvedIdx,
-        chosenId: targetLink.id,
-        chosenText: targetLink.text,
-        chosenHref: targetLink.href
-      }, null, 2));
-      console.log("[SELECTION SELECTED]");
-      console.log(JSON.stringify(targetLink, null, 2));
+      if (isDebug()) {
+        console.log(
+          "[RESULT PICK WINNER]",
+          targetLink
+        );
+        console.log("[RESULT PICK]");
+        console.log(JSON.stringify({
+          ordinal,
+          resolvedIdx,
+          chosenId: targetLink.id,
+          chosenText: targetLink.text,
+          chosenHref: targetLink.href
+        }, null, 2));
+        console.log("[SELECTION SELECTED]");
+        console.log(JSON.stringify(targetLink, null, 2));
+      } else {
+        console.log(`[RESULT PICK WINNER]\n${targetLink.text || targetLink.id || "Link"}`);
+      }
       return {
         success: true,
         actions: [{

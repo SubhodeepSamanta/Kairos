@@ -1,5 +1,5 @@
 import { WebSocketServer } from "ws";
-import { log } from "../utils/logger.js";
+import { log, isDebug } from "../utils/logger.js";
 import {
   getAgentState,
   setBrowserState
@@ -229,14 +229,18 @@ export function startWebSocketServer(
             pendingResolve = null;
           }
 
-          log(
-            "Received:",
-            JSON.stringify(
-              data,
-              null,
-              2
-            )
-          );
+          if (isDebug()) {
+            log(
+              "Received:",
+              JSON.stringify(
+                data,
+                null,
+                2
+              )
+            );
+          } else {
+            log(`Received WebSocket message of type: ${data.type}`);
+          }
         }
       );
     }
@@ -263,17 +267,21 @@ export async function executePlanRemotely(
     );
   }
 
-  console.log(
-    "\n===== SENDING PLAN ====="
-  );
+  if (isDebug()) {
+    console.log(
+      "\n===== SENDING PLAN ====="
+    );
 
-  console.log(
-    JSON.stringify(
-      plan,
-      null,
-      2
-    )
-  );
+    console.log(
+      JSON.stringify(
+        plan,
+        null,
+        2
+      )
+    );
+  } else {
+    console.log(`\n===== SENDING PLAN actionsCount=${plan.actions?.length || 0} =====`);
+  }
 
   return new Promise(
     (resolve) => {

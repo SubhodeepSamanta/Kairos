@@ -2,6 +2,27 @@ export function buildObjectives(intent) {
   const objectives = [];
   const platform = intent.platform || null;
 
+  if (intent.useCurrentPage) {
+    objectives.push({
+      id: "obj1",
+      desiredState: "result_selected",
+      platform,
+      parameters: {
+        ordinal: intent.ordinal || "first",
+        targetType: intent.targetType,
+        useCurrentPage: true
+      },
+      successConditions: [
+        "content selected"
+      ],
+      priority: 5,
+      dependencies: [],
+      confidence: 1.0,
+      openQuestions: []
+    });
+    return objectives;
+  }
+
   // Check for compound goals or sub-actions in intent context
   const originalGoal = (intent.originalGoal || "").toLowerCase();
   
@@ -201,6 +222,28 @@ export function buildObjectives(intent) {
         platform,
         parameters: {
           ordinal: intent.ordinal
+        },
+        successConditions: [
+          "content selected"
+        ],
+        priority: 5,
+        dependencies: [],
+        confidence: 1.0,
+        openQuestions: []
+      });
+
+      break;
+    }
+
+    case "page_action": {
+      objectives.push({
+        id: "obj1",
+        desiredState: "result_selected",
+        platform,
+        parameters: {
+          ordinal: intent.ordinal || "first",
+          targetType: intent.targetType,
+          useCurrentPage: true
         },
         successConditions: [
           "content selected"

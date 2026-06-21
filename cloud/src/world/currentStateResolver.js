@@ -1,33 +1,39 @@
 import { normalizeResolvedState } from "./stateNormalization.js";
+import { isDebug } from "../utils/logger.js";
 
 export function resolveCurrentState(observation, previousResolvedState = null) {
   const pageState = observation?.pageState || observation || {};
-  console.log("[STATE RESOLVER INPUT]");
-  console.log(JSON.stringify({
-    title: pageState?.title,
-    url: pageState?.url,
-    pageType: pageState?.pageType,
-    site: pageState?.site,
-    activeTab: pageState?.activeTab,
-    tabs: pageState?.tabs?.map(t => ({
-      title: t.title,
-      url: t.url,
-      active: t.active
-    }))
-  }, null, 2));
+  if (isDebug()) {
+    console.log("[STATE RESOLVER INPUT]");
+    console.log(JSON.stringify({
+      title: pageState?.title,
+      url: pageState?.url,
+      pageType: pageState?.pageType,
+      site: pageState?.site,
+      activeTab: pageState?.activeTab,
+      tabs: pageState?.tabs?.map(t => ({
+        title: t.title,
+        url: t.url,
+        active: t.active
+      }))
+    }, null, 2));
+  }
 
   const browser = observation?.pageState || observation || {};
   const url = (observation?.url || browser?.url || "").toLowerCase();
   const title = (observation?.title || browser?.title || "").toLowerCase();
   
   if ((!url || url === "about:blank") && previousResolvedState) {
-    console.log("[STATE RESOLVER OUTPUT]");
-    console.log(JSON.stringify(previousResolvedState, null, 2));
+    if (isDebug()) {
+      console.log("[STATE RESOLVER OUTPUT]");
+      console.log(JSON.stringify(previousResolvedState, null, 2));
+    }
     return previousResolvedState;
   }
   
   let platform = "generic";
   let currentState = "content";
+  let semanticState = "content_viewing";
   let query = "";
   let isHomeUrl = false;
 
@@ -118,28 +124,15 @@ export function resolveCurrentState(observation, previousResolvedState = null) {
     const isHomePath = pathname.length === 0 || (pathname.length === 1 && ["feed", "home", "index.html", "index.php"].includes(pathname[0]));
     isHomeUrl = isHomePath || pageType.includes("home");
 
-    if (pageType === "logged_in" || pageType.includes("logged_in")) {
-      currentState = "login";
-    } else if (isHomeUrl && !query && !url.includes("/search") && !url.includes("/results") && !pageType.includes("results")) {
-      currentState = "home";
-    } else if (query || url.includes("/search") || url.includes("/results") || pageType.includes("results") || (hasResultLinks && hasSearchInput)) {
-      currentState = "results";
-    } else if ((platform === "youtube" && (url.includes("/watch") || url.includes("v="))) || pageType.includes("video_playing") || pageType.includes("watch")) {
-      currentState = "content";
-    } else {
-      currentState = "content";
-    }
-  }
-
     const capabilities = browser.capabilities || [];
-    let semanticState = "content_viewing";
+    semanticState = "content_viewing";
     if (pageType === "logged_in" || pageType.includes("logged_in")) {
       semanticState = "authenticated";
     } else if (isHomeUrl && !query) {
       semanticState = "home_active";
-    } else if (capabilities.includes("results_available") || query) {
+    } else if (capabilities.includes("results_available") || query || url.includes("/search") || url.includes("/results") || pageType.includes("results")) {
       semanticState = "results_viewing";
-    } else if (capabilities.includes("media_available")) {
+    } else if (capabilities.includes("media_available") || (platform === "youtube" && (url.includes("/watch") || url.includes("v="))) || pageType.includes("video_playing") || pageType.includes("watch")) {
       semanticState = "media_active";
     } else if (capabilities.includes("authentication_available")) {
       semanticState = "auth_active";
@@ -147,7 +140,29 @@ export function resolveCurrentState(observation, previousResolvedState = null) {
       semanticState = "form_active";
     }
 
-    console.log(`[SEMANTIC STATE] legacyState="${currentState}" semanticState="${semanticState}"`);
+    const semanticToLegacy = {
+      "authenticated": "login",
+      "auth_active": "login",
+      "home_active": "home",
+      "results_viewing": "results",
+      "media_active": "content",
+      "form_active": "content"
+    };
+
+    if (semanticToLegacy[semanticState]) {
+      currentState = semanticToLegacy[semanticState];
+    } else {
+      if (pageType === "logged_in" || pageType.includes("logged_in")) {
+        currentState = "login";
+      } else if (isHomeUrl && !query && !url.includes("/search") && !url.includes("/results") && !pageType.includes("results")) {
+        currentState = "home";
+      } else if (query || url.includes("/search") || url.includes("/results") || pageType.includes("results") || (hasResultLinks && hasSearchInput)) {
+        currentState = "results";
+      } else {
+        currentState = "content";
+      }
+    }
+  }
 
     const legacyState = pageType.includes("logged_in")
       ? "logged_in"
@@ -168,8 +183,21 @@ export function resolveCurrentState(observation, previousResolvedState = null) {
 
     const normalizedResolvedState = normalizeResolvedState(resolvedState);
 
-    console.log("[STATE RESOLVER OUTPUT]");
-    console.log(JSON.stringify(normalizedResolvedState, null, 2));
+    const stateChanged = !previousResolvedState ||
+      previousResolvedState.currentState !== normalizedResolvedState.currentState ||
+      previousResolvedState.platform !== normalizedResolvedState.platform ||
+      previousResolvedState.semanticState !== normalizedResolvedState.semanticState;
+
+    if (stateChanged) {
+      console.log(`[STATE RESOLVER] platform="${normalizedResolvedState.platform}" currentState="${normalizedResolvedState.currentState}" semanticState="${normalizedResolvedState.semanticState}"`);
+    } else if (isDebug()) {
+      console.log(`[SEMANTIC STATE] legacyState="${currentState}" semanticState="${semanticState}"`);
+    }
+
+    if (isDebug()) {
+      console.log("[STATE RESOLVER OUTPUT]");
+      console.log(JSON.stringify(normalizedResolvedState, null, 2));
+    }
 
     return normalizedResolvedState;
 }

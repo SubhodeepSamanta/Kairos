@@ -13,9 +13,24 @@ export async function parseIntent(
 ) {
   const text = goalText.toLowerCase().trim();
 
+  // Fast page-action detection for ordinals
+  let match = text.match(
+    /^(?:play|watch|open|click|select|go\s+to|visit)\s+(first|second|third|fourth|fifth|latest)\s+(repository|result|product|article|video|internship|link|item)s?$/i
+  );
+
+  if (match) {
+    return {
+      intent: "page_action",
+      useCurrentPage: true,
+      ordinal: match[1].toLowerCase(),
+      targetType: match[2].toLowerCase(),
+      originalGoal: goalText
+    };
+  }
+
   // Regex-based fast parsing for standard patterns
   // "open youtube", "go to github"
-  let match = text.match(/^(?:open|go\s+to|navigate\s+to|visit)\s+([a-z0-9.]+)(?:\.com|\.org)?$/i);
+  match = text.match(/^(?:open|go\s+to|navigate\s+to|visit)\s+([a-z0-9.]+)(?:\.com|\.org)?$/i);
   if (match) {
     return {
       intent: "navigate",
@@ -80,19 +95,7 @@ export async function parseIntent(
     };
   }
 
-  match = text.match(
-    /^(?:play|watch|open|click)\s+(first|second|third|fourth|fifth)\s+(?:video|result|link|item)$/i
-  );
 
-  if (match) {
-    return {
-      intent: "select_result",
-      ordinal: match[1],
-      targetType: "video",
-      useCurrentPage: true,
-      originalGoal: goalText
-    };
-  }
 
   // Fallback to LLM
   const systemPrompt = `You are an Intent Parser. Parse the user goal into structured JSON.
@@ -102,6 +105,7 @@ Supported intents:
 - "extract_information" (fields: intent, topic)
 - "navigate" (fields: intent, url or platform)
 - "authenticate" (fields: intent, platform)
+- "page_action" (fields: intent, useCurrentPage, ordinal, targetType)
 - "generic" (fields: intent)
 
 Return ONLY JSON.
@@ -110,6 +114,8 @@ Examples:
 "search github for react" -> {"intent": "search", "platform": "github", "query": "react"}
 "play lofi on youtube" -> {"intent": "play_video", "platform": "youtube", "query": "lofi"}
 "find latest AI news" -> {"intent": "extract_information", "topic": "AI news"}
+"open first repository" -> {"intent": "page_action", "useCurrentPage": true, "ordinal": "first", "targetType": "repository"}
+"play first video" -> {"intent": "page_action", "useCurrentPage": true, "ordinal": "first", "targetType": "video"}
 `;
 
   try {

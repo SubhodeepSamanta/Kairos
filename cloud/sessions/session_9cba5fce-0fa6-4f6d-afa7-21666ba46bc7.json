@@ -1,0 +1,242 @@
+{
+  "goalId": "9cba5fce-0fa6-4f6d-afa7-21666ba46bc7",
+  "goalObjective": "search react on github",
+  "tracker": {
+    "objectives": [
+      {
+        "id": "obj1",
+        "desiredState": "home",
+        "platform": "github",
+        "parameters": {},
+        "successConditions": [
+          "URL contains github"
+        ],
+        "priority": 5,
+        "dependencies": [],
+        "confidence": 1,
+        "openQuestions": [],
+        "achieved": true,
+        "attempts": 1,
+        "startedAt": "2026-06-21T08:38:44.077Z"
+      },
+      {
+        "id": "obj2",
+        "desiredState": "results",
+        "platform": "github",
+        "parameters": {
+          "query": "react"
+        },
+        "successConditions": [
+          "URL contains github",
+          "query contains react"
+        ],
+        "priority": 4,
+        "dependencies": [
+          "obj1"
+        ],
+        "confidence": 1,
+        "openQuestions": [],
+        "achieved": false,
+        "attempts": 5,
+        "startedAt": "2026-06-21T08:38:44.077Z"
+      }
+    ],
+    "currentIndex": 1,
+    "visitedStates": [
+      "google:results",
+      "github:home"
+    ],
+    "transitionHistory": [
+      {
+        "transitionId": "results_to_home",
+        "from": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "results",
+          "state": "results",
+          "legacyState": "results",
+          "semanticState": "results_viewing",
+          "parameters": {
+            "query": "react",
+            "url": "https://www.google.com/search?q=react&sca_esv=6599a4d8a4e4b8ab&source=hp&ei=aqm3apwuhchwsempo_uo4a0&iflsig=abilxe8aaaaaajexehypcpie8knq_yz7iala3vtrw0my&ved=0ahukewivt9ky95evaxvba2wghao9a9wq4dudcc4&uact=5&oq=react&gs_lp=egdnd3mtd2l6igvyzwfjddiieaaygaqysqmycbaagiaegledmggqabiabbixazifeaaygaqycbaagiaegledmggqabiabbixaziieaaygaqysqmycbaagiaegledmguqabiabdiieaaygaqysqniqwdqafgacab4ajabajgbkwggazmbqgedmc4xuaedyaea-aebmaiboakzazgdajihazaumaahrasybwmwljg4b5kbwgcdmi0xyacegagb&sclient=gws-wiz&sei=bam3aoxkj62msempv_jl0a4"
+          }
+        },
+        "to": {
+          "platform": "github",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://github.com/"
+          }
+        },
+        "timestamp": "2026-06-21T08:38:50.000Z"
+      },
+      {
+        "transitionId": "home_to_results",
+        "from": {
+          "platform": "github",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://github.com/"
+          }
+        },
+        "to": {
+          "platform": "github",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://github.com/"
+          }
+        },
+        "timestamp": "2026-06-21T08:39:01.933Z"
+      },
+      {
+        "transitionId": "home_to_results",
+        "from": {
+          "platform": "github",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://github.com/"
+          }
+        },
+        "to": {
+          "platform": "github",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://github.com/"
+          }
+        },
+        "timestamp": "2026-06-21T08:39:15.957Z"
+      },
+      {
+        "transitionId": "home_to_results",
+        "from": {
+          "platform": "github",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://github.com/"
+          }
+        },
+        "to": {
+          "platform": "github",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://github.com/"
+          }
+        },
+        "timestamp": "2026-06-21T08:39:21.226Z"
+      }
+    ],
+    "attemptCount": 4,
+    "lastFailure": "Capability \"SearchCapability\" failed to generate plan: empty actions",
+    "capabilityMetrics": {
+      "NavigationCapability": {
+        "executions": 1,
+        "successes": 1,
+        "failures": 0,
+        "recoveries": 0
+      },
+      "SearchCapability": {
+        "executions": 4,
+        "successes": 0,
+        "failures": 4,
+        "recoveries": 0
+      }
+    }
+  },
+  "context": {
+    "goal": "search react on github",
+    "currentObjective": {
+      "id": "obj2",
+      "desiredState": "results",
+      "platform": "github",
+      "parameters": {
+        "query": "react"
+      },
+      "successConditions": [
+        "URL contains github",
+        "query contains react"
+      ],
+      "priority": 4,
+      "dependencies": [
+        "obj1"
+      ],
+      "confidence": 1,
+      "openQuestions": [],
+      "achieved": false,
+      "attempts": 5,
+      "startedAt": "2026-06-21T08:38:44.077Z"
+    },
+    "worldFacts": [],
+    "discoveredEntities": [],
+    "visitedPages": [
+      {
+        "url": "https://www.google.com/search?q=react&sca_esv=6599a4d8a4e4b8ab&source=hp&ei=AqM3apWuHcHWseMPo_uO4A0&iflsig=ABILxe8AAAAAajexEhyPcpIE8kNq_YZ7ialA3vtRW0My&ved=0ahUKEwiVt9KY95eVAxVBa2wGHaO9A9wQ4dUDCC4&uact=5&oq=react&gs_lp=Egdnd3Mtd2l6IgVyZWFjdDIIEAAYgAQYsQMyCBAAGIAEGLEDMggQABiABBixAzIFEAAYgAQyCBAAGIAEGLEDMggQABiABBixAzIIEAAYgAQYsQMyCBAAGIAEGLEDMgUQABiABDIIEAAYgAQYsQNIqwdQAFgAcAB4AJABAJgBkwGgAZMBqgEDMC4xuAEDyAEA-AEBmAIBoAKZAZgDAJIHAzAuMaAHrASyBwMwLjG4B5kBwgcDMi0xyAcEgAgB&sclient=gws-wiz&sei=BaM3aoXkJ62MseMPv_jL0A4",
+        "title": "react - Google Search",
+        "timestamp": "2026-06-21T08:38:44.078Z"
+      },
+      {
+        "url": "https://github.com/",
+        "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
+        "timestamp": "2026-06-21T08:38:50.001Z"
+      }
+    ],
+    "openQuestions": [],
+    "completedQuestions": [],
+    "executionSummary": {
+      "objectivesCompleted": 1,
+      "factsCollected": 0,
+      "entitiesDiscovered": 0,
+      "pagesVisited": 2,
+      "unresolvedQuestions": []
+    }
+  },
+  "stateType": "WAITING_FOR_MANUAL_ACTION",
+  "transition": {
+    "id": "home_to_results",
+    "legacyId": "github_home_to_github_results",
+    "desiredState": "results",
+    "state": "results",
+    "legacyDesiredState": "results",
+    "platform": "github",
+    "parameters": {
+      "query": "react"
+    },
+    "score": 0.75,
+    "confidence": 0.65
+  },
+  "savedAt": "2026-06-21T08:39:21.240Z"
+}
