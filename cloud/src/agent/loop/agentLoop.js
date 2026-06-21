@@ -3,19 +3,15 @@ import { llmCallCount } from "../../llm/provider.js";
 import { updateWorldModel, addFinding } from "../../world/worldModel.js";
 import { extractDataFromPage } from "../../reasoning/extractor.js";
 import { setIntent, setGoal, setPlan, setObservation } from "../state/state.js";
-import { parseIntent } from "../../reasoning/intentParser.js";
-import { planObjectives } from "../../reasoning/planner.js";
 import { resolveCurrentState } from "../../world/currentStateResolver.js";
 import { understandPage } from "../../world/pageUnderstanding.js";
 import { initTracker } from "../../reasoning/objectiveTracker.js";
-import { verifyObjective } from "../../verification/objectiveVerifier.js";
+import { verifyGoal } from "../../verification/objectiveVerifier.js";
 import { createExecutionContext, generateExecutionSummary } from "../../world/executionContext.js";
-import { loadAgentSession } from "../state/agentSession.js";
-
-import { processObjectives } from "./objectiveLoop.js";
-import { processTransitions } from "./transitionLoop.js";
-import { selectCapabilityAndPlan } from "./executionLoop.js";
-import { handleCapabilityFailure, executeAndVerify, handleNoCapabilityMatched } from "./verificationLoop.js";
+import { loadAgentSession, saveAgentSession } from "../state/agentSession.js";
+import { reasonNextActions } from "../../reasoning/browserReasoner.js";
+import { routeCapability } from "../../capabilities/router.js";
+import { determineRecovery } from "../recovery/recovery.js";
 
 function printMetrics(goal, startTime, startLlmCalls) {
   const durationSec = ((Date.now() - startTime) / 1000).toFixed(1);
@@ -93,53 +89,16 @@ async function _runAgentInternal({
 
   let latestObs = initObs || goal.world?.history?.[goal.world.history.length - 1]?.observation;
   let browserState = latestObs?.pageState || latestObs || {};
-  const initialResolvedState = resolveCurrentState(browserState);
-  const initialPageUnderstanding = understandPage(browserState, initialResolvedState);
-  const browserContext = {
-    currentPlatform: initialResolvedState.platform !== "generic" ? initialResolvedState.platform : browserState.site,
-    currentState: initialResolvedState.currentState,
-    semanticState: initialResolvedState.semanticState,
-    currentPageType: browserState.pageType,
-    currentUrl: browserState.url,
-    currentTitle: browserState.title,
-    capabilities: browserState.capabilities || [],
-    pageUnderstanding: initialPageUnderstanding
-  };
-
-  const preIntentCalls = llmCallCount;
-  const intent = await parseIntent(goal.objective, browserContext);
-  goal.metrics.intent_calls = llmCallCount - preIntentCalls;
-  goal.intent = intent;
-  setIntent(intent);
-  console.log(`[INTENT]\n${goal.objective}\n→ intent=${intent.intent || ""}\n→ platform=${intent.platform || ""}`);
-
-  const prePlanningCalls = llmCallCount;
-  const objectives = await planObjectives(goal.objective, intent, browserContext);
-  goal.metrics.planning_calls = llmCallCount - prePlanningCalls;
-  console.log(`[OBJECTIVE]\n${objectives.map(o => o.desiredState).join(" → ")}`);
-  goal.objectives = objectives;
-  goal.tracker = initTracker(objectives);
-
+  
+  // Set initial states in context
   let context = createExecutionContext(goal);
-  const savedSession = loadAgentSession(goal.id);
-  if (savedSession) {
-    console.log(`[AGENT] Resuming from saved session of type: ${savedSession.stateType}`);
-    goal.tracker = savedSession.tracker;
-    context = savedSession.context;
-  } else {
-    for (const obj of objectives) {
-      if (obj.openQuestions) {
-        context.openQuestions.push(...obj.openQuestions);
-      }
-    }
-  }
   goal.context = context;
+  goal.tracker = initTracker([{ desiredState: "goal_completed", objective: goal.objective }]);
 
-  const finalObj = goal.tracker.objectives[goal.tracker.objectives.length - 1];
-  if (verifyObjective(finalObj, browserState)) {
-    console.log(`[GOAL COMPLETE] Initial browser state already satisfies the final desired state: ${finalObj.desiredState}. Stopping execution immediately.`);
+  // Check if initial page state satisfies goal
+  if (verifyGoal(goal.objective, browserState, goal.world)) {
+    console.log(`[GOAL COMPLETE] Initial browser state already satisfies the goal. Stopping execution.`);
     const summary = generateExecutionSummary(context, goal.tracker);
-    console.log("EXECUTION SUMMARY:", JSON.stringify(summary, null, 2));
     return {
       success: true,
       confidence: 1.0,
@@ -148,154 +107,132 @@ async function _runAgentInternal({
     };
   }
 
-  let totalActions = { val: 0 };
   const MAX_GOAL_ACTIONS = 30;
   goal.blacklistedCapabilities = [];
-  
-  const failedTransitions = {}; 
-  const transitionRetries = {};
-  const objectiveRetries = {};
-  let totalGoalRetries = { val: 0 };
-  let lastResolvedState = { val: null };
+  let retryCount = 0;
+  let lastAction = null;
 
-  const transitionAuditHistory = [];
-
-  while (true) {
-    const objResult = await processObjectives({
-      goal,
+  while (goal.metrics.totalActions < MAX_GOAL_ACTIONS) {
+    const pageUnderstanding = understandPage(browserState);
+    
+    // Reason next actions
+    const candidates = reasonNextActions({
+      goal: goal.objective,
+      pageUnderstanding,
       browserState,
-      latestObs,
-      intent,
-      context,
-      lastResolvedState
+      history: goal.world.failedActionHistory || []
     });
 
-    if (objResult.shouldExit) {
-      return objResult.exitValue;
-    }
-    if (objResult.shouldContinue) {
-      lastResolvedState.val = objResult.resolvedCurState;
+    const bestCandidate = candidates[0];
+
+    // If no candidate, or score is too low, attempt recovery
+    if (!bestCandidate || bestCandidate.score < 20) {
+      console.log(`[AGENT] Low confidence action score (${bestCandidate?.score || 0}). Running diagnoser recovery.`);
+      const recoveryActions = determineRecovery(lastAction, browserState, null, retryCount);
+
+      if (recoveryActions && recoveryActions.escalate) {
+        console.log(`[RECOVERY ESCALATION] Escalating to: ${recoveryActions.state}`);
+        const summary = generateExecutionSummary(context, goal.tracker);
+        saveAgentSession(goal, goal.tracker, context, recoveryActions.state);
+        return {
+          success: false,
+          reason: recoveryActions.state,
+          observation: latestObs,
+          contextSummary: summary
+        };
+      }
+
+      console.log(`[RECOVERY] Executing recovery actions.`);
+      const recPlan = createPlan(goal.id, recoveryActions);
+      const recResult = await executePlan(recPlan);
+      latestObs = recResult?.observations?.[recResult.observations.length - 1] || latestObs;
+      browserState = latestObs?.pageState || latestObs || {};
+      updateWorldModel(goal, latestObs);
+      retryCount++;
       continue;
     }
 
-    const { resolvedCurState, currentObj } = objResult;
-
-    const transResult = processTransitions({
-      goal,
-      resolvedCurState,
-      currentObj,
-      failedTransitions,
-      latestObs,
-      context,
-      totalActions: totalActions.val,
-      MAX_GOAL_ACTIONS
-    });
-
-    if (transResult.shouldExit) {
-      return transResult.exitValue;
-    }
-
-    const { activeTransition } = transResult;
-
-    const { capability, plan } = selectCapabilityAndPlan({
-      goal,
-      activeTransition,
-      browserState,
-      currentObj
-    });
-
-    if (capability && !plan) {
-      const failResult = await handleCapabilityFailure({
-        goal,
-        activeTransition,
-        currentObj,
-        browserState,
-        latestObs,
-        context,
-        transitionRetries,
-        objectiveRetries,
-        totalGoalRetries,
-        failedTransitions,
-        executePlan,
-        totalActions,
-        capability
-      });
-
-      if (failResult.shouldExit) {
-        return failResult.exitValue;
-      }
-      latestObs = failResult.latestObs;
-      browserState = failResult.browserState;
-    }
-
-    if (plan) {
-      const execResult = await executeAndVerify({
-        goal,
-        activeTransition,
-        currentObj,
-        browserState,
-        latestObs,
-        context,
-        plan,
-        capability,
-        executePlan,
-        totalActions,
-        lastResolvedState,
-        resolvedCurState,
-        transitionAuditHistory,
-        transitionRetries,
-        objectiveRetries,
-        totalGoalRetries,
-        failedTransitions
-      });
-
-      if (execResult.shouldExit) {
-        return execResult.exitValue;
-      }
-      if (execResult.shouldContinue) {
-        latestObs = execResult.latestObs;
-        browserState = execResult.browserState;
-        continue;
-      }
-      latestObs = execResult.latestObs;
-      browserState = execResult.browserState;
-    }
-
-    if (!capability) {
-      const noCapResult = await handleNoCapabilityMatched({
-        goal,
-        activeTransition,
-        browserState,
-        latestObs,
-        executePlan,
-        totalActions
-      });
-
-      if (noCapResult.shouldExit) {
-        return noCapResult.exitValue;
-      }
-      if (noCapResult.shouldContinue) {
-        latestObs = noCapResult.latestObs;
-        browserState = noCapResult.browserState;
-        continue;
+    // Execute best candidate action
+    console.log(`[AGENT] Executing action: "${bestCandidate.label}" (score: ${bestCandidate.score})`);
+    
+    // Route capability to register executor usage
+    for (const action of bestCandidate.actions) {
+      const cap = routeCapability(action.type, goal.blacklistedCapabilities);
+      if (cap) {
+        cap.executions++;
       }
     }
 
-    if (activeTransition.desiredState === "information_extracted" && latestObs?.success) {
+    const plan = createPlan(goal.id, bestCandidate.actions);
+    const result = await executePlan(plan);
+    latestObs = result?.observations?.[result.observations.length - 1] || latestObs;
+    browserState = latestObs?.pageState || latestObs || {};
+    lastAction = bestCandidate.actions[0];
+
+    // Update world model
+    updateWorldModel(goal, latestObs);
+
+    // Extraction handling
+    if (bestCandidate.type === "extract" && latestObs?.success) {
       const pageText = browserState.text || "";
-      const queryText = activeTransition.parameters?.query || "";
-      const sourceUrl = browserState.url || "";
-      const sourceTitle = browserState.title || "";
-      
-      console.log(`[EXTRACT] Extracting data for query: "${queryText}"...`);
-      const extractedData = await extractDataFromPage(pageText, queryText);
-      
+      const cleanQuery = bestCandidate.actions[0]?.params?.query || goal.objective;
+      console.log(`[EXTRACT] Extracting data for query: "${cleanQuery}"...`);
+      const extractedData = await extractDataFromPage(pageText, cleanQuery);
       addFinding(goal, {
-        query: queryText,
+        query: cleanQuery,
         data: extractedData,
-        source: { url: sourceUrl, title: sourceTitle }
+        source: { url: browserState.url || "", title: browserState.title || "" }
       });
       console.log(`[EXTRACT] Finding added to world model:`, JSON.stringify(extractedData));
     }
+
+    // Check if goal achieved
+    if (verifyGoal(goal.objective, browserState, goal.world)) {
+      console.log(`[GOAL COMPLETE] Overall goal satisfied.`);
+      const summary = generateExecutionSummary(context, goal.tracker);
+      return {
+        success: true,
+        confidence: 0.95,
+        observation: latestObs,
+        contextSummary: summary
+      };
+    }
+
+    // Check if execution failed
+    if (result.success === false || latestObs?.success === false) {
+      console.log(`[AGENT] Action failed. Diagnosing...`);
+      const recoveryActions = determineRecovery(lastAction, browserState, null, retryCount);
+
+      if (recoveryActions && recoveryActions.escalate) {
+        console.log(`[RECOVERY ESCALATION] Escalating to: ${recoveryActions.state}`);
+        const summary = generateExecutionSummary(context, goal.tracker);
+        saveAgentSession(goal, goal.tracker, context, recoveryActions.state);
+        return {
+          success: false,
+          reason: recoveryActions.state,
+          observation: latestObs,
+          contextSummary: summary
+        };
+      }
+
+      const recPlan = createPlan(goal.id, recoveryActions);
+      const recResult = await executePlan(recPlan);
+      latestObs = recResult?.observations?.[recResult.observations.length - 1] || latestObs;
+      browserState = latestObs?.pageState || latestObs || {};
+      updateWorldModel(goal, latestObs);
+      retryCount++;
+    } else {
+      // Reset retry count on successful action execution
+      retryCount = 0;
+    }
   }
+
+  console.log(`[BUDGET] Goal action limit reached.`);
+  const summary = generateExecutionSummary(context, goal.tracker);
+  return {
+    success: false,
+    reason: "goal_action_budget_exceeded",
+    observation: latestObs,
+    contextSummary: summary
+  };
 }

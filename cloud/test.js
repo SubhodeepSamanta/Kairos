@@ -1,17 +1,19 @@
 import { createGoal } from "./src/shared/schemas/goal.js";
-import { createGoalPlan } from "./src/reasoning/planner.js";
+import { reasonNextActions } from "./src/reasoning/browserReasoner.js";
 
-const goal = createGoal(
-  "open youtube.com"
-);
+const goal = createGoal("open youtube.com");
+console.log("Goal created:", goal.objective);
 
-const plan =
-  await createGoalPlan(goal);
+const pageUnderstanding = {
+  pagePurpose: "search interface",
+  importantElements: [],
+  constraints: []
+};
 
-console.log(
-  JSON.stringify(
-    plan,
-    null,
-    2
-  )
-);
+const actions = reasonNextActions({
+  goal: goal.objective,
+  pageUnderstanding,
+  worldState: {}
+});
+
+console.log("Next action candidates:", JSON.stringify(actions, null, 2));

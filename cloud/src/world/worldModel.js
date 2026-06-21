@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { understandPage } from "./pageUnderstanding.js";
 
 export function computeStateHash(pageState) {
   if (!pageState) return null;
@@ -75,8 +76,33 @@ export function updateWorldModel(
     world.lastStateHash = stateHash;
   }
 
+  // 1. Upgrade: Track page understandings cache
+  world.recentPageUnderstandings = world.recentPageUnderstandings || [];
+  try {
+    const pageState = observation?.pageState || observation || {};
+    if (pageState.url && pageState.url !== "about:blank") {
+      const pageUnderstanding = understandPage(pageState);
+      world.recentPageUnderstandings.push(pageUnderstanding);
+      if (world.recentPageUnderstandings.length > 5) {
+        world.recentPageUnderstandings = world.recentPageUnderstandings.slice(-5);
+      }
+    }
+  } catch (e) {
+    console.error("[WORLD MODEL] Page understanding generation failed:", e);
+  }
+
   if (observation?.action) {
     world.lastAction = observation.action;
+    
+    // 2. Upgrade: Action history tracking
+    world.actionHistory = world.actionHistory || [];
+    world.actionHistory.push({
+      action: observation.action,
+      timestamp: Date.now()
+    });
+    if (world.actionHistory.length > 50) {
+      world.actionHistory = world.actionHistory.slice(-50);
+    }
     
     const historyLen = world.history.length;
     let outcome = "success";
@@ -115,6 +141,15 @@ export function updateWorldModel(
         world.failedActionHistory = world.failedActionHistory.slice(-20);
       }
     }
+
+    // 3. Upgrade: Progress Indicators
+    world.progressIndicators = world.progressIndicators || { totalActions: 0, unchangedPagesCount: 0 };
+    world.progressIndicators.totalActions++;
+    if (outcome === "page unchanged") {
+      world.progressIndicators.unchangedPagesCount++;
+    } else {
+      world.progressIndicators.unchangedPagesCount = 0;
+    }
   }
 
   const finalState = {
@@ -129,7 +164,8 @@ export function updateWorldModel(
       url: observation?.pageState?.url || observation?.url,
       title: observation?.pageState?.title || observation?.title
     },
-    finalState
+    finalState,
+    progressIndicators: world.progressIndicators
   }, null, 2));
 }
 
@@ -205,6 +241,13 @@ export function getWorldSummary(
     parts.push(`Current Title: ${w.lastTitle}`);
   }
 
+  // 4. Upgrade: Add Page Purpose/Workflow info to summary
+  if (w.recentPageUnderstandings?.length > 0) {
+    const latest = w.recentPageUnderstandings[w.recentPageUnderstandings.length - 1];
+    parts.push(`Page Purpose: ${latest.pagePurpose}`);
+    parts.push(`Page Summary: ${latest.pageSummary}`);
+  }
+
   if (w.completedTasks.length > 0) {
     parts.push(
       `Completed tasks: ${w.completedTasks.map(t => `${t.objective}`).join(", ")}`
@@ -241,6 +284,10 @@ export function getWorldSummary(
     parts.push(
       `Failed Actions: ${w.failedActionHistory.map(f => `${f.action.type}(${JSON.stringify(f.action.params)}): ${f.reason}`).join(", ")}`
     );
+  }
+
+  if (w.progressIndicators) {
+    parts.push(`Progress Indicators: totalActions=${w.progressIndicators.totalActions}, unchangedPagesCount=${w.progressIndicators.unchangedPagesCount}`);
   }
 
   return parts.join("\n");

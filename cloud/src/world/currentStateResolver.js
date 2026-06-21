@@ -8,24 +8,33 @@ function resolveSemanticPageState(browser, url, pageType) {
   const text = `${browser.title || ""} ${browser.text || ""}`.toLowerCase();
 
   const evidence = `${pageType} ${[...semanticTypes].join(" ")} ${capabilities.join(" ")}`;
-  // Container/page semantics take precedence over the entity cards they contain.
-  // A results page with repository_item or video_item children is still search_results.
+
+  // Prioritize explicit content/detail types
+  if (/details|product|item|article|post|view/.test(pageType) || semanticTypes.has("product_item") || semanticTypes.has("repository_item")) {
+    if (/repository/.test(evidence)) return "repository_page";
+    if (/product/.test(evidence)) return "product_page";
+    return "content_page";
+  }
+  if (/video|watch|media/.test(evidence) || capabilities.includes("media_available") || /watch|shorts/.test(url)) {
+    return "video_page";
+  }
+
   if (/results|search/.test(pageType) || capabilities.includes("results_available")) return "search_results";
-  if (/\/search|\/results|[?&](q|query|search_query)=/.test(url)) return "search_results";
+  
+  let pathname = "";
+  try {
+    pathname = new URL(url).pathname.toLowerCase();
+  } catch (e) {}
+
+  if (/\/search|\/results/.test(pathname)) return "search_results";
 
   if (/checkout|payment/.test(evidence) || semanticTypes.has("checkout_action")) return "checkout_page";
-  if (/repository/.test(evidence) || semanticTypes.has("repository_item")) return "repository_page";
-  if (/channel/.test(evidence) || semanticTypes.has("channel_item")) return "channel_page";
-  if (/product/.test(evidence) || semanticTypes.has("product_item")) return "product_page";
   if (/profile/.test(evidence) || semanticTypes.has("profile_content")) return "profile_page";
   if (/settings|preferences/.test(evidence) || semanticTypes.has("settings_control")) return "settings_page";
   if (/login|sign.?in|auth/.test(evidence) || capabilities.includes("authentication_available")) return "login_page";
-  if (/video|watch|media/.test(evidence) || capabilities.includes("media_available")) return "video_page";
 
-  // URL/text are fallback evidence when the observer has not classified the page.
   if (/\/settings|\/preferences/.test(url)) return "settings_page";
   if (/\/login|\/signin|\/auth/.test(url)) return "login_page";
-  if (/\/watch|\/shorts\//.test(url)) return "video_page";
   if (/sign in|log in/.test(text) && browser.inputs?.some(input => input.type === "password")) return "login_page";
   return "content_page";
 }
@@ -79,20 +88,12 @@ export function resolveCurrentState(observation, previousResolvedState = null) {
     "instagram": "social_site"
   };
 
-  if (url.includes("github.com")) {
-    platform = "github";
-  } else if (url.includes("youtube.com") || url.includes("youtu.be")) {
-    platform = "youtube";
-  } else if (url.includes("amazon.com")) {
-    platform = "amazon";
-  } else if (url.includes("google.com")) {
-    platform = "google";
-  } else if (url.includes("linkedin.com")) {
-    platform = "linkedin";
-  } else if (url && url !== "about:blank") {
+  // Derive platform dynamically from hostname
+  if (url && url !== "about:blank") {
     try {
       const host = new URL(url).hostname;
       platform = host.replace("www.", "").split(".")[0] || "generic";
+      if (platform === "youtu") platform = "youtube";
     } catch (e) {
       platform = "generic";
     }
@@ -191,40 +192,40 @@ export function resolveCurrentState(observation, previousResolvedState = null) {
     }
   }
 
-    const legacyState = pageType.includes("logged_in")
-      ? "logged_in"
-      : (pageType.includes("video_playing") ? "video_playing" : currentState);
+  const legacyState = pageType.includes("logged_in")
+    ? "logged_in"
+    : (pageType.includes("video_playing") ? "video_playing" : currentState);
 
-    const resolvedState = {
-      platform,
-      environment,
-      currentState,
-      state: currentState,
-      legacyState,
-      semanticState,
-      parameters: {
-        query,
-        url
-      }
-    };
-
-    const normalizedResolvedState = normalizeResolvedState(resolvedState);
-
-    const stateChanged = !previousResolvedState ||
-      previousResolvedState.currentState !== normalizedResolvedState.currentState ||
-      previousResolvedState.platform !== normalizedResolvedState.platform ||
-      previousResolvedState.semanticState !== normalizedResolvedState.semanticState;
-
-    if (stateChanged) {
-      console.log(`[STATE RESOLVER] platform="${normalizedResolvedState.platform}" currentState="${normalizedResolvedState.currentState}" semanticState="${normalizedResolvedState.semanticState}"`);
-    } else if (isDebug()) {
-      console.log(`[SEMANTIC STATE] legacyState="${currentState}" semanticState="${semanticState}"`);
+  const resolvedState = {
+    platform,
+    environment,
+    currentState,
+    state: currentState,
+    legacyState,
+    semanticState,
+    parameters: {
+      query,
+      url
     }
+  };
 
-    if (isDebug()) {
-      console.log("[STATE RESOLVER OUTPUT]");
-      console.log(JSON.stringify(normalizedResolvedState, null, 2));
-    }
+  const normalizedResolvedState = normalizeResolvedState(resolvedState);
 
-    return normalizedResolvedState;
+  const stateChanged = !previousResolvedState ||
+    previousResolvedState.currentState !== normalizedResolvedState.currentState ||
+    previousResolvedState.platform !== normalizedResolvedState.platform ||
+    previousResolvedState.semanticState !== normalizedResolvedState.semanticState;
+
+  if (stateChanged) {
+    console.log(`[STATE RESOLVER] platform="${normalizedResolvedState.platform}" currentState="${normalizedResolvedState.currentState}" semanticState="${normalizedResolvedState.semanticState}"`);
+  } else if (isDebug()) {
+    console.log(`[SEMANTIC STATE] legacyState="${currentState}" semanticState="${semanticState}"`);
+  }
+
+  if (isDebug()) {
+    console.log("[STATE RESOLVER OUTPUT]");
+    console.log(JSON.stringify(normalizedResolvedState, null, 2));
+  }
+
+  return normalizedResolvedState;
 }

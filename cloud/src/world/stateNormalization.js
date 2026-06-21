@@ -26,6 +26,12 @@ const GENERIC_STATES = new Set([
   "information_extracted",
   "result_selected",
   "product_details",
+  "reach_entry_point",
+  "locate_target",
+  "interact_with_target",
+  "authenticate_user",
+  "configure_settings",
+  "extract_information",
   "new_tab",
   "switch_tab",
   "close_tab"
@@ -99,7 +105,19 @@ export function toLegacyCapabilityTransition(transition = {}) {
   const normalized = normalizeTransition(transition);
   let desiredState = normalized.desiredState;
 
-  if (desiredState === "content") {
+  if (desiredState === "reach_entry_point") {
+    desiredState = "home";
+  } else if (desiredState === "locate_target") {
+    desiredState = "results";
+  } else if (desiredState === "interact_with_target") {
+    desiredState = normalized.platform === "youtube" ? "video_playing" : "result_selected";
+  } else if (desiredState === "authenticate_user") {
+    desiredState = "login";
+  } else if (desiredState === "configure_settings") {
+    desiredState = "settings";
+  } else if (desiredState === "extract_information") {
+    desiredState = "information_extracted";
+  } else if (desiredState === "content") {
     desiredState = normalized.platform === "youtube" ? "video_playing" : "result_selected";
   } else if (desiredState === "login") {
     desiredState = "logged_in";

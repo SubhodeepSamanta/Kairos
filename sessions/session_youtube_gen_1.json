@@ -1,0 +1,1947 @@
+{
+  "goalId": "youtube_gen_1",
+  "goalObjective": "play first video of react on youtube",
+  "tracker": {
+    "objectives": [
+      {
+        "id": "obj1",
+        "desiredState": "reach_entry_point",
+        "semanticTarget": null,
+        "platform": "generic",
+        "description": "Milestone: reach_entry_point",
+        "requiredAction": null,
+        "requiredInformation": null,
+        "parameters": {
+          "goal": "play first video of react on youtube",
+          "url": "generic"
+        },
+        "successConditions": [
+          "milestone reach_entry_point achieved"
+        ],
+        "priority": 3,
+        "dependencies": [],
+        "confidence": 0.8,
+        "openQuestions": [],
+        "attempts": 2,
+        "achieved": true
+      },
+      {
+        "id": "obj2",
+        "desiredState": "reach_entry_point",
+        "semanticTarget": null,
+        "platform": "google",
+        "description": "Milestone: reach_entry_point",
+        "requiredAction": null,
+        "requiredInformation": null,
+        "parameters": {
+          "goal": "play first video of react on youtube",
+          "url": "google"
+        },
+        "successConditions": [
+          "milestone reach_entry_point achieved"
+        ],
+        "priority": 3,
+        "dependencies": [
+          "obj1"
+        ],
+        "confidence": 0.8,
+        "openQuestions": [],
+        "attempts": null,
+        "achieved": true
+      },
+      {
+        "id": "obj3",
+        "desiredState": "reach_entry_point",
+        "semanticTarget": null,
+        "platform": "generic",
+        "description": "Milestone: reach_entry_point",
+        "requiredAction": null,
+        "requiredInformation": null,
+        "parameters": {
+          "goal": "play first video of react on youtube",
+          "url": "generic"
+        },
+        "successConditions": [
+          "milestone reach_entry_point achieved"
+        ],
+        "priority": 3,
+        "dependencies": [
+          "obj2"
+        ],
+        "confidence": 0.8,
+        "openQuestions": [],
+        "attempts": null,
+        "achieved": true
+      },
+      {
+        "id": "obj4",
+        "desiredState": "reach_entry_point",
+        "semanticTarget": null,
+        "platform": "google",
+        "description": "Milestone: reach_entry_point",
+        "requiredAction": null,
+        "requiredInformation": null,
+        "parameters": {
+          "goal": "play first video of react on youtube",
+          "url": "google"
+        },
+        "successConditions": [
+          "milestone reach_entry_point achieved"
+        ],
+        "priority": 3,
+        "dependencies": [
+          "obj3"
+        ],
+        "confidence": 0.8,
+        "openQuestions": [],
+        "attempts": null,
+        "achieved": true
+      },
+      {
+        "id": "obj5",
+        "desiredState": "reach_entry_point",
+        "semanticTarget": null,
+        "platform": "generic",
+        "description": "Milestone: reach_entry_point",
+        "requiredAction": null,
+        "requiredInformation": null,
+        "parameters": {
+          "goal": "play first video of react on youtube",
+          "url": "generic"
+        },
+        "successConditions": [
+          "milestone reach_entry_point achieved"
+        ],
+        "priority": 3,
+        "dependencies": [
+          "obj4"
+        ],
+        "confidence": 0.8,
+        "openQuestions": [],
+        "attempts": null,
+        "achieved": true
+      },
+      {
+        "id": "obj6",
+        "desiredState": "reach_entry_point",
+        "semanticTarget": null,
+        "platform": "google",
+        "description": "Milestone: reach_entry_point",
+        "requiredAction": null,
+        "requiredInformation": null,
+        "parameters": {
+          "goal": "play first video of react on youtube",
+          "url": "google"
+        },
+        "successConditions": [
+          "milestone reach_entry_point achieved"
+        ],
+        "priority": 3,
+        "dependencies": [
+          "obj5"
+        ],
+        "confidence": 0.8,
+        "openQuestions": [],
+        "attempts": null,
+        "achieved": true
+      },
+      {
+        "id": "obj7",
+        "desiredState": "locate_target",
+        "semanticTarget": null,
+        "platform": "google",
+        "description": "Milestone: locate_target",
+        "requiredAction": null,
+        "requiredInformation": null,
+        "parameters": {
+          "goal": "play first video of react on youtube",
+          "query": "play first video of react on youtube"
+        },
+        "successConditions": [
+          "milestone locate_target achieved"
+        ],
+        "priority": 2,
+        "dependencies": [
+          "obj6"
+        ],
+        "confidence": 0.8,
+        "openQuestions": [],
+        "attempts": null
+      },
+      {
+        "id": "obj8",
+        "desiredState": "interact_with_target",
+        "semanticTarget": null,
+        "platform": "google",
+        "description": "Milestone: interact_with_target",
+        "requiredAction": null,
+        "requiredInformation": null,
+        "parameters": {
+          "goal": "play first video of react on youtube"
+        },
+        "successConditions": [
+          "milestone interact_with_target achieved"
+        ],
+        "priority": 1,
+        "dependencies": [
+          "obj7"
+        ],
+        "confidence": 0.8,
+        "openQuestions": []
+      }
+    ],
+    "currentIndex": 6,
+    "visitedStates": [
+      "generic:content",
+      "generic:blank",
+      "google:home"
+    ],
+    "transitionHistory": [
+      {
+        "transitionId": "content_to_interact_with_target",
+        "from": {
+          "val": {
+            "platform": "generic",
+            "environment": "generic",
+            "currentState": "blank",
+            "state": "blank",
+            "legacyState": "blank",
+            "semanticState": "content_viewing",
+            "parameters": {
+              "query": "",
+              "url": "about:blank"
+            }
+          },
+          "platform": "generic",
+          "currentState": "content",
+          "state": "content"
+        },
+        "to": {
+          "platform": "generic",
+          "environment": "generic",
+          "currentState": "blank",
+          "state": "blank",
+          "legacyState": "blank",
+          "semanticState": "content_viewing",
+          "parameters": {
+            "query": "",
+            "url": "about:blank"
+          }
+        },
+        "timestamp": "2026-06-21T11:14:06.609Z"
+      },
+      {
+        "transitionId": "content_to_interact_with_target",
+        "from": {
+          "val": {
+            "platform": "generic",
+            "environment": "generic",
+            "currentState": "blank",
+            "state": "blank",
+            "legacyState": "blank",
+            "semanticState": "content_viewing",
+            "parameters": {
+              "query": "",
+              "url": "about:blank"
+            }
+          },
+          "platform": "generic",
+          "currentState": "content",
+          "state": "content"
+        },
+        "to": {
+          "platform": "generic",
+          "environment": "generic",
+          "currentState": "blank",
+          "state": "blank",
+          "legacyState": "blank",
+          "semanticState": "content_viewing",
+          "parameters": {
+            "query": "",
+            "url": "about:blank"
+          }
+        },
+        "timestamp": "2026-06-21T11:14:06.610Z"
+      },
+      {
+        "transitionId": "content_to_interact_with_target",
+        "from": {
+          "val": {
+            "platform": "generic",
+            "environment": "generic",
+            "currentState": "blank",
+            "state": "blank",
+            "legacyState": "blank",
+            "semanticState": "content_viewing",
+            "parameters": {
+              "query": "",
+              "url": "about:blank"
+            }
+          },
+          "platform": "generic",
+          "currentState": "content",
+          "state": "content"
+        },
+        "to": {
+          "platform": "generic",
+          "environment": "generic",
+          "currentState": "blank",
+          "state": "blank",
+          "legacyState": "blank",
+          "semanticState": "content_viewing",
+          "parameters": {
+            "query": "",
+            "url": "about:blank"
+          }
+        },
+        "timestamp": "2026-06-21T11:14:06.612Z"
+      },
+      {
+        "transitionId": "content_to_interact_with_target",
+        "from": {
+          "val": {
+            "platform": "generic",
+            "environment": "generic",
+            "currentState": "blank",
+            "state": "blank",
+            "legacyState": "blank",
+            "semanticState": "content_viewing",
+            "parameters": {
+              "query": "",
+              "url": "about:blank"
+            }
+          },
+          "platform": "generic",
+          "currentState": "content",
+          "state": "content"
+        },
+        "to": {
+          "platform": "generic",
+          "environment": "generic",
+          "currentState": "blank",
+          "state": "blank",
+          "legacyState": "blank",
+          "semanticState": "content_viewing",
+          "parameters": {
+            "query": "",
+            "url": "about:blank"
+          }
+        },
+        "timestamp": "2026-06-21T11:14:06.835Z"
+      },
+      {
+        "transitionId": "content_to_interact_with_target",
+        "from": {
+          "val": {
+            "platform": "generic",
+            "environment": "generic",
+            "currentState": "blank",
+            "state": "blank",
+            "legacyState": "blank",
+            "semanticState": "content_viewing",
+            "parameters": {
+              "query": "",
+              "url": "about:blank"
+            }
+          },
+          "platform": "generic",
+          "currentState": "content",
+          "state": "content"
+        },
+        "to": {
+          "platform": "generic",
+          "environment": "generic",
+          "currentState": "blank",
+          "state": "blank",
+          "legacyState": "blank",
+          "semanticState": "content_viewing",
+          "parameters": {
+            "query": "",
+            "url": "about:blank"
+          }
+        },
+        "timestamp": "2026-06-21T11:14:07.069Z"
+      },
+      {
+        "transitionId": "content_to_interact_with_target",
+        "from": {
+          "val": {
+            "platform": "generic",
+            "environment": "generic",
+            "currentState": "blank",
+            "state": "blank",
+            "legacyState": "blank",
+            "semanticState": "content_viewing",
+            "parameters": {
+              "query": "",
+              "url": "about:blank"
+            }
+          },
+          "platform": "generic",
+          "currentState": "content",
+          "state": "content"
+        },
+        "to": {
+          "platform": "generic",
+          "environment": "generic",
+          "currentState": "blank",
+          "state": "blank",
+          "legacyState": "blank",
+          "semanticState": "content_viewing",
+          "parameters": {
+            "query": "",
+            "url": "about:blank"
+          }
+        },
+        "timestamp": "2026-06-21T11:14:16.585Z"
+      },
+      {
+        "transitionId": "content_to_interact_with_target",
+        "from": {
+          "val": {
+            "platform": "generic",
+            "environment": "generic",
+            "currentState": "blank",
+            "state": "blank",
+            "legacyState": "blank",
+            "semanticState": "content_viewing",
+            "parameters": {
+              "query": "",
+              "url": "about:blank"
+            }
+          },
+          "platform": "generic",
+          "currentState": "content",
+          "state": "content"
+        },
+        "to": {
+          "platform": "generic",
+          "environment": "generic",
+          "currentState": "blank",
+          "state": "blank",
+          "legacyState": "blank",
+          "semanticState": "content_viewing",
+          "parameters": {
+            "query": "",
+            "url": "about:blank"
+          }
+        },
+        "timestamp": "2026-06-21T11:14:16.586Z"
+      },
+      {
+        "transitionId": "content_to_interact_with_target",
+        "from": {
+          "val": {
+            "platform": "generic",
+            "environment": "generic",
+            "currentState": "blank",
+            "state": "blank",
+            "legacyState": "blank",
+            "semanticState": "content_viewing",
+            "parameters": {
+              "query": "",
+              "url": "about:blank"
+            }
+          },
+          "platform": "generic",
+          "currentState": "content",
+          "state": "content"
+        },
+        "to": {
+          "platform": "generic",
+          "environment": "generic",
+          "currentState": "blank",
+          "state": "blank",
+          "legacyState": "blank",
+          "semanticState": "content_viewing",
+          "parameters": {
+            "query": "",
+            "url": "about:blank"
+          }
+        },
+        "timestamp": "2026-06-21T11:14:16.588Z"
+      },
+      {
+        "transitionId": "content_to_reach_entry_point",
+        "from": {
+          "val": {
+            "platform": "generic",
+            "environment": "generic",
+            "currentState": "blank",
+            "state": "blank",
+            "legacyState": "blank",
+            "semanticState": "content_viewing",
+            "parameters": {
+              "query": "",
+              "url": "about:blank"
+            }
+          },
+          "platform": "generic",
+          "currentState": "content",
+          "state": "content"
+        },
+        "to": {
+          "platform": "generic",
+          "environment": "generic",
+          "currentState": "blank",
+          "state": "blank",
+          "legacyState": "blank",
+          "semanticState": "content_viewing",
+          "parameters": {
+            "query": "",
+            "url": "about:blank"
+          }
+        },
+        "timestamp": "2026-06-21T11:14:16.816Z"
+      },
+      {
+        "transitionId": "content_to_reach_entry_point",
+        "from": {
+          "val": {
+            "platform": "generic",
+            "environment": "generic",
+            "currentState": "blank",
+            "state": "blank",
+            "legacyState": "blank",
+            "semanticState": "content_viewing",
+            "parameters": {
+              "query": "",
+              "url": "about:blank"
+            }
+          },
+          "platform": "generic",
+          "currentState": "content",
+          "state": "content"
+        },
+        "to": {
+          "platform": "generic",
+          "environment": "generic",
+          "currentState": "blank",
+          "state": "blank",
+          "legacyState": "blank",
+          "semanticState": "content_viewing",
+          "parameters": {
+            "query": "",
+            "url": "about:blank"
+          }
+        },
+        "timestamp": "2026-06-21T11:14:16.817Z"
+      },
+      {
+        "transitionId": "content_to_reach_entry_point",
+        "from": {
+          "val": {
+            "platform": "google",
+            "environment": "search_site",
+            "currentState": "home",
+            "state": "home",
+            "legacyState": "home",
+            "semanticState": "home_active",
+            "parameters": {
+              "query": "",
+              "url": "https://generic.com"
+            }
+          },
+          "platform": "generic",
+          "currentState": "content",
+          "state": "content"
+        },
+        "to": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://generic.com"
+          }
+        },
+        "timestamp": "2026-06-21T11:14:27.653Z"
+      },
+      {
+        "transitionId": "home_to_locate_target",
+        "from": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://generic.com"
+          }
+        },
+        "to": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://generic.com"
+          }
+        },
+        "timestamp": "2026-06-21T11:14:27.655Z"
+      },
+      {
+        "transitionId": "home_to_locate_target",
+        "from": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://generic.com"
+          }
+        },
+        "to": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://generic.com"
+          }
+        },
+        "timestamp": "2026-06-21T11:14:27.657Z"
+      },
+      {
+        "transitionId": "home_to_locate_target",
+        "from": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://generic.com"
+          }
+        },
+        "to": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://generic.com"
+          }
+        },
+        "timestamp": "2026-06-21T11:14:27.659Z"
+      },
+      {
+        "transitionId": "home_to_reach_entry_point",
+        "from": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://generic.com"
+          }
+        },
+        "to": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://google.com"
+          }
+        },
+        "timestamp": "2026-06-21T11:14:27.899Z"
+      },
+      {
+        "transitionId": "home_to_locate_target",
+        "from": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://google.com"
+          }
+        },
+        "to": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://google.com"
+          }
+        },
+        "timestamp": "2026-06-21T11:14:27.900Z"
+      },
+      {
+        "transitionId": "home_to_locate_target",
+        "from": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://google.com"
+          }
+        },
+        "to": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://google.com"
+          }
+        },
+        "timestamp": "2026-06-21T11:14:28.129Z"
+      },
+      {
+        "transitionId": "home_to_locate_target",
+        "from": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://google.com"
+          }
+        },
+        "to": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://google.com"
+          }
+        },
+        "timestamp": "2026-06-21T11:14:28.350Z"
+      },
+      {
+        "transitionId": "home_to_locate_target",
+        "from": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://google.com"
+          }
+        },
+        "to": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://google.com"
+          }
+        },
+        "timestamp": "2026-06-21T11:14:28.581Z"
+      },
+      {
+        "transitionId": "home_to_locate_target",
+        "from": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://google.com"
+          }
+        },
+        "to": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://google.com"
+          }
+        },
+        "timestamp": "2026-06-21T11:14:28.824Z"
+      },
+      {
+        "transitionId": "content_to_locate_target",
+        "from": {
+          "val": {
+            "platform": "generic",
+            "environment": "generic",
+            "currentState": "blank",
+            "state": "blank",
+            "legacyState": "blank",
+            "semanticState": "content_viewing",
+            "parameters": {
+              "query": "",
+              "url": "about:blank"
+            }
+          },
+          "platform": "generic",
+          "currentState": "content",
+          "state": "content"
+        },
+        "to": {
+          "platform": "generic",
+          "environment": "generic",
+          "currentState": "blank",
+          "state": "blank",
+          "legacyState": "blank",
+          "semanticState": "content_viewing",
+          "parameters": {
+            "query": "",
+            "url": "about:blank"
+          }
+        },
+        "timestamp": "2026-06-21T11:14:40.589Z"
+      },
+      {
+        "transitionId": "content_to_locate_target",
+        "from": {
+          "val": {
+            "platform": "generic",
+            "environment": "generic",
+            "currentState": "blank",
+            "state": "blank",
+            "legacyState": "blank",
+            "semanticState": "content_viewing",
+            "parameters": {
+              "query": "",
+              "url": "about:blank"
+            }
+          },
+          "platform": "generic",
+          "currentState": "content",
+          "state": "content"
+        },
+        "to": {
+          "platform": "generic",
+          "environment": "generic",
+          "currentState": "blank",
+          "state": "blank",
+          "legacyState": "blank",
+          "semanticState": "content_viewing",
+          "parameters": {
+            "query": "",
+            "url": "about:blank"
+          }
+        },
+        "timestamp": "2026-06-21T11:14:40.590Z"
+      },
+      {
+        "transitionId": "content_to_locate_target",
+        "from": {
+          "val": {
+            "platform": "generic",
+            "environment": "generic",
+            "currentState": "blank",
+            "state": "blank",
+            "legacyState": "blank",
+            "semanticState": "content_viewing",
+            "parameters": {
+              "query": "",
+              "url": "about:blank"
+            }
+          },
+          "platform": "generic",
+          "currentState": "content",
+          "state": "content"
+        },
+        "to": {
+          "platform": "generic",
+          "environment": "generic",
+          "currentState": "blank",
+          "state": "blank",
+          "legacyState": "blank",
+          "semanticState": "content_viewing",
+          "parameters": {
+            "query": "",
+            "url": "about:blank"
+          }
+        },
+        "timestamp": "2026-06-21T11:14:40.592Z"
+      },
+      {
+        "transitionId": "content_to_reach_entry_point",
+        "from": {
+          "val": {
+            "platform": "google",
+            "environment": "search_site",
+            "currentState": "home",
+            "state": "home",
+            "legacyState": "home",
+            "semanticState": "home_active",
+            "parameters": {
+              "query": "",
+              "url": "https://generic.com"
+            }
+          },
+          "platform": "generic",
+          "currentState": "content",
+          "state": "content"
+        },
+        "to": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://generic.com"
+          }
+        },
+        "timestamp": "2026-06-21T11:14:40.821Z"
+      },
+      {
+        "transitionId": "home_to_locate_target",
+        "from": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://generic.com"
+          }
+        },
+        "to": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://generic.com"
+          }
+        },
+        "timestamp": "2026-06-21T11:14:40.823Z"
+      },
+      {
+        "transitionId": "home_to_locate_target",
+        "from": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://generic.com"
+          }
+        },
+        "to": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://generic.com"
+          }
+        },
+        "timestamp": "2026-06-21T11:14:40.824Z"
+      },
+      {
+        "transitionId": "home_to_locate_target",
+        "from": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://generic.com"
+          }
+        },
+        "to": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://generic.com"
+          }
+        },
+        "timestamp": "2026-06-21T11:14:40.828Z"
+      },
+      {
+        "transitionId": "home_to_reach_entry_point",
+        "from": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://generic.com"
+          }
+        },
+        "to": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://google.com"
+          }
+        },
+        "timestamp": "2026-06-21T11:14:41.071Z"
+      },
+      {
+        "transitionId": "home_to_locate_target",
+        "from": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://google.com"
+          }
+        },
+        "to": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://google.com"
+          }
+        },
+        "timestamp": "2026-06-21T11:14:41.072Z"
+      },
+      {
+        "transitionId": "home_to_locate_target",
+        "from": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://google.com"
+          }
+        },
+        "to": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://google.com"
+          }
+        },
+        "timestamp": "2026-06-21T11:14:41.293Z"
+      },
+      {
+        "transitionId": "home_to_locate_target",
+        "from": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://google.com"
+          }
+        },
+        "to": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://google.com"
+          }
+        },
+        "timestamp": "2026-06-21T11:14:41.529Z"
+      },
+      {
+        "transitionId": "home_to_locate_target",
+        "from": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://google.com"
+          }
+        },
+        "to": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://google.com"
+          }
+        },
+        "timestamp": "2026-06-21T11:14:41.770Z"
+      },
+      {
+        "transitionId": "content_to_locate_target",
+        "from": {
+          "val": {
+            "platform": "generic",
+            "environment": "generic",
+            "currentState": "blank",
+            "state": "blank",
+            "legacyState": "blank",
+            "semanticState": "content_viewing",
+            "parameters": {
+              "query": "",
+              "url": "about:blank"
+            }
+          },
+          "platform": "generic",
+          "currentState": "content",
+          "state": "content"
+        },
+        "to": {
+          "platform": "generic",
+          "environment": "generic",
+          "currentState": "blank",
+          "state": "blank",
+          "legacyState": "blank",
+          "semanticState": "content_viewing",
+          "parameters": {
+            "query": "",
+            "url": "about:blank"
+          }
+        },
+        "timestamp": "2026-06-21T11:14:53.749Z"
+      },
+      {
+        "transitionId": "content_to_locate_target",
+        "from": {
+          "val": {
+            "platform": "generic",
+            "environment": "generic",
+            "currentState": "blank",
+            "state": "blank",
+            "legacyState": "blank",
+            "semanticState": "content_viewing",
+            "parameters": {
+              "query": "",
+              "url": "about:blank"
+            }
+          },
+          "platform": "generic",
+          "currentState": "content",
+          "state": "content"
+        },
+        "to": {
+          "platform": "generic",
+          "environment": "generic",
+          "currentState": "blank",
+          "state": "blank",
+          "legacyState": "blank",
+          "semanticState": "content_viewing",
+          "parameters": {
+            "query": "",
+            "url": "about:blank"
+          }
+        },
+        "timestamp": "2026-06-21T11:14:53.751Z"
+      },
+      {
+        "transitionId": "content_to_locate_target",
+        "from": {
+          "val": {
+            "platform": "generic",
+            "environment": "generic",
+            "currentState": "blank",
+            "state": "blank",
+            "legacyState": "blank",
+            "semanticState": "content_viewing",
+            "parameters": {
+              "query": "",
+              "url": "about:blank"
+            }
+          },
+          "platform": "generic",
+          "currentState": "content",
+          "state": "content"
+        },
+        "to": {
+          "platform": "generic",
+          "environment": "generic",
+          "currentState": "blank",
+          "state": "blank",
+          "legacyState": "blank",
+          "semanticState": "content_viewing",
+          "parameters": {
+            "query": "",
+            "url": "about:blank"
+          }
+        },
+        "timestamp": "2026-06-21T11:14:53.752Z"
+      },
+      {
+        "transitionId": "content_to_reach_entry_point",
+        "from": {
+          "val": {
+            "platform": "google",
+            "environment": "search_site",
+            "currentState": "home",
+            "state": "home",
+            "legacyState": "home",
+            "semanticState": "home_active",
+            "parameters": {
+              "query": "",
+              "url": "https://generic.com"
+            }
+          },
+          "platform": "generic",
+          "currentState": "content",
+          "state": "content"
+        },
+        "to": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://generic.com"
+          }
+        },
+        "timestamp": "2026-06-21T11:14:54.001Z"
+      },
+      {
+        "transitionId": "home_to_locate_target",
+        "from": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://generic.com"
+          }
+        },
+        "to": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://generic.com"
+          }
+        },
+        "timestamp": "2026-06-21T11:14:54.003Z"
+      },
+      {
+        "transitionId": "home_to_locate_target",
+        "from": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://generic.com"
+          }
+        },
+        "to": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://generic.com"
+          }
+        },
+        "timestamp": "2026-06-21T11:14:54.007Z"
+      },
+      {
+        "transitionId": "home_to_locate_target",
+        "from": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://generic.com"
+          }
+        },
+        "to": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://generic.com"
+          }
+        },
+        "timestamp": "2026-06-21T11:14:54.008Z"
+      },
+      {
+        "transitionId": "home_to_reach_entry_point",
+        "from": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://generic.com"
+          }
+        },
+        "to": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://google.com"
+          }
+        },
+        "timestamp": "2026-06-21T11:14:54.261Z"
+      },
+      {
+        "transitionId": "home_to_locate_target",
+        "from": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://google.com"
+          }
+        },
+        "to": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://google.com"
+          }
+        },
+        "timestamp": "2026-06-21T11:14:54.262Z"
+      },
+      {
+        "transitionId": "home_to_locate_target",
+        "from": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://google.com"
+          }
+        },
+        "to": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://google.com"
+          }
+        },
+        "timestamp": "2026-06-21T11:14:54.500Z"
+      },
+      {
+        "transitionId": "home_to_locate_target",
+        "from": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://google.com"
+          }
+        },
+        "to": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://google.com"
+          }
+        },
+        "timestamp": "2026-06-21T11:14:54.744Z"
+      },
+      {
+        "transitionId": "home_to_locate_target",
+        "from": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://google.com"
+          }
+        },
+        "to": {
+          "platform": "google",
+          "environment": "search_site",
+          "currentState": "home",
+          "state": "home",
+          "legacyState": "home",
+          "semanticState": "home_active",
+          "parameters": {
+            "query": "",
+            "url": "https://google.com"
+          }
+        },
+        "timestamp": "2026-06-21T11:14:54.977Z"
+      }
+    ],
+    "attemptCount": 38,
+    "lastFailure": "Verification failed: expected milestone \"locate_target\", observed \"home_active\"",
+    "capabilityMetrics": {
+      "ActionSelectorCapability": {
+        "executions": 10,
+        "successes": 0,
+        "failures": 10,
+        "recoveries": 0
+      },
+      "NavigationExecutor": {
+        "executions": 6,
+        "successes": 6,
+        "failures": 0,
+        "recoveries": 0
+      },
+      "TypeExecutor": {
+        "executions": 28,
+        "successes": 0,
+        "failures": 28,
+        "recoveries": 0
+      }
+    }
+  },
+  "context": {
+    "goal": "play first video of react on youtube",
+    "currentObjective": {
+      "id": "obj7",
+      "desiredState": "locate_target",
+      "semanticTarget": null,
+      "platform": "google",
+      "description": "Milestone: locate_target",
+      "requiredAction": null,
+      "requiredInformation": null,
+      "parameters": {
+        "goal": "play first video of react on youtube",
+        "query": "play first video of react on youtube"
+      },
+      "successConditions": [
+        "milestone locate_target achieved"
+      ],
+      "priority": 2,
+      "dependencies": [
+        "obj6"
+      ],
+      "confidence": 0.8,
+      "openQuestions": [],
+      "attempts": null
+    },
+    "worldFacts": [],
+    "discoveredEntities": [],
+    "visitedPages": [
+      {
+        "url": "about:blank",
+        "title": "",
+        "timestamp": "2026-06-21T11:14:06.606Z"
+      },
+      {
+        "url": "https://generic.com",
+        "title": "Google",
+        "timestamp": "2026-06-21T11:14:27.654Z"
+      },
+      {
+        "url": "https://google.com",
+        "title": "Google",
+        "timestamp": "2026-06-21T11:14:27.899Z"
+      }
+    ],
+    "openQuestions": [],
+    "completedQuestions": [],
+    "executionSummary": {
+      "objectivesCompleted": 6,
+      "factsCollected": 0,
+      "entitiesDiscovered": 0,
+      "pagesVisited": 3,
+      "unresolvedQuestions": []
+    },
+    "pageUnderstanding": {
+      "pagePurpose": "landing_page",
+      "pageSummary": "Page titled \"Google\" on platform \"google\" classified as \"landing_page\". It exposes 1 inputs, 1 buttons, and 1 links.",
+      "availableActions": [
+        {
+          "type": "type",
+          "elementId": "o1",
+          "label": "play first video of react on youtube",
+          "role": "inputs",
+          "semanticType": null,
+          "purpose": "search_input",
+          "reason": "type play first video of react on youtube"
+        },
+        {
+          "type": "search",
+          "elementId": "o1",
+          "label": "play first video of react on youtube",
+          "role": "inputs",
+          "semanticType": null,
+          "purpose": "search_input",
+          "reason": "search play first video of react on youtube"
+        },
+        {
+          "type": "click",
+          "elementId": "o2",
+          "label": "",
+          "role": "buttons",
+          "semanticType": null,
+          "purpose": "search_button",
+          "reason": "click buttons"
+        },
+        {
+          "type": "click",
+          "elementId": "o3",
+          "label": "",
+          "role": "links",
+          "semanticType": null,
+          "purpose": "result_link",
+          "reason": "click links"
+        },
+        {
+          "type": "read_ui",
+          "reason": "refresh page observation"
+        },
+        {
+          "type": "back",
+          "reason": "return to previous page"
+        },
+        {
+          "type": "scroll",
+          "direction": "down",
+          "reason": "reveal more available controls"
+        }
+      ],
+      "importantElements": [
+        {
+          "id": "o1",
+          "source": "inputs",
+          "role": "inputs",
+          "label": "play first video of react on youtube",
+          "visible": true,
+          "disabled": false,
+          "semanticType": null,
+          "purpose": "search_input",
+          "value": "play first video of react on youtube",
+          "confidence": 0.75,
+          "position": 0,
+          "actionHints": [
+            "type",
+            "search"
+          ]
+        },
+        {
+          "id": "o2",
+          "source": "buttons",
+          "role": "buttons",
+          "label": "",
+          "visible": true,
+          "disabled": false,
+          "semanticType": null,
+          "purpose": "search_button",
+          "confidence": 0.75,
+          "position": 0,
+          "actionHints": [
+            "click"
+          ]
+        },
+        {
+          "id": "o3",
+          "source": "links",
+          "role": "links",
+          "label": "",
+          "visible": true,
+          "disabled": false,
+          "semanticType": null,
+          "purpose": "result_link",
+          "confidence": 0.75,
+          "position": 0,
+          "actionHints": [
+            "click"
+          ]
+        }
+      ],
+      "entities": [
+        {
+          "type": "inputs",
+          "name": "play first video of react on youtube",
+          "source": "inputs",
+          "elementId": "o1"
+        }
+      ],
+      "constraints": [],
+      "confidence": 0.9,
+      "resolvedState": {
+        "platform": "google",
+        "environment": "search_site",
+        "currentState": "home",
+        "state": "home",
+        "legacyState": "home",
+        "semanticState": "home_active",
+        "parameters": {
+          "query": "",
+          "url": "https://google.com"
+        }
+      }
+    }
+  },
+  "stateType": "WAITING_FOR_MANUAL_ACTION",
+  "transition": {
+    "id": "home_to_locate_target",
+    "desiredState": "locate_target",
+    "state": "locate_target",
+    "platform": "google",
+    "parameters": {
+      "goal": "play first video of react on youtube",
+      "query": "play first video of react on youtube"
+    },
+    "score": 0,
+    "confidence": 0.1,
+    "pageUnderstanding": {
+      "pagePurpose": "landing_page",
+      "pageSummary": "Page titled \"Google\" on platform \"google\" classified as \"landing_page\". It exposes 1 inputs, 1 buttons, and 1 links.",
+      "availableActions": [
+        {
+          "type": "type",
+          "elementId": "o1",
+          "label": "play first video of react on youtube",
+          "role": "inputs",
+          "semanticType": null,
+          "purpose": "search_input",
+          "reason": "type play first video of react on youtube"
+        },
+        {
+          "type": "search",
+          "elementId": "o1",
+          "label": "play first video of react on youtube",
+          "role": "inputs",
+          "semanticType": null,
+          "purpose": "search_input",
+          "reason": "search play first video of react on youtube"
+        },
+        {
+          "type": "click",
+          "elementId": "o2",
+          "label": "",
+          "role": "buttons",
+          "semanticType": null,
+          "purpose": "search_button",
+          "reason": "click buttons"
+        },
+        {
+          "type": "click",
+          "elementId": "o3",
+          "label": "",
+          "role": "links",
+          "semanticType": null,
+          "purpose": "result_link",
+          "reason": "click links"
+        },
+        {
+          "type": "read_ui",
+          "reason": "refresh page observation"
+        },
+        {
+          "type": "back",
+          "reason": "return to previous page"
+        },
+        {
+          "type": "scroll",
+          "direction": "down",
+          "reason": "reveal more available controls"
+        }
+      ],
+      "importantElements": [
+        {
+          "id": "o1",
+          "source": "inputs",
+          "role": "inputs",
+          "label": "play first video of react on youtube",
+          "visible": true,
+          "disabled": false,
+          "semanticType": null,
+          "purpose": "search_input",
+          "value": "play first video of react on youtube",
+          "confidence": 0.75,
+          "position": 0,
+          "actionHints": [
+            "type",
+            "search"
+          ]
+        },
+        {
+          "id": "o2",
+          "source": "buttons",
+          "role": "buttons",
+          "label": "",
+          "visible": true,
+          "disabled": false,
+          "semanticType": null,
+          "purpose": "search_button",
+          "confidence": 0.75,
+          "position": 0,
+          "actionHints": [
+            "click"
+          ]
+        },
+        {
+          "id": "o3",
+          "source": "links",
+          "role": "links",
+          "label": "",
+          "visible": true,
+          "disabled": false,
+          "semanticType": null,
+          "purpose": "result_link",
+          "confidence": 0.75,
+          "position": 0,
+          "actionHints": [
+            "click"
+          ]
+        }
+      ],
+      "entities": [
+        {
+          "type": "inputs",
+          "name": "play first video of react on youtube",
+          "source": "inputs",
+          "elementId": "o1"
+        }
+      ],
+      "constraints": [],
+      "confidence": 0.9,
+      "resolvedState": {
+        "platform": "google",
+        "environment": "search_site",
+        "currentState": "home",
+        "state": "home",
+        "legacyState": "home",
+        "semanticState": "home_active",
+        "parameters": {
+          "query": "",
+          "url": "https://google.com"
+        }
+      }
+    },
+    "actionCandidates": [
+      {
+        "type": "type",
+        "elementId": "o1",
+        "label": "play first video of react on youtube",
+        "role": "inputs",
+        "semanticType": null,
+        "purpose": "search_input",
+        "reason": "type play first video of react on youtube",
+        "score": 150,
+        "confidence": 0.95,
+        "inputText": "play first video of react on youtube",
+        "planAction": {
+          "type": "type",
+          "params": {
+            "element": "o1",
+            "text": "play first video of react on youtube"
+          }
+        }
+      },
+      {
+        "type": "search",
+        "elementId": "o1",
+        "label": "play first video of react on youtube",
+        "role": "inputs",
+        "semanticType": null,
+        "purpose": "search_input",
+        "reason": "search play first video of react on youtube",
+        "score": 150,
+        "confidence": 0.95,
+        "inputText": "play first video of react on youtube",
+        "planAction": {
+          "type": "type",
+          "params": {
+            "element": "o1",
+            "text": "play first video of react on youtube"
+          }
+        }
+      },
+      {
+        "type": "click",
+        "elementId": "o2",
+        "label": "",
+        "role": "buttons",
+        "semanticType": null,
+        "purpose": "search_button",
+        "reason": "click buttons",
+        "score": 55,
+        "confidence": 0.55,
+        "inputText": "play first video of react on youtube",
+        "planAction": {
+          "type": "click",
+          "params": {
+            "element": "o2"
+          }
+        }
+      },
+      {
+        "type": "click",
+        "elementId": "o3",
+        "label": "",
+        "role": "links",
+        "semanticType": null,
+        "purpose": "result_link",
+        "reason": "click links",
+        "score": 55,
+        "confidence": 0.55,
+        "inputText": "play first video of react on youtube",
+        "planAction": {
+          "type": "click",
+          "params": {
+            "element": "o3"
+          }
+        }
+      }
+    ]
+  },
+  "savedAt": "2026-06-21T11:14:54.978Z"
+}
