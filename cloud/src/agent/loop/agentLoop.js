@@ -38,13 +38,38 @@ Duration: ${durationSec}s
   
 }
 
-async function decomposeGoal(objective) {
+async function decomposeGoal(objective, currentBrowserState = null) {
   const text = (objective || "").trim();
   if (!text) return ["navigate to destination", "verify page content"];
 
+  let contextStr = "";
+  if (currentBrowserState && currentBrowserState.url && currentBrowserState.url !== "about:blank") {
+    const url = currentBrowserState.url;
+    const title = currentBrowserState.title || "";
+    const hostname = (() => { try { return new URL(url).hostname.replace("www.", "").split(".")[0]; } catch (e) { return ""; } })();
+    contextStr = `\nCurrent page:\n- URL: ${url}\n- Title: ${title}\n- Platform: ${hostname || "unknown"}`;
+    const resultsPatterns = [/\/results/, /\?search_query=/, /\?q=/, /\?query=/, /\/search\//];
+    const isResults = resultsPatterns.some(p => p.test(url.toLowerCase()));
+    const hasResultLinks = (currentBrowserState.links || []).some(l =>
+      l.purpose === "primary_content" || l.semanticType === "content_item" || l.semanticType === "selection_candidate"
+    );
+    if (isResults || hasResultLinks) {
+      contextStr += `\n- This page CONTAINS search results`;
+      try {
+        const urlObj = new URL(url);
+        const query = urlObj.searchParams.get("search_query") || urlObj.searchParams.get("q") || urlObj.searchParams.get("query") || "";
+        if (query) contextStr += ` for query: "${query}"`;
+      } catch (e) {}
+      contextStr += `\n- The search/query stage is ALREADY COMPLETE`;
+    }
+    if (currentBrowserState.title) {
+      contextStr += `\n- Page title: "${currentBrowserState.title}"`;
+    }
+  }
+
   try {
-    const systemPrompt = `You are a browser automation planner. Given a user's goal, decompose it into 3-7 sequential sub-objectives that a browser agent should complete. Each sub-objective should be a short, action-oriented phrase. Output ONLY a JSON array of strings. Example: ["navigate to site", "search for content", "select result", "extract information"]`;
-    const userPrompt = `Goal: "${text}"\n\nDecompose into sub-objectives. Output ONLY a JSON array of strings.`;
+    const systemPrompt = `You are a browser automation planner. Given a user's goal and the CURRENT page state, decompose the REMAINING work into 1-5 sequential sub-objectives that a browser agent should complete. Each sub-objective should be a short, action-oriented phrase. Output ONLY a JSON array of strings. Example: ["navigate to site", "search for content", "select result", "extract information"]`;
+    const userPrompt = `Goal: "${text}"${contextStr}\n\nDecompose the REMAINING work into sub-objectives. CRITICAL: Only include sub-objectives that are NOT already satisfied by the current page state. If the current page already shows search results, do NOT include search-related sub-objectives - start from result selection. Output ONLY a JSON array of strings. Keep it minimal (1-3 objectives if most work is done).`;
 
     const responseText = await askLLM(systemPrompt, userPrompt);
     let cleaned = (responseText || "").trim();
@@ -52,14 +77,17 @@ async function decomposeGoal(objective) {
     if (match) cleaned = match[1].trim();
     const parsed = JSON.parse(cleaned);
     if (Array.isArray(parsed) && parsed.length > 0 && parsed.every(s => typeof s === "string")) {
-      console.log(`[DECOMPOSE] LLM generated ${parsed.length} sub-objectives`);
+      console.log(`[DECOMPOSE] LLM generated ${parsed.length} sub-objectives (context-aware)`);
       return parsed;
     }
   } catch (err) {
     console.error(`[DECOMPOSE] LLM decomposition failed, using fallback:`, err.message);
   }
 
-  // Minimal generic fallback
+  // Context-aware fallback
+  if (contextStr && contextStr.includes("ALREADY COMPLETE")) {
+    return ["select result", "extract or interact with content", "verify completion"];
+  }
   return ["navigate to destination", "locate target content", "interact with target", "verify completion"];
 }
 
@@ -90,39 +118,99 @@ function estimateProgress(workflowMemory, browserState) {
 function updateSubObjectives(workflowMemory, browserState, pageUnderstanding) {
   const subObjectives = workflowMemory.subObjectives || [];
   const currentIdx = subObjectives.indexOf(workflowMemory.currentSubObjective);
-  if (currentIdx === -1 || currentIdx >= subObjectives.length - 1) return;
+  if (currentIdx === -1) return;
 
+  const resolvedState = pageUnderstanding?.resolvedState || {};
+  const currentState = resolvedState.currentState || "";
   const purpose = (pageUnderstanding?.pagePurpose || "").toLowerCase();
   const url = (browserState.url || "").toLowerCase();
 
-  // Advance if the page state suggests meaningful progress:
-  // 1. We have a real page (not blank)
-  // 2. Page purpose has changed to something more specific than "generic"
-  // 3. URL has changed (navigation happened)
   const hasRealPage = url && url !== "about:blank";
-  const purposeIsSpecific = purpose && purpose !== "generic";
 
-  // Detect forward progress based on page purpose trajectory
-  const isResultsPage = /result|search/.test(purpose) || url.includes("search") || url.includes("?q=");
-  const isContentPage = /content|detail|media|article|product|profile/.test(purpose);
+  function currentSubObjectiveMatches(...keywords) {
+    const sub = (workflowMemory.currentSubObjective || "").toLowerCase();
+    return keywords.some(k => sub.includes(k));
+  }
+
+  const isOnResultsPage = currentState === "results" || /result|search/.test(purpose);
+  const isOnContentPage = currentState === "content" || /content|detail|media|article|product|profile/.test(purpose);
+
+  // Check if current sub-objective is already satisfied by page state
+  // If it's a search objective and we're on results, mark it complete
+  const currentIsSearch = currentSubObjectiveMatches("search", "query", "find", "locate");
+  const currentIsNavigation = currentSubObjectiveMatches("navigate", "go to", "open", "launch", "destination");
+  const currentIsSelect = currentSubObjectiveMatches("select", "choose", "pick", "click", "open result");
+
+  let satisfied = false;
+  if (currentIsSearch && isOnResultsPage) satisfied = true;
+  if (currentIsNavigation && hasRealPage) satisfied = true;
+  if (currentIsSelect && isOnContentPage) satisfied = true;
+
+  // If current sub-objective is satisfied, advance or mark completion
+  if (satisfied) {
+    workflowMemory.completedSubObjectives.push(workflowMemory.currentSubObjective);
+    const nextIdx = currentIdx + 1;
+    if (nextIdx < subObjectives.length) {
+      workflowMemory.currentSubObjective = subObjectives[nextIdx];
+      console.log(`[SUB-OBJECTIVE] Advanced to: "${workflowMemory.currentSubObjective}" (satisfied by page state)`);
+    } else {
+      workflowMemory.currentSubObjective = "";
+      console.log(`[SUB-OBJECTIVE] All sub-objectives completed (last one satisfied by page state)`);
+    }
+    return;
+  }
+
+  if (currentIdx >= subObjectives.length - 1) return;
+
+  // --- Direct state-based advancement (skip ahead when past certain stages) ---
+  if (isOnResultsPage) {
+    if (currentSubObjectiveMatches("navigate", "destination", "search for", "locate", "find")) {
+      let targetIdx = currentIdx;
+      while (targetIdx < subObjectives.length) {
+        const sobj = subObjectives[targetIdx].toLowerCase();
+        if (sobj.includes("select") || sobj.includes("result") || sobj.includes("click") || sobj.includes("open") || sobj.includes("extract") || sobj.includes("interact") || sobj.includes("verify") || sobj.includes("content")) {
+          break;
+        }
+        targetIdx++;
+      }
+      if (targetIdx > currentIdx) {
+        for (let i = currentIdx; i < targetIdx; i++) {
+          workflowMemory.completedSubObjectives.push(subObjectives[i]);
+        }
+        workflowMemory.currentSubObjective = subObjectives[targetIdx];
+        console.log(`[SUB-OBJECTIVE] Skipped to: "${workflowMemory.currentSubObjective}" (already on results page)`);
+        return;
+      }
+    }
+  }
+
+  if (isOnContentPage && currentSubObjectiveMatches("select result", "click result", "choose result")) {
+    let targetIdx = currentIdx + 1;
+    if (targetIdx < subObjectives.length) {
+      workflowMemory.completedSubObjectives.push(workflowMemory.currentSubObjective);
+      workflowMemory.currentSubObjective = subObjectives[targetIdx];
+      console.log(`[SUB-OBJECTIVE] Skipped to: "${workflowMemory.currentSubObjective}" (already on content page)`);
+      return;
+    }
+  }
+
+  // --- Fallback heuristic advancement (conservative) ---
+  const purposeIsSpecific = purpose && purpose !== "generic" && purpose !== "landing_page";
+  const isResultsPageHeuristic = /result|search/.test(purpose) || url.includes("/results") || url.includes("?search_query=") || url.includes("?q=");
+  const isContentPageHeuristic = /content|detail|media|article|product|profile/.test(purpose) || url.includes("/watch");
   const isFormPage = /form|login|auth/.test(purpose);
 
   let advance = false;
-  
-  // Use position in subObjectives array as a proxy for expected journey stage
   const progressPercent = currentIdx / Math.max(subObjectives.length - 1, 1);
 
-  if (progressPercent < 0.25 && hasRealPage) {
-    // Early stage: just having a real page counts as progress
+  // Only advance if page purpose clearly indicates forward progress
+  if (progressPercent < 0.25 && hasRealPage && purposeIsSpecific) {
     advance = true;
-  } else if (progressPercent < 0.5 && (isResultsPage || purposeIsSpecific)) {
-    // Mid stage: need search results or meaningful page
+  } else if (progressPercent < 0.5 && (isResultsPageHeuristic || purposeIsSpecific)) {
     advance = true;
-  } else if (progressPercent < 0.75 && isContentPage) {
-    // Later stage: need to be on content/detail page
+  } else if (progressPercent < 0.75 && isContentPageHeuristic) {
     advance = true;
-  } else if (progressPercent >= 0.75 && (isContentPage || isFormPage)) {
-    // Final stages: any meaningful page counts
+  } else if (progressPercent >= 0.75 && (isContentPageHeuristic || isFormPage)) {
     advance = true;
   }
 
@@ -252,7 +340,7 @@ async function _runAgentInternal({
     goal.tracker = initTracker([{ desiredState: "goal_completed", objective: goal.objective }]);
     workflowMemory = new WorkflowMemory();
 
-    const subObjectives = await decomposeGoal(goal.objective);
+    const subObjectives = await decomposeGoal(goal.objective, browserState);
     workflowMemory.currentObjective = goal.objective;
     workflowMemory.currentSubObjective = subObjectives[0] || goal.objective;
     workflowMemory.subObjectives = subObjectives;
@@ -318,21 +406,56 @@ async function _runAgentInternal({
     let result = null;
 
     if (detectActionLoop(goal.world)) {
-      console.log("[LOOP DETECTION] Agent appears stuck. Forcing scroll+read recovery.");
-      const unstickPlan = createPlan(goal.id, [
-        { type: "scroll", params: { direction: "down", amount: 500 } },
-        { type: "read_ui", params: {} }
-      ]);
-      const prevUrlBeforeUnstick = browserState.url;
-      const unstickResult = await executePlan(unstickPlan);
-      latestObs = unstickResult?.observations?.[unstickResult.observations.length - 1] || latestObs;
-      browserState = extractBrowserState(latestObs);
-      updateWorldModel(goal, latestObs);
-      if (browserState.url !== prevUrlBeforeUnstick) {
-        retryCount = 0;
+      console.log("[LOOP DETECTION] Agent appears stuck.");
+      retryCount++;
+
+      if (retryCount <= 2) {
+        // First attempts: scroll and re-read
+        console.log("[LOOP DETECTION] Attempting scroll+read recovery.");
+        const unstickPlan = createPlan(goal.id, [
+          { type: "scroll", params: { direction: "down", amount: 500 } },
+          { type: "read_ui", params: {} }
+        ]);
+        const unstickResult = await executePlan(unstickPlan);
+        latestObs = unstickResult?.observations?.[unstickResult.observations.length - 1] || latestObs;
+        browserState = extractBrowserState(latestObs);
+        updateWorldModel(goal, latestObs);
       } else {
-        retryCount++;
+        // Stuck after retries: replan from current page state
+        console.log("[LOOP DETECTION] Scroll didn't help. Replanning from current context.");
+        const pageUnderstanding = understandPage(browserState);
+        const newObjectives = await decomposeGoal(goal.objective, browserState);
+        if (newObjectives && newObjectives.length > 0) {
+          workflowMemory.subObjectives = newObjectives;
+          workflowMemory.currentSubObjective = newObjectives[0];
+          workflowMemory.completedSubObjectives = [];
+          console.log(`[LOOP DETECTION] Replanned to: ${JSON.stringify(newObjectives)}`);
+        }
+        // Also apply page understanding for this iteration
+        const bestCandidate = await selectActionWithLLM({
+          goal,
+          pageUnderstanding,
+          browserState,
+          workflowMemory
+        });
+        if (bestCandidate && bestCandidate.actions && bestCandidate.actions.length > 0) {
+          const plan = createPlan(goal.id, bestCandidate.actions);
+          const result = await executePlan(plan);
+          if (result?.clientDisconnected) {
+            return {
+              success: false,
+              reason: "client_disconnected",
+              observation: latestObs,
+              contextSummary: generateExecutionSummary(context, goal.tracker)
+            };
+          }
+          latestObs = result?.observations?.[result.observations.length - 1] || latestObs;
+          browserState = extractBrowserState(latestObs);
+          lastAction = bestCandidate.actions[0];
+          updateWorldModel(goal, latestObs);
+        }
       }
+
       if (retryCount > 5) {
         return {
           success: false,
@@ -466,7 +589,14 @@ async function _runAgentInternal({
       console.log(`[EXTRACT] Finding added to world model:`, JSON.stringify(extractedData));
     }
 
-    if (await verifyGoal(goal, browserState, goal.world)) {
+    // Enrich browserState with page understanding for richer goal verification
+    const verifyState = {
+      ...browserState,
+      pagePurpose: pageUnderstanding?.pagePurpose || browserState.pagePurpose || "",
+      resolvedState: pageUnderstanding?.resolvedState || null
+    };
+
+    if (await verifyGoal(goal, verifyState, goal.world)) {
       console.log(`[GOAL COMPLETE] Overall goal satisfied.`);
       const summary = generateExecutionSummary(context, goal.tracker);
       return {

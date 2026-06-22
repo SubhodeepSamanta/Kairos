@@ -43,12 +43,16 @@ export function scoreAction(goal, pageUnderstanding, candidate, failedActionHist
   }
 
   // 2. Page Relevance by Purpose
-  if (purpose === "search interface") {
+  const resolvedCurrentState = pageUnderstanding?.resolvedState?.currentState || "";
+  const isOnResultsPage = purpose === "search results" || resolvedCurrentState === "results";
+  const isOnSearchInterface = purpose === "search interface";
+
+  if (isOnSearchInterface) {
     if (candidate.type === "type" || candidate.type === "search") {
       score += 70;
       if (candidate.type === "search") score += 20;
     }
-  } else if (purpose === "search results") {
+  } else if (isOnResultsPage) {
     const isResultLink = candidate.semanticType === "content_item" || 
                          candidate.semanticType === "selection_candidate" ||
                          candidate.semanticType === "primary_content" ||
@@ -150,6 +154,17 @@ export function scoreAction(goal, pageUnderstanding, candidate, failedActionHist
       if (failed.action?.params?.url && candidate.href && failed.action.params.url === candidate.href) {
         score -= 75;
       }
+    }
+  }
+
+  // Result rank bonus: lower rank (higher priority) gets bonus
+  if (candidate.rank !== undefined) {
+    if (candidate.rank === 1) {
+      score += 50; // Top result gets significant boost
+    } else if (candidate.rank <= 3) {
+      score += 30;
+    } else if (candidate.rank <= 5) {
+      score += 15;
     }
   }
 

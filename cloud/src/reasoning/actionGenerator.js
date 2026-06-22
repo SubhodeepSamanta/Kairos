@@ -62,7 +62,24 @@ export function generateActions(goal, pageUnderstanding, browserState) {
   }
 
   const queryTerm = extractQueryTerm(goal);
+
+  // If already on results page with a query in URL, skip generating type/search
+  // candidates for search inputs (prevents re-searching loop)
+  const isOnResultsPage = (pageUnderstanding?.resolvedState?.currentState === "results") ||
+    (browserState?.url || "").toLowerCase().includes("/results") ||
+    (browserState?.url || "").match(/\?(?:search_query|q|query)=/);
+  const alreadyHasQuery = isOnResultsPage && (() => {
+    try {
+      const u = new URL(browserState?.url || "");
+      return !!(u.searchParams.get("search_query") || u.searchParams.get("q") || u.searchParams.get("query"));
+    } catch (e) { return false; }
+  })();
+
   affordances.typeable.forEach(element => {
+    const isSearchInput = element.purpose === "search_input" || element.semanticType === "search_input";
+    if (isOnResultsPage && alreadyHasQuery && isSearchInput) {
+      return; // Skip search input candidates on results page — search already done
+    }
     candidates.push({
       type: "type",
       actions: [{ type: "type", params: { element: element.id, text: queryTerm } }],
@@ -101,6 +118,33 @@ export function generateActions(goal, pageUnderstanding, browserState) {
       reason: `Click interaction on ${element.label || element.role || "element"}`
     });
   });
+
+  // Generate ranked result-clicking candidates on results pages
+  if (isOnResultsPage) {
+    const resultLinkTypes = ["primary_content", "content_item", "selection_candidate"];
+    const resultLinks = (browser.links || []).filter(link =>
+      link.purpose === "primary_content" ||
+      resultLinkTypes.includes(link.semanticType)
+    );
+    resultLinks.forEach((link, index) => {
+      const label = link.label || link.text || `Result ${index + 1}`;
+      candidates.push({
+        type: "click",
+        actions: [{ type: "click", params: { element: link.id } }, { type: "read_ui", params: {} }],
+        elementId: link.id,
+        label: `Open result #${index + 1}: ${label}`,
+        href: link.href,
+        role: link.role,
+        semanticType: link.semanticType || "content_item",
+        purpose: link.purpose || "primary_content",
+        rank: index + 1,
+        reason: `Click search result rank ${index + 1}`
+      });
+    });
+    if (resultLinks.length > 0) {
+      console.log(`[ACTION GENERATOR] Generated ${resultLinks.length} result-click candidates for results page`);
+    }
+  }
 
   affordances.selectable.forEach(element => {
     candidates.push({

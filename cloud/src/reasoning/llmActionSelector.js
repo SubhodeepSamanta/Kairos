@@ -85,22 +85,30 @@ export async function selectActionWithLLM({
 
   const rankedElements = rankImportantElements(goal.objective, pageUnderstanding.importantElements || []);
   const elementsList = rankedElements
-    .slice(0, 15)
+    .slice(0, 20)
     .map(el => {
+      let label = (el.label || "").trim();
+      // Truncate long labels so the LLM can't dump them back as action text
+      if (label.length > 60) label = label.slice(0, 57) + "...";
       const visibility = el.inViewport === true ? "above-the-fold" : el.inViewport === false ? "requires-scroll" : "";
       const visPart = visibility ? `, visibility="${visibility}"` : "";
-      return `- Element [${el.id}]: label="${el.label || ""}", semanticType="${el.semanticType || "none"}", purpose="${el.purpose || "none"}", role="${el.role || ""}"${visPart}`;
+      return `- Element [${el.id}]: label="${label || ""}", semanticType="${el.semanticType || "none"}", purpose="${el.purpose || "none"}", role="${el.role || ""}"${visPart}`;
     })
     .join("\n");
 
+  const resolved = pageUnderstanding.resolvedState || {};
   const browserContext = `URL: ${browserState.url || "about:blank"}
 Title: ${browserState.title || "Untitled"}
 Page Purpose: ${pageUnderstanding.pagePurpose || "generic"}
-Elements:
+Platform: ${resolved.platform || "generic"}
+Current State: ${resolved.currentState || "unknown"}
+Semantic State: ${resolved.semanticState || "unknown"}
+${resolved.parameters?.query ? `Active Query: "${resolved.parameters.query}"` : ""}
+Elements (use element ID, never copy labels verbatim):
 ${elementsList || "No interactable elements"}`;
 
   const last5Actions = (goal.world?.actionHistory || [])
-    .slice(-5)
+    .slice(-3)
     .map(entry => `${entry.action.type} ${JSON.stringify(entry.action.params || {})}`)
     .join("\n");
 
@@ -111,7 +119,13 @@ ${last5Actions || "None"}
 Sub-objective: ${currentSubObjective}`;
 
   const systemPrompt = buildSystemPrompt(goal, "", browserContext, worldContext);
-  const userPrompt = "Select the next action. Output only valid JSON with an 'actions' array.";
+  const userPrompt = `Select the next action. Output ONLY valid JSON with an "actions" array.
+
+CRITICAL RULES:
+- Never copy element labels into your response. Reference elements by their ID number only.
+- Never output free text. Only output valid JSON.
+- If an element's label contains "|", "–", or "-", do not copy it — use the element ID.
+- Example: {"actions":[{"type":"click","params":{"element":3}}]}`;
 
   let parsed = null;
   let isValid = false;
@@ -130,6 +144,24 @@ Sub-objective: ${currentSubObjective}`;
     }
   } catch (err) {
     console.error(`[LLM_ERROR] LLM selection or parsing failed:`, err.message);
+  }
+
+  // Retry once if LLM didn't produce valid JSON — with sterner prompt
+  if (!isValid) {
+    try {
+      goal.metrics.planning_calls = (goal.metrics.planning_calls || 0) + 1;
+      console.log(`[LLM] Retrying action selection with stricter prompt...`);
+      const retryPrompt = `You MUST output ONLY valid JSON. No free text. No labels. No markdown. Select from the elements listed. Example: {"actions":[{"type":"click","params":{"element":3}}]}`;
+      const retryText = await askLLM(systemPrompt, retryPrompt);
+      const retryParsed = cleanAndParseJson(retryText);
+      if (retryParsed && Array.isArray(retryParsed.actions) && retryParsed.actions.length > 0) {
+        parsed = retryParsed;
+        isValid = true;
+        console.log(`[LLM] Retry produced valid JSON.`);
+      }
+    } catch (retryErr) {
+      console.error(`[LLM] Retry also failed:`, retryErr.message);
+    }
   }
 
   if (isValid && parsed) {

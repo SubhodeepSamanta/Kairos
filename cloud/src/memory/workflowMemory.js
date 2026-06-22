@@ -27,6 +27,20 @@ export class WorkflowMemory {
     this.currentWebsite = browserState.url || "";
     this.activeTab = browserState.activeTab || 0;
 
+    // Track current workflow stage from resolved state
+    const resolvedState = pageUnderstanding?.resolvedState;
+    if (resolvedState) {
+      const stageMap = {
+        "blank": "initial",
+        "home": "navigation",
+        "results": "search_results",
+        "content": "content_viewing",
+        "login": "authentication",
+        "settings": "configuration"
+      };
+      this.currentWorkflowStage = stageMap[resolvedState.currentState] || resolvedState.semanticState || "active";
+    }
+
     // Track visited pages
     if (this.currentWebsite && !this.visitedPages.includes(this.currentWebsite) && this.currentWebsite !== "about:blank") {
       this.visitedPages.push(this.currentWebsite);

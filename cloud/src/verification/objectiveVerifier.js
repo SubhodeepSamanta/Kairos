@@ -62,6 +62,15 @@ export function heuristicVerifyGoal(goal, browserState, worldState = null) {
     if (pageType === "media content") {
       return true;
     }
+    // URL-based detection: on a video/content page satisfies the goal
+    if (url.includes("/watch") || url.includes("/video") || url.includes("/shorts") || url.includes("/live")) {
+      return true;
+    }
+    // Resolved state detection
+    const semanticState = browserState.resolvedState?.semanticState || "";
+    if (semanticState === "media content" || semanticState === "content detail") {
+      return true;
+    }
     return false;
   }
 
@@ -73,7 +82,9 @@ export function heuristicVerifyGoal(goal, browserState, worldState = null) {
       el.semanticType === "selection_candidate" ||
       el.purpose === "primary_content"
     );
-    if (hasResultElements || pageType === "search results") {
+    const hasResultsUrl = url.includes("/results") || url.includes("?search_query=") || url.includes("?q=") || url.includes("?query=") || url.includes("/search?");
+    const hasResultsTitle = title.includes("search results") || title.includes("results for");
+    if (hasResultElements || pageType === "search results" || hasResultsUrl || hasResultsTitle) {
       return true;
     }
     return false;
@@ -164,6 +175,13 @@ Answer ONLY with a valid JSON object matching this schema:
   "reason": "a brief explanation of your decision"
 }`;
 
+    const resolved = browserState.resolvedState || {};
+    const stateLines = [];
+    if (resolved.platform) stateLines.push(`Platform: ${resolved.platform}`);
+    if (resolved.currentState) stateLines.push(`Current State: ${resolved.currentState}`);
+    if (resolved.semanticState) stateLines.push(`Semantic State: ${resolved.semanticState}`);
+    if (resolved.parameters?.query) stateLines.push(`Active Query: "${resolved.parameters.query}"`);
+
     const userPrompt = `Objective/Goal:
 ${goalText}
 
@@ -171,7 +189,7 @@ Current Page State:
 URL: ${browserState.url || "about:blank"}
 Title: ${browserState.title || "Untitled"}
 Page Type/Purpose: ${browserState.pageType || browserState.pagePurpose || "generic"}
-Page Text Snippet:
+${stateLines.length > 0 ? stateLines.join("\n") + "\n" : ""}Page Text Snippet:
 """
 ${pageTextSnippet}
 """
