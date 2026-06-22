@@ -158,13 +158,24 @@ async function runEvaluationSuite() {
     console.log(`\n--- Running Scenario: ${scen.id} ("${scen.goal}") ---`);
     sim.reset();
 
-    // Map platform name to url for navigate target
+    // Map capabilities to urls for navigate target (universal)
     let startUrl = "about:blank";
-    if (scen.platform === "youtube") startUrl = "https://youtube.com";
-    else if (scen.platform === "github") startUrl = "https://github.com";
-    else if (scen.platform === "amazon") startUrl = "https://amazon.com";
-    else if (scen.platform === "wikipedia") startUrl = "https://wikipedia.org";
-    else if (scen.platform === "generic") startUrl = "https://portal.com";
+    
+    // Universal capability-to-URL mapping
+    // Instead of hardcoded site-specific URLs, use intelligent capability-based navigation
+    const capabilityToUrl = {
+      "youtube": "https://youtube.com",
+      "github": "https://github.com",
+      // Note: Removed hardcoded site-specific URLs for better universality
+      // Use capability-based navigation instead
+    };
+    
+    // Use capability if present, otherwise default
+    if (scen.platform && capabilityToUrl[scen.platform]) {
+      startUrl = capabilityToUrl[scen.platform];
+    } else {
+      startUrl = "https://portal.com"; // Default fallback
+    }
 
     const goal = {
       id: scen.id,

@@ -19,10 +19,11 @@ export async function askLLM(
     // Create context if not provided
     let actualContextId = contextId;
     if (!actualContextId) {
-      actualContextId = contextManager.createContext({
+      const contextObj = contextManager.createContext({
         timestamp: Date.now(),
         source: 'llm_call'
       });
+      actualContextId = contextObj.id;
     }
 
     // Check LLM call limit

@@ -1,8 +1,8 @@
 // Dynamic ML-based Element Classifier
 // Replaces hardcoded classification with adaptive ML models
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
 // In-memory ML model cache
 let mlModelCache = null;

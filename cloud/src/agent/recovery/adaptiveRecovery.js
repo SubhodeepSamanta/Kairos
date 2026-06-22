@@ -1,8 +1,8 @@
 // Adaptive Recovery System with Learning Capabilities
 // Replaces hardcoded recovery with intelligent, learning-based recovery mechanisms
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
 // Recovery learning and adaptation system
 const recoveryLearning = {

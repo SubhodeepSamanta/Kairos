@@ -55,7 +55,9 @@ export function normalizeStateName(state, platform = "") {
 }
 
 export function normalizeResolvedState(resolvedState = {}) {
-  const platform = resolvedState.platform || "generic";
+  const platform = resolvedState.capabilities && resolvedState.capabilities.length > 0 
+    ? resolvedState.capabilities[0] 
+    : (resolvedState.platform || "generic");
   const legacyState = resolvedState.legacyState || resolvedState.currentState || resolvedState.state;
   const currentState = normalizeStateName(resolvedState.currentState || resolvedState.state, platform);
 
@@ -69,7 +71,9 @@ export function normalizeResolvedState(resolvedState = {}) {
 }
 
 export function normalizeObjective(objective = {}) {
-  const platform = objective.platform || "generic";
+  const platform = objective.capabilities && objective.capabilities.length > 0 
+    ? objective.capabilities[0] 
+    : (objective.platform || "generic");
   const desiredState = normalizeStateName(objective.desiredState || objective.state, platform);
 
   return {
@@ -84,6 +88,7 @@ export function normalizeObjective(objective = {}) {
 export function normalizeTransition(transition = {}) {
   const normalizedObjective = normalizeObjective({
     platform: transition.platform,
+    capabilities: transition.capabilities,
     desiredState: transition.desiredState,
     state: transition.state
   });

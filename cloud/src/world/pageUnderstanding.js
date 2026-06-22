@@ -184,7 +184,9 @@ function generateSummary(browser, resolvedState, purpose) {
   const inputsCount = (browser.inputs || []).length;
   const buttonsCount = (browser.buttons || []).length;
   const linksCount = (browser.links || []).length;
-  const platform = resolvedState.platform || "generic";
+  const platform = resolvedState.capabilities && resolvedState.capabilities.length > 0 
+    ? resolvedState.capabilities[0] 
+    : (resolvedState.platform || "generic");
   return `Page titled "${browser.title || "Untitled"}" on platform "${platform}" classified as "${purpose}". It exposes ${inputsCount} inputs, ${buttonsCount} buttons, and ${linksCount} links.`;
 }
 

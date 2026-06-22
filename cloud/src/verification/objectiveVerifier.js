@@ -98,9 +98,9 @@ export function heuristicVerifyGoal(goal, browserState, worldState = null) {
     return false;
   }
 
-  // 6. Navigation verification  
+  // 6. Navigation verification (universal capability-based)
   if (parsedGoal.objective === "navigate") {
-    // Only verify as complete if we landed on the exact platform mentioned
+    // Only verify as complete if we landed on the exact capability mentioned
     // AND the goal doesn't mention any additional actions to perform
     const goalText = typeof goal === "object" ? goal.objective : goal;
     const goalLower = goalText.toLowerCase();
@@ -111,9 +111,17 @@ export function heuristicVerifyGoal(goal, browserState, worldState = null) {
       return false;
     }
     
-    if (parsedGoal.platform && url.includes(parsedGoal.platform)) {
-      return true;
+    // Check for capabilities instead of platforms
+    if (parsedGoal.capabilities && parsedGoal.capabilities.length > 0) {
+      // Check if any capability matches the URL
+      const capabilities = parsedGoal.capabilities.map(c => c.toLowerCase());
+      for (const capability of capabilities) {
+        if (url.includes(capability)) {
+          return true;
+        }
+      }
     }
+    
     // Only verify if we're on a non-blank page AND goal was purely navigational
     if (url.startsWith("http") && !hasAdditionalAction) {
       return true;

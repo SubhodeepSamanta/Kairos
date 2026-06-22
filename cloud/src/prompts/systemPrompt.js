@@ -47,22 +47,22 @@ export function buildSystemPrompt(
 
   let finalPrompt = sections.join("\n\n");
 
-  finalPrompt += `\n\nCurrent task:
+  const taskSummary = {
+    objective: task.objective || task,
+    completedSubObjectives: task.workflowMemory?.completedSubObjectives || [],
+    currentSubObjective: task.workflowMemory?.currentSubObjective || ""
+  };
 
-${JSON.stringify(task, null, 2)}
+  finalPrompt += `\n\nCurrent task:
+${JSON.stringify(taskSummary, null, 2)}
 
 Current browser state:
-
 ${browserContext}
 
-World model (accumulated knowledge):
-
+World model:
 ${worldContext || "No prior context."}
 
-Known user memories:
-
-${memoryContext}
-`;
+${memoryContext ? `User memories:\n${memoryContext}\n` : ""}`;
 
   return finalPrompt;
 }

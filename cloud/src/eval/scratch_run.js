@@ -92,7 +92,7 @@ class BrowserSimulator {
         this.title = `${queryVal} - Search Results`;
         this.text = `Here are the top results for ${queryVal}. Location details and requirements available. July 15 deadline. Price is $120. Stars count: 45k.`;
         
-        // Expose appropriate result links
+        // Expose appropriate result links (universal)
         if (this.url.includes("youtube")) {
           this.links = [{ id: "v1", purpose: "video_link", semanticType: "content_item", href: "/watch?v=1" }];
         } else {

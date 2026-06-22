@@ -42,8 +42,15 @@ export function recordTransition(tracker, transition, fromState, toState) {
     timestamp: new Date().toISOString()
   });
   
-  const fromStr = `${normalizedFromState.platform}:${normalizedFromState.currentState}`;
-  const toStr = `${normalizedToState.platform}:${normalizedToState.currentState}`;
+  const fromPlatform = normalizedFromState.capabilities && normalizedFromState.capabilities.length > 0 
+    ? normalizedFromState.capabilities[0] 
+    : normalizedFromState.platform;
+  const toPlatform = normalizedToState.capabilities && normalizedToState.capabilities.length > 0 
+    ? normalizedToState.capabilities[0] 
+    : normalizedToState.platform;
+  
+  const fromStr = `${fromPlatform}:${normalizedFromState.currentState}`;
+  const toStr = `${toPlatform}:${normalizedToState.currentState}`;
   
   if (!tracker.visitedStates.includes(fromStr)) {
     tracker.visitedStates.push(fromStr);

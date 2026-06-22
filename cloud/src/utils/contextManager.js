@@ -1,8 +1,8 @@
 // Context Size Management and Token Optimization
 // Manages context size, token usage, and compression for efficient AI processing
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
 // Token counting utilities
 const tokenUtils = {
@@ -125,7 +125,7 @@ class TokenBudgetManager {
       system: 4000,      // System prompt budget
       user: 8000,        // User prompt budget
       context: 2000,     // Context budget
-      total: 20000       // Total LLM call budget
+      total: 200000      // Total LLM call budget
     };
     this.currentUsage = {
       system: 0,
@@ -293,6 +293,10 @@ class ContextManager {
 
   // Get context by ID
   getContext(contextId) {
+    if (contextId && typeof contextId === 'object') {
+      const id = contextId.id;
+      return this.contextHistory.find(c => c.id === id);
+    }
     return this.contextHistory.find(c => c.id === contextId);
   }
 

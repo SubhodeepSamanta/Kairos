@@ -2,25 +2,15 @@ import { createPlan } from "../../shared/schemas/plan.js";
 import { llmCallCount, resetLlmCallCount, askLLM } from "../../llm/provider.js";
 import { updateWorldModel, addFinding } from "../../world/worldModel.js";
 import { extractDataFromPage } from "../../reasoning/extractor.js";
-import { setIntent, setGoal, setPlan, setObservation } from "../state/state.js";
-import { resolveCurrentState } from "../../world/currentStateResolver.js";
 import { understandPage } from "../../world/pageUnderstandingV2.js";
 import { initTracker } from "../../reasoning/objectiveTracker.js";
 import { verifyGoal } from "../../verification/objectiveVerifier.js";
 import { createExecutionContext, generateExecutionSummary } from "../../world/executionContext.js";
 import { loadAgentSession, saveAgentSession, checkForHumanIntervention } from "../state/agentSession.js";
-import { reasonNextActions } from "../../reasoning/browserReasoner.js";
 import { selectActionWithLLM } from "../../reasoning/llmActionSelector.js";
-import { routeCapability } from "../../capabilities/router.js";
 import { determineRecovery } from "../recovery/recovery.js";
 import { WorkflowMemory } from "../../memory/workflowMemory.js";
 import humanLoopBus from "../../humanLoop/humanLoopBus.js";
-import contextManager from "../../utils/contextManager.js";
-import adaptiveRecovery from "../recovery/adaptiveRecovery.js";
-import resourceAllocator from "../../utils/resourceAllocator.js";
-import pluginLoader from "../plugins/pluginSystem.js";
-import runtimeLearning from "../../utils/runtimeLearning.js";
-import contextCompressionManager from "../../utils/contextCompression.js";
 
 function printMetrics(goal, startTime, startLlmCalls) {
   const durationSec = ((Date.now() - startTime) / 1000).toFixed(1);
@@ -46,10 +36,6 @@ Duration: ${durationSec}s
 ===========================
 `);
   
-  // Log token usage statistics
-  const contextStats = contextManager.getContextStats();
-  console.log(`[METRICS] Token Usage: ${contextStats.tokenBudget.current.total}/${contextStats.tokenBudget.budgets.total} tokens (${((contextStats.tokenBudget.current.total / contextStats.tokenBudget.budgets.total) * 100).toFixed(1)}%)");
-  console.log(`[METRICS] LLM Calls: ${llmCallCount}/${maxLlmCalls}");
 }
 
 async function decomposeGoal(objective) {
@@ -213,10 +199,28 @@ function extractBrowserState(obs) {
   };
 }
 
+function detectActionLoop(world) {
+  if (!world) return false;
+  const history = world.actionHistory || [];
+  if (history.length < 4) return false;
+  const last4 = history.slice(-4).map(h => {
+    const a = h.action;
+    return `${a.type}:${a.params?.element || ""}:${a.params?.url || ""}:${a.params?.text || ""}`;
+  });
+  if (last4[2] === last4[0] && last4[3] === last4[1] && last4[0] === last4[2]) {
+    return true;
+  }
+  if (last4[1] === last4[2] && last4[2] === last4[3]) {
+    return true;
+  }
+  return false;
+}
+
 async function _runAgentInternal({
     goal,
     executePlan
 }) {
+  const MAX_GOAL_ACTIONS = 30;
   const initReadPlan = {
     goalId: goal.id,
     actions: [{ type: "read_ui", params: {} }]
@@ -226,13 +230,12 @@ async function _runAgentInternal({
   const initObs = initResult?.observations?.[initResult.observations.length - 1];
   if (initObs) {
     updateWorldModel(goal, initObs);
-    goal.metrics.totalActions = 0; // Reset counter after init read
+    goal.metrics.totalActions = 0;
   }
 
   let latestObs = initObs || goal.world?.history?.[goal.world.history.length - 1]?.observation;
   let browserState = extractBrowserState(latestObs);
-  
-  // Set initial states in context or resume session
+
   const savedSession = loadAgentSession(goal.id);
   let context;
   let workflowMemory;
@@ -248,8 +251,7 @@ async function _runAgentInternal({
     context = createExecutionContext(goal);
     goal.tracker = initTracker([{ desiredState: "goal_completed", objective: goal.objective }]);
     workflowMemory = new WorkflowMemory();
-    
-    // Pass 7: Goal decomposition
+
     const subObjectives = await decomposeGoal(goal.objective);
     workflowMemory.currentObjective = goal.objective;
     workflowMemory.currentSubObjective = subObjectives[0] || goal.objective;
@@ -259,7 +261,6 @@ async function _runAgentInternal({
   goal.context = context;
   goal.workflowMemory = workflowMemory;
 
-  // Track workflow memory intents (Pass 3)
   const intentCheck = workflowMemory.handleWorkflowIntents(goal.objective);
   if (intentCheck) {
     console.log(`[WORKFLOW INTENT] Intercepted memory directive: ${intentCheck.action}`);
@@ -278,7 +279,6 @@ async function _runAgentInternal({
     }
   }
 
-  // Check for human input requirement
   const initIntervention = checkForHumanIntervention(browserState, null, null);
   if (initIntervention && initIntervention.interventionNeeded) {
     console.log(`[HUMAN INPUT REQUIRED] ${initIntervention.reason}`);
@@ -300,9 +300,8 @@ async function _runAgentInternal({
     };
   }
 
-  // Check if initial page state satisfies goal
   if (await verifyGoal(goal, browserState, goal.world)) {
-    console.log(`[GOAL COMPLETE] Initial browser state already satisfies the goal. Stopping execution.`);
+    console.log(`[GOAL COMPLETE] Initial browser state already satisfies the goal.`);
     const summary = generateExecutionSummary(context, goal.tracker);
     return {
       success: true,
@@ -312,55 +311,14 @@ async function _runAgentInternal({
     };
   }
 
-function detectActionLoop(world) {
-  const history = world.actionHistory || [];
-  if (history.length < 4) return false;
-  
-  // Get last 4 actions
-  const last4 = history.slice(-4).map(h => {
-    const a = h.action;
-    return `${a.type}:${a.params?.element || ""}:${a.params?.url || ""}:${a.params?.text || ""}`;
-  });
-  
-  // If last 2 actions are identical AND the 2 before are also identical
-  // = stuck in a 2-cycle
-  if (last4[2] === last4[0] && last4[3] === last4[1] && last4[0] === last4[2]) {
-    return true;
-  }
-  
-  // If last 3 actions are all identical = truly stuck
-  if (last4[1] === last4[2] && last4[2] === last4[3]) {
-    return true;
-  }
-  
-  return false;
-}
-
-  // Use dynamic resource allocation for action limits
-  const resourceStats = resourceAllocator.getResourceStats();
-  const adaptiveLimits = resourceAllocator.calculateAdaptiveLimits(goal, browserState, goal.world?.actionHistory || []);
-  const MAX_GOAL_ACTIONS = adaptiveLimits.maxActions;
-  goal.blacklistedCapabilities = [];
   let retryCount = 0;
   let lastAction = null;
 
-  // Get plugin capabilities
-  const pluginCapabilities = pluginLoader.getAllCapabilities();
-  const pluginActions = pluginLoader.getAllActions();
-  console.log(`[PLUGIN SYSTEM] Loaded ${Object.keys(pluginCapabilities).length} capabilities and ${Object.keys(pluginActions).length} actions from plugins`);
-
   while (goal.metrics.totalActions < MAX_GOAL_ACTIONS) {
-    // Check resource availability
-    if (!resourceAllocator.canExecuteAction(
-      goal.metrics.totalActions,
-      llmCallCount,
-      goal.metrics.totalTokens || 0
-    )) {
-      console.log(`[RESOURCE ALLOCATOR] Resource limits reached. Actions: ${goal.metrics.totalActions}/${MAX_GOAL_ACTIONS}, LLM Calls: ${llmCallCount}/${resourceStats.current.maxLlmCalls}`);
-      break;
-    }
+    let result = null;
+
     if (detectActionLoop(goal.world)) {
-      console.log("[LOOP DETECTION] Agent appears stuck in a repetitive action loop. Forcing scroll+read recovery.");
+      console.log("[LOOP DETECTION] Agent appears stuck. Forcing scroll+read recovery.");
       const unstickPlan = createPlan(goal.id, [
         { type: "scroll", params: { direction: "down", amount: 500 } },
         { type: "read_ui", params: {} }
@@ -387,72 +345,18 @@ function detectActionLoop(world) {
     }
 
     const pageUnderstanding = understandPage(browserState);
-    
-    // Update sub-objectives and progress
+
     updateSubObjectives(workflowMemory, browserState, pageUnderstanding);
     const progress = estimateProgress(workflowMemory, browserState);
-    console.log(`[PROGRESS] Current Task Progress: ${progress.percent}% - ${progress.stage}`);
-    
-    // Update resource allocator performance history
-    resourceAllocator.updatePerformanceHistory(
-      bestCandidate?.type || 'unknown',
-      result?.success || false,
-      Date.now() - startTime
-    );
-    
-    // Execute plugin hooks before action selection
-    const pluginData = {
-      goal,
-      pageUnderstanding,
-      browserState,
-      workflowMemory,
-      bestCandidate
-    };
-    const pluginResults = await pluginLoader.executeAllHooks('before_action_selection', pluginData);
-    console.log(`[PLUGIN SYSTEM] Executed ${pluginResults.length} plugin hooks before action selection`);
-    
-    // Track interaction for runtime learning
-    const interaction = {
-      type: 'action_selection',
-      action: bestCandidate?.type || 'unknown',
-      pageUrl: browserState.url || '',
-      pageTitle: browserState.title || '',
-      success: result?.success || false,
-      error: result?.reason || '',
-      sessionId: goal.id,
-      userId: 'anonymous'
-    };
-    runtimeLearning.trackInteraction(interaction);
-    
-    // Compress context for LLM consumption
-    const systemPrompt = `You are a browser automation planner. Given a user's goal, select the most appropriate action from the provided candidates to make progress towards the goal.`;
-    const userPrompt = `Goal: "${goal.objective}"
+    console.log(`[PROGRESS] ${progress.percent}% - ${progress.stage}`);
 
-Page: ${pageUnderstanding.pagePurpose || 'generic'}
-URL: ${browserState.url || 'about:blank'}
-
-Candidates:
-${bestCandidate ? `- ${bestCandidate.label} (score: ${bestCandidate.score})` : 'No candidates available'}
-
-Select the best action.`;
-    
-    const compressedContext = contextCompressionManager.compressContextForLLM(
-      { pageUnderstanding, browserState, workflowMemory, goal },
-      systemPrompt,
-      userPrompt,
-      1000
-    );
-    
-    // Reason next actions using LLM with compressed context
     const bestCandidate = await selectActionWithLLM({
       goal,
       pageUnderstanding,
       browserState,
-      workflowMemory,
-      compressedContext
+      workflowMemory
     });
 
-    // Check for human input requirement in loop
     const loopIntervention = checkForHumanIntervention(browserState, pageUnderstanding, bestCandidate);
     if (loopIntervention && loopIntervention.interventionNeeded) {
       console.log(`[HUMAN INPUT REQUIRED] ${loopIntervention.reason}`);
@@ -474,9 +378,8 @@ Select the best action.`;
       };
     }
 
-    // If no candidate, or score is too low, attempt recovery
-    if (!bestCandidate || bestCandidate.score < 20) {
-      console.log(`[AGENT] Low confidence action score (${bestCandidate?.score || 0}). Running diagnoser recovery.`);
+    if (!bestCandidate || !bestCandidate.actions || bestCandidate.actions.length === 0) {
+      console.log(`[AGENT] No action candidate selected. Running recovery.`);
       const recoveryActions = determineRecovery(lastAction, browserState, null, retryCount);
 
       if (recoveryActions && recoveryActions.escalate) {
@@ -509,81 +412,11 @@ Select the best action.`;
       continue;
     }
 
-    // Execute best candidate action
-    console.log(`[AGENT] Executing action: "${bestCandidate.label}" (score: ${bestCandidate.score})`);
-    
-    // Route capability to register executor usage
-    for (const action of bestCandidate.actions) {
-      const cap = routeCapability(action.type, goal.blacklistedCapabilities);
-      if (cap) {
-        cap.executions++;
-      }
-    }
-
-    // Execute plugin hooks before action execution
-    const pluginData = {
-      goal,
-      bestCandidate,
-      result,
-      plan
-    };
-    const pluginResults = await pluginLoader.executeAllHooks('before_action_execution', pluginData);
-    console.log(`[PLUGIN SYSTEM] Executed ${pluginResults.length} plugin hooks before action execution`);
+    console.log(`[AGENT] Executing action: "${bestCandidate.label}"`);
 
     const plan = createPlan(goal.id, bestCandidate.actions);
-    const estimatedTokens = Math.ceil(JSON.stringify(bestCandidate.actions).length / 4);
-    const resourceAllocation = resourceAllocator.allocateResources(bestCandidate.type, estimatedTokens);
-    
-    const result = await executePlan(plan);
-    
-    // Track interaction for runtime learning
-    const interaction = {
-      type: 'action_execution',
-      action: bestCandidate?.type || 'unknown',
-      pageUrl: browserState.url || '',
-      pageTitle: browserState.title || '',
-      success: result?.success || false,
-      error: result?.reason || '',
-      sessionId: goal.id,
-      userId: 'anonymous'
-    };
-    runtimeLearning.trackInteraction(interaction);
-    
-    // Compress context for LLM consumption
-    const systemPrompt = `You are a browser automation planner. Given a user's goal, select the most appropriate action from the provided candidates to make progress towards the goal.`;
-    const userPrompt = `Goal: "${goal.objective}"
+    result = await executePlan(plan);
 
-Page: ${pageUnderstanding.pagePurpose || 'generic'}
-URL: ${browserState.url || 'about:blank'}
-
-Candidates:
-${bestCandidate ? `- ${bestCandidate.label} (score: ${bestCandidate.score})` : 'No candidates available'}
-
-Select the best action.`;
-    
-    const compressedContext = contextCompressionManager.compressContextForLLM(
-      { pageUnderstanding, browserState, workflowMemory, goal },
-      systemPrompt,
-      userPrompt,
-      1000
-    );
-    
-    // Execute plugin hooks after action execution
-    const pluginDataAfter = {
-      goal,
-      bestCandidate,
-      result,
-      plan,
-      resourceAllocation,
-      interaction,
-      compressedContext
-    };
-    const pluginResultsAfter = await pluginLoader.executeAllHooks('after_action_execution', pluginDataAfter);
-    console.log(`[PLUGIN SYSTEM] Executed ${pluginResultsAfter.length} plugin hooks after action execution`);
-    
-    // Log compression statistics
-    const compressionStats = contextCompressionManager.getCompressionStats();
-    console.log(`[CONTEXT COMPRESSION] Compression stats: ${compressionStats.totalCompressions} compressions, ${compressionStats.totalSummaries} summaries, avg ratio: ${compressionStats.averageCompressionRatio.toFixed(2)}`);
     if (result?.clientDisconnected) {
       return {
         success: false,
@@ -592,10 +425,10 @@ Select the best action.`;
         contextSummary: generateExecutionSummary(context, goal.tracker)
       };
     }
+
     latestObs = result?.observations?.[result.observations.length - 1] || latestObs;
     browserState = extractBrowserState(latestObs);
-    
-    // Check for human input requirement post execution
+
     const postIntervention = checkForHumanIntervention(browserState, pageUnderstanding, bestCandidate);
     if (postIntervention && postIntervention.interventionNeeded) {
       console.log(`[HUMAN INPUT REQUIRED] ${postIntervention.reason}`);
@@ -618,11 +451,8 @@ Select the best action.`;
     }
 
     lastAction = bestCandidate.actions[0];
-
-    // Update world model
     updateWorldModel(goal, latestObs);
 
-    // Extraction handling
     if (bestCandidate.type === "extract" && latestObs?.success) {
       const pageText = browserState.text || "";
       const cleanQuery = bestCandidate.actions[0]?.params?.query || goal.objective;
@@ -636,7 +466,6 @@ Select the best action.`;
       console.log(`[EXTRACT] Finding added to world model:`, JSON.stringify(extractedData));
     }
 
-    // Check if goal achieved
     if (await verifyGoal(goal, browserState, goal.world)) {
       console.log(`[GOAL COMPLETE] Overall goal satisfied.`);
       const summary = generateExecutionSummary(context, goal.tracker);
@@ -648,7 +477,6 @@ Select the best action.`;
       };
     }
 
-    // Check if execution failed
     if (result.success === false || latestObs?.success === false) {
       console.log(`[AGENT] Action failed. Diagnosing...`);
       const recoveryActions = await determineRecovery(lastAction, browserState, null, retryCount);
@@ -686,11 +514,7 @@ Select the best action.`;
 
   console.log(`[BUDGET] Goal action limit reached.`);
   const summary = generateExecutionSummary(context, goal.tracker);
-  
-  // Log resource usage statistics
-  const resourceStats = resourceAllocator.getResourceStats();
-  console.log(`[RESOURCE USAGE] Actions: ${goal.metrics.totalActions}/${resourceStats.current.maxActions} (${((goal.metrics.totalActions / resourceStats.current.maxActions) * 100).toFixed(1)}%), LLM Calls: ${llmCallCount}/${resourceStats.current.maxLlmCalls} (${((llmCallCount / resourceStats.current.maxLlmCalls) * 100).toFixed(1)}%), Tokens: ${goal.metrics.totalTokens || 0}/${resourceStats.current.maxTokens} (${(( (goal.metrics.totalTokens || 0) / resourceStats.current.maxTokens) * 100).toFixed(1)}%)`);
-  
+
   return {
     success: false,
     reason: "goal_action_budget_exceeded",

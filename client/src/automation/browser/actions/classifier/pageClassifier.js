@@ -28,8 +28,8 @@ export function classifyPage(url, title, elements = {}) {
   })();
 
   const hasMediaElements = inputs.some(input => /video|audio|media|play|pause|seek|volume/i.test(input.text || "")) ||
-                            buttons.some(button => /video|audio|media|play|pause|seek|volume|i.test(button.text || "")) ||
-                            links.some(link => /video|audio|media|play|pause|seek|volume|i.test(link.text || ""));
+                            buttons.some(button => /video|audio|media|play|pause|seek|volume/i.test(button.text || "")) ||
+                            links.some(link => /video|audio|media|play|pause|seek|volume/i.test(link.text || ""));
 
   const hasAuthenticationElements = inputs.some(input => /password|username|login|email|sign/i.test(input.text || "")) ||
                                      buttons.some(button => /sign|log|in|auth/i.test(button.text || "")) ||

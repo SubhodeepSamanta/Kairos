@@ -62,7 +62,7 @@ Response:
 {
   "store": true,
   "type": "fact",
-  "key": "github",
+  "key": "social_profile",
   "value": "subhodeep123"
 }
 
