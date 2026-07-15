@@ -86,19 +86,76 @@ export function formatSearchResults(results) {
     .join("\n");
 }
 
+const THIN_PAGE_CHARS = 600;
+
+export function parseFeed(xml, maxItems = 15) {
+  const $ = cheerio.load(xml, { xmlMode: true });
+  const items = [];
+
+  $("item, entry").each((_, el) => {
+    if (items.length >= maxItems) return false;
+    const node = $(el);
+    const title = node.find("title").first().text().trim();
+    if (!title) return;
+    const summary = node.find("description, summary, content").first().text()
+      .replace(/<[^>]+>/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, 180);
+    items.push(summary ? `${title} — ${summary}` : title);
+  });
+
+  return items;
+}
+
+function findFeedUrl($, pageUrl) {
+  const href = $('link[type="application/rss+xml"], link[type="application/atom+xml"]').first().attr("href");
+  if (!href) return null;
+  try {
+    return new URL(href, pageUrl).toString();
+  } catch {
+    return null;
+  }
+}
+
 export async function fetchPageText(url, maxChars = 4000) {
   const response = await fetchWithTimeout(url);
   if (!response.ok) throw new Error(`fetch failed: ${response.status}`);
   const contentType = response.headers.get("content-type") || "";
-  if (!contentType.includes("html") && !contentType.includes("text") && !contentType.includes("json")) {
+  if (!contentType.includes("html") && !contentType.includes("text") && !contentType.includes("json") && !contentType.includes("xml")) {
     throw new Error(`not a text page: ${contentType}`);
   }
-  const html = await response.text();
-  if (contentType.includes("json")) return html.slice(0, maxChars);
+  const body = await response.text();
+  if (contentType.includes("json")) return body.slice(0, maxChars);
 
-  const $ = cheerio.load(html);
-  $("script, style, noscript, svg, nav, footer, iframe").remove();
+  if (contentType.includes("xml") || /^\s*<(\?xml|rss|feed)/i.test(body)) {
+    const items = parseFeed(body);
+    if (items.length) return `FEED ${url}\n${items.join("\n")}`.slice(0, maxChars);
+  }
+
+  const $ = cheerio.load(body);
+  const feedUrl = findFeedUrl($, url);
+
+  $("script, style, noscript, svg, nav, footer, iframe, header, aside").remove();
   const title = $("title").text().trim();
   const text = $("body").text().replace(/\s+/g, " ").trim();
+
+  if (text.length < THIN_PAGE_CHARS && feedUrl) {
+    try {
+      const feedRes = await fetchWithTimeout(feedUrl);
+      if (feedRes.ok) {
+        const items = parseFeed(await feedRes.text());
+        if (items.length) {
+          console.log(`[FETCH] ${url} was thin (${text.length} chars) — used its RSS feed instead`);
+          return `FEED ${feedUrl}\n${items.join("\n")}`.slice(0, maxChars);
+        }
+      }
+    } catch {}
+  }
+
+  if (!text.length) {
+    throw new Error("page rendered no readable text (likely JS-only) — try a different url, or open it in the browser and read");
+  }
+
   return `${title ? `TITLE: ${title}\n` : ""}${text.slice(0, maxChars)}${text.length > maxChars ? " …" : ""}`;
 }

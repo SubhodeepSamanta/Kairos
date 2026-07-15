@@ -42,7 +42,7 @@ The old bottleneck was llama-3.3-70b. Benchmarking 13 free models on real Kairos
 
 Measured effect: "open github.com in brave" went from an infinite click-loop to **2 steps**; the weather goal passed for the first time. No paid key needed.
 
-Remaining known weakness: **news/aggregator extraction**. The agent now follows the right procedure (search → fetch a real article) but JS-rendered and bot-blocked news sites yield no text to a plain HTTP fetch, so answers come back thin. Fix candidates: RSS support in `fetchPageText`, or fall back to navigate+read in the real browser for these sites.
+**News extraction — fixed (2026-07-16).** `fetchPageText` now auto-discovers a page's RSS/Atom feed and uses it when the HTML renders thin (JS-only sites), parses feeds passed directly, and throws a useful error instead of returning nothing when a page is truly unreadable — so the model moves to another source or the real browser instead of handing you links. Verified live: "top 5 tech news headlines today" returns real headlines with timestamps.
 
 `provider.js` is model-agnostic — one entry in the providers array swaps it. Ranked by leverage:
 1. **Better model** (Claude Sonnet / GPT-4o) — biggest single jump in reliability
