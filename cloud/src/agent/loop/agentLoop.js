@@ -7,6 +7,7 @@ import { personaBlock } from "../../companion/personas.js";
 import { buildCompanionContext } from "../../companion/context.js";
 import { addTurn, addEvent, addMood } from "../../companion/store.js";
 import { detectCrisis, shouldStayQuiet, CRISIS_REPLY } from "../../companion/care.js";
+import { maybeSummarize } from "../../companion/summary.js";
 
 const MAX_STEPS = 30;
 const MAX_LLM_CALLS = 45;
@@ -96,6 +97,7 @@ export async function runAgent({ goal, goalId, chatId = "default", executeAction
     if (step > 0) {
       await addEvent(chatId, `${goal.slice(0, 120)}${success ? "" : " (didn't work)"}`, success, step);
     }
+    maybeSummarize(chatId).catch(() => {});
     if (extra.mood && companion.prefs.moodTracking) {
       const { label, confidence, why } = extra.mood;
       if (label && Number(confidence) >= 0.5) {
@@ -117,6 +119,7 @@ export async function runAgent({ goal, goalId, chatId = "default", executeAction
         ? formatSnapshot(lastPage)
         : "not observed yet — use {\"type\":\"read\"} to see the current browser, navigate somewhere, or answer directly with done",
       notice,
+      summary: companion.summary,
       conversation: companion.conversation,
       recentDays: companion.recentDays,
       mood: companion.mood

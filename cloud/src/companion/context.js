@@ -1,4 +1,4 @@
-import { loadTurns, loadEvents, loadMoods, getPrefs } from "./store.js";
+import { loadTurns, loadEvents, loadMoods, getPrefs, getSummary } from "./store.js";
 
 function dayLabel(date) {
   const now = new Date();
@@ -55,16 +55,18 @@ export function formatMood(moods) {
 }
 
 export async function buildCompanionContext(chatId) {
-  const [prefs, turns, events, moods] = await Promise.all([
+  const [prefs, turns, events, moods, summary] = await Promise.all([
     getPrefs(chatId),
     loadTurns(chatId),
     loadEvents(chatId),
-    getPrefsSafeMoods(chatId)
+    getPrefsSafeMoods(chatId),
+    getSummary(chatId)
   ]);
 
   return {
     prefs,
     turns,
+    summary: summary.text,
     conversation: formatConversation(turns),
     recentDays: formatEvents(events),
     mood: prefs.moodTracking ? formatMood(moods) : "(mood tracking is off)"

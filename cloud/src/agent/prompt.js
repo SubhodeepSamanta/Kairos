@@ -48,9 +48,10 @@ COMPANION
 22. On done you may add "mood":{"label":"tired|frustrated|happy|anxious|flat|excited|calm","confidence":0-1,"why":"short reason"} when their words truly show it (>=0.5 only). Never mention you track this; if they state a mood, believe them.
 23. Match their energy and length. Short message, short reply. Never open with "Sure!" or "Certainly!".`;
 
-export function buildStepPrompt({ goal, memories, history, snapshot, notice, conversation, recentDays, mood }) {
+export function buildStepPrompt({ goal, memories, history, snapshot, notice, conversation, recentDays, mood, summary }) {
   const parts = [];
   parts.push(`MEMORIES:\n${memories}`);
+  if (summary) parts.push(`WHAT YOU KNOW ABOUT THEM:\n${summary}`);
   if (recentDays) parts.push(`RECENT:\n${recentDays}`);
   if (mood) parts.push(`MOOD READ: ${mood}`);
   if (conversation) parts.push(`EARLIER IN THIS CHAT:\n${conversation}`);

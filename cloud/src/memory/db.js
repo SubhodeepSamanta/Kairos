@@ -64,9 +64,13 @@ export async function connectMemoryDb() {
       chat_id TEXT PRIMARY KEY,
       persona TEXT,
       mood_tracking BOOLEAN NOT NULL DEFAULT TRUE,
+      summary TEXT,
+      covered_turns INT NOT NULL DEFAULT 0,
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `);
+  await pool.query(`ALTER TABLE kairos_prefs ADD COLUMN IF NOT EXISTS summary TEXT`);
+  await pool.query(`ALTER TABLE kairos_prefs ADD COLUMN IF NOT EXISTS covered_turns INT NOT NULL DEFAULT 0`);
   return pool;
 }
 

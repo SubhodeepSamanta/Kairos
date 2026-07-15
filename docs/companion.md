@@ -145,12 +145,17 @@ MOOD: today tired (0.7, "said barely slept"); this week: frustrated ×3, happy �
 - `/mood` shows everything stored; `/mood off` disables collection entirely; `/forget mood` wipes it
 - Mood **never** changes what actions are allowed — only tone
 
-### 3.3 Conversation memory
+### 3.3 Conversation memory — two layers
 
-- Last **12 turns** verbatim per chat
-- Older turns → one rolling summary paragraph, regenerated every ~10 turns
-- Per `chat_id`, so Telegram and CLI are separate threads
-- ≈ 400 tokens in prompt
+**Live window**: last **14 turns** verbatim per chat.
+
+**Long-term summary** (`summary.js`): turns that fall out of the window get folded into one running paragraph — "notes to yourself" about who they are, what they're working on, promises, running jokes. Regenerated only when ≥10 *new* turns have aged out, so it costs roughly **one cheap LLM call per 10 turns**, not per message. It runs after the reply is already sent, so it never adds latency. Each pass feeds the previous summary back in, so memory compounds instead of resetting.
+
+Stored on `kairos_prefs.summary` with `covered_turns` marking how far it has folded. `covered_turns` counts turns *outside* the live window — getting this wrong (counting all turns) silently stops it ever summarizing again, which is exactly what the tests caught.
+
+Failure behaviour: if the model errors or says `NOTHING`, the old summary survives. It never degrades to worse memory than it had.
+
+Per `chat_id`, so Telegram and CLI are separate threads. ≈ 400 tokens (window) + ≈ 175 (summary) in prompt.
 
 ---
 
@@ -273,7 +278,7 @@ Each step is independently useful and testable. **Text before voice** — if the
 | # | Step | Status |
 |---|---|---|
 | 1 | `personas.js` + persona block in prompt | ✅ |
-| 2 | conversation memory — rolling turns | ✅ |
+| 2 | conversation memory — rolling turns + long-term summary | ✅ |
 | 3 | `/personality` switching, persisted per chat | ✅ |
 | 4 | `kairos_events` writes + day-grouped recall | ✅ |
 | 5 | Mood inference + `/mood`, `/mood off`, `/mood clear` | ✅ |

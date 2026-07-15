@@ -4,6 +4,7 @@ import { memoryPool, isDbActive } from "../memory/db.js";
 import { DEFAULT_PERSONA } from "./personas.js";
 
 const KEEP_TURNS = 14;
+const ARCHIVE_TURNS = 300;
 const KEEP_EVENTS = 60;
 const KEEP_MOODS = 80;
 
@@ -42,7 +43,7 @@ export async function addTurn(chatId, role, text) {
   const turns = loadFile("turns", {});
   if (!turns[chatId]) turns[chatId] = [];
   turns[chatId].push({ role, text: clean, at: new Date().toISOString() });
-  trimList(turns[chatId], KEEP_TURNS);
+  trimList(turns[chatId], ARCHIVE_TURNS);
   saveFile("turns");
 
   const pool = db();
@@ -133,6 +134,52 @@ export async function loadMoods(chatId, sinceDays = 7) {
   return (loadFile("moods", {})[chatId] || []).filter(m => new Date(m.at).getTime() > cutoff);
 }
 
+export async function countTurns(chatId) {
+  const pool = db();
+  if (pool) {
+    try {
+      const { rows } = await pool.query("SELECT COUNT(*)::INT AS n FROM kairos_turns WHERE chat_id = $1", [chatId]);
+      return rows[0]?.n || 0;
+    } catch {}
+  }
+  return (loadFile("turns", {})[chatId] || []).length;
+}
+
+export async function loadTurnsBefore(chatId, total) {
+  const summary = await getSummary(chatId);
+  const skip = summary.coveredTurns;
+  const take = Math.max(0, total - skip - KEEP_TURNS);
+  if (take <= 0) return [];
+
+  const pool = db();
+  if (pool) {
+    try {
+      const { rows } = await pool.query(
+        "SELECT role, text FROM kairos_turns WHERE chat_id = $1 ORDER BY said_at ASC OFFSET $2 LIMIT $3",
+        [chatId, skip, take]
+      );
+      return rows.map(r => ({ role: r.role, text: r.text }));
+    } catch {}
+  }
+  return (loadFile("turns", {})[chatId] || []).slice(skip, skip + take);
+}
+
+export async function getSummary(chatId) {
+  const pool = db();
+  if (pool) {
+    try {
+      const { rows } = await pool.query("SELECT summary, covered_turns FROM kairos_prefs WHERE chat_id = $1", [chatId]);
+      if (rows[0]) return { text: rows[0].summary || "", coveredTurns: rows[0].covered_turns || 0 };
+    } catch {}
+  }
+  const prefs = loadFile("prefs", {})[chatId] || {};
+  return { text: prefs.summary || "", coveredTurns: prefs.coveredTurns || 0 };
+}
+
+export async function setSummary(chatId, text, coveredTurns) {
+  await setPrefs(chatId, { summary: text, coveredTurns });
+}
+
 export async function getPrefs(chatId) {
   const pool = db();
   if (pool) {
@@ -147,18 +194,39 @@ export async function getPrefs(chatId) {
 }
 
 export async function setPrefs(chatId, patch) {
+  const pool = db();
   const prefs = loadFile("prefs", {});
-  prefs[chatId] = { ...(prefs[chatId] || {}), ...patch };
+
+  let base = prefs[chatId] || {};
+  if (pool) {
+    try {
+      const { rows } = await pool.query(
+        "SELECT persona, mood_tracking, summary, covered_turns FROM kairos_prefs WHERE chat_id = $1",
+        [chatId]
+      );
+      if (rows[0]) {
+        base = {
+          persona: rows[0].persona || base.persona,
+          moodTracking: rows[0].mood_tracking !== false,
+          summary: rows[0].summary || base.summary,
+          coveredTurns: rows[0].covered_turns || base.coveredTurns || 0
+        };
+      }
+    } catch {}
+  }
+
+  prefs[chatId] = { ...base, ...patch };
   saveFile("prefs");
 
-  const pool = db();
   if (pool) {
     try {
       const current = prefs[chatId];
       await pool.query(
-        `INSERT INTO kairos_prefs (chat_id, persona, mood_tracking, updated_at) VALUES ($1, $2, $3, NOW())
-         ON CONFLICT (chat_id) DO UPDATE SET persona = EXCLUDED.persona, mood_tracking = EXCLUDED.mood_tracking, updated_at = NOW()`,
-        [chatId, current.persona || DEFAULT_PERSONA, current.moodTracking !== false]
+        `INSERT INTO kairos_prefs (chat_id, persona, mood_tracking, summary, covered_turns, updated_at)
+         VALUES ($1, $2, $3, $4, $5, NOW())
+         ON CONFLICT (chat_id) DO UPDATE SET persona = EXCLUDED.persona, mood_tracking = EXCLUDED.mood_tracking,
+           summary = EXCLUDED.summary, covered_turns = EXCLUDED.covered_turns, updated_at = NOW()`,
+        [chatId, current.persona || DEFAULT_PERSONA, current.moodTracking !== false, current.summary || null, current.coveredTurns || 0]
       );
     } catch {}
   }
