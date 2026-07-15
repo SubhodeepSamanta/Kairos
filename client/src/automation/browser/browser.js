@@ -178,31 +178,33 @@ export function isBrowserOpen() {
 }
 
 export async function createNewTab() {
-
-  if (
-    !browser ||
-    !browser.isConnected()
-  ) {
+  if (!browser || !browser.isConnected()) {
     await launchBrowser();
   }
 
-  const newPage =
-    await context.newPage();
+  const newPage = await new Promise((resolve) => {
+    const handler = (page) => {
+      context.removeListener("page", handler);
+      resolve(page);
+    };
+    context.on("page", handler);
+    context.newPage().then(page => {
+      if (pages.includes(page)) resolve(page);
+    });
+    setTimeout(() => {
+      context.removeListener("page", handler);
+      resolve(null);
+    }, 5000);
+  });
 
-  let retries = 50;
-  while (!pages.includes(newPage) && retries > 0) {
-    await new Promise(resolve => setTimeout(resolve, 10));
-    retries--;
+  if (!newPage) {
+    return { success: false, reason: "Failed to create new tab within timeout" };
   }
 
-  activePageIndex = pages.indexOf(newPage);
-  if (activePageIndex === -1) {
+  if (!pages.includes(newPage)) {
     pages.push(newPage);
-    activePageIndex = pages.length - 1;
   }
+  activePageIndex = pages.indexOf(newPage);
 
-  return {
-    success: true,
-    index: activePageIndex
-  };
+  return { success: true, index: activePageIndex };
 }

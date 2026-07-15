@@ -1,4 +1,3 @@
-import { registerElement } from "../../elements/registry.js";
 import { classifyElement } from "../classifier/index.js";
 
 export async function readInputs(page) {
@@ -13,19 +12,17 @@ export async function readInputs(page) {
     const visible = await locator.isVisible().catch(() => false);
     if (!visible) continue;
 
-    const id = await locator.getAttribute("data-kairos-id").catch(() => null);
-    if (!id) continue;
-
     const metadata = await locator.evaluate(el => ({
       placeholder: el.placeholder || null,
       name: el.name || null,
       type: el.type || null,
       value: el.value || null,
       ariaLabel: el.getAttribute("aria-label") || el.getAttribute("aria-labelledby") || null,
-      title: el.title || null
+      title: el.title || null,
+      role: el.getAttribute("role") || null
     })).catch(() => ({}));
 
-    registerElement(id, page.locator(`[data-kairos-id="${id}"]`), metadata.ariaLabel || metadata.placeholder || metadata.name || metadata.type || "input", "input");
+    const text = metadata.ariaLabel || metadata.placeholder || metadata.name || metadata.type || "input";
 
     const enabled = await locator.isEnabled().catch(() => true);
     const box = await locator.boundingBox().catch(() => null);
@@ -38,10 +35,9 @@ export async function readInputs(page) {
     } : { inViewport: false, top: null, left: null, width: null, height: null };
 
     const inputObj = {
-      id: parseInt(id, 10),
-      text: metadata.ariaLabel || metadata.placeholder || metadata.name || metadata.type || "input",
+      text,
       value: metadata.value || "",
-      role: "input",
+      role: metadata.role || "input",
       type: metadata.type,
       placeholder: metadata.placeholder,
       ariaLabel: metadata.ariaLabel,

@@ -10,10 +10,10 @@ export async function determineRecovery(lastAction, browserState, previousState 
   Retry Count: ${retryCount}`);
 
   if (diagnosis.escalate) {
-    if (retryCount >= 2) {
+    if (diagnosis.requiresHumanInput || retryCount >= 2) {
       return {
         escalate: "human_loop",
-        state: "WAITING_FOR_MANUAL_ACTION",
+        state: diagnosis.requiresHumanInput ? "WAITING_FOR_MANUAL_ACTION" : "WAITING_FOR_MANUAL_ACTION",
         reason: diagnosis.reason || "Maximum retries reached during recovery execution"
       };
     }
@@ -60,11 +60,7 @@ export async function determineRecovery(lastAction, browserState, previousState 
     ];
   }
 
-  // Fallback to traditional recovery
-  return diagnosis.alternative || [
-    { type: "refresh", params: {} },
-    { type: "read_ui", params: {} }
-  ];
+
 }
 
 // Export adaptive recovery functions

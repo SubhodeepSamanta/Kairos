@@ -15,6 +15,7 @@ function textOf(element = {}) {
 function normalizeElement(element = {}, source = "element", index = 0) {
   const label = textOf(element);
   const role = element.role || element.type || source;
+  const ariaRole = element.ariaRole || null;
   const actionHints = [];
 
   if (source === "inputs") actionHints.push("type");
@@ -26,6 +27,34 @@ function normalizeElement(element = {}, source = "element", index = 0) {
   }
   if (element.href) actionHints.push("navigate");
 
+  // Use ARIA role to determine semanticType if classifier didn't provide one
+  let semanticType = element.semanticType || null;
+  let purpose = element.purpose || null;
+  if (!semanticType && ariaRole) {
+    const ariaToType = {
+      searchbox: "search_input",
+      textbox: "input_element",
+      button: "action_target",
+      link: "navigation_element",
+      combobox: "search_input",
+      heading: "content_header",
+      img: "visual_content",
+      listbox: "selection_list",
+      option: "selection_candidate",
+      tab: "navigation_element",
+      menuitem: "navigation_element"
+    };
+    semanticType = ariaToType[ariaRole] || null;
+  }
+  if (!purpose && ariaRole) {
+    const ariaToPurpose = {
+      searchbox: "search_input",
+      button: "action_target",
+      link: "navigation_target"
+    };
+    purpose = ariaToPurpose[ariaRole] || null;
+  }
+
   return {
     id: element.id,
     source,
@@ -34,13 +63,16 @@ function normalizeElement(element = {}, source = "element", index = 0) {
     href: element.href,
     visible: element.visible !== false,
     disabled: element.disabled === true,
-    semanticType: element.semanticType || null,
-    purpose: element.purpose || null,
+    semanticType,
+    purpose,
     value: element.value,
     confidence: typeof element.confidence === "number" ? element.confidence : 0.75,
     position: index,
     inViewport: element.inViewport ?? null,
     top: element.top ?? null,
+    left: element.left ?? null,
+    width: element.width ?? null,
+    height: element.height ?? null,
     actionHints: [...new Set(actionHints)]
   };
 }

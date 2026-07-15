@@ -78,10 +78,18 @@ export async function executePlan(plan) {
 
         console.log(`[SPA WAIT] Start polling. Previous URL: ${prevUrl} | Previous PageType: ${prevPageType} | Previous State: ${prevSemanticState}`);
 
-        let lastReadState = await readPage();
-        let currentUrl = lastReadState.url || "";
-        let currentPageType = lastReadState.pageType || "";
-        let currentSemanticState = lastReadState.semanticState || "";
+        let lastReadState, currentUrl, currentPageType, currentSemanticState;
+        try {
+          lastReadState = await readPage();
+          currentUrl = lastReadState.url || "";
+          currentPageType = lastReadState.pageType || "";
+          currentSemanticState = lastReadState.semanticState || "";
+        } catch (readErr) {
+          lastReadState = { success: false, reason: readErr.message };
+          currentUrl = "";
+          currentPageType = "";
+          currentSemanticState = "";
+        }
 
         while (Date.now() - startTime < maxTimeout) {
           if (
@@ -94,10 +102,18 @@ export async function executePlan(plan) {
           }
 
           await new Promise(resolve => setTimeout(resolve, interval));
-          lastReadState = await readPage();
-          currentUrl = lastReadState.url || "";
-          currentPageType = lastReadState.pageType || "";
-          currentSemanticState = lastReadState.semanticState || "";
+          try {
+            lastReadState = await readPage();
+            currentUrl = lastReadState.url || "";
+            currentPageType = lastReadState.pageType || "";
+            currentSemanticState = lastReadState.semanticState || "";
+          } catch (readErr) {
+            console.log(`[SPA WAIT] readPage failed: ${readErr.message}`);
+            lastReadState = { success: false, reason: readErr.message };
+            currentUrl = "";
+            currentPageType = "";
+            currentSemanticState = "";
+          }
 
           console.log(`[SPA WAIT] Polling...
   Previous URL: ${prevUrl} | Current URL: ${currentUrl}
@@ -108,7 +124,12 @@ export async function executePlan(plan) {
         result.pageState = lastReadState;
       } else {
         await new Promise(resolve => setTimeout(resolve, 500));
-        result.pageState = await readPage();
+        try {
+          result.pageState = await readPage();
+        } catch (readErr) {
+          console.log(`[EXECUTOR] readPage failed: ${readErr.message}`);
+          result.pageState = { success: false, reason: readErr.message };
+        }
       }
 
       console.log("AUTO READ:", action.type, result.pageState?.url);

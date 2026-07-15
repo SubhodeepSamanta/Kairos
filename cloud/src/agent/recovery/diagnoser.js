@@ -1,5 +1,4 @@
-import { resolveCurrentState } from "../../world/currentStateResolver.js";
-import { understandPage } from "../../world/pageUnderstandingV2.js";
+import { detectCaptchaProvider } from "../state/agentSession.js";
 
 export function diagnose(lastAction, browserState, previousState = null, retryCount = 0) {
   if (!browserState) {
@@ -15,15 +14,17 @@ export function diagnose(lastAction, browserState, previousState = null, retryCo
   const pageTitle = (browserState.title || "").toLowerCase();
   const url = (browserState.url || "").toLowerCase();
 
-  // 1. CAPTCHA / Human verification / authentication required / auth gate
-  if (/captcha|verify you are human/i.test(pageText) || /captcha/i.test(pageTitle)) {
+  // 1. CAPTCHA / Human verification / authentication required
+  const captchaProvider = detectCaptchaProvider(pageText, pageTitle, browserState.inputs, browserState.buttons, browserState.links);
+  if (/captcha|verify you are human/i.test(pageText) || /captcha/i.test(pageTitle) || captchaProvider) {
     return {
       type: "authentication required",
-      message: "Human verification or CAPTCHA detected",
+      message: `Human verification or CAPTCHA detected${captchaProvider ? ` (${captchaProvider})` : ""}`,
       hypothesis: "The website requires human interaction to bypass bot-detection or verify credentials",
       escalate: "human_loop",
       requiresHumanInput: true,
-      reason: "CAPTCHA/Human verification required"
+      reason: "CAPTCHA/Human verification required",
+      captchaProvider
     };
   }
 
@@ -70,16 +71,28 @@ export function diagnose(lastAction, browserState, previousState = null, retryCo
     };
   }
 
-  // 5. Missing Element / Selector Failed / Hidden Element
+  // 5. Missing Element — includes tab search
   if (lastAction && (lastAction.type === "click" || lastAction.type === "type")) {
     const targetElementId = lastAction.params?.element;
     const elements = [...(browserState.inputs || []), ...(browserState.buttons || []), ...(browserState.links || [])];
     const elementExists = elements.some(el => el.id === targetElementId);
     if (!elementExists) {
+      const tabs = browserState.tabs || [];
+      const hasMultipleTabs = tabs.length > 1;
+      if (hasMultipleTabs) {
+        return {
+          type: "missing element on tab",
+          message: `Element "${targetElementId}" not found — may be on a different tab`,
+          hypothesis: "Target element exists on another tab",
+          alternative: tabs.filter(t => !t.active).map(tab => ({
+            type: "switch_tab", params: { index: tab.index }
+          })).concat([{ type: "read_ui", params: {} }])
+        };
+      }
       return {
         type: "missing element",
-        message: `Action target element "${targetElementId}" not found in current DOM`,
-        hypothesis: "Element was removed, did not render yet, or is located out of view",
+        message: `Action target element "${targetElementId}" not found`,
+        hypothesis: "Element was removed, did not render yet, or is out of view",
         alternative: [
           { type: "scroll", params: { direction: "down", amount: 300 } },
           { type: "read_ui", params: {} }
@@ -91,10 +104,21 @@ export function diagnose(lastAction, browserState, previousState = null, retryCo
   // 6. Dead End / Missing Affordance
   const hasInteractiveElements = [...(browserState.inputs || []), ...(browserState.buttons || []), ...(browserState.links || [])].some(el => el.visible);
   if (!hasInteractiveElements) {
+    const tabs = browserState.tabs || [];
+    if (tabs.length > 1) {
+      return {
+        type: "dead end — try other tabs",
+        message: "No interactive elements — may be on wrong tab",
+        hypothesis: "Interactive content exists on another tab",
+        alternative: tabs.filter(t => !t.active).map(tab => ({
+          type: "switch_tab", params: { index: tab.index }
+        })).concat([{ type: "read_ui", params: {} }])
+      };
+    }
     return {
       type: "dead end",
       message: "Page has no visible interactive elements",
-      hypothesis: "The page may have crashed, loaded blank content, or contains no actionable elements",
+      hypothesis: "The page may have crashed or loaded blank content",
       alternative: [
         { type: "back", params: {} },
         { type: "read_ui", params: {} }
@@ -102,12 +126,12 @@ export function diagnose(lastAction, browserState, previousState = null, retryCo
     };
   }
 
-  // 7. Stale Page / No Progress / Wrong Page
-  if (previousState && previousState.url === url && previousState.title === pageTitle) {
+  // 7. Stale Page / No Progress
+  if (previousState && (previousState.url || "").toLowerCase() === url && (previousState.title || "").toLowerCase() === pageTitle) {
     if (retryCount > 1) {
       return {
         type: "no progress",
-        message: "Multiple actions executed but browser view remains unchanged",
+        message: "Multiple actions executed but browser view unchanged",
         hypothesis: "Action was silent, blocked by hidden state, or ignored by page scripts",
         alternative: [
           { type: "scroll", params: { direction: "down", amount: 300 } },
@@ -117,13 +141,10 @@ export function diagnose(lastAction, browserState, previousState = null, retryCo
     }
   }
 
-  // Default fallback diagnostic
   return {
     type: "stale content",
     message: "Action completed but expected state change not verified",
     hypothesis: "Action may have succeeded silently, or verification conditions are too strict",
-    alternative: [
-      { type: "read_ui", params: {} }
-    ]
+    alternative: [{ type: "read_ui", params: {} }]
   };
 }

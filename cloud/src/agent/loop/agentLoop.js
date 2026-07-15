@@ -6,11 +6,11 @@ import { understandPage } from "../../world/pageUnderstandingV2.js";
 import { initTracker } from "../../reasoning/objectiveTracker.js";
 import { verifyGoal } from "../../verification/objectiveVerifier.js";
 import { createExecutionContext, generateExecutionSummary } from "../../world/executionContext.js";
-import { loadAgentSession, saveAgentSession, checkForHumanIntervention } from "../state/agentSession.js";
+import { loadAgentSession, saveAgentSession, checkForHumanIntervention, storeCredential, getCredential, detectOTPInput } from "../state/agentSession.js";
 import { selectActionWithLLM } from "../../reasoning/llmActionSelector.js";
 import { determineRecovery } from "../recovery/recovery.js";
 import { WorkflowMemory } from "../../memory/workflowMemory.js";
-import humanLoopBus from "../../humanLoop/humanLoopBus.js";
+import { requestHumanInputRemotely } from "../../websocket/server.js";
 
 function printMetrics(goal, startTime, startLlmCalls) {
   const durationSec = ((Date.now() - startTime) / 1000).toFixed(1);
@@ -48,7 +48,7 @@ async function decomposeGoal(objective, currentBrowserState = null) {
     const title = currentBrowserState.title || "";
     const hostname = (() => { try { return new URL(url).hostname.replace("www.", "").split(".")[0]; } catch (e) { return ""; } })();
     contextStr = `\nCurrent page:\n- URL: ${url}\n- Title: ${title}\n- Platform: ${hostname || "unknown"}`;
-    const resultsPatterns = [/\/results/, /\?search_query=/, /\?q=/, /\?query=/, /\/search\//];
+    const resultsPatterns = [/\/results/, /\?q=/, /\?query=/, /\/search\//];
     const isResults = resultsPatterns.some(p => p.test(url.toLowerCase()));
     const hasResultLinks = (currentBrowserState.links || []).some(l =>
       l.purpose === "primary_content" || l.semanticType === "content_item" || l.semanticType === "selection_candidate"
@@ -57,7 +57,7 @@ async function decomposeGoal(objective, currentBrowserState = null) {
       contextStr += `\n- This page CONTAINS search results`;
       try {
         const urlObj = new URL(url);
-        const query = urlObj.searchParams.get("search_query") || urlObj.searchParams.get("q") || urlObj.searchParams.get("query") || "";
+        const query = urlObj.searchParams.get("q") || urlObj.searchParams.get("query") || "";
         if (query) contextStr += ` for query: "${query}"`;
       } catch (e) {}
       contextStr += `\n- The search/query stage is ALREADY COMPLETE`;
@@ -68,8 +68,36 @@ async function decomposeGoal(objective, currentBrowserState = null) {
   }
 
   try {
-    const systemPrompt = `You are a browser automation planner. Given a user's goal and the CURRENT page state, decompose the REMAINING work into 1-5 sequential sub-objectives that a browser agent should complete. Each sub-objective should be a short, action-oriented phrase. Output ONLY a JSON array of strings. Example: ["navigate to site", "search for content", "select result", "extract information"]`;
-    const userPrompt = `Goal: "${text}"${contextStr}\n\nDecompose the REMAINING work into sub-objectives. CRITICAL: Only include sub-objectives that are NOT already satisfied by the current page state. If the current page already shows search results, do NOT include search-related sub-objectives - start from result selection. Output ONLY a JSON array of strings. Keep it minimal (1-3 objectives if most work is done).`;
+    const systemPrompt = `You are a browser automation planner. Given a user's goal and the CURRENT page state, decompose the REMAINING work into sequential sub-objectives that a browser agent should complete. Each sub-objective must be a short, action-oriented phrase. Output ONLY a JSON array of strings.
+
+EXAMPLES OF CONTEXT-AWARE DECOMPOSITION:
+
+Goal: "search for lofi music"
+Current page: about:blank (no URL)
+→ ["navigate to music platform", "search for lofi music", "select a result"]
+
+Goal: "search for lofi music"
+Current page: youtube.com/search?q=lofi (already shows results)
+→ ["select a result", "interact with content"]
+
+Goal: "search for lofi music"
+Current page: youtube.com (homepage with search box)
+→ ["search for lofi music", "select a result", "interact with content"]
+
+Goal: "play the first video"
+Current page: youtube.com/results?q=lofi (shows results for lofi)
+→ ["select first result", "play video"]
+
+Goal: "play the first video"
+Current page: youtube.com/watch?v=abc123 (already on a video page)
+→ ["play video"] (just one step remaining)
+
+CRITICAL RULES:
+- NEVER include sub-objectives already satisfied by the current page.
+- If current page already shows search results with the query, skip search steps.
+- If current page is already on a content/video/detail page, skip selection steps.
+- Keep it minimal: 1-3 objectives if most work is done.`;
+    const userPrompt = `Goal: "${text}"${contextStr}\n\nDecompose the REMAINING work into sub-objectives. Current page details are provided above. Output ONLY a JSON array of strings. Keep it minimal.`;
 
     const responseText = await askLLM(systemPrompt, userPrompt);
     let cleaned = (responseText || "").trim();
@@ -115,7 +143,7 @@ function estimateProgress(workflowMemory, browserState) {
   };
 }
 
-function updateSubObjectives(workflowMemory, browserState, pageUnderstanding) {
+function updateSubObjectives(workflowMemory, browserState, pageUnderstanding, actionHistory) {
   const subObjectives = workflowMemory.subObjectives || [];
   const currentIdx = subObjectives.indexOf(workflowMemory.currentSubObjective);
   if (currentIdx === -1) return;
@@ -142,7 +170,18 @@ function updateSubObjectives(workflowMemory, browserState, pageUnderstanding) {
   const currentIsSelect = currentSubObjectiveMatches("select", "choose", "pick", "click", "open result");
 
   let satisfied = false;
-  if (currentIsSearch && isOnResultsPage) satisfied = true;
+  if (currentIsSearch && isOnResultsPage) {
+    const activeQuery = resolvedState.parameters?.query;
+    if (activeQuery) {
+      const subText = (workflowMemory.currentSubObjective || "").toLowerCase();
+      const queryText = activeQuery.toLowerCase();
+      if (subText.includes(queryText) || queryText.includes(subText)) {
+        satisfied = true;
+      }
+    } else {
+      satisfied = true;
+    }
+  }
   if (currentIsNavigation && hasRealPage) satisfied = true;
   if (currentIsSelect && isOnContentPage) satisfied = true;
 
@@ -194,24 +233,23 @@ function updateSubObjectives(workflowMemory, browserState, pageUnderstanding) {
     }
   }
 
-  // --- Fallback heuristic advancement (conservative) ---
-  const purposeIsSpecific = purpose && purpose !== "generic" && purpose !== "landing_page";
-  const isResultsPageHeuristic = /result|search/.test(purpose) || url.includes("/results") || url.includes("?search_query=") || url.includes("?q=");
-  const isContentPageHeuristic = /content|detail|media|article|product|profile/.test(purpose) || url.includes("/watch");
-  const isFormPage = /form|login|auth/.test(purpose);
-
+  // --- Fallback heuristic advancement (resolvedState-driven) ---
+  // Don't advance via fallback if no actions have been executed yet
+  const hasExecutedActions = actionHistory && actionHistory.some(a => a.action?.type !== "read_ui");
+  const purposeIsSpecific = purpose && !["generic", "landing_page"].includes(purpose);
   let advance = false;
   const progressPercent = currentIdx / Math.max(subObjectives.length - 1, 1);
 
-  // Only advance if page purpose clearly indicates forward progress
-  if (progressPercent < 0.25 && hasRealPage && purposeIsSpecific) {
-    advance = true;
-  } else if (progressPercent < 0.5 && (isResultsPageHeuristic || purposeIsSpecific)) {
-    advance = true;
-  } else if (progressPercent < 0.75 && isContentPageHeuristic) {
-    advance = true;
-  } else if (progressPercent >= 0.75 && (isContentPageHeuristic || isFormPage)) {
-    advance = true;
+  if (hasExecutedActions) {
+    if (progressPercent < 0.25 && hasRealPage && purposeIsSpecific) {
+      advance = true;
+    } else if (progressPercent < 0.5 && isOnResultsPage) {
+      advance = true;
+    } else if (progressPercent < 0.75 && isOnContentPage) {
+      advance = true;
+    } else if (progressPercent >= 0.75 && (isOnContentPage || purpose === "access_control")) {
+      advance = true;
+    }
   }
 
   if (advance) {
@@ -304,6 +342,69 @@ function detectActionLoop(world) {
   return false;
 }
 
+async function requestHumanIntervention(goal, browserState, pageUnderstanding, bestCandidate, context, workflowMemory, latestObs, executePlan) {
+  const intervention = checkForHumanIntervention(browserState, pageUnderstanding, bestCandidate);
+  if (!intervention || !intervention.interventionNeeded) return null;
+
+  console.log(`[HUMAN INPUT REQUIRED] ${intervention.reason}`);
+  saveAgentSession(goal, goal.tracker, context, intervention.state, null, workflowMemory, {
+    humanInputPrompt: intervention.reason,
+    humanInputResponseType: intervention.state
+  });
+
+  let prompt = intervention.reason;
+  let responseType = "confirmation";
+  if (intervention.state === "WAITING_FOR_OTP") {
+    prompt = "Two-Factor Authentication / OTP detected. Please enter the code:";
+    responseType = "otp";
+  } else if (intervention.state === "WAITING_FOR_CAPTCHA") {
+    prompt = "CAPTCHA detected. Please solve it in the browser, then type 'done':";
+    responseType = "confirmation";
+  } else if (intervention.state === "WAITING_FOR_PAYMENT_APPROVAL") {
+    prompt = "Payment checkout detected. Type 'approve' to confirm or 'cancel':";
+    responseType = "confirmation";
+  } else if (intervention.state === "WAITING_FOR_DELETION_APPROVAL") {
+    prompt = "Destructive action detected. Type 'approve' to confirm or 'cancel':";
+    responseType = "confirmation";
+  } else if (intervention.state === "WAITING_FOR_CLARIFICATION") {
+    prompt = `${intervention.reason}\nWhat would you like the agent to do?`;
+    responseType = "free_text";
+  }
+
+  try {
+    const humanResponse = await requestHumanInputRemotely(
+      goal.id, prompt, responseType,
+      { url: browserState.url || "", title: browserState.title || "", pagePurpose: pageUnderstanding?.pagePurpose }
+    );
+    goal.humanInputResponse = humanResponse;
+    console.log(`[HUMAN INPUT] Received response for goal ${goal.id}`);
+
+    if (intervention.state === "WAITING_FOR_OTP" && humanResponse) {
+      const otpInput = detectOTPInput(browserState.inputs || []);
+      if (otpInput) {
+        const otpPlan = createPlan(goal.id, [
+          { type: "type", params: { element: otpInput.id, text: humanResponse } },
+          { type: "press_key", params: { key: "Enter" } },
+          { type: "read_ui", params: {} }
+        ]);
+        await executePlan(otpPlan).catch(err => console.error("[OTP] OTP plan execution failed:", err.message));
+      }
+    }
+
+    const reReadPlan = { goalId: goal.id, actions: [{ type: "read_ui", params: {} }] };
+    const reReadResult = await executePlan(reReadPlan).catch(() => null);
+    const newObs = reReadResult?.observations?.[reReadResult.observations.length - 1];
+    if (newObs) {
+      updateWorldModel(goal, newObs);
+      return newObs;
+    }
+    return latestObs;
+  } catch (err) {
+    console.log(`[HUMAN INPUT] Failed: ${err.message}`);
+    return { escalation: err.message };
+  }
+}
+
 async function _runAgentInternal({
     goal,
     executePlan
@@ -367,25 +468,15 @@ async function _runAgentInternal({
     }
   }
 
-  const initIntervention = checkForHumanIntervention(browserState, null, null);
-  if (initIntervention && initIntervention.interventionNeeded) {
-    console.log(`[HUMAN INPUT REQUIRED] ${initIntervention.reason}`);
-    const summary = generateExecutionSummary(context, goal.tracker);
-    saveAgentSession(goal, goal.tracker, context, initIntervention.state, null, workflowMemory);
-    humanLoopBus.emit("intervention_needed", {
-      goalId: goal.id,
-      reason: initIntervention.reason,
-      state: initIntervention.state,
-      pageUrl: browserState.url || "",
-      pageTitle: browserState.title || ""
-    });
-    return {
-      success: false,
-      reason: initIntervention.state,
-      requiresHumanInput: true,
-      observation: latestObs,
-      contextSummary: summary
-    };
+  const initResultObs = await requestHumanIntervention(
+    goal, browserState, null, null, context, workflowMemory, latestObs, executePlan
+  );
+  if (initResultObs?.escalation) {
+    return { success: false, reason: initResultObs.escalation, observation: latestObs, contextSummary: generateExecutionSummary(context, goal.tracker) };
+  }
+  if (initResultObs && initResultObs !== latestObs) {
+    latestObs = initResultObs;
+    browserState = extractBrowserState(latestObs);
   }
 
   if (await verifyGoal(goal, browserState, goal.world)) {
@@ -401,16 +492,20 @@ async function _runAgentInternal({
 
   let retryCount = 0;
   let lastAction = null;
+  let staleRefCount = 0;
+  let consecutiveFailuresByElement = {};
+
+  let previousBrowserState = null;
 
   while (goal.metrics.totalActions < MAX_GOAL_ACTIONS) {
+    previousBrowserState = { ...browserState };
     let result = null;
 
     if (detectActionLoop(goal.world)) {
       console.log("[LOOP DETECTION] Agent appears stuck.");
       retryCount++;
 
-      if (retryCount <= 2) {
-        // First attempts: scroll and re-read
+      if (retryCount <= 1) {
         console.log("[LOOP DETECTION] Attempting scroll+read recovery.");
         const unstickPlan = createPlan(goal.id, [
           { type: "scroll", params: { direction: "down", amount: 500 } },
@@ -418,6 +513,27 @@ async function _runAgentInternal({
         ]);
         const unstickResult = await executePlan(unstickPlan);
         latestObs = unstickResult?.observations?.[unstickResult.observations.length - 1] || latestObs;
+        browserState = extractBrowserState(latestObs);
+        updateWorldModel(goal, latestObs);
+      } else if (retryCount === 2) {
+        console.log("[LOOP DETECTION] Attempting go-back recovery.");
+        const backPlan = createPlan(goal.id, [
+          { type: "back", params: {} },
+          { type: "read_ui", params: {} }
+        ]);
+        const backResult = await executePlan(backPlan);
+        latestObs = backResult?.observations?.[backResult.observations.length - 1] || latestObs;
+        browserState = extractBrowserState(latestObs);
+        updateWorldModel(goal, latestObs);
+      } else if (retryCount === 3) {
+        console.log("[LOOP DETECTION] Attempting refresh+scroll recovery.");
+        const refreshPlan = createPlan(goal.id, [
+          { type: "refresh", params: {} },
+          { type: "scroll", params: { direction: "down", amount: 1000 } },
+          { type: "read_ui", params: {} }
+        ]);
+        const refreshResult = await executePlan(refreshPlan);
+        latestObs = refreshResult?.observations?.[refreshResult.observations.length - 1] || latestObs;
         browserState = extractBrowserState(latestObs);
         updateWorldModel(goal, latestObs);
       } else {
@@ -469,7 +585,7 @@ async function _runAgentInternal({
 
     const pageUnderstanding = understandPage(browserState);
 
-    updateSubObjectives(workflowMemory, browserState, pageUnderstanding);
+    updateSubObjectives(workflowMemory, browserState, pageUnderstanding, goal.world?.actionHistory);
     const progress = estimateProgress(workflowMemory, browserState);
     console.log(`[PROGRESS] ${progress.percent}% - ${progress.stage}`);
 
@@ -480,30 +596,20 @@ async function _runAgentInternal({
       workflowMemory
     });
 
-    const loopIntervention = checkForHumanIntervention(browserState, pageUnderstanding, bestCandidate);
-    if (loopIntervention && loopIntervention.interventionNeeded) {
-      console.log(`[HUMAN INPUT REQUIRED] ${loopIntervention.reason}`);
-      const summary = generateExecutionSummary(context, goal.tracker);
-      saveAgentSession(goal, goal.tracker, context, loopIntervention.state, null, workflowMemory);
-      humanLoopBus.emit("intervention_needed", {
-        goalId: goal.id,
-        reason: loopIntervention.reason,
-        state: loopIntervention.state,
-        pageUrl: browserState.url || "",
-        pageTitle: browserState.title || ""
-      });
-      return {
-        success: false,
-        reason: loopIntervention.state,
-        requiresHumanInput: true,
-        observation: latestObs,
-        contextSummary: summary
-      };
+    const loopResult = await requestHumanIntervention(
+      goal, browserState, pageUnderstanding, bestCandidate, context, workflowMemory, latestObs, executePlan
+    );
+    if (loopResult?.escalation) {
+      return { success: false, reason: loopResult.escalation, observation: latestObs, contextSummary: generateExecutionSummary(context, goal.tracker) };
+    }
+    if (loopResult && loopResult !== latestObs) {
+      latestObs = loopResult;
+      browserState = extractBrowserState(latestObs);
     }
 
     if (!bestCandidate || !bestCandidate.actions || bestCandidate.actions.length === 0) {
       console.log(`[AGENT] No action candidate selected. Running recovery.`);
-      const recoveryActions = determineRecovery(lastAction, browserState, null, retryCount);
+      const recoveryActions = determineRecovery(lastAction, browserState, previousBrowserState, retryCount);
 
       if (recoveryActions && recoveryActions.escalate) {
         console.log(`[RECOVERY ESCALATION] Escalating to: ${recoveryActions.state}`);
@@ -552,25 +658,15 @@ async function _runAgentInternal({
     latestObs = result?.observations?.[result.observations.length - 1] || latestObs;
     browserState = extractBrowserState(latestObs);
 
-    const postIntervention = checkForHumanIntervention(browserState, pageUnderstanding, bestCandidate);
-    if (postIntervention && postIntervention.interventionNeeded) {
-      console.log(`[HUMAN INPUT REQUIRED] ${postIntervention.reason}`);
-      const summary = generateExecutionSummary(context, goal.tracker);
-      saveAgentSession(goal, goal.tracker, context, postIntervention.state, null, workflowMemory);
-      humanLoopBus.emit("intervention_needed", {
-        goalId: goal.id,
-        reason: postIntervention.reason,
-        state: postIntervention.state,
-        pageUrl: browserState.url || "",
-        pageTitle: browserState.title || ""
-      });
-      return {
-        success: false,
-        reason: postIntervention.state,
-        requiresHumanInput: true,
-        observation: latestObs,
-        contextSummary: summary
-      };
+    const postResult = await requestHumanIntervention(
+      goal, browserState, pageUnderstanding, bestCandidate, context, workflowMemory, latestObs, executePlan
+    );
+    if (postResult?.escalation) {
+      return { success: false, reason: postResult.escalation, observation: latestObs, contextSummary: generateExecutionSummary(context, goal.tracker) };
+    }
+    if (postResult && postResult !== latestObs) {
+      latestObs = postResult;
+      browserState = extractBrowserState(latestObs);
     }
 
     lastAction = bestCandidate.actions[0];
@@ -587,6 +683,49 @@ async function _runAgentInternal({
         source: { url: browserState.url || "", title: browserState.title || "" }
       });
       console.log(`[EXTRACT] Finding added to world model:`, JSON.stringify(extractedData));
+    }
+
+    // Stale-ref detection: action reports success but page didn't change
+    const actionSucceeded = result?.success !== false && latestObs?.success !== false;
+    const pageChanged = latestObs && browserState && (
+      (latestObs.url && latestObs.url !== browserState.url) ||
+      (latestObs.title && latestObs.title !== browserState.title)
+    );
+    if (actionSucceeded && !pageChanged && bestCandidate.type !== "read_ui") {
+      staleRefCount++;
+      console.log(`[STALE_REF] Action succeeded but page unchanged (count: ${staleRefCount}).`);
+      if (staleRefCount >= 2) {
+        console.log(`[STALE_REF] Enforcing re-snapshot.`);
+        const reReadPlan = createPlan(goal.id, [{ type: "read_ui", params: {} }]);
+        const reReadResult = await executePlan(reReadPlan);
+        latestObs = reReadResult?.observations?.[reReadResult.observations.length - 1] || latestObs;
+        browserState = extractBrowserState(latestObs);
+        updateWorldModel(goal, latestObs);
+        staleRefCount = 0;
+        continue;
+      }
+    } else {
+      staleRefCount = 0;
+    }
+
+    // Track consecutive failures per element for alternate element escalation
+    const actionElement = bestCandidate.elementId || bestCandidate.actions?.[0]?.params?.element;
+    const actionType = bestCandidate.actions?.[0]?.type || "";
+    const actionFailed = result?.success === false || latestObs?.success === false;
+    if (actionFailed && actionElement !== undefined) {
+      const key = `${actionType}:${actionElement}`;
+      consecutiveFailuresByElement[key] = (consecutiveFailuresByElement[key] || 0) + 1;
+      console.log(`[RECOVERY] Consecutive failures on ${key}: ${consecutiveFailuresByElement[key]}`);
+      if (consecutiveFailuresByElement[key] >= 2) {
+        console.log(`[RECOVERY] Marking ${key} as failed.`);
+        if (!goal.world.failedActionHistory) goal.world.failedActionHistory = [];
+        goal.world.failedActionHistory.push({
+          action: { type: actionType, params: { element: actionElement } },
+          reason: `${consecutiveFailuresByElement[key]} consecutive failures`
+        });
+      }
+    } else if (!actionFailed) {
+      consecutiveFailuresByElement = {};
     }
 
     // Enrich browserState with page understanding for richer goal verification
@@ -607,9 +746,9 @@ async function _runAgentInternal({
       };
     }
 
-    if (result.success === false || latestObs?.success === false) {
+    if (actionFailed) {
       console.log(`[AGENT] Action failed. Diagnosing...`);
-      const recoveryActions = await determineRecovery(lastAction, browserState, null, retryCount);
+      const recoveryActions = await determineRecovery(lastAction, browserState, previousBrowserState, retryCount);
 
       if (recoveryActions && recoveryActions.escalate) {
         console.log(`[RECOVERY ESCALATION] Escalating to: ${recoveryActions.state}`);

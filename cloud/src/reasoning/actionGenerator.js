@@ -1,14 +1,14 @@
 import { extractAffordances } from "./affordanceExtractor.js";
 
-function extractQueryTerm(goalText) {
+export function extractQueryTerm(goalText) {
   const text = goalText.trim();
-  const matchFor = text.match(/search\s+(?:for\s+)?(.+?)(?:\s+(?:on|in|and|$))/i);
+  const matchFor = text.match(/search\s+(?:for\s+)?(.+?)(?:\s+(?:on|in|and)|$)/i);
   if (matchFor && matchFor[1]) {
-    return matchFor[1].trim().replace(/\s+(video|song|media|content|channel|playlist|music)$/i, "").trim();
+    return matchFor[1].trim().replace(/^["'\u201C\u201D]+|["'\u201C\u201D]+$/g, '');
   }
   const matchOn = text.match(/search\s+(.+?)\s+(?:on|in)\s+[a-z0-9\-]+/i);
   if (matchOn && matchOn[1]) {
-    return matchOn[1].trim().replace(/\s+(video|song|media|content|channel|playlist|music)$/i, "").trim();
+    return matchOn[1].trim();
   }
   return text;
 }
@@ -30,7 +30,7 @@ function deriveAffordancesFromImportantElements(importantElements) {
   return { clickable, typeable, selectable, expandable };
 }
 
-export function generateActions(goal, pageUnderstanding, browserState) {
+export function generateActions(goal, pageUnderstanding, browserState, goalObject) {
   const candidates = [];
   const browser = browserState || {};
   const currentUrl = (browser.url || "").toLowerCase();
@@ -63,15 +63,15 @@ export function generateActions(goal, pageUnderstanding, browserState) {
 
   const queryTerm = extractQueryTerm(goal);
 
-  // If already on results page with a query in URL, skip generating type/search
+  // If already on results page with a query, skip generating type/search
   // candidates for search inputs (prevents re-searching loop)
   const isOnResultsPage = (pageUnderstanding?.resolvedState?.currentState === "results") ||
     (browserState?.url || "").toLowerCase().includes("/results") ||
-    (browserState?.url || "").match(/\?(?:search_query|q|query)=/);
+    (browserState?.url || "").match(/\?(?:q|query)=/);
   const alreadyHasQuery = isOnResultsPage && (() => {
     try {
       const u = new URL(browserState?.url || "");
-      return !!(u.searchParams.get("search_query") || u.searchParams.get("q") || u.searchParams.get("query"));
+      return !!(u.searchParams.get("q") || u.searchParams.get("query"));
     } catch (e) { return false; }
   })();
 
@@ -80,29 +80,34 @@ export function generateActions(goal, pageUnderstanding, browserState) {
     if (isOnResultsPage && alreadyHasQuery && isSearchInput) {
       return; // Skip search input candidates on results page — search already done
     }
-    candidates.push({
-      type: "type",
-      actions: [{ type: "type", params: { element: element.id, text: queryTerm } }],
-      elementId: element.id,
-      label: `Type "${queryTerm}" in ${element.label || element.role || "input"}`,
-      purpose: element.purpose,
-      semanticType: element.semanticType,
-      reason: "Type target query into available input field"
-    });
 
-    candidates.push({
-      type: "search",
-      actions: [
-        { type: "type", params: { element: element.id, text: queryTerm } },
-        { type: "press_key", params: { key: "Enter" } },
-        { type: "read_ui", params: {} }
-      ],
-      elementId: element.id,
-      label: `Search for "${queryTerm}" using ${element.label || element.role || "input"}`,
-      purpose: element.purpose,
-      semanticType: element.semanticType,
-      reason: "Submit search query via input field Enter press"
-    });
+    if (isSearchInput) {
+      // Search inputs: only search (type+Enter) candidate — bare type without Enter is useless
+      candidates.push({
+        type: "search",
+        actions: [
+          { type: "type", params: { element: element.id, text: queryTerm } },
+          { type: "press_key", params: { key: "Enter" } },
+          { type: "read_ui", params: {} }
+        ],
+        elementId: element.id,
+        label: `Search for "${queryTerm}" using ${element.label || element.role || "input"}`,
+        purpose: element.purpose,
+        semanticType: element.semanticType,
+        reason: "Submit search query via input field Enter press"
+      });
+    } else {
+      // Non-search inputs: bare type (no Enter)
+      candidates.push({
+        type: "type",
+        actions: [{ type: "type", params: { element: element.id, text: queryTerm } }],
+        elementId: element.id,
+        label: `Type "${queryTerm}" in ${element.label || element.role || "input"}`,
+        purpose: element.purpose,
+        semanticType: element.semanticType,
+        reason: "Type target query into available input field"
+      });
+    }
   });
 
   affordances.clickable.forEach(element => {
@@ -169,6 +174,49 @@ export function generateActions(goal, pageUnderstanding, browserState) {
       reason: "Expand hidden container/menu options"
     });
   });
+
+  // Generate tab management candidates
+  const tabs = browser.tabs || [];
+  if (tabs.length > 1) {
+    for (const tab of tabs) {
+      if (!tab.active) {
+        candidates.push({
+          type: "switch_tab",
+          actions: [{ type: "switch_tab", params: { index: tab.index } }, { type: "read_ui", params: {} }],
+          label: `Switch to tab: ${tab.title || tab.url}`,
+          tabIndex: tab.index,
+          reason: `Switch to tab containing ${tab.title || "content"}`
+        });
+      }
+    }
+    candidates.push({
+      type: "close_tab",
+      actions: [{ type: "close_tab", params: { index: tabs.find(t => t.active)?.index || 0 } }, { type: "read_ui", params: {} }],
+      label: "Close current tab",
+      reason: "Close current tab"
+    });
+  }
+  candidates.push({
+    type: "new_tab",
+    actions: [{ type: "new_tab", params: {} }],
+    label: "Open new tab",
+    reason: "Open a new blank tab"
+  });
+
+  // Login credential flow: if page is access_control, generate credential request
+  const pagePurpose = pageUnderstanding?.pagePurpose || browserState?.pagePurpose || "";
+  if (pagePurpose === "access_control" || pagePurpose === "login") {
+    const hasCredentials = (goalObject?.humanInputResponse) || (browserState.inputs || []).some(i => (i.value || "").length > 0);
+    if (!hasCredentials) {
+      candidates.push({
+        type: "login",
+        actions: [{ type: "human_input", params: { prompt: "Enter credentials (username:password) for this site" } }],
+        label: "Request login credentials",
+        purpose: "login_flow",
+        reason: "Login form detected — request user credentials"
+      });
+    }
+  }
 
   candidates.push({
     type: "scroll",

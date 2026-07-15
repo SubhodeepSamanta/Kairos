@@ -3,6 +3,7 @@ import { getElement } from "../../elements/registry.js";
 
 export async function typeText(text, element) {
   const page = await getPage();
+  if (!page) return { success: false, reason: "No page available" };
 
   const getActiveElementInfo = async () => {
     return await page.evaluate(() => {
@@ -59,7 +60,7 @@ export async function typeText(text, element) {
           };
         }
       } else {
-        await locator.focus().catch(() => {});
+        await locator.focus().catch(err => console.error("[type] focus failed:", err.message));
         await locator.fill(text);
         value = await locator.inputValue().catch(() => null);
         success = (value === text);
@@ -67,7 +68,7 @@ export async function typeText(text, element) {
     } catch (err) {
       const active = await getActiveElementInfo();
       if (active && (active.tag === "INPUT" || active.tag === "TEXTAREA" || active.isContentEditable)) {
-        await page.keyboard.type(text).catch(() => {});
+        await page.keyboard.type(text).catch(err => console.error("[type] keyboard.type failed:", err.message));
         const afterActive = await getActiveElementInfo();
         value = afterActive?.value || "";
         success = value.includes(text) || value !== active.value;

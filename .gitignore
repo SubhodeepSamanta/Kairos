@@ -1,13 +1,14 @@
-cloud/node_modules/
-client/node_modules/
-cloud/.env
-client/.env
+node_modules/
+.env
 *.png
 *.log
 .DS_Store
 .idea/
 .vscode/
 
-.agents
-graphify-out
-get-shit-done
+.agents/
+graphify-out/
+get-shit-done/
+sessions/
+screenshots/
+eng.traineddata

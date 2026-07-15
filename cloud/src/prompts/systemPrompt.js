@@ -27,10 +27,10 @@ export function buildSystemPrompt(
   }
  
   if (taskLower.includes("video") || taskLower.includes("media") || taskLower.includes("watch") || taskLower.includes("play") || browserContext.includes("media_site")) {
-    sections.push(`Video Search Guidelines:
-- Ignore Shorts: do not click elements containing duration labels under 1 minute or containing the word "Shorts" unless told.
-- Prefer livestreams or long-duration (>1h) videos when requested: look for "LIVE", "livestream", or duration labels like "1:00:00" or similar, and click the matching video link.
-- If on a search results page and the objective is to play/open a video, you MUST click one of the video title links. Do NOT type into the search box again or refresh if watch/video links are visible.`);
+    sections.push(`Content Page Guidelines:
+- When on a results/search page and the objective is view/open/play a result, click one of the content links. Do NOT type into a search box again or refresh if content links are visible.
+- Look at each element's semanticType (e.g., "content_item", "primary_content", "search_input") and purpose (e.g., "search_input", "primary_content") to determine the right element to interact with.
+- If the objective mentions a specific item (e.g., "first result", "top result", a specific title), match it against element labels. Otherwise, pick the most relevant content item.`);
   }
 
   if (taskLower.includes("tab") || taskLower.includes("switch") || taskLower.includes("another site") || taskLower.includes("second site")) {

@@ -1,9 +1,6 @@
 import { WebSocketServer } from "ws";
 import { log, isDebug } from "../utils/logger.js";
-import {
-  getAgentState,
-  setBrowserState
-} from "../agent/state/state.js";
+import { setBrowserState } from "../agent/state/state.js";
 import { createGoal } from "../shared/schemas/goal.js";
 import { runAgent } from "../agent/index.js";
 import { routeMessage } from "../router/router.js";
@@ -11,10 +8,33 @@ import { chatReply } from "../chat/chat.js";
 import { extractMemory } from "../memory/extract.js";
 import { storeMemory } from "../memory/store.js";
 import { retrieveMemory } from "../memory/retrieve.js";
+import humanLoopBus from "../humanLoop/humanLoopBus.js";
 
 let connectedClient = null;
 const pendingResolvers = new Map();
 const connectorClients = new Set();
+
+export function getConnectorCount() { return connectorClients.size; }
+
+export function broadcastToConnectors(message) {
+  const msg = JSON.stringify(message);
+  for (const ws of connectorClients) {
+    if (ws.readyState === 1) {
+      try { ws.send(msg); } catch {}
+    }
+  }
+}
+
+export async function requestHumanInputRemotely(goalId, prompt, responseType, context) {
+  broadcastToConnectors({
+    type: "human_input_request",
+    goalId,
+    prompt,
+    responseType: responseType || "free_text",
+    context: context || {}
+  });
+  return humanLoopBus.requestHumanInput(goalId, prompt, responseType, context);
+}
 
 function formatAgentResult(agentResult) {
   const observation = agentResult.observation;
@@ -66,7 +86,7 @@ function formatAgentResult(agentResult) {
       if (tabs.length === 0) return "No tabs open.";
       let response = "Open Tabs:\n\n";
       for (const tab of tabs) {
-        response += `${tab.active ? "→" : " "} Tab ${tab.index}\n${tab.title}\n${tab.url}\n\n`;
+        response += `${tab.active ? "\u2192" : " "} Tab ${tab.index}\n${tab.title}\n${tab.url}\n\n`;
       }
       return response;
     }
@@ -104,205 +124,138 @@ function formatAgentResult(agentResult) {
   return `Failed\n\nAction: ${observation?.action?.type || "unknown"}\nReason: ${observation?.reason || agentResult.reason || "unknown"}`;
 }
 
-export function startWebSocketServer(
-  port = 8080
-) {
+export function startWebSocketServer(port = 8080) {
+  const wss = new WebSocketServer({ port });
 
-  const wss =
-    new WebSocketServer({
-      port
+  wss.on("connection", (ws) => {
+    log("A client connected to WebSocket");
+
+    ws.on("close", () => {
+      log("A client disconnected");
+      if (connectedClient === ws) connectedClient = null;
+      connectorClients.delete(ws);
     });
 
-  wss.on(
-    "connection",
-    (ws) => {
-      log("A client connected to WebSocket");
+    ws.on("error", (error) => {
+      log("Client socket error: " + error.message);
+    });
 
-      ws.on(
-        "close",
-        () => {
-          log("A client disconnected");
-          if (connectedClient === ws) {
-            connectedClient = null;
-          }
-          connectorClients.delete(ws);
+    ws.on("message", async (message) => {
+      let data;
+      try {
+        data = JSON.parse(message.toString());
+      } catch {
+        log("Received malformed JSON from WebSocket client");
+        return;
+      }
+
+      if (data.type === "register_client") {
+        connectedClient = ws;
+        log("Automation client registered");
+        return;
+      }
+
+      if (data.type === "register_connector") {
+        connectorClients.add(ws);
+        log(`Connector registered: ${data.name}`);
+        return;
+      }
+
+      if (data.type === "human_input_response") {
+        const { goalId, input, action } = data;
+        log(`Human input received for goal ${goalId}: action=${action}, input=${input ? "(provided)" : "none"}`);
+        if (action === "cancel") {
+          humanLoopBus.cancel(goalId);
+        } else {
+          humanLoopBus.provideHumanInput(goalId, input || "");
         }
-      );
+        return;
+      }
 
-      ws.on(
-        "error",
-        (error) => {
-          log("Client socket error: " + error.message);
-        }
-      );
+      if (data.type === "goal") {
+        log(`Received goal: ${data.goal}`);
+        ws.send(JSON.stringify({ type: "goal_status", status: "Working..." }));
 
-      ws.on(
-        "message",
-        async (message) => {
-          const data = JSON.parse(message.toString());
-
-          if (data.type === "register_client") {
-            connectedClient = ws;
-            log("Automation client registered");
+        try {
+          const route = routeMessage(data.goal);
+          const memory = await extractMemory(data.goal);
+          const memoryResponse = await storeMemory(memory);
+          if (memoryResponse && route.type === "chat") {
+            ws.send(JSON.stringify({ type: "goal_result", success: true, result: memoryResponse }));
             return;
           }
 
-          if (data.type === "register_connector") {
-            connectorClients.add(ws);
-            log(`Connector registered: ${data.name}`);
+          if (route.type === "chat") {
+            const retrieved = await retrieveMemory(data.goal);
+            if (retrieved) {
+              ws.send(JSON.stringify({ type: "goal_result", success: true, result: retrieved }));
+              return;
+            }
+            const reply = await chatReply(data.goal);
+            ws.send(JSON.stringify({ type: "goal_result", success: true, result: reply }));
             return;
           }
 
-          if (data.type === "goal") {
-            log(`Received goal: ${data.goal}`);
-            ws.send(JSON.stringify({ type: "goal_status", status: "Working..." }));
-
-            try {
-              // 1. Check Route first
-              const route = routeMessage(data.goal);
-
-              // 2. Memory extract & store (silent for agent/research, active for chat)
-              const memory = await extractMemory(data.goal);
-              const memoryResponse = await storeMemory(memory);
-              if (memoryResponse && route.type === "chat") {
-                ws.send(JSON.stringify({ type: "goal_result", success: true, result: memoryResponse }));
-                return;
-              }
-
-              // 3. Memory retrieve (only for chat)
-              if (route.type === "chat") {
-                const retrieved = await retrieveMemory(data.goal);
-                if (retrieved) {
-                  ws.send(JSON.stringify({ type: "goal_result", success: true, result: retrieved }));
-                  return;
-                }
-
-                const reply = await chatReply(data.goal);
-                ws.send(JSON.stringify({ type: "goal_result", success: true, result: reply }));
-                return;
-              }
-
-              if (route.type === "research") {
-                ws.send(JSON.stringify({ type: "goal_status", status: "Researching..." }));
-                const { runResearch } = await import("../research/research.js");
-                const reply = await runResearch(data.goal);
-                ws.send(JSON.stringify({ type: "goal_result", success: true, result: reply }));
-                return;
-              }
-
-              // 4. Run Agent
-              const goal = createGoal(data.goal);
-              const agentResult = await runAgent({
-                goal,
-                executePlan: executePlanRemotely
-              });
-
-              const response = formatAgentResult(agentResult);
-              ws.send(JSON.stringify({
-                type: "goal_result",
-                success: agentResult.success,
-                result: response
-              }));
-            } catch (error) {
-              ws.send(JSON.stringify({
-                type: "goal_result",
-                success: false,
-                result: `Error: ${error.message}`
-              }));
-            }
+          if (route.type === "research") {
+            ws.send(JSON.stringify({ type: "goal_status", status: "Researching..." }));
+            const { runResearch } = await import("../research/research.js");
+            const reply = await runResearch(data.goal);
+            ws.send(JSON.stringify({ type: "goal_result", success: true, result: reply }));
             return;
           }
 
-          if (data.type === "execution_result") {
-            const latestObservation =
-              data.observations?.[data.observations.length - 1];
+          const goal = createGoal(data.goal);
+          const agentResult = await runAgent({ goal, executePlan: executePlanRemotely });
 
-            const pageState = latestObservation?.pageState;
-
-            if (pageState) {
-              setBrowserState(pageState);
-            }
-            const goalId = data.goalId;
-            const resolver = pendingResolvers.get(goalId);
-            if (resolver) {
-              resolver(data);
-              pendingResolvers.delete(goalId);
-            } else {
-              // Fallback: no goalId match found (older client or race), resolve oldest pending
-              const firstKey = pendingResolvers.keys().next().value;
-              if (firstKey !== undefined) {
-                pendingResolvers.get(firstKey)(data);
-                pendingResolvers.delete(firstKey);
-              }
-            }
-          }
-
-          if (isDebug()) {
-            log(
-              "Received:",
-              JSON.stringify(
-                data,
-                null,
-                2
-              )
-            );
-          } else {
-            log(`Received WebSocket message of type: ${data.type}`);
-          }
+          const response = formatAgentResult(agentResult);
+          ws.send(JSON.stringify({ type: "goal_result", success: agentResult.success, result: response }));
+        } catch (error) {
+          ws.send(JSON.stringify({ type: "goal_result", success: false, result: `Error: ${error.message}` }));
         }
-      );
-    }
-  );
+        return;
+      }
 
-  log(
-    `WebSocket listening on ${port}`
-  );
+      if (data.type === "execution_result") {
+        const latestObservation = data.observations?.[data.observations.length - 1];
+        const pageState = latestObservation?.pageState;
+        if (pageState) setBrowserState(pageState);
+        const goalId = data.goalId;
+        const resolver = pendingResolvers.get(goalId);
+        if (resolver) {
+          resolver(data);
+          pendingResolvers.delete(goalId);
+        } else {
+          log(`[WS] execution_result for unknown goalId: ${goalId}`);
+        }
+        return;
+      }
 
+      if (isDebug()) {
+        log("Received:", JSON.stringify(data, null, 2));
+      } else {
+        log(`Received WebSocket message of type: ${data.type}`);
+      }
+    });
+  });
+
+  log(`WebSocket listening on ${port}`);
   return wss;
 }
 
-export async function executePlanRemotely(
-  plan
-) {
-
-  if (
-    !connectedClient ||
-    connectedClient.readyState !== 1
-  ) {
-
-    throw new Error(
-      "No connected client"
-    );
+export async function executePlanRemotely(plan) {
+  if (!connectedClient || connectedClient.readyState !== 1) {
+    throw new Error("No connected client");
   }
 
   if (isDebug()) {
-    console.log(
-      "\n===== SENDING PLAN ====="
-    );
-
-    console.log(
-      JSON.stringify(
-        plan,
-        null,
-        2
-      )
-    );
+    console.log("\n===== SENDING PLAN =====");
+    console.log(JSON.stringify(plan, null, 2));
   } else {
     console.log(`\n===== SENDING PLAN actionsCount=${plan.actions?.length || 0} =====`);
   }
 
-  return new Promise(
-    (resolve) => {
-
-      pendingResolvers.set(plan.goalId, resolve);
-
-      connectedClient.send(
-        JSON.stringify({
-          type:
-            "execute_plan",
-          plan
-        })
-      );
-    }
-  );
+  return new Promise((resolve) => {
+    pendingResolvers.set(plan.goalId, resolve);
+    connectedClient.send(JSON.stringify({ type: "execute_plan", plan }));
+  });
 }

@@ -1,5 +1,3 @@
-import { registerElement } from "../../elements/registry.js";
-
 export async function readForms(page) {
   const forms = [];
   const formLocators = page.locator("form");
@@ -10,9 +8,6 @@ export async function readForms(page) {
     const visible = await locator.isVisible().catch(() => false);
     if (!visible) continue;
 
-    const id = await locator.getAttribute("data-kairos-id").catch(() => null);
-    if (!id) continue;
-
     const metadata = await locator.evaluate(el => ({
       id: el.id || null,
       action: el.action || null,
@@ -20,10 +15,7 @@ export async function readForms(page) {
       role: el.getAttribute("role") || "form"
     })).catch(() => ({}));
 
-    registerElement(id, page.locator(`[data-kairos-id="${id}"]`), null, "form");
-
     forms.push({
-      id: parseInt(id, 10),
       role: metadata.role,
       action: metadata.action,
       method: metadata.method,

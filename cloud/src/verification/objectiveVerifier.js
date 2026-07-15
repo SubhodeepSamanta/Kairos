@@ -8,6 +8,15 @@ function cleanAndParseJson(text) {
   if (match) {
     cleanText = match[1].trim();
   }
+  const firstBrace = cleanText.indexOf('{');
+  const firstBracket = cleanText.indexOf('[');
+  const jsonStart = firstBrace >= 0 && (firstBracket < 0 || firstBrace < firstBracket) ? firstBrace : firstBracket;
+  if (jsonStart < 0) return null;
+  let lastBrace = cleanText.lastIndexOf('}');
+  let lastBracket = cleanText.lastIndexOf(']');
+  const jsonEnd = lastBrace >= 0 && (lastBracket < 0 || lastBrace > lastBracket) ? lastBrace + 1 : lastBracket + 1;
+  if (jsonEnd <= jsonStart) return null;
+  cleanText = cleanText.slice(jsonStart, jsonEnd);
   return JSON.parse(cleanText);
 }
 
@@ -62,8 +71,8 @@ export function heuristicVerifyGoal(goal, browserState, worldState = null) {
     if (pageType === "media content") {
       return true;
     }
-    // URL-based detection: on a video/content page satisfies the goal
-    if (url.includes("/watch") || url.includes("/video") || url.includes("/shorts") || url.includes("/live")) {
+    // URL-based detection: on a content page satisfies the goal
+    if (url.includes("/watch") || url.includes("/video")) {
       return true;
     }
     // Resolved state detection
@@ -82,7 +91,7 @@ export function heuristicVerifyGoal(goal, browserState, worldState = null) {
       el.semanticType === "selection_candidate" ||
       el.purpose === "primary_content"
     );
-    const hasResultsUrl = url.includes("/results") || url.includes("?search_query=") || url.includes("?q=") || url.includes("?query=") || url.includes("/search?");
+    const hasResultsUrl = url.includes("/results") || url.includes("?q=") || url.includes("?query=") || url.includes("/search?");
     const hasResultsTitle = title.includes("search results") || title.includes("results for");
     if (hasResultElements || pageType === "search results" || hasResultsUrl || hasResultsTitle) {
       return true;
@@ -165,14 +174,38 @@ export async function verifyGoal(goal, browserState, worldState = null) {
       ? JSON.stringify(worldState.findings)
       : "None";
 
-    const systemPrompt = `You are a goal verification assistant.
-Your task is to determine whether the user's objective/goal has been fully achieved based on the current page state and world findings.
+    const systemPrompt = `You are a goal verification assistant. Determine whether the user's goal has been achieved based on the current page.
 
-Answer ONLY with a valid JSON object matching this schema:
+DECISION CRITERIA BY GOAL TYPE:
+
+navigate / go to / open X:
+- Achieved if the page URL or title clearly matches the target
+- NOT achieved if on a search page, home page, or interstitial
+
+search for X / find X:
+- Achieved if the page URL contains search parameters (?q=, ?query=, /search/) and the results match the query
+- NOT achieved if on a blank page, home page, or login page
+
+play X / watch X / listen to X:
+- Achieved if on a content page with URL patterns like /watch, /video, or page is a media/video player
+- NOT achieved if on a search results page or home page
+
+extract X / get X:
+- Achieved if world findings contain the requested data, or the page shows the requested information
+
+authenticate / login:
+- Achieved if page shows profile, dashboard, welcome message, or logged-in indicators
+
+GENERAL RULES:
+- A results/search page does NOT mean search is complete — check if query params match the goal
+- A blank page (about:blank) means NOT achieved
+- If the URL and title don't match the goal in any way, it's likely NOT achieved
+
+Output ONLY valid JSON:
 {
   "achieved": true/false,
-  "confidence": 0-1 (a decimal number between 0 and 1),
-  "reason": "a brief explanation of your decision"
+  "confidence": 0.0-1.0,
+  "reason": "Brief justification based on page evidence"
 }`;
 
     const resolved = browserState.resolvedState || {};

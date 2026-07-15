@@ -29,10 +29,11 @@ SWITCH_TAB:
   "screenshot",
   CLOSE_TAB:
   "close_tab",
-RESTART_BROWSER:
+  RESTART_BROWSER:
   "restart_browser",
   GET_BROWSER_CONTEXT: "get_browser_context",
-  EXTRACT_DATA: "extract_data"
+  EXTRACT_DATA: "extract_data",
+  HUMAN_INPUT: "human_input"
 };
 
 export function createAction(

@@ -18,7 +18,6 @@ export function scoreAction(goal, pageUnderstanding, candidate, failedActionHist
   let score = 0;
   const goalLower = goal.toLowerCase();
   const parsedGoal = parseGoal(goal);
-  const purpose = pageUnderstanding?.pagePurpose || "generic";
   const label = candidate.label || "";
   const role = candidate.role || "";
   const href = candidate.href || "";
@@ -42,46 +41,32 @@ export function scoreAction(goal, pageUnderstanding, candidate, failedActionHist
     }
   }
 
-  // 2. Page Relevance by Purpose
+  // 2. Page Relevance by Resolved State
   const resolvedCurrentState = pageUnderstanding?.resolvedState?.currentState || "";
-  const isOnResultsPage = purpose === "search results" || resolvedCurrentState === "results";
-  const isOnSearchInterface = purpose === "search interface";
 
-  if (isOnSearchInterface) {
+  if (resolvedCurrentState === "home" || resolvedCurrentState === "blank") {
     if (candidate.type === "type" || candidate.type === "search") {
-      score += 70;
+      score += 60;
       if (candidate.type === "search") score += 20;
     }
-  } else if (isOnResultsPage) {
+  } else if (resolvedCurrentState === "results") {
     const isResultLink = candidate.semanticType === "content_item" || 
                          candidate.semanticType === "selection_candidate" ||
                          candidate.semanticType === "primary_content" ||
                          ["primary_content", "navigation_target"].includes(candidate.purpose || "");
     if (candidate.type === "click" && (isResultLink || /watch|details|product|view/i.test(textContent))) {
-      score += 160; // Prioritize clicking result links on search results pages
+      score += 160;
     }
-  } else if (purpose === "media content") {
-    if (candidate.type === "click" && /play|pause|mute|skip|video/i.test(textContent)) {
+  } else if (resolvedCurrentState === "content") {
+    if (candidate.type === "click" && /play|pause|mute|skip|video|watch/i.test(textContent)) {
       score += 80;
     }
-  } else if (purpose === "login flow") {
+  } else if (resolvedCurrentState === "login") {
     if (["type", "search"].includes(candidate.type) && /email|user|pass|login|sign/i.test(textContent)) {
       score += 70;
     }
     if (candidate.type === "click" && /submit|login|sign|confirm/i.test(textContent)) {
       score += 85;
-    }
-  } else if (purpose === "product detail") {
-    if (candidate.type === "click" && /buy|cart|checkout|purchase/i.test(textContent)) {
-      score += 80;
-    }
-  } else if (purpose === "settings") {
-    if (candidate.type === "click" && /save|apply|enable|disable|toggle/i.test(textContent)) {
-      score += 65;
-    }
-  } else if (purpose === "resource detail") {
-    if (candidate.type === "click" && /repo|product|item|view|link/i.test(textContent)) {
-      score += 75;
     }
   }
 

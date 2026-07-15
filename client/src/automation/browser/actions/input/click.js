@@ -1,7 +1,8 @@
 import { getPage } from "../../browser.js";
 import {
   getElement,
-  getElementInfo
+  getElementInfo,
+  getElementBox
 } from "../../elements/registry.js";
 
 export async function clickText(
@@ -9,6 +10,7 @@ export async function clickText(
   element
 ) {
   const page = await getPage();
+  if (!page) return { success: false, reason: "No page available" };
   const context = page.context();
   const pagesBefore = context.pages().length;
 
@@ -97,10 +99,28 @@ export async function clickText(
           } catch (e) {
           }
         }
+
+        // Phase 2: Coordinate-based fallback using stored bounding box
+        if (!fallbackSuccess) {
+          const box = getElementBox(element);
+          if (box && box.left !== null && box.top !== null && box.width > 0 && box.height > 0) {
+            const centerX = box.left + box.width / 2;
+            const centerY = box.top + box.height / 2;
+            try {
+              console.log(`[CLICK] Trying coordinate click at (${centerX}, ${centerY})`);
+              await page.mouse.click(centerX, centerY);
+              fallbackSuccess = true;
+              console.log(`[CLICK] Coordinate click succeeded`);
+            } catch (e) {
+              console.log(`[CLICK] Coordinate click failed: ${e.message}`);
+            }
+          }
+        }
+
         if (!fallbackSuccess) {
           return {
             success: false,
-            reason: `Click failed and fallbacks failed: ${err.message}`,
+            reason: `Click failed and all fallbacks failed: ${err.message}`,
             clicked: `element ${element}`
           };
         }
@@ -116,9 +136,9 @@ export async function clickText(
     await Promise.race([
       page.waitForNavigation({ timeout: 5000 }),
       page.waitForLoadState("networkidle", { timeout: 5000 })
-    ]).catch(() => {});
+    ]).catch(err => console.error("[click] Navigation wait failed:", err.message));
 
-    await page.waitForLoadState("domcontentloaded", { timeout: 3000 }).catch(() => {});
+    await page.waitForLoadState("domcontentloaded", { timeout: 3000 }).catch(err => console.error("[click] loadState wait failed:", err.message));
     await page.waitForTimeout(1000);
     const after = await getSnapshot();
     const pagesAfter = context.pages().length;
@@ -191,9 +211,9 @@ input[type='button'],
   await Promise.race([
     page.waitForNavigation({ timeout: 5000 }),
     page.waitForLoadState("networkidle", { timeout: 5000 })
-  ]).catch(() => {});
+  ]).catch(err => console.error("[click] Nav wait (fallback) failed:", err.message));
 
-  await page.waitForLoadState("domcontentloaded", { timeout: 3000 }).catch(() => {});
+  await page.waitForLoadState("domcontentloaded", { timeout: 3000 }).catch(err => console.error("[click] loadState (fallback) failed:", err.message));
   await page.waitForTimeout(1000);
   const after = await getSnapshot();
   const pagesAfter = context.pages().length;

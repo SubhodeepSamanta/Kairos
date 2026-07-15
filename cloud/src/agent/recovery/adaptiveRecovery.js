@@ -264,20 +264,14 @@ class AdaptiveRecoverySystem {
     console.log(`[ADAPTIVE RECOVERY] Executing recovery: ${strategy.description}`);
     
     try {
-      // In a real implementation, this would execute the recovery actions
-      // For now, we'll simulate the recovery
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
       const recoveryTime = Date.now() - startTime;
       
-      // Update recovery statistics
       this.recoveryStats.totalRecoveries++;
       this.recoveryStats.successfulRecoveries++;
       this.recoveryStats.averageRecoveryTime = 
         (this.recoveryStats.averageRecoveryTime * (this.recoveryStats.totalRecoveries - 1) + recoveryTime) / 
         this.recoveryStats.totalRecoveries;
       
-      // Learn from successful recovery
       if (this.adaptiveLearning) {
         recoveryLearning.learnFromSuccess(action, context, {
           success: true,
@@ -286,13 +280,13 @@ class AdaptiveRecoverySystem {
         });
       }
       
-      console.log(`[ADAPTIVE RECOVERY] Recovery successful in ${recoveryTime}ms`);
+      console.log(`[ADAPTIVE RECOVERY] Returning recovery plan: ${strategy.description}`);
       
       return {
-        success: true,
+        success: strategy.actions && strategy.actions.length > 0,
         strategy: strategy.type,
         recoveryTime: recoveryTime,
-        actionsExecuted: strategy.actions
+        actions: strategy.actions || []
       };
       
     } catch (error) {

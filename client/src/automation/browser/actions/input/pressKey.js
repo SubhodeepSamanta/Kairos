@@ -5,6 +5,7 @@ export async function pressKey(
   key
 ) {
   const page = await getPage();
+  if (!page) return { success: false, reason: "No page available" };
   const before = await createSnapshot();
   const beforeUrl = page.url();
 
@@ -18,7 +19,7 @@ export async function pressKey(
       beforeUrl,
       { timeout: 5000 }
     )
-  ]).catch(() => {});
+  ]).catch(err => console.error("[pressKey] Navigation wait failed:", err.message));
 
   const after = await createSnapshot();
 

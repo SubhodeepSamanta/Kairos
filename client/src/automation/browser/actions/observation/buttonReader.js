@@ -1,4 +1,3 @@
-import { registerElement } from "../../elements/registry.js";
 import { classifyElement } from "../classifier/index.js";
 
 export async function readButtons(page) {
@@ -13,21 +12,17 @@ export async function readButtons(page) {
     const visible = await locator.isVisible().catch(() => false);
     if (!visible) continue;
 
-    const id = await locator.getAttribute("data-kairos-id").catch(() => null);
-    if (!id) continue;
-
     const metadata = await locator.evaluate(el => ({
       ariaLabel: el.getAttribute("aria-label") || el.getAttribute("aria-labelledby") || null,
       title: el.title || null,
       name: el.name || null,
-      type: el.type || null
+      type: el.type || null,
+      role: el.getAttribute("role") || "button"
     })).catch(() => ({}));
 
     const innerText = await locator.innerText().catch(() => "");
     const text = innerText.trim() || metadata.ariaLabel || metadata.title || "button";
     if (!text) continue;
-
-    registerElement(id, page.locator(`[data-kairos-id="${id}"]`), text, "button");
 
     const enabled = await locator.isEnabled().catch(() => true);
     const box = await locator.boundingBox().catch(() => null);
@@ -40,9 +35,8 @@ export async function readButtons(page) {
     } : { inViewport: false, top: null, left: null, width: null, height: null };
 
     const btnObj = {
-      id: parseInt(id, 10),
       text,
-      role: "button",
+      role: metadata.role,
       type: metadata.type,
       ariaLabel: metadata.ariaLabel,
       title: metadata.title,

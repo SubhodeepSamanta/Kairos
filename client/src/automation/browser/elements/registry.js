@@ -4,28 +4,33 @@ export function clearRegistry() {
   idToLocator.clear();
 }
 
-/**
- * Stores the active Playwright locator and metadata for a given stable ID.
- */
-export function registerElement(id, locator, text = null, role = null) {
-  const intId = parseInt(id, 10);
-  idToLocator.set(intId, { locator, text, role });
-  return intId;
+function normalizeKey(id) {
+  return typeof id === "number" ? id : parseInt(id, 10);
+}
+
+export function registerElement(id, locator, text = null, role = null, box = null, frameId = null) {
+  const key = normalizeKey(id);
+  idToLocator.set(key, { locator, text, role, box, frameId });
+  return key;
+}
+
+export function getElementBox(id) {
+  const entry = idToLocator.get(normalizeKey(id));
+  return entry ? entry.box : null;
 }
 
 export function getElement(id) {
-  const entry = idToLocator.get(parseInt(id, 10));
+  const entry = idToLocator.get(normalizeKey(id));
   return entry ? entry.locator : null;
 }
 
 export function getElementInfo(id) {
-  return idToLocator.get(parseInt(id, 10));
+  return idToLocator.get(normalizeKey(id));
 }
 
 export function hasElement(id) {
-  return idToLocator.has(parseInt(id, 10));
+  return idToLocator.has(normalizeKey(id));
 }
 
 export function pruneRegistry() {
-  // Pruning of stale DOM references is handled naturally via clearRegistry on each page read
 }

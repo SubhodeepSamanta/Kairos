@@ -1,4 +1,3 @@
-import { registerElement } from "../../elements/registry.js";
 import { classifyElement } from "../classifier/index.js";
 
 export async function readLinks(page) {
@@ -13,20 +12,16 @@ export async function readLinks(page) {
     const visible = await locator.isVisible().catch(() => false);
     if (!visible) continue;
 
-    const id = await locator.getAttribute("data-kairos-id").catch(() => null);
-    if (!id) continue;
-
     const metadata = await locator.evaluate(el => ({
       ariaLabel: el.getAttribute("aria-label") || el.getAttribute("aria-labelledby") || null,
       title: el.title || null,
-      href: el.getAttribute("href") || null
+      href: el.getAttribute("href") || null,
+      role: el.getAttribute("role") || "link"
     })).catch(() => ({}));
 
     const innerText = await locator.innerText().catch(() => "");
     const text = innerText.trim() || metadata.ariaLabel || metadata.title || "link";
     if (!text) continue;
-
-    registerElement(id, page.locator(`[data-kairos-id="${id}"]`), text, "link");
 
     const enabled = await locator.isEnabled().catch(() => true);
     const box = await locator.boundingBox().catch(() => null);
@@ -39,9 +34,8 @@ export async function readLinks(page) {
     } : { inViewport: false, top: null, left: null, width: null, height: null };
 
     const linkObj = {
-      id: parseInt(id, 10),
       text,
-      role: "link",
+      role: metadata.role,
       href: metadata.href,
       ariaLabel: metadata.ariaLabel,
       title: metadata.title,

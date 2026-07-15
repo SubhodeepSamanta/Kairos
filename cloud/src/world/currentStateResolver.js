@@ -13,7 +13,7 @@ function resolveSemanticPageState(browser, url, pageType) {
   if (/details|product|item|article|post|view/.test(pageType) || semanticTypes.has("product_item") || semanticTypes.has("repository_item")) {
     return "content detail";
   }
-  if (/video|watch|media/.test(evidence) || capabilities.includes("media_available") || /watch|shorts/.test(url)) {
+  if (/video|watch|media/.test(evidence) || capabilities.includes("media_available")) {
     return "media content";
   }
 

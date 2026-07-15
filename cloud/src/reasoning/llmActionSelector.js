@@ -1,10 +1,10 @@
-import { generateActions } from "./actionGenerator.js";
+import { generateActions, extractQueryTerm } from "./actionGenerator.js";
 import { rankActions } from "./actionSelector.js";
 import { buildSystemPrompt } from "../prompts/systemPrompt.js";
 import { askLLM } from "../llm/provider.js";
 import { rankElements } from "../agent/ranking/ranker.js";
 
-function cleanAndParseJson(text) {
+export function cleanAndParseJson(text) {
   if (!text) return null;
   let cleanText = text.trim();
   
@@ -14,7 +14,55 @@ function cleanAndParseJson(text) {
     cleanText = match[1].trim();
   }
   
+  // Extract the first JSON object/array from surrounding text
+  const firstBrace = cleanText.indexOf('{');
+  const firstBracket = cleanText.indexOf('[');
+  const jsonStart = firstBrace >= 0 && (firstBracket < 0 || firstBrace < firstBracket) ? firstBrace : firstBracket;
+  if (jsonStart < 0) return null;
+  
+  let lastBrace = cleanText.lastIndexOf('}');
+  let lastBracket = cleanText.lastIndexOf(']');
+  const jsonEnd = lastBrace >= 0 && (lastBracket < 0 || lastBrace > lastBracket) ? lastBrace + 1 : lastBracket + 1;
+  if (jsonEnd <= jsonStart) return null;
+  
+  cleanText = cleanText.slice(jsonStart, jsonEnd);
+  
   return JSON.parse(cleanText);
+}
+
+export function sanitizeLlmAction(action, pageUnderstanding) {
+  if (!action) return null;
+  const sanitized = { type: action.type, params: {} };
+
+  if (action.params?.element !== undefined) {
+    const rawElement = action.params.element;
+    const numericId = typeof rawElement === "number" ? rawElement : parseInt(String(rawElement), 10);
+    if (!isNaN(numericId) && numericId > 0) {
+      sanitized.params.element = numericId;
+    } else {
+      console.log(`[SANITIZE] Stripped invalid element ID: "${rawElement}"`);
+    }
+  }
+
+  if (action.params?.text !== undefined && typeof action.params.text === "string") {
+    sanitized.params.text = action.params.text.trim();
+  }
+
+  if (action.params?.url !== undefined && typeof action.params.url === "string") {
+    sanitized.params.url = action.params.url.trim();
+  }
+
+  if (action.params?.direction !== undefined) {
+    sanitized.params.direction = action.params.direction;
+  }
+  if (action.params?.amount !== undefined) {
+    sanitized.params.amount = action.params.amount;
+  }
+  if (action.params?.key !== undefined) {
+    sanitized.params.key = action.params.key;
+  }
+
+  return sanitized;
 }
 
 export function matchLlmActionToCandidate(llmAction, candidates) {
@@ -25,36 +73,39 @@ export function matchLlmActionToCandidate(llmAction, candidates) {
   let matchedCandidate = null;
 
   if (type === "click") {
-    matchedCandidate = candidates.find(c => c.type === "click" && c.elementId !== undefined && String(c.elementId) === String(elementId));
+    const c = candidates.find(c => c.type === "click" && c.elementId !== undefined && String(c.elementId) === String(elementId));
+    if (c) matchedCandidate = c;
   } else if (type === "type") {
-    const candidate = candidates.find(c => c.type === "type" && c.elementId !== undefined && String(c.elementId) === String(elementId));
-    if (candidate) {
-      matchedCandidate = JSON.parse(JSON.stringify(candidate));
-      if (matchedCandidate.actions[0] && matchedCandidate.actions[0].params) {
+    let c = candidates.find(c => c.type === "type" && c.elementId !== undefined && String(c.elementId) === String(elementId));
+    if (!c) {
+      c = candidates.find(c => c.type === "search" && c.elementId !== undefined && String(c.elementId) === String(elementId));
+    }
+    if (c) {
+      matchedCandidate = JSON.parse(JSON.stringify(c));
+      if (matchedCandidate.actions[0]?.params) {
         matchedCandidate.actions[0].params.text = llmAction.params?.text || "";
       }
     }
   } else if (type === "search") {
-    const candidate = candidates.find(c => c.type === "search" && c.elementId !== undefined && String(c.elementId) === String(elementId));
-    if (candidate) {
-      matchedCandidate = JSON.parse(JSON.stringify(candidate));
-      if (matchedCandidate.actions[0] && matchedCandidate.actions[0].params) {
+    const c = candidates.find(c => c.type === "search" && c.elementId !== undefined && String(c.elementId) === String(elementId));
+    if (c) {
+      matchedCandidate = JSON.parse(JSON.stringify(c));
+      if (matchedCandidate.actions[0]?.params) {
         matchedCandidate.actions[0].params.text = llmAction.params?.text || "";
       }
     }
   } else {
-    // Scroll, back, read_ui, navigate etc.
-    const candidate = candidates.find(c => c.type === type);
-    if (candidate) {
-      matchedCandidate = JSON.parse(JSON.stringify(candidate));
-      if (type === "navigate" && matchedCandidate.actions[0] && matchedCandidate.actions[0].params) {
+    const c = candidates.find(c => c.type === type);
+    if (c) {
+      matchedCandidate = JSON.parse(JSON.stringify(c));
+      if (type === "navigate" && matchedCandidate.actions[0]?.params) {
         matchedCandidate.actions[0].params.url = llmAction.params?.url || "";
       }
     }
   }
 
-  if (!matchedCandidate || matchedCandidate.reason === "Generated directly by LLM") {
-    console.log(`[LLM_MATCH_MISS] LLM chose type="${type}" elementId="${elementId}" but no matching candidate was found in the generated candidate list. Synthesizing a direct action — this bypasses normal candidate scoring/safety checks. If this happens often, the candidate generator is missing elements the LLM can see.`);
+  if (!matchedCandidate) {
+    console.log(`[LLM_MATCH_MISS] LLM chose type="${type}" elementId="${elementId}" but no matching candidate was found.`);
   }
 
   return matchedCandidate;
@@ -66,7 +117,7 @@ export async function selectActionWithLLM({
   browserState,
   workflowMemory
 }) {
-  const candidates = generateActions(goal.objective, pageUnderstanding, browserState);
+  const candidates = generateActions(goal.objective, pageUnderstanding, browserState, goal);
 
   function rankImportantElements(goalText, elements) {
     const goalWords = (goalText || "").toLowerCase().match(/[a-z0-9]+/g) || [];
@@ -119,13 +170,53 @@ ${last5Actions || "None"}
 Sub-objective: ${currentSubObjective}`;
 
   const systemPrompt = buildSystemPrompt(goal, "", browserContext, worldContext);
-  const userPrompt = `Select the next action. Output ONLY valid JSON with an "actions" array.
+  const contractPrompt = `OPERATING CONTRACT (you MUST follow):
+1. I will use element IDs only — never put labels or text in params
+2. I will re-read the page after every action that changes state
+3. If my action fails twice on the same element, I will pick a different element
+4. If the page doesn't change after my action, I will try something different next time
+5. I will NEVER type into a search box if already on a results page with matching results
+6. I will output ONLY valid JSON — no free text, no markdown, no explanations`;
 
-CRITICAL RULES:
-- Never copy element labels into your response. Reference elements by their ID number only.
-- Never output free text. Only output valid JSON.
-- If an element's label contains "|", "–", or "-", do not copy it — use the element ID.
-- Example: {"actions":[{"type":"click","params":{"element":3}}]}`;
+  const userPrompt = `Select the single next browser action that best advances the current sub-objective.
+
+ELEMENT REFERENCE RULES:
+- Always reference elements by their numeric [id] in params. NEVER include labels, text, or names in params.
+- If an element's label text is long, don't copy it — just use the ID number.
+- Only choose from elements shown in the list above. Do not invent element IDs.
+
+HOW TO MATCH SUB-OBJECTIVE TO ACTION:
+- "navigate to X" / "go to X" / "open X" → navigate action, or click a link element
+- "search for X" / "find X" / "search X" → use a SEARCH action (type + Enter) on an element with semanticType="search_input" or purpose="search_input". NEVER use plain type without Enter.
+- "select result" / "choose result" / "open result" → click action on an element with semanticType="content_item" or purpose="primary_content"
+- "scroll" / "explore" / "see more" → scroll action
+- Already on a results page with an active query → search is done. If the goal was JUST to search (not "play", "watch", "select", "open result"), STOP and do NOT click results.
+- Only click a result if the goal explicitly asks to play, watch, open, or select a result.
+- If the last action did not change the page, do NOT repeat it.
+
+VALID OUTPUT FORMATS (JSON only, pick ONE):
+
+For click:
+{"actions":[{"type":"click","params":{"element":3}}]}
+
+For type+enter (search):
+{"actions":[{"type":"type","params":{"element":1,"text":"search term"}},{"type":"press_key","params":{"key":"Enter"}},{"type":"read_ui","params":{}}]}
+
+For scroll:
+{"actions":[{"type":"scroll","params":{"direction":"down","amount":300}},{"type":"read_ui","params":{}}]}
+
+For navigate:
+{"actions":[{"type":"navigate","params":{"url":"https://example.com"}}]}
+
+FAILURE MODES — NEVER DO THESE:
+- Never put element labels or text in params. Only numeric IDs.
+- Never output multiple actions at once that conflict (e.g., two different clicks).
+- Never output free text, markdown, explanations, or code blocks. Only the JSON object.
+- Never select type/search if already on a page with search results matching the query.
+- Never click on video/media results unless the goal explicitly asks to play/watch/select them.
+- Never use a bare type action without Enter for search inputs — always use search (type + Enter + read_ui).
+
+${contractPrompt}`;
 
   let parsed = null;
   let isValid = false;
@@ -146,12 +237,12 @@ CRITICAL RULES:
     console.error(`[LLM_ERROR] LLM selection or parsing failed:`, err.message);
   }
 
-  // Retry once if LLM didn't produce valid JSON — with sterner prompt
+  // Retry once if LLM didn't produce valid JSON — with minimal prompt
   if (!isValid) {
     try {
       goal.metrics.planning_calls = (goal.metrics.planning_calls || 0) + 1;
-      console.log(`[LLM] Retrying action selection with stricter prompt...`);
-      const retryPrompt = `You MUST output ONLY valid JSON. No free text. No labels. No markdown. Select from the elements listed. Example: {"actions":[{"type":"click","params":{"element":3}}]}`;
+      console.log(`[LLM] Retrying action selection with stripped-down prompt...`);
+      const retryPrompt = `Output ONLY:\n{"actions":[{"type":"TYPE","params":{"element":ID}}]}\nNo text. No labels. No markdown.`;
       const retryText = await askLLM(systemPrompt, retryPrompt);
       const retryParsed = cleanAndParseJson(retryText);
       if (retryParsed && Array.isArray(retryParsed.actions) && retryParsed.actions.length > 0) {
@@ -165,23 +256,79 @@ CRITICAL RULES:
   }
 
   if (isValid && parsed) {
-    let matched = matchLlmActionToCandidate(parsed.actions[0], candidates);
-    if (!matched && parsed.actions[0]) {
-      const llmAction = parsed.actions[0];
-      matched = {
-        type: llmAction.type,
-        actions: [llmAction, { type: "read_ui" }],
-        label: `Direct LLM ${llmAction.type}${llmAction.params?.element ? ` on element ${llmAction.params.element}` : ""}`,
-        reason: "Generated directly by LLM",
-        elementId: llmAction.params?.element
-      };
+    // Phase 1: Override hallucinated text with extracted query, then sanitize
+    const rawAction = parsed.actions[0];
+    if (rawAction?.params?.text && (rawAction.type === "type" || rawAction.type === "search")) {
+      const correctQuery = extractQueryTerm(goal.objective);
+      if (correctQuery && rawAction.params.text !== correctQuery) {
+        if (rawAction.params.text.length > correctQuery.length) {
+          console.log(`[LLM_TEXT_FIX] Overrode LLM text "${rawAction.params.text}" → "${correctQuery}"`);
+          rawAction.params.text = correctQuery;
+        } else {
+          console.log(`[LLM_TEXT_FIX] LLM text "${rawAction.params.text}" (shorter), keeping as-is`);
+        }
+      }
+    }
+    const cleanAction = sanitizeLlmAction(rawAction, pageUnderstanding);
+
+    // If sanitizer stripped the element ID, the action is invalid
+    if (!cleanAction) {
+      console.log(`[SANITIZE] LLM action was completely invalid after sanitization. Falling back to heuristic.`);
+      parsed = null;
+      isValid = false;
+    }
+
+    let matched = null;
+    if (cleanAction) {
+      matched = matchLlmActionToCandidate(cleanAction, candidates);
+    }
+
+    if (!matched && cleanAction) {
+      const elementId = cleanAction.params?.element;
+      const matchedElement = elementId !== undefined
+        ? (pageUnderstanding?.importantElements || []).find(el => String(el.id) === String(elementId))
+        : undefined;
+      const elementExists = !!matchedElement ||
+        (elementId !== undefined && (pageUnderstanding?.availableActions || []).some(a => a.endsWith(`:${elementId}`)));
+
+      if (elementId !== undefined && !elementExists) {
+        console.log(`[LLM_MATCH_MISS] LLM chose element ${elementId} which does not exist. Falling back to heuristic.`);
+      } else if (elementExists && matchedElement) {
+        // If LLM chose type on a non-typeable element (e.g., button search trigger), convert to click
+        let actionType = cleanAction.type;
+        let actionParams = { ...cleanAction.params };
+        if (actionType === "type" && matchedElement.actionHints?.includes("click") && !matchedElement.actionHints?.includes("type")) {
+          actionType = "click";
+          delete actionParams.text;
+          console.log(`[LLM_CORRECTION] Converted type→click for element ${elementId} (search trigger button)`);
+        }
+        matched = {
+          type: actionType,
+          actions: [{ type: actionType, params: actionParams }, { type: "read_ui" }],
+          label: `LLM ${actionType} on element ${elementId}`,
+          reason: "Generated directly by LLM",
+          elementId: elementId
+        };
+      }
     }
 
     if (matched) {
-      matched.score = matched.score || 100;
-      matched.confidence = matched.confidence || 0.95;
-      console.log(`[LLM_DECISION] Selected action: "${matched.label || matched.type}"`);
-      return matched;
+      const failedHistory = goal.world?.failedActionHistory || [];
+      const actionType = matched.actions?.[0]?.type || "";
+      const actionElement = matched.elementId || matched.actions?.[0]?.params?.element;
+      const hasFailed = failedHistory.some(f => {
+        const fType = f.action?.type || "";
+        const fElement = f.action?.params?.element;
+        return fType === actionType && fElement !== undefined && String(fElement) === String(actionElement);
+      });
+      if (hasFailed) {
+        console.log(`[LLM_DECISION] Avoiding previously failed action: "${matched.label || matched.type}"`);
+      } else {
+        matched.score = matched.score || 100;
+        matched.confidence = matched.confidence || 0.95;
+        console.log(`[LLM_DECISION] Selected action: "${matched.label || matched.type}"`);
+        return matched;
+      }
     }
   }
 
