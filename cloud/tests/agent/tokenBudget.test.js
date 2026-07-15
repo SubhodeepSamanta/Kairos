@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { formatSnapshot } from "../../src/agent/snapshot.js";
 import { SYSTEM_PROMPT, buildStepPrompt } from "../../src/agent/prompt.js";
+import { personaBlock } from "../../src/companion/personas.js";
 
 const estimate = (text) => Math.ceil(text.length / 4);
 
@@ -33,15 +34,34 @@ describe("token budget", () => {
     expect(snapshot).toContain("scroll then read for more");
   });
 
-  it("keeps a full step prompt under 2500 tokens on a heavy page", () => {
+  it("keeps a full companion browser step under 3200 tokens on a heavy page", () => {
     const prompt = buildStepPrompt({
       goal: "play some lofi music on youtube",
       memories: "music: lofi\nvideo_platform: youtube",
-      history: Array.from({ length: 16 }, (_, i) => `#${i} click id=${i} → ok; page did not change`),
+      history: Array.from({ length: 16 }, (_, i) => `#${i} click id=${i} → ok; still on https://x.com`),
       snapshot: formatSnapshot(heavyPage()),
-      notice: ""
+      notice: "",
+      conversation: Array.from({ length: 14 }, (_, i) => `them: message ${i}\nyou: reply ${i}`).join("\n"),
+      recentDays: "today: opened 3 leetcode problems; yesterday: github research, contest",
+      mood: "latest: tired (0.7) · this week: tired x3, happy x1"
     });
-    expect(estimate(SYSTEM_PROMPT) + estimate(prompt)).toBeLessThan(2500);
+    const total = estimate(SYSTEM_PROMPT) + estimate(personaBlock("aria")) + estimate(prompt);
+    expect(total).toBeLessThan(3200);
+  });
+
+  it("keeps a chat turn cheap — no page snapshot", () => {
+    const prompt = buildStepPrompt({
+      goal: "hey",
+      memories: "music: lofi",
+      history: [],
+      snapshot: "BROWSER: no page loaded yet (use navigate to open one)",
+      notice: "",
+      conversation: "them: hey\nyou: hey! what's up?",
+      recentDays: "today: played lofi",
+      mood: "latest: calm (0.6)"
+    });
+    const total = estimate(SYSTEM_PROMPT) + estimate(personaBlock("aria")) + estimate(prompt);
+    expect(total).toBeLessThan(2000);
   });
 
   it("drops obvious nav noise before real links when over the cap", () => {

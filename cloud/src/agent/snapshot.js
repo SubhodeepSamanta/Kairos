@@ -1,5 +1,5 @@
 const MAX_LABEL_CHARS = 45;
-const MAX_LINKS = 35;
+const MAX_LINKS = 30;
 const MAX_TEXT_CHARS = 500;
 const NAV_NOISE = /^(home|skip to|sign in|sign up|log in|about|privacy|terms|help|settings|cookie|accessibility|advertise|press|copyright|contact us|careers)$/i;
 

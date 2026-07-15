@@ -31,9 +31,9 @@ describe("formatSnapshot", () => {
   it("caps links with a note but keeps the true count", () => {
     const links = Array.from({ length: 250 }, (_, i) => ({ id: i + 1, text: `link ${i + 1}`, href: `/l${i}` }));
     const out = formatSnapshot({ url: "u", title: "t", inputs: [], buttons: [], links, text: "" });
-    expect(out).toContain("LINKS (250, showing 35 most relevant");
-    expect(out).toContain("[35]");
-    expect(out).not.toContain("[36]");
+    expect(out).toContain("LINKS (250, showing 30 most relevant");
+    expect(out).toContain("[30]");
+    expect(out).not.toContain("[31]");
   });
 
   it("shows tabs and truncates page text", () => {

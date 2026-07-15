@@ -1,6 +1,13 @@
 # Companion Mode — Complete Guide
 
-**Status: designed, not built. Do not start until the browser work is signed off.**
+**Status: BUILT (2026-07-16), except voice (§6) and proactivity (§7).**
+
+Shipped: personas + `/personality` switching, conversation memory, episodic recall ("that 2am session"), mood tracking with consent controls, support mode, crisis gate, live `/` menu in CLI, command + tappable persona picker in Telegram. Storage is Postgres with JSON fallback.
+
+Verified live — mentor vs aria on the same input:
+> *"i skipped leetcode again today honestly"* → **mentor:** "What specifically stopped you? What are you doing about it?"
+> *"been really tired lately"* → **mentor:** "Tired. That 2am session last night didn't help, did it?" ← episodic recall, unprompted
+> *"same, tired"* → **aria:** "i hear you. maybe a quick break or some lofi will help?" ← different voice, same memory
 
 Kairos today is a *doer*: you give it a goal, it acts, it stops. Companion mode makes it something you live with — it remembers yesterday, notices how you're doing, has a personality, and eventually talks out loud.
 
@@ -263,18 +270,31 @@ Rules: **opt-in only** (`/proactive on`), max 1–2/day, never during focus hour
 
 Each step is independently useful and testable. **Text before voice** — if the personality isn't good in writing, voice just makes bad writing louder.
 
-| # | Step | Done when |
+| # | Step | Status |
 |---|---|---|
-| 1 | `personas.js` + persona block in prompt | replies sound like aria, not a manual |
-| 2 | `conversation.js` — rolling turns + summary | it remembers what you said 5 messages ago |
-| 3 | `/personality` switching, persisted | sassy vs calm are obviously different, same actions |
-| 4 | `kairos_events` writes + daily digests | "yesterday you did X" is accurate |
-| 5 | Mood inference + `/mood`, `/mood off` | tone shifts when you're clearly tired |
-| 6 | `care.js` — support mode + crisis gate | venting gets listening, not tabs; crisis path verified |
-| 7 | TTS + markup | aria sounds like aria |
-| 8 | STT + wake word + animation | "Kairos, open YouTube" works end to end |
-| 9 | Barge-in + polish | interrupting feels natural |
-| 10 | Proactivity behind `/proactive` | at most useful, never annoying |
+| 1 | `personas.js` + persona block in prompt | ✅ |
+| 2 | conversation memory — rolling turns | ✅ |
+| 3 | `/personality` switching, persisted per chat | ✅ |
+| 4 | `kairos_events` writes + day-grouped recall | ✅ |
+| 5 | Mood inference + `/mood`, `/mood off`, `/mood clear` | ✅ |
+| 6 | `care.js` — support mode + crisis gate | ✅ |
+| 7 | TTS + markup | next |
+| 8 | STT + wake word + animation | next |
+| 9 | Barge-in + polish | next |
+| 10 | Proactivity behind `/proactive` | last |
+
+### Bugs this build caught (all fixed)
+
+- **Crisis gate missed "cutting myself"** — the pattern matched only "cut myself". Safety-critical; tests now cover tense variants.
+- **Mood reported backwards** — `loadMoods` returned newest-first while `formatMood` read newest-last, so it announced your *oldest* mood as current.
+- **It answered the wrong message** — saying "hey" got a reply about yesterday's LeetCode, because the current message sat buried at the top of the prompt and was also duplicated into CONVERSATION. Current message now goes last, and the turn is recorded after context is built.
+- **`ask_human` used for chatting** — froze the goal for 5 minutes waiting on a conversational follow-up. It is now explicitly task-blocked-only; questions go in `done.answer` and your next message answers them.
+
+### Commands
+
+`/personality [name]` · `/mood [on|off|clear]` · `/memory` · `/recent` · `/forget <key|chat|moods|all>` · `/help`
+
+CLI shows them live as you type `/` — arrow keys, tab to complete, no Enter needed. Telegram registers them natively and `/personality` opens a tappable picker.
 
 ---
 

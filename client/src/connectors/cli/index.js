@@ -1,62 +1,54 @@
 import { env } from "../../config/env.js";
-import { createPrompt, showPrompt, printMessage } from "./prompt.js";
-import { handleCommand } from "./commands.js";
-import { connectToCloud, sendGoal, sendHumanReply } from "./transport.js";
+import { createInput } from "./input.js";
+import { colors as C } from "./menu.js";
+import { connectToCloud, sendGoal, sendHumanReply, requestSuggestions } from "./transport.js";
 
 console.clear();
-console.log("\x1b[1m\x1b[36m==========================================\x1b[0m");
-console.log("\x1b[1m\x1b[36m              Kairos Console              \x1b[0m");
-console.log("\x1b[1m\x1b[36m==========================================\x1b[0m");
-console.log("\x1b[90mType your goal or /help for commands.\x1b[0m\n");
+console.log(`${C.bold}${C.cyan}  Kairos${C.reset}`);
+console.log(`${C.dim}  type / for commands · just talk otherwise${C.reset}\n`);
 
-const rl = createPrompt();
-
-rl.on("SIGINT", () => {
-  console.log("\nExiting Kairos Console...");
-  process.exit(0);
-});
-
-let isWaiting = false;
 let pendingAskGoalId = null;
+let waitingForAnswer = false;
 
-function startPrompt() {
-  if (isWaiting) return;
-  showPrompt(rl, (input) => {
-    if (input.trim() === "") {
-      startPrompt();
+const ui = createInput({
+  onSubmit(text) {
+    if (waitingForAnswer) {
+      const goalId = pendingAskGoalId;
+      waitingForAnswer = false;
+      pendingAskGoalId = null;
+      sendHumanReply(goalId, text);
       return;
     }
-    if (handleCommand(input, rl)) {
-      startPrompt();
-      return;
-    }
-    isWaiting = true;
-    sendGoal(input);
-  });
-}
-
-function promptForAnswer() {
-  rl.question("\x1b[1m\x1b[33mYou> \x1b[0m", (answer) => {
-    const goalId = pendingAskGoalId;
-    pendingAskGoalId = null;
-    sendHumanReply(goalId, answer);
-  });
-}
-
-connectToCloud(env.CLOUD_URL || "ws://localhost:8080", {
-  onResult(result, success) {
-    isWaiting = false;
-    printMessage("Kairos", result, !success);
-    startPrompt();
+    sendGoal(text);
   },
-  onStatus(status) {
-    printMessage("Kairos", status);
-  },
-  onAsk(prompt, goalId, secret) {
-    pendingAskGoalId = goalId;
-    printMessage("Kairos", `${prompt}${secret ? "\n(stored only on this computer)" : ""}`);
-    promptForAnswer();
+  onSuggest(text) {
+    requestSuggestions(text);
   }
 });
 
-startPrompt();
+function say(text, isError = false) {
+  const color = isError ? "\x1b[31m" : C.cyan;
+  ui.write(`${color}${text}${C.reset}`);
+}
+
+connectToCloud(env.CLOUD_URL || "ws://localhost:8080", {
+  onReady() {
+    ui.prompt();
+  },
+  onResult(result, success) {
+    say(result, !success);
+    ui.prompt();
+  },
+  onStatus(status) {
+    ui.write(`${C.dim}  ${status}${C.reset}`);
+  },
+  onAsk(prompt, goalId, secret) {
+    pendingAskGoalId = goalId;
+    waitingForAnswer = true;
+    say(`${prompt}${secret ? `\n${C.dim}(stored only on this computer)${C.reset}` : ""}`);
+    ui.prompt();
+  },
+  onSuggestions(suggestions) {
+    ui.showSuggestions(suggestions);
+  }
+});

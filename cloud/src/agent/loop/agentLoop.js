@@ -3,6 +3,10 @@ import { SYSTEM_PROMPT, buildStepPrompt } from "../prompt.js";
 import { formatSnapshot, describePageChange } from "../snapshot.js";
 import { rememberFact, relevantFacts, formatFactsForPrompt } from "../../memory/store.js";
 import { webSearch, formatSearchResults, fetchPageText } from "../webTools.js";
+import { personaBlock } from "../../companion/personas.js";
+import { buildCompanionContext } from "../../companion/context.js";
+import { addTurn, addEvent, addMood } from "../../companion/store.js";
+import { detectCrisis, shouldStayQuiet, CRISIS_REPLY } from "../../companion/care.js";
 
 const MAX_STEPS = 30;
 const MAX_LLM_CALLS = 45;
@@ -55,7 +59,7 @@ function trimHistory(history) {
   return [`(${history.length - MAX_HISTORY_LINES} earlier steps omitted)`, ...history.slice(-MAX_HISTORY_LINES)];
 }
 
-export async function runAgent({ goal, goalId, executeAction, askHuman, onStatus }) {
+export async function runAgent({ goal, goalId, chatId = "default", executeAction, askHuman, onStatus }) {
   const budget = createBudget(MAX_LLM_CALLS);
   const history = [];
   const repeatCounts = {};
@@ -70,9 +74,35 @@ export async function runAgent({ goal, goalId, executeAction, askHuman, onStatus
     if (onStatus) { try { onStatus(msg); } catch {} }
   };
 
-  const finish = (success, answer) => {
+  if (detectCrisis(goal)) {
+    console.log("[CARE] crisis language detected — bypassing persona and agent loop");
+    await addTurn(chatId, "user", goal);
+    await addTurn(chatId, "assistant", CRISIS_REPLY);
+    return { success: true, answer: CRISIS_REPLY, steps: 0, llmCalls: 0, care: true };
+  }
+
+  const companion = await buildCompanionContext(chatId);
+  await addTurn(chatId, "user", goal);
+  const systemPrompt = `${personaBlock(companion.prefs.persona)}\n\n${SYSTEM_PROMPT}`;
+
+  if (shouldStayQuiet(goal)) {
+    notice = "They are telling you how they feel, not asking for a task. Do NOT touch the browser. Reply as yourself with done — react to what they said, in character. Ask what they need only if it fits.";
+  }
+
+  const finish = async (success, answer, extra = {}) => {
     const secs = ((Date.now() - startTime) / 1000).toFixed(1);
     console.log(`[AGENT] ${success ? "DONE" : "FAILED"} in ${step} steps, ${budget.used} LLM calls, ~${budget.estimatedTokens} tokens, ${secs}s`);
+    await addTurn(chatId, "assistant", answer);
+    if (step > 0) {
+      await addEvent(chatId, `${goal.slice(0, 120)}${success ? "" : " (didn't work)"}`, success, step);
+    }
+    if (extra.mood && companion.prefs.moodTracking) {
+      const { label, confidence, why } = extra.mood;
+      if (label && Number(confidence) >= 0.5) {
+        await addMood(chatId, String(label).slice(0, 24), Number(confidence), why);
+        console.log(`[MOOD] ${label} (${confidence})`);
+      }
+    }
     return { success, answer, steps: step, llmCalls: budget.used };
   };
 
@@ -86,20 +116,23 @@ export async function runAgent({ goal, goalId, executeAction, askHuman, onStatus
       snapshot: lastPage
         ? formatSnapshot(lastPage)
         : "not observed yet — use {\"type\":\"read\"} to see the current browser, navigate somewhere, or answer directly with done",
-      notice
+      notice,
+      conversation: companion.conversation,
+      recentDays: companion.recentDays,
+      mood: companion.mood
     });
 
     let decision = null;
     let llmError = null;
     for (const waitMs of LLM_RETRY_WAITS_MS) {
       try {
-        decision = await askLLMJson(SYSTEM_PROMPT, stepPrompt, budget);
+        decision = await askLLMJson(systemPrompt, stepPrompt, budget);
         llmError = null;
         break;
       } catch (err) {
         llmError = err;
         if (err.message.startsWith("llm_budget_exceeded")) {
-          return finish(false, "I ran out of AI budget for this goal. Partial progress: " + (history.slice(-3).join("; ") || "none"));
+          return finish(false, "I ran out of AI budget for this one. Progress: " + (history.slice(-3).join("; ") || "none"));
         }
         if (waitMs > 0) {
           status(`AI providers busy, retrying in ${waitMs / 1000}s…`);
@@ -125,7 +158,7 @@ export async function runAgent({ goal, goalId, executeAction, askHuman, onStatus
       if (action.remember && typeof action.remember === "object") {
         for (const [k, v] of Object.entries(action.remember)) rememberFact(k, v);
       }
-      return finish(success, action.answer || (success ? "Done." : "Could not complete the goal."));
+      return finish(success, action.answer || (success ? "Done." : "Couldn't do that one."), { mood: decision.mood || action.mood });
     }
 
     const sig = actionSignature(action);

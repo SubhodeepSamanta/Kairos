@@ -1,6 +1,8 @@
 import TelegramBot from "node-telegram-bot-api";
 import { submitGoal } from "../../agent/goalManager.js";
 import { executeActionRemotely } from "../../websocket/server.js";
+import { COMMANDS, isCommand, runCommand } from "../../companion/commands.js";
+import { listPersonas } from "../../companion/personas.js";
 
 const STATUS_EDIT_INTERVAL_MS = 3500;
 const HUMAN_TIMEOUT_MS = 300000;
@@ -69,10 +71,23 @@ export function startTelegramBot(token) {
         if (messageId) {
           try { await bot.deleteMessage(chatId, messageId); } catch {}
         }
-        await say(chatId, `${success ? "✅" : "❌"} ${result}`);
+        await say(chatId, result);
       }
     };
   }
+
+  bot.setMyCommands(
+    COMMANDS.map(c => ({ command: c.name.slice(1), description: c.help }))
+  ).catch(() => {});
+
+  bot.on("callback_query", async (q) => {
+    const chatId = q.message?.chat?.id;
+    const data = q.data || "";
+    if (!chatId || !data.startsWith("persona:")) return;
+    const reply = await runCommand(String(chatId), `/personality ${data.split(":")[1]}`);
+    try { await bot.answerCallbackQuery(q.id); } catch {}
+    await say(chatId, reply);
+  });
 
   bot.on("message", async (msg) => {
     const text = msg.text?.trim();
@@ -90,11 +105,26 @@ export function startTelegramBot(token) {
       return;
     }
 
+    if (/^\/(personality|start)$/.test(text)) {
+      const buttons = listPersonas().map(p => [{ text: `${p.label} — ${p.blurb.slice(0, 28)}`, callback_data: `persona:${p.id}` }]);
+      try {
+        await bot.sendMessage(chatId, "who do you want me to be?", { reply_markup: { inline_keyboard: buttons } });
+      } catch {}
+      return;
+    }
+
+    if (isCommand(text)) {
+      const reply = await runCommand(String(chatId), text);
+      await say(chatId, reply);
+      return;
+    }
+
     const status = statusUpdater(chatId);
-    status.update("Working on it…");
+    status.update("thinking…");
 
     submitGoal({
       goal: text,
+      chatId: String(chatId),
       executeAction: executeActionRemotely,
       askHuman: askHumanFactory(chatId),
       onStatus: (s) => status.update(s),

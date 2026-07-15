@@ -2,6 +2,7 @@ import { WebSocketServer } from "ws";
 import { env } from "../config/env.js";
 import { log } from "../utils/logger.js";
 import { submitGoal } from "../agent/goalManager.js";
+import { commandSuggestions } from "../companion/commands.js";
 
 const ACTION_TIMEOUT_MS = 60000;
 const HUMAN_TIMEOUT_MS = 300000;
@@ -147,11 +148,17 @@ export function startWebSocketServer(port = Number(env.PORT) || 8080) {
         return;
       }
 
+      if (data.type === "suggest" && ws.role === "connector") {
+        send(ws, { type: "suggestions", suggestions: commandSuggestions(data.text || "") });
+        return;
+      }
+
       if (data.type === "goal" && ws.role === "connector") {
         const goalId = crypto.randomUUID();
         ws.activeGoalId = goalId;
         submitGoal({
           goal: String(data.goal || ""),
+          chatId: ws.connectorName === "cli" ? "cli" : String(data.chatId || "default"),
           executeAction: executeActionRemotely,
           askHuman: askHumanVia(ws, goalId),
           onStatus: (status) => send(ws, { type: "goal_status", status }),

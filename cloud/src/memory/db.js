@@ -27,6 +27,50 @@ export async function connectMemoryDb() {
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS kairos_turns (
+      id BIGSERIAL PRIMARY KEY,
+      chat_id TEXT NOT NULL,
+      said_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      role TEXT NOT NULL,
+      text TEXT NOT NULL
+    )
+  `);
+  await pool.query(`CREATE INDEX IF NOT EXISTS kairos_turns_chat ON kairos_turns (chat_id, said_at DESC)`);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS kairos_events (
+      id BIGSERIAL PRIMARY KEY,
+      chat_id TEXT NOT NULL,
+      happened_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      summary TEXT NOT NULL,
+      success BOOLEAN,
+      steps INT
+    )
+  `);
+  await pool.query(`CREATE INDEX IF NOT EXISTS kairos_events_chat ON kairos_events (chat_id, happened_at DESC)`);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS kairos_moods (
+      id BIGSERIAL PRIMARY KEY,
+      chat_id TEXT NOT NULL,
+      noted_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      label TEXT NOT NULL,
+      confidence REAL NOT NULL,
+      why TEXT
+    )
+  `);
+  await pool.query(`CREATE INDEX IF NOT EXISTS kairos_moods_chat ON kairos_moods (chat_id, noted_at DESC)`);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS kairos_prefs (
+      chat_id TEXT PRIMARY KEY,
+      persona TEXT,
+      mood_tracking BOOLEAN NOT NULL DEFAULT TRUE,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+  return pool;
+}
+
+export function memoryPool() {
   return pool;
 }
 
