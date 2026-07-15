@@ -46,9 +46,22 @@ function dedupe(elements, keyFn) {
   return out;
 }
 
+const BLANK_URL = /^(about:blank|about:newtab|chrome:\/\/new-?tab|chrome:\/\/newtab|edge:\/\/newtab|brave:\/\/newtab)/i;
+
+export function isBlankPage(page) {
+  if (!page || !page.url) return true;
+  if (!BLANK_URL.test(page.url)) return false;
+  const hasStuff = (page.inputs?.length || 0) + (page.buttons?.length || 0) + (page.links?.length || 0);
+  return hasStuff === 0;
+}
+
 export function formatSnapshot(page) {
   if (!page || (!page.url && !page.title)) {
     return "BROWSER: no page loaded yet (use navigate to open one)";
+  }
+
+  if (isBlankPage(page)) {
+    return `BROWSER: empty tab (${page.url}). Nothing is loaded and nothing will load on its own — waiting, reading or scrolling here does nothing. Use navigate to go somewhere.`;
   }
 
   const lines = [];
@@ -85,7 +98,11 @@ export function formatSnapshot(page) {
     for (const el of links) lines.push(formatLink(el));
   }
   if (!inputs.length && !buttons.length && !links.length) {
-    lines.push("ELEMENTS: none detected (page may still be loading — try wait then read, or scroll)");
+    lines.push(
+      String(page.text || "").trim()
+        ? "ELEMENTS: none interactive — this page is text only. If what you need isn't in the text below, go elsewhere."
+        : "ELEMENTS: none, and no text. Page may still be loading (wait then read once) or it blocked us — if a second read is still empty, try a different url."
+    );
   }
 
   const text = String(page.text || "").replace(/\s+/g, " ").trim();
@@ -98,6 +115,7 @@ export function formatSnapshot(page) {
 
 export function describePageChange(before, after) {
   if (!after) return "no observation";
+  if (isBlankPage(after)) return `now on an empty tab (${after.url || "about:blank"}) — navigate to load something`;
   const where = `${after.url || "unknown"}${after.title ? ` "${cleanLabel(after.title)}"` : ""}`;
   if (!before) return `now on ${where}`;
   if (before.url !== after.url) return `now on ${where}`;
