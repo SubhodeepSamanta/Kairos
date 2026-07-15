@@ -20,6 +20,7 @@ const BROWSER_ACTIONS = {
   back: () => ({ type: "back", params: {} }),
   refresh: () => ({ type: "refresh", params: {} }),
   new_tab: () => ({ type: "new_tab", params: {} }),
+  new_window: () => ({ type: "new_window", params: {} }),
   switch_tab: a => ({ type: "switch_tab", params: { index: a.index } }),
   close_tab: a => ({ type: "close_tab", params: { index: a.index } }),
   read: () => ({ type: "read_ui", params: {} }),

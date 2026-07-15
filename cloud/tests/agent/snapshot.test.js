@@ -60,13 +60,34 @@ describe("formatSnapshot", () => {
 });
 
 describe("describePageChange", () => {
-  it("reports url change", () => {
-    expect(describePageChange({ url: "a", title: "t" }, { url: "b", title: "t" })).toContain("page changed to b");
+  it("reports where we landed after a url change", () => {
+    expect(describePageChange({ url: "a", title: "t" }, { url: "b", title: "t" })).toBe('now on b "t"');
   });
-  it("reports no change", () => {
-    expect(describePageChange({ url: "a", title: "t" }, { url: "a", title: "t" })).toBe("page did not change");
+
+  it("always names the current page even when nothing changed", () => {
+    expect(describePageChange({ url: "a", title: "t" }, { url: "a", title: "t" })).toBe('still on a "t"');
   });
+
+  it("never says a navigation to the current page did not change", () => {
+    const out = describePageChange(
+      { url: "https://github.com", title: "GitHub" },
+      { url: "https://github.com", title: "GitHub" }
+    );
+    expect(out).toContain("https://github.com");
+    expect(out).not.toContain("did not change");
+  });
+
+  it("reports title-only changes without losing the url", () => {
+    const out = describePageChange({ url: "a", title: "old" }, { url: "a", title: "new" });
+    expect(out).toContain("a");
+    expect(out).toContain("new");
+  });
+
   it("handles first observation", () => {
     expect(describePageChange(null, { url: "a" })).toContain("now on a");
+  });
+
+  it("handles a missing observation", () => {
+    expect(describePageChange({ url: "a" }, null)).toBe("no observation");
   });
 });

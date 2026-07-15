@@ -66,10 +66,13 @@ async function launchReal(browserName, profileWanted) {
     const ctx = await chromium.launchPersistentContext(spec.userDataDir, options);
     browser = ctx.browser();
     attachContext(ctx);
-    pages = ctx.pages().filter(p => !p.isClosed());
-    if (!pages.length) pages = [await ctx.newPage()];
+
+    const existing = ctx.pages().filter(p => !p.isClosed());
+    const blank = existing.find(p => /^(about:blank|chrome:\/\/newtab)/.test(p.url()));
+    const ours = blank || (await ctx.newPage());
+    pages = [...existing.filter(p => p !== ours), ours];
     for (const p of pages) trackPage(p);
-    activePageIndex = 0;
+    activePageIndex = pages.indexOf(ours);
     current = {
       browser: browserName,
       profile: profile?.directory || null,
@@ -189,4 +192,21 @@ export async function createNewTab() {
   trackPage(page);
   activePageIndex = pages.indexOf(page);
   return { success: true, index: activePageIndex };
+}
+
+export async function createNewWindow() {
+  if (!context) await launchBrowser();
+  const opener = await getPage();
+  const before = new Set(context.pages());
+
+  const popupPromise = context.waitForEvent("page", { timeout: 8000 }).catch(() => null);
+  await opener.evaluate(() => window.open("about:blank", "_blank", "popup,width=1280,height=860")).catch(() => {});
+  const popup = await popupPromise;
+
+  const page = popup || context.pages().find(p => !before.has(p));
+  if (!page) return { success: false, reason: "browser blocked the new window" };
+
+  trackPage(page);
+  activePageIndex = pages.indexOf(page);
+  return { success: true, index: activePageIndex, window: true };
 }

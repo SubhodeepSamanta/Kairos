@@ -1,0 +1,329 @@
+# Companion Mode — Complete Guide
+
+**Status: designed, not built. Do not start until the browser work is signed off.**
+
+Kairos today is a *doer*: you give it a goal, it acts, it stops. Companion mode makes it something you live with — it remembers yesterday, notices how you're doing, has a personality, and eventually talks out loud.
+
+This document is the full spec: what it is, how the data works, how each feature is built, in what order, and what could go wrong.
+
+---
+
+## 1. What "good" feels like
+
+> **You:** hey
+> **Kairos:** hey. you were up till 2 grinding LeetCode contests yesterday — did you actually sleep?
+> **You:** barely lol
+> **Kairos:** figured. want the easy win first today, or straight back into graphs?
+> **You:** graphs
+> **Kairos:** *(opens NeetCode graph section)* there. go.
+
+Three things are happening: **continuity** (it knows yesterday), **noticing** (it inferred tiredness), and **one identity** (chatting and acting are the same assistant, not two apps).
+
+Non-goals: not a chatbot with a browser bolted on; not a productivity nag; not a therapist replacement.
+
+---
+
+## 2. Architecture — one brain, more context
+
+Companion mode is **not** a second system. Same loop, same actions, same memory. What changes is what goes into the prompt and how `done.answer` is written.
+
+```
+cloud/src/companion/
+  personas.js       persona definitions
+  persona.js        active persona per chat, /personality switching
+  conversation.js   rolling turns + summarization
+  episodic.js       "what happened yesterday" — events + daily digests
+  mood.js           mood inference, storage, trend
+  care.js           support mode rules + crisis handling
+```
+
+Prompt assembly becomes:
+
+```
+SYSTEM = PERSONA_BLOCK + CORE_RULES
+USER   = GOAL
+       + MEMORIES        (facts — existing)
+       + RECENT_DAYS     (episodic digests — new)
+       + MOOD            (current + trend — new)
+       + CONVERSATION    (rolling turns — new)
+       + HISTORY         (this goal's steps — existing)
+       + PAGE            (snapshot — existing, skipped on chat turns)
+```
+
+**Rule that must not break:** persona affects *wording only*. A sassy Kairos and a calm Kairos click identical buttons. Personality must never become a reliability variable.
+
+---
+
+## 3. The memory model — four distinct kinds
+
+Today there's one kind (facts). Companion needs four. Keeping them separate is what makes recall feel human instead of like a database dump.
+
+| Kind | Example | Lifetime | Store |
+|---|---|---|---|
+| **Facts** | `github_username: torvalds` | forever, overwritten | `kairos_facts` (exists) |
+| **Episodic** | "opened LeetCode 112, struggled ~40min, gave up" | 90 days, then digest only | `kairos_events` |
+| **Mood** | `2026-07-15: tired, frustrated (0.7)` | 1 year | `kairos_moods` |
+| **Conversation** | last 12 turns of this chat | rolling | `kairos_conversations` |
+
+### 3.1 Episodic memory — "yesterday you did this"
+
+Every completed goal writes one event automatically. This is nearly free: the loop already has the goal, the steps, the outcome.
+
+```sql
+CREATE TABLE kairos_events (
+  id BIGSERIAL PRIMARY KEY,
+  chat_id TEXT NOT NULL,
+  happened_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  kind TEXT NOT NULL,              -- goal | chat | note
+  summary TEXT NOT NULL,           -- "searched GitHub for react, opened the repo"
+  detail TEXT,                     -- goal text + final answer
+  success BOOLEAN,
+  duration_s INT,
+  tags TEXT[]                      -- ['leetcode','dsa'] — from one cheap LLM pass
+);
+CREATE INDEX ON kairos_events (chat_id, happened_at DESC);
+```
+
+**Writing:** in `goalManager`, after `runAgent` resolves, append an event. The `summary` is `goal` + one-line outcome — no extra LLM call needed for the common case.
+
+**Reading — this is the important part.** Never dump raw events into the prompt; it explodes tokens and reads like a log. Instead **digest per day**:
+
+```
+RECENT_DAYS:
+today: opened 3 LeetCode problems (2 solved), played lofi twice
+yesterday: GitHub react research, 4 tabs of docs; LeetCode contest — didn't finish
+2 days ago: quiet, just music
+```
+
+- Today's events: kept raw (they're few)
+- Each past day: one LLM-summarized line, computed **once** at day rollover and cached in `kairos_digests`
+- Prompt gets today + last 3 days + a weekly rollup ≈ **150 tokens**
+
+Digest generation is a single cheap call per day, not per turn. This is what makes "you were up till 2 yesterday" possible without paying for it every message.
+
+### 3.2 Mood tracking
+
+**How mood is captured** — two sources, no guessing games:
+
+1. **Inferred** from the user's own words. The persona prompt already reads the message; add to the reply contract an optional field:
+   ```json
+   {"thought":"...","action":{"type":"done","answer":"..."},
+    "mood":{"label":"frustrated","confidence":0.7,"why":"said 'this is impossible' twice"}}
+   ```
+   Only recorded when `confidence >= 0.5`. Free — no extra call.
+
+2. **Behavioural signals** (weak, supporting only): activity at 2–5am, many failed goals in a row, long silence then a burst. These *hint*, never conclude.
+
+```sql
+CREATE TABLE kairos_moods (
+  id BIGSERIAL PRIMARY KEY,
+  chat_id TEXT NOT NULL,
+  noted_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  label TEXT NOT NULL,            -- tired|frustrated|happy|anxious|flat|excited|calm
+  confidence REAL NOT NULL,
+  why TEXT,
+  source TEXT NOT NULL            -- inferred | behavioural | stated
+);
+```
+
+**Using it** — the prompt gets a compact line, not a history:
+```
+MOOD: today tired (0.7, "said barely slept"); this week: frustrated ×3, happy ×1; trend: rougher than usual
+```
+
+**Rules that keep it from being creepy:**
+- Never announce the tracking ("I've logged that you're sad" — no)
+- Never diagnose. `label` is a weather report, not a condition
+- Let it be wrong gracefully — if the user says "I'm fine", the stated value wins and overwrites
+- `/mood` shows everything stored; `/mood off` disables collection entirely; `/forget mood` wipes it
+- Mood **never** changes what actions are allowed — only tone
+
+### 3.3 Conversation memory
+
+- Last **12 turns** verbatim per chat
+- Older turns → one rolling summary paragraph, regenerated every ~10 turns
+- Per `chat_id`, so Telegram and CLI are separate threads
+- ≈ 400 tokens in prompt
+
+---
+
+## 4. Support mode ("therapist-like") — with guardrails
+
+You asked for it to act as a therapist. Done carefully this is genuinely valuable; done carelessly it's harmful. Here's the line.
+
+### What it does
+
+- **Listens first.** When you're venting, it does not offer to open a browser tab. The single biggest failure mode is an assistant that answers pain with productivity.
+- **Reflects.** "So it's not the problem itself — it's that you keep almost getting it."
+- **Asks instead of assumes.** "Is this a 'talk it out' or a 'distract me'?"
+- **Remembers the thread.** "You said the same thing about contests last week. Pattern, or just a bad run?"
+- **Knows when to shut up.** Sometimes the right reply is "that sucks. I'm here."
+
+### What it must never do
+
+- Diagnose ("you have anxiety") — **never**
+- Give medical/medication advice — **never**
+- Claim to be a therapist or a human — it's Kairos, it says so if asked
+- Push positivity at real pain ("just think positive!")
+- Store sensitive disclosures as facts — those go to conversation memory only, never `kairos_facts`, and never into a prompt after the topic has passed
+
+### Crisis handling — non-negotiable
+
+If the user expresses self-harm intent, suicidal ideation, or immediate danger, `care.js` **short-circuits the persona entirely**. No sass, no roleplay, no cleverness:
+
+- Respond plainly and warmly; acknowledge without minimizing
+- Surface real help: local emergency services, a crisis line appropriate to their region (India: Tele-MANAS **14416**, AASRA **+91-9820466726**)
+- Encourage contacting someone they trust
+- Do **not** attempt therapy, do **not** continue the task queue
+- Never log this to episodic memory or digests
+
+This path is deterministic code, not a prompt suggestion — a weak model must not be able to improvise around it. It is the one place where a hard rule is correct, and it does not violate working-agreement #1, because it is a **safety gate, not reasoning about a web page**.
+
+### Mode switching
+
+Support mode isn't a `/command` — it's the model reading the room, with one rule: **if the user is expressing feelings, do not act; respond.** If they then ask for something, act. `/personality calm` is a good pairing but not required.
+
+---
+
+## 5. Personalities
+
+`/personality` lists · `/personality sassy` switches · persists per chat · default `aria`.
+
+| id | Gender | Feel | Sample |
+|---|---|---|---|
+| **aria** *(default)* | woman | warm, quick, playful, competent friend | "got it — lofi's on. go be brilliant." |
+| **sassy** | woman | teasing, sharp, dry; still delivers | "2am LeetCode again? bold. opening it anyway." |
+| **calm** | woman | gentle, steady, unhurried | "no rush. want me to open just the first one?" |
+| **nova** | man | dry, minimal, efficient | "opened. next." |
+
+Each persona defines: `name`, `pronouns`, `tone`, `verbosity`, `humour`, `warmth`, 3–4 few-shot sample lines, and `voice` hints (§6). Persona block ≈ 120 tokens.
+
+**Custom personas** later: `/personality new` → a few questions → generated block stored per user.
+
+---
+
+## 6. Voice
+
+### STT — whisper.cpp
+
+Single native binary, `ggml-base.en` ≈ 140MB RAM, CPU-only, no Python. Fits the client budget.
+
+```
+client/src/voice/
+  stt.js         whisper.cpp process, streaming
+  vad.js         voice activity detection
+  wake.js        "Kairos" wake word
+  animation.js   terminal waveform
+```
+
+Flow: `/voice` toggles listening → mic 16kHz PCM → VAD finds speech edges → wake word "Kairos" arms it → whisper.cpp → text → **the same `sendGoal()` path the keyboard uses**.
+
+Because it's just another connector, everything (browser, memory, ask_human, personas) works spoken on day one. Live waveform while listening, spinner while thinking. **Barge-in**: speaking during playback cancels it.
+
+### TTS — personality in the voice
+
+Flat TTS kills the persona. So the persona emits **delivery hints** inline, stripped/translated before audio:
+
+```
+"Yeah— [pause:300] I opened YouTube. [smile] Lofi's playing. Anything else?"
+```
+
+| Tag | Effect |
+|---|---|
+| `[pause:ms]` | inserted silence / SSML `<break>` |
+| `[smile]` | brighter pitch + slightly faster |
+| `[soft]` | quieter, slower |
+| `[fast]` | rushed, excited |
+| `…` `—` | natural micro-pauses (kept, never stripped) |
+
+`voiceMarkup.js` parses → segments with per-segment rate/pitch → engine. If parsing fails, strip all tags and speak plainly — **a bad tag must never break speech**.
+
+**Engine** (benchmark on the real laptop before committing):
+
+| Option | Quality | Cost | Notes |
+|---|---|---|---|
+| **Piper** (local ONNX) | good | free, ~100MB | offline, fast, per-segment control. **Recommended default** |
+| Edge-TTS | very good | free | needs network, real SSML |
+| ElevenLabs | best | paid | best emotion |
+| Windows SAPI | poor | free | last-resort fallback |
+
+Map each persona → voice id + baseline rate/pitch. `aria` = warm female, moderate pace.
+
+---
+
+## 7. Proactivity (later, opt-in, easy to hate)
+
+Once episodic + mood exist, Kairos *could* speak first: a morning digest, "you said you'd finish that roadmap", noticing a 3-day slump.
+
+Rules: **opt-in only** (`/proactive on`), max 1–2/day, never during focus hours, always killable with one word. Get this wrong and it becomes Clippy. Ship it last, behind a flag.
+
+---
+
+## 8. Build order
+
+Each step is independently useful and testable. **Text before voice** — if the personality isn't good in writing, voice just makes bad writing louder.
+
+| # | Step | Done when |
+|---|---|---|
+| 1 | `personas.js` + persona block in prompt | replies sound like aria, not a manual |
+| 2 | `conversation.js` — rolling turns + summary | it remembers what you said 5 messages ago |
+| 3 | `/personality` switching, persisted | sassy vs calm are obviously different, same actions |
+| 4 | `kairos_events` writes + daily digests | "yesterday you did X" is accurate |
+| 5 | Mood inference + `/mood`, `/mood off` | tone shifts when you're clearly tired |
+| 6 | `care.js` — support mode + crisis gate | venting gets listening, not tabs; crisis path verified |
+| 7 | TTS + markup | aria sounds like aria |
+| 8 | STT + wake word + animation | "Kairos, open YouTube" works end to end |
+| 9 | Barge-in + polish | interrupting feels natural |
+| 10 | Proactivity behind `/proactive` | at most useful, never annoying |
+
+---
+
+## 9. Budgets
+
+**Tokens/turn** (chat, no page snapshot):
+
+| Part | ~Tokens |
+|---|---|
+| Core rules + persona | 1100 |
+| Facts | 100 |
+| Recent days digest | 150 |
+| Mood line | 40 |
+| Conversation (12 turns + summary) | 400 |
+| **Total** | **~1800** — cheaper than a browser step |
+
+Browser steps additionally carry the snapshot (~1100), so a companion browser turn ≈ 2900. Watch this: the free-tier daily cap is the real limit (see `operations.md`).
+
+**Client RAM**
+
+| | RAM |
+|---|---|
+| whisper.cpp base.en | ~140MB |
+| Piper + voice | ~100MB |
+| Chromium | ~400–600MB |
+| Node | ~80MB |
+| **Total** | **~0.9–1.1GB** — inside the 1–1.5GB target |
+
+Load STT/TTS lazily on `/voice` so text sessions stay light.
+
+---
+
+## 10. Risks
+
+| Risk | Mitigation |
+|---|---|
+| Personality degrades reliability | persona touches wording only; browser rules live in core prompt; benchmark must still pass with every persona |
+| Mood tracking feels creepy | never announce it, `/mood` transparency, `/mood off`, stated overrides inferred |
+| Therapist mode causes harm | hard crisis gate in code, never diagnose, real helplines, no persona in crisis |
+| Token cost per turn doubles | digests not raw events; cache daily; skip snapshot on chat turns |
+| Weak model breaks character | personas are few-shot heavy; **a better model helps here too** (see `roadmap.md`) |
+| Voice tags leak into text output | strip tags for text connectors; only TTS sees them |
+| Sensitive disclosures persisted | conversation memory only, never facts, never digests |
+
+---
+
+## 11. Open decisions
+
+1. TTS engine — benchmark Piper vs Edge-TTS on the actual laptop before writing `tts.js`
+2. Wake word — whisper on a rolling buffer (simple, heavier) vs porcupine (accurate, another dep)
+3. Whether `aria` should have a *name* the user picks
+4. Do digests run at local midnight, or lazily on the first message of a new day? (lazy is simpler and cheaper — probably that)

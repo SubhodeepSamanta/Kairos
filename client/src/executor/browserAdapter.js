@@ -9,6 +9,7 @@ import { goForward } from "../automation/browser/actions/navigation/forward.js";
 import { refreshPage } from "../automation/browser/actions/navigation/refresh.js";
 import { getTabs } from "../automation/browser/actions/listTabs.js";
 import { newTab } from "../automation/browser/actions/tabs/newTab.js";
+import { createNewWindow } from "../automation/browser/browser.js";
 import { switchBrowserTab } from "../automation/browser/actions/tabs/switchTab.js";
 import { closeBrowserTab } from "../automation/browser/actions/tabs/closeTab.js";
 import { pressKey } from "../automation/browser/actions/input/pressKey.js";
@@ -60,6 +61,8 @@ export async function executeBrowserAction(action) {
       return await restartCurrentBrowser();
     case ACTIONS.NEW_TAB:
       return await newTab();
+    case ACTIONS.NEW_WINDOW:
+      return await createNewWindow();
     case ACTIONS.EXTRACT_METADATA:
       return await extractMetadata();
     case ACTIONS.SCREENSHOT:

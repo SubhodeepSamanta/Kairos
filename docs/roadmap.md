@@ -16,11 +16,8 @@
 
 ## Next
 
-### Phase 2b — finish multi-goal (small)
-`open A and B and C` mostly works today because the model sequences it itself. What's missing:
-- **New-window** support alongside new-tab (`new_window` action → `context.newPage()` in a fresh window)
-- Explicit **task list in the prompt** for 3+ part goals so nothing is silently dropped
-- Do **not** rebuild sub-objective machinery. That was the old failure. Tasks are user-visible units; the model tracks them in history.
+### Phase 2b — multi-goal ✅ done
+`new_window` shipped alongside `new_tab`; prompt tells the model to track every part of a multi-part goal and only finish when all are complete. Sub-objective machinery deliberately **not** rebuilt — that was the old failure mode; the model tracks parts in history.
 
 ### Phase 3 — Telegram + memory polish
 - Status already streams and edits in place; add per-step detail ("typed 'lofi' into search")
@@ -28,10 +25,10 @@
 - Recall: current keyword+recency filter is fine to ~300 facts. Only add embeddings if that breaks.
 
 ### Phase 4 — Companion mode
-See `companion-and-voice.md`. Build **before** voice — voice is a transport for this.
+Full spec in **`companion.md`** — personas, episodic memory ("yesterday you did X"), mood tracking, support/therapist mode with a hard crisis gate, proactivity. Build **before** voice.
 
 ### Phase 5 — Voice (STT/TTS)
-See `companion-and-voice.md`.
+Covered in `companion.md` §6 — whisper.cpp for STT, Piper for TTS, `[pause:300]`/`[smile]` delivery markup so the voice carries the persona. Voice is a transport for companion mode, not a separate product.
 
 ### Phase 6 — Desktop automation
 The stubs were deleted in Phase 0 (they were empty). Rebuild as real actions: `open_app`, `focus_window`, `type_into_app`, file ops. Same rule as the browser — LLM decides, code executes. Windows UIA via PowerShell or a native binding.

@@ -5,7 +5,7 @@ import { storeSecret } from "../secrets/vault.js";
 
 const STATE_CHANGING = new Set([
   "navigate", "click", "type", "press_key", "back", "forward", "refresh",
-  "switch_tab", "new_tab", "close_tab", "scroll", "wait", "use_browser"
+  "switch_tab", "new_tab", "new_window", "close_tab", "scroll", "wait", "use_browser"
 ]);
 
 const SETTLE_TIMEOUT_MS = 4000;

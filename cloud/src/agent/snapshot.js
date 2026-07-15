@@ -98,8 +98,9 @@ export function formatSnapshot(page) {
 
 export function describePageChange(before, after) {
   if (!after) return "no observation";
-  if (!before) return `now on ${after.url || "unknown"}`;
-  if (before.url !== after.url) return `page changed to ${after.url}`;
-  if (before.title !== after.title) return `title changed to "${cleanLabel(after.title)}"`;
-  return "page did not change";
+  const where = `${after.url || "unknown"}${after.title ? ` "${cleanLabel(after.title)}"` : ""}`;
+  if (!before) return `now on ${where}`;
+  if (before.url !== after.url) return `now on ${where}`;
+  if (before.title !== after.title) return `still on ${after.url}, title now "${cleanLabel(after.title)}"`;
+  return `still on ${where}`;
 }
