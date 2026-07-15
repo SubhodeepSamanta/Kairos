@@ -55,23 +55,40 @@ Runs your real goals end to end and asks you to confirm each. Gate: **≥8/10**.
 
 Last full run: **7/10**. Tasks 8–10 (weather / news / twitch) were blocked by exhausted free-tier quotas, not logic errors.
 
-## Token economics — read this before blaming the agent
+## Models — measured, not guessed
 
-Free tiers are the binding constraint.
+All free. Benchmarked 2026-07-16 on 8 real Kairos decisions (say-done-when-open, answer-from-history, ambiguity, don't-search-twice, obey-notice, …), paced to separate genuine mistakes from rate limits:
 
-| Model | TPM | TPD |
-|---|---|---|
-| Groq llama-3.3-70b | ~12k | ~100k |
-| Groq llama-3.1-8b | higher | separate pool |
-| OpenRouter `:free` | upstream-limited, unreliable |
-| NVIDIA | currently times out on every call |
+| Score | Avg | Model | Role |
+|---|---|---|---|
+| **8/8** | 807ms | `groq/openai/gpt-oss-120b` | **primary A** |
+| 6/8 | 605ms | `groq/meta-llama/llama-4-scout-17b-16e-instruct` | **primary B** |
+| 6/8 | 6.0s | `groq/qwen/qwen3-32b` | backup |
+| 5/8 | 28s | `openrouter/nvidia/nemotron-3-super-120b-a12b:free` | backup (cross-provider) |
+| 1/8 | 56s | `groq/llama-3.3-70b-versatile` | backup (was the old default) |
+| 0/8 | 66s | `openrouter/qwen/qwen3-next-80b-a3b-instruct:free` | rejected |
 
-A step costs ~1.5–2.4k tokens (system prompt ~950 + snapshot ~600–1250 + history). So **~40–60 steps/day** on Groq free — roughly 5–10 goals. When you see "AI providers busy" or a goal dying mid-flight, that is almost always quota, not code.
+Rerun anytime: the benchmark script pattern is in git history (`modelbench.tmp.js`), or just swap an entry in `provider.js` — it is model-agnostic.
 
-Fixes, cheapest first:
-1. Add another free key (Gemini, Cerebras) as a fallback provider
-2. $5 OpenRouter credit → effectively removes the ceiling
-3. Paid Groq tier
+### How the two primaries are used
+
+**Rotation, not racing.** Calls alternate A → B → A → B. Groq rate-limits **per model** (`"rate limit reached for model X"`), so two different Groq models have separate daily pools — alternating roughly **doubles daily capacity**.
+
+Racing both and taking the first reply would *halve* it. Since daily quota is the binding constraint, rotation is strictly better.
+
+On failure the chain walks: other primary → backups → NVIDIA last. A model that 429s is put in a **60s cooldown** and skipped, so we stop hammering an exhausted pool.
+
+### Quota
+
+| Provider | Notes |
+|---|---|
+| Groq | ~12k TPM, ~100k TPD **per model** — hence rotation |
+| OpenRouter `:free` | upstream-limited; slow (28s+) but a genuinely independent provider |
+| NVIDIA | `/models` responds, but `chat/completions` **hangs indefinitely** — has never once succeeded. Kept last with a 20s timeout so it fails fast |
+
+A step costs ~1.5–2.4k tokens (system prompt ~1150 + snapshot ~600–1250 + history). With rotation that is roughly **80–120 steps/day** free. "AI providers busy" almost always means quota, not code.
+
+To go further: another free key (Gemini, Cerebras) as a third primary, or $5 of OpenRouter credit.
 
 ## Troubleshooting
 

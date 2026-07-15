@@ -1,19 +1,48 @@
-import { askGroq, askGroqSmall } from "./groq.js";
-import { askOpenRouter } from "./openrouter.js";
-import { askNvidia } from "./nvidia.js";
+import { callModel } from "./models.js";
 
-const providers = [
-  { name: "groq-70b", ask: askGroq },
-  { name: "openrouter", ask: askOpenRouter },
-  { name: "groq-8b", ask: askGroqSmall },
-  { name: "nvidia", ask: askNvidia }
+const PRIMARY = [
+  { name: "groq/gpt-oss-120b", provider: "groq", model: "openai/gpt-oss-120b" },
+  { name: "groq/llama-4-scout", provider: "groq", model: "meta-llama/llama-4-scout-17b-16e-instruct" }
+];
+
+const BACKUP = [
+  { name: "groq/qwen3-32b", provider: "groq", model: "qwen/qwen3-32b" },
+  { name: "openrouter/nemotron-120b", provider: "openrouter", model: "nvidia/nemotron-3-super-120b-a12b:free" },
+  { name: "groq/llama-3.3-70b", provider: "groq", model: "llama-3.3-70b-versatile" },
+  { name: "nvidia/nemotron-super-49b", provider: "nvidia", model: "nvidia/llama-3.3-nemotron-super-49b-v1.5" }
 ];
 
 const TPM_LIMIT = Number(process.env.LLM_TPM_LIMIT) || 10000;
+const COOLDOWN_MS = 60000;
+
 const recentCalls = [];
+const cooldowns = new Map();
+let rotation = 0;
 
 function estimateTokens(text) {
-  return Math.ceil(text.length / 4);
+  return Math.ceil(String(text || "").length / 4);
+}
+
+function isCooling(name) {
+  const until = cooldowns.get(name);
+  if (!until) return false;
+  if (Date.now() >= until) {
+    cooldowns.delete(name);
+    return false;
+  }
+  return true;
+}
+
+function cool(name, ms = COOLDOWN_MS) {
+  cooldowns.set(name, Date.now() + ms);
+}
+
+function orderedCandidates() {
+  const start = rotation++ % PRIMARY.length;
+  const primaries = [...PRIMARY.slice(start), ...PRIMARY.slice(0, start)];
+  const all = [...primaries, ...BACKUP];
+  const ready = all.filter(c => !isCooling(c.name));
+  return ready.length ? ready : all;
 }
 
 async function paceForRateLimit(tokens) {
@@ -26,13 +55,21 @@ async function paceForRateLimit(tokens) {
   const oldest = recentCalls[0];
   if (!oldest) return;
   const waitMs = Math.max(0, 60000 - (now - oldest.at)) + 250;
-  console.log(`[LLM] Pacing: ${usedThisMinute}+${tokens} tokens would exceed ${TPM_LIMIT}/min, waiting ${(waitMs / 1000).toFixed(1)}s`);
+  console.log(`[LLM] Pacing: ${usedThisMinute}+${tokens} would exceed ${TPM_LIMIT}/min, waiting ${(waitMs / 1000).toFixed(1)}s`);
   await new Promise(r => setTimeout(r, waitMs));
   return paceForRateLimit(tokens);
 }
 
 export function createBudget(maxCalls = 45) {
   return { used: 0, maxCalls, estimatedTokens: 0 };
+}
+
+export function llmStatus() {
+  return {
+    primary: PRIMARY.map(p => p.name),
+    backup: BACKUP.map(p => p.name),
+    cooling: [...cooldowns.keys()].filter(isCooling)
+  };
 }
 
 export async function askLLM(systemPrompt, userPrompt, budget = null) {
@@ -50,17 +87,23 @@ export async function askLLM(systemPrompt, userPrompt, budget = null) {
   recentCalls.push({ at: Date.now(), tokens });
 
   let lastError = null;
-  for (const provider of providers) {
+  for (const candidate of orderedCandidates()) {
     try {
-      const result = await provider.ask(systemPrompt, userPrompt);
+      const result = await callModel(candidate, systemPrompt, userPrompt);
       if (result && result.trim()) {
-        console.log(`[LLM] ${provider.name} ok (call ${budget ? budget.used : "-"}, ~${tokens} tokens in)`);
+        console.log(`[LLM] ${candidate.name} ok (call ${budget ? budget.used : "-"}, ~${tokens} tokens in)`);
         return result;
       }
-      lastError = new Error(`${provider.name} returned empty response`);
+      lastError = new Error(`${candidate.name} returned empty`);
     } catch (err) {
-      console.log(`[LLM] ${provider.name} failed: ${err.message.slice(0, 160)}`);
       lastError = err;
+      if (err.rateLimited) {
+        cool(candidate.name);
+        console.log(`[LLM] ${candidate.name} rate limited — cooling 60s, trying next`);
+      } else {
+        cool(candidate.name, 15000);
+        console.log(`[LLM] ${candidate.name} failed: ${err.message.slice(0, 120)}`);
+      }
     }
   }
   throw lastError || new Error("no_llm_provider_available");
@@ -68,7 +111,7 @@ export async function askLLM(systemPrompt, userPrompt, budget = null) {
 
 export function parseJsonResponse(text) {
   if (!text) return null;
-  let cleaned = text.trim();
+  let cleaned = String(text).trim();
   const fenced = cleaned.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
   if (fenced) cleaned = fenced[1].trim();
   const start = cleaned.indexOf("{");

@@ -36,11 +36,13 @@ The stubs were deleted in Phase 0 (they were empty). Rebuild as real actions: `o
 ### Phase 7 — Hosting
 Cloud → Render. Needs: `DATABASE_URL` (already Postgres), `PORT` from env (done), keep-alive ping, and a public WS URL for the client's `CLOUD_URL`. Client stays on the laptop — it must, since it owns the browser and secrets.
 
-## The honest bottleneck
+## Model quality — mostly closed (2026-07-16)
 
-The architecture now matches Operator/browser-use. The gap to "as good as OpenAI/Claude" is **model quality**, not design.
+The old bottleneck was llama-3.3-70b. Benchmarking 13 free models on real Kairos decisions found **`groq/openai/gpt-oss-120b` scores 8/8 at 807ms** — it is now primary, rotating with llama-4-scout. Full table in `operations.md`.
 
-Llama-3.3-70b on Groq free is the weak link. Observed: it re-ran an action whose result was already in its history, and needed a code guard to stop. GPT-4o / Claude Sonnet do not make that class of mistake.
+Measured effect: "open github.com in brave" went from an infinite click-loop to **2 steps**; the weather goal passed for the first time. No paid key needed.
+
+Remaining known weakness: **news/aggregator extraction**. The agent now follows the right procedure (search → fetch a real article) but JS-rendered and bot-blocked news sites yield no text to a plain HTTP fetch, so answers come back thin. Fix candidates: RSS support in `fetchPageText`, or fall back to navigate+read in the real browser for these sites.
 
 `provider.js` is model-agnostic — one entry in the providers array swaps it. Ranked by leverage:
 1. **Better model** (Claude Sonnet / GPT-4o) — biggest single jump in reliability
