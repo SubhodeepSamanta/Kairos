@@ -1,4 +1,3 @@
-import { classifyElement } from "../classifier/index.js";
 
 export async function readInputs(page) {
   const inputs = [];
@@ -47,10 +46,6 @@ export async function readInputs(page) {
       enabled,
       ...visualInfo
     };
-    const cls = classifyElement(inputObj, "input");
-    inputObj.purpose = cls.purpose;
-    inputObj.confidence = cls.confidence;
-    inputObj.semanticType = cls.semanticType;
     inputs.push(inputObj);
   }
   return inputs;

@@ -1,9 +1,16 @@
 import { getPage } from "../../browser.js";
 import { getElement } from "../../elements/registry.js";
+import { resolveSecrets } from "../../../../secrets/vault.js";
 
-export async function typeText(text, element) {
+export async function typeText(rawText, element, submit = false) {
   const page = await getPage();
   if (!page) return { success: false, reason: "No page available" };
+
+  const { resolved: text, missing, containedSecret } = resolveSecrets(rawText);
+  if (missing.length) {
+    return { success: false, reason: `missing_secret:${missing.join(",")} — ask the user for it with ask_human and secret_name` };
+  }
+  const display = containedSecret ? "•••••" : text;
 
   const getActiveElementInfo = async () => {
     return await page.evaluate(() => {
@@ -23,10 +30,7 @@ export async function typeText(text, element) {
   if (element) {
     const locator = getElement(element);
     if (!locator) {
-      return {
-        success: false,
-        reason: `Unknown element ${element}`
-      };
+      return { success: false, reason: `Unknown element ${element} — read the page again for fresh ids` };
     }
 
     try {
@@ -35,40 +39,34 @@ export async function typeText(text, element) {
 
       if (tagName !== "INPUT" && tagName !== "TEXTAREA" && !isEditable) {
         await locator.click();
-        
-        await new Promise(r => setTimeout(r, 1500));
-        
+        await new Promise(r => setTimeout(r, 800));
+
         let active = null;
         const startTime = Date.now();
         while (Date.now() - startTime < 3000) {
           active = await getActiveElementInfo();
-          if (active && (active.tag === "INPUT" || active.tag === "TEXTAREA" || active.isContentEditable)) {
-            break;
-          }
+          if (active && (active.tag === "INPUT" || active.tag === "TEXTAREA" || active.isContentEditable)) break;
           await new Promise(r => setTimeout(r, 200));
         }
-        
+
         if (active && (active.tag === "INPUT" || active.tag === "TEXTAREA" || active.isContentEditable)) {
           await page.keyboard.type(text);
           const afterActive = await getActiveElementInfo();
           value = afterActive?.value || "";
           success = value.includes(text);
         } else {
-          return {
-            success: false,
-            reason: "Clicked launcher, but focus did not transition to an input/textarea/contenteditable element within timeout."
-          };
+          return { success: false, reason: "Clicked the element but focus never moved to a text field" };
         }
       } else {
-        await locator.focus().catch(err => console.error("[type] focus failed:", err.message));
+        await locator.focus().catch(() => {});
         await locator.fill(text);
         value = await locator.inputValue().catch(() => null);
         success = (value === text);
       }
-    } catch (err) {
+    } catch {
       const active = await getActiveElementInfo();
       if (active && (active.tag === "INPUT" || active.tag === "TEXTAREA" || active.isContentEditable)) {
-        await page.keyboard.type(text).catch(err => console.error("[type] keyboard.type failed:", err.message));
+        await page.keyboard.type(text).catch(() => {});
         const afterActive = await getActiveElementInfo();
         value = afterActive?.value || "";
         success = value.includes(text) || value !== active.value;
@@ -89,23 +87,16 @@ export async function typeText(text, element) {
       const inputs = page.locator('input:not([type="hidden"]):not([disabled]), textarea:not([disabled]), [contenteditable="true"]');
       const count = await inputs.count().catch(() => 0);
       let target = null;
-
       for (let i = 0; i < count; i++) {
         const candidate = inputs.nth(i);
-        const visible = await candidate.isVisible().catch(() => false);
-        if (visible) {
+        if (await candidate.isVisible().catch(() => false)) {
           target = candidate;
           break;
         }
       }
-
       if (!target) {
-        return {
-          success: false,
-          reason: "No active input focused and no visible input elements found on the page."
-        };
+        return { success: false, reason: "No focused input and no visible input elements on the page" };
       }
-
       await target.click();
       await target.fill(text);
       value = await target.inputValue().catch(() => null);
@@ -113,10 +104,15 @@ export async function typeText(text, element) {
     }
   }
 
+  if (success && submit) {
+    await page.keyboard.press("Enter").catch(() => {});
+  }
+
   return {
     success,
-    text,
+    text: display,
     element,
-    actualValue: value
+    submitted: success && submit,
+    actualValue: containedSecret ? "•••••" : value
   };
 }

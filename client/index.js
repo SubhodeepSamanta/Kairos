@@ -1,3 +1,4 @@
+import { env } from "./src/config/env.js";
 import { connectToCloud } from "./src/websocket/client.js";
 import { launchKairosConsole } from "./src/connectors/cli/launcher.js";
 import readline from "readline";
@@ -7,7 +8,7 @@ console.log("Browser Connected");
 console.log("Cloud Connected\n");
 console.log("Commands:\n  startKairos\n  exit\n");
 
-connectToCloud("ws://localhost:8080");
+connectToCloud(env.CLOUD_URL || "ws://localhost:8080");
 
 const rl = readline.createInterface({
   input: process.stdin,

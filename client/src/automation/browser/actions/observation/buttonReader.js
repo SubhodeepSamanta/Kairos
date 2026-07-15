@@ -1,4 +1,3 @@
-import { classifyElement } from "../classifier/index.js";
 
 export async function readButtons(page) {
   const buttons = [];
@@ -45,10 +44,6 @@ export async function readButtons(page) {
       enabled,
       ...visualInfo
     };
-    const cls = classifyElement(btnObj, "button");
-    btnObj.purpose = cls.purpose;
-    btnObj.confidence = cls.confidence;
-    btnObj.semanticType = cls.semanticType;
     buttons.push(btnObj);
   }
   return buttons;

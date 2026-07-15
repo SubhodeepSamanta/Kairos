@@ -1,6 +1,7 @@
+import { env } from "../../config/env.js";
 import { createPrompt, showPrompt, printMessage } from "./prompt.js";
 import { handleCommand } from "./commands.js";
-import { connectToCloud, sendGoal } from "./transport.js";
+import { connectToCloud, sendGoal, sendHumanReply } from "./transport.js";
 
 console.clear();
 console.log("\x1b[1m\x1b[36m==========================================\x1b[0m");
@@ -16,6 +17,7 @@ rl.on("SIGINT", () => {
 });
 
 let isWaiting = false;
+let pendingAskGoalId = null;
 
 function startPrompt() {
   if (isWaiting) return;
@@ -24,27 +26,37 @@ function startPrompt() {
       startPrompt();
       return;
     }
-
     if (handleCommand(input, rl)) {
       startPrompt();
       return;
     }
-
     isWaiting = true;
     sendGoal(input);
   });
 }
 
-connectToCloud(
-  "ws://localhost:8080",
-  (result, success) => {
+function promptForAnswer() {
+  rl.question("\x1b[1m\x1b[33mYou> \x1b[0m", (answer) => {
+    const goalId = pendingAskGoalId;
+    pendingAskGoalId = null;
+    sendHumanReply(goalId, answer);
+  });
+}
+
+connectToCloud(env.CLOUD_URL || "ws://localhost:8080", {
+  onResult(result, success) {
     isWaiting = false;
     printMessage("Kairos", result, !success);
     startPrompt();
   },
-  (status) => {
+  onStatus(status) {
     printMessage("Kairos", status);
+  },
+  onAsk(prompt, goalId, secret) {
+    pendingAskGoalId = goalId;
+    printMessage("Kairos", `${prompt}${secret ? "\n(stored only on this computer)" : ""}`);
+    promptForAnswer();
   }
-);
+});
 
 startPrompt();

@@ -166,12 +166,12 @@ Key principles:
 
 ## 5. Phased roadmap
 
-### Phase 0 — Checkpoint & hygiene (half a day)
+### Phase 0 — Checkpoint & hygiene ✅ DONE (2026-07-15)
 - Commit the current working tree (3,800 uncommitted lines incl. ariaReader/tests).
 - Repo cleanup from §3 hygiene list. Fix `.gitignore` (missing trailing newline).
 - Tag it `pre-rebuild` so nothing is ever lost.
 
-### Phase 1 — Browser Operator core (the big one; ~everything depends on it)
+### Phase 1 — Browser Operator core ✅ SHIPPED (2026-07-15) — thin LLM-first loop live; smoke-tested on example.com and GitHub search; run `node benchmark/run.js` for the full 10-task gate
 1. **Protocol hardening**: `requestId` on every message, 30 s timeout +
    error result on `executePlanRemotely`, client auto-reconnect w/ backoff,
    shared-secret auth (env `CLIENT_SECRET` already exists).

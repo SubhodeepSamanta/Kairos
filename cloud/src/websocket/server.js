@@ -1,261 +1,175 @@
 import { WebSocketServer } from "ws";
-import { log, isDebug } from "../utils/logger.js";
-import { setBrowserState } from "../agent/state/state.js";
-import { createGoal } from "../shared/schemas/goal.js";
-import { runAgent } from "../agent/index.js";
-import { routeMessage } from "../router/router.js";
-import { chatReply } from "../chat/chat.js";
-import { extractMemory } from "../memory/extract.js";
-import { storeMemory } from "../memory/store.js";
-import { retrieveMemory } from "../memory/retrieve.js";
-import humanLoopBus from "../humanLoop/humanLoopBus.js";
+import { env } from "../config/env.js";
+import { log } from "../utils/logger.js";
+import { submitGoal } from "../agent/goalManager.js";
 
-let connectedClient = null;
-const pendingResolvers = new Map();
-const connectorClients = new Set();
+const ACTION_TIMEOUT_MS = 60000;
+const HUMAN_TIMEOUT_MS = 300000;
 
-export function getConnectorCount() { return connectorClients.size; }
+let automationClient = null;
+const pendingRequests = new Map();
+const pendingHumanInputs = new Map();
 
-export function broadcastToConnectors(message) {
-  const msg = JSON.stringify(message);
-  for (const ws of connectorClients) {
-    if (ws.readyState === 1) {
-      try { ws.send(msg); } catch {}
-    }
-  }
+export function isClientConnected() {
+  return automationClient !== null && automationClient.readyState === 1;
 }
 
-export async function requestHumanInputRemotely(goalId, prompt, responseType, context) {
-  broadcastToConnectors({
-    type: "human_input_request",
-    goalId,
-    prompt,
-    responseType: responseType || "free_text",
-    context: context || {}
+export async function executeActionRemotely(action) {
+  if (!isClientConnected()) {
+    throw new Error("no_client_connected");
+  }
+
+  const requestId = crypto.randomUUID();
+  const timeoutMs = action.type === "store_secret" ? 10000 : ACTION_TIMEOUT_MS;
+
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      pendingRequests.delete(requestId);
+      reject(new Error(`client_timeout after ${timeoutMs / 1000}s on ${action.type}`));
+    }, timeoutMs);
+
+    pendingRequests.set(requestId, { resolve, reject, timer });
+
+    const isSecret = action.type === "store_secret" || /\{\{secret:/.test(action.params?.text || "");
+    log(`[WS→client] ${action.type}${isSecret ? " (secret redacted)" : " " + JSON.stringify(action.params || {}).slice(0, 120)}`);
+
+    automationClient.send(JSON.stringify({ type: "execute", requestId, action }), (err) => {
+      if (err) {
+        clearTimeout(timer);
+        pendingRequests.delete(requestId);
+        reject(new Error("client_disconnected"));
+      }
+    });
   });
-  return humanLoopBus.requestHumanInput(goalId, prompt, responseType, context);
 }
 
-function formatAgentResult(agentResult) {
-  const observation = agentResult.observation;
-  if (!observation) {
-    return agentResult.success ? "Goal completed successfully." : "Goal execution failed.";
+function rejectAllPending(reason) {
+  for (const [, pending] of pendingRequests) {
+    clearTimeout(pending.timer);
+    pending.reject(new Error(reason));
   }
-
-  if (observation?.action?.type === "press_key") {
-    if (observation.after?.url && observation.after?.title) {
-      return `Search completed\n\nTitle:\n${observation.after.title}\n\nURL:\n${observation.after.url}`;
-    }
-    return `Pressed ${observation.key}`;
-  }
-  if (observation?.action?.type === "extract_metadata") {
-    const meta = observation.metadata;
-    return `\nTitle:\n${meta.title}\n\nDescription:\n${meta.description || "None"}\n\nKeywords:\n${meta.keywords || "None"}\n\nAuthor:\n${meta.author || "Unknown"}\n`;
-  }
-  if (observation?.action?.type === "screenshot") {
-    return `Screenshot saved:\n\n${observation.path}`;
-  }
-  if (observation?.action?.type === "extract_links") {
-    const links = observation.links || [];
-    if (links.length === 0) return "No links found.";
-    let response = "Links:\n\n";
-    for (const link of links.slice(0, 20)) {
-      response += `${link.text}\n${link.href}\n\n`;
-    }
-    return response;
-  }
-  if (observation?.action?.type === "scroll") {
-    return `Scrolled ${observation.direction}`;
-  }
-  if (observation?.action?.type === "wait") {
-    return `Waited ${observation.seconds} seconds`;
-  }
-  if (observation?.action?.type === "close_tab") {
-    return `Closed tab ${observation.index}`;
-  }
-  if (!agentResult.success && agentResult.reason === "goal_impossible") {
-    return `Goal could not be completed.\n\nReason:\n${observation?.action?.params?.text || "requested item"} was not found.`;
-  }
-  if (observation?.action?.type === "type") {
-    return `Typed\n\n${observation.actual}`;
-  }
-
-  if (agentResult.success) {
-    if (observation?.action?.type === "list_tabs") {
-      const tabs = observation.tabs || [];
-      if (tabs.length === 0) return "No tabs open.";
-      let response = "Open Tabs:\n\n";
-      for (const tab of tabs) {
-        response += `${tab.active ? "\u2192" : " "} Tab ${tab.index}\n${tab.title}\n${tab.url}\n\n`;
-      }
-      return response;
-    }
-    if (observation?.action?.type === "switch_tab") {
-      return `Switched to tab ${observation.index}`;
-    }
-    if (observation?.action?.type === "new_tab") {
-      return `Created tab ${observation.index}`;
-    }
-    if (observation?.action?.type === "click") {
-      return `Clicked: ${observation.clicked || "unknown"}\n\nPage:\n${observation.actual}`;
-    }
-    if (observation?.expected === "page_read") {
-      let response = `Title: ${observation.title || "Unknown"}\n\nURL: ${observation.url || "Unknown"}`;
-      if (observation.inputs?.length) {
-        response += `\n\nInputs:\n\n${observation.inputs.slice(0, 10).map(input => `- [${input.id}] ${input.text}`).join("\n")}`;
-      }
-      if (observation.buttons?.length) {
-        response += `\n\nButtons:\n\n${observation.buttons.slice(0, 10).map(button => `- [${button.id}] ${button.text}`).join("\n")}`;
-      }
-      if (observation.links?.length) {
-        response += `\n\nLinks:\n\n${observation.links.slice(0, 10).map(link => `- [${link.id}] ${link.text}`).join("\n")}`;
-      }
-      if (observation.text) {
-        response += `\n\nContent:\n\n${observation.text.slice(0, 1000)}`;
-      }
-      if (response.length > 3500) {
-        response = response.slice(0, 3500) + "\n\n[truncated]";
-      }
-      return response;
-    }
-    return `Success\n\nAction: ${observation?.action?.type || "unknown"}\nResult: ${observation?.actual || "completed"}`;
-  }
-
-  return `Failed\n\nAction: ${observation?.action?.type || "unknown"}\nReason: ${observation?.reason || agentResult.reason || "unknown"}`;
+  pendingRequests.clear();
 }
 
-export function startWebSocketServer(port = 8080) {
+function askHumanVia(ws, goalId) {
+  return (question, { secretName } = {}) =>
+    new Promise((resolve, reject) => {
+      const timer = setTimeout(() => {
+        pendingHumanInputs.delete(goalId);
+        reject(new Error("no reply within 5 minutes"));
+      }, HUMAN_TIMEOUT_MS);
+      pendingHumanInputs.set(goalId, { resolve, reject, timer });
+      send(ws, {
+        type: "human_input_request",
+        goalId,
+        prompt: question,
+        secret: Boolean(secretName)
+      });
+    });
+}
+
+export function resolveHumanInput(goalId, input) {
+  const pending = pendingHumanInputs.get(goalId);
+  if (!pending) return false;
+  clearTimeout(pending.timer);
+  pendingHumanInputs.delete(goalId);
+  pending.resolve(String(input ?? ""));
+  return true;
+}
+
+function send(ws, message) {
+  if (ws.readyState === 1) {
+    try { ws.send(JSON.stringify(message)); } catch {}
+  }
+}
+
+export function startWebSocketServer(port = Number(env.PORT) || 8080) {
   const wss = new WebSocketServer({ port });
 
   wss.on("connection", (ws) => {
-    log("A client connected to WebSocket");
+    ws.isAuthed = false;
+    ws.role = null;
 
     ws.on("close", () => {
-      log("A client disconnected");
-      if (connectedClient === ws) connectedClient = null;
-      connectorClients.delete(ws);
+      if (automationClient === ws) {
+        automationClient = null;
+        log("Automation client disconnected");
+        rejectAllPending("client_disconnected");
+      }
     });
 
-    ws.on("error", (error) => {
-      log("Client socket error: " + error.message);
-    });
+    ws.on("error", (error) => log("Socket error:", error.message));
 
-    ws.on("message", async (message) => {
+    ws.on("message", (raw) => {
       let data;
       try {
-        data = JSON.parse(message.toString());
+        data = JSON.parse(raw.toString());
       } catch {
-        log("Received malformed JSON from WebSocket client");
         return;
       }
 
-      if (data.type === "register_client") {
-        connectedClient = ws;
-        log("Automation client registered");
+      if (data.type === "register_client" || data.type === "register_connector") {
+        if (env.CLIENT_SECRET && data.secret !== env.CLIENT_SECRET) {
+          log(`Rejected ${data.type}: bad secret`);
+          send(ws, { type: "auth_failed" });
+          ws.close();
+          return;
+        }
+        ws.isAuthed = true;
+        if (data.type === "register_client") {
+          automationClient = ws;
+          ws.role = "client";
+          log("Automation client registered");
+        } else {
+          ws.role = "connector";
+          ws.connectorName = data.name || "connector";
+          log(`Connector registered: ${ws.connectorName}`);
+        }
+        send(ws, { type: "registered" });
         return;
       }
 
-      if (data.type === "register_connector") {
-        connectorClients.add(ws);
-        log(`Connector registered: ${data.name}`);
+      if (!ws.isAuthed) {
+        send(ws, { type: "auth_failed" });
+        ws.close();
+        return;
+      }
+
+      if (data.type === "result" && ws.role === "client") {
+        const pending = pendingRequests.get(data.requestId);
+        if (!pending) {
+          log(`[WS] result for unknown requestId ${data.requestId}`);
+          return;
+        }
+        clearTimeout(pending.timer);
+        pendingRequests.delete(data.requestId);
+        pending.resolve(data.observation || { success: false, reason: "empty observation" });
+        return;
+      }
+
+      if (data.type === "goal" && ws.role === "connector") {
+        const goalId = crypto.randomUUID();
+        ws.activeGoalId = goalId;
+        submitGoal({
+          goal: String(data.goal || ""),
+          executeAction: executeActionRemotely,
+          askHuman: askHumanVia(ws, goalId),
+          onStatus: (status) => send(ws, { type: "goal_status", status }),
+          onResult: (success, result) => send(ws, { type: "goal_result", success, result })
+        });
         return;
       }
 
       if (data.type === "human_input_response") {
-        const { goalId, input, action } = data;
-        log(`Human input received for goal ${goalId}: action=${action}, input=${input ? "(provided)" : "none"}`);
-        if (action === "cancel") {
-          humanLoopBus.cancel(goalId);
-        } else {
-          humanLoopBus.provideHumanInput(goalId, input || "");
+        const goalId = data.goalId || ws.activeGoalId;
+        if (!resolveHumanInput(goalId, data.input)) {
+          log(`[WS] human input for unknown goal ${goalId}`);
         }
         return;
-      }
-
-      if (data.type === "goal") {
-        log(`Received goal: ${data.goal}`);
-        ws.send(JSON.stringify({ type: "goal_status", status: "Working..." }));
-
-        try {
-          const route = routeMessage(data.goal);
-          const memory = await extractMemory(data.goal);
-          const memoryResponse = await storeMemory(memory);
-          if (memoryResponse && route.type === "chat") {
-            ws.send(JSON.stringify({ type: "goal_result", success: true, result: memoryResponse }));
-            return;
-          }
-
-          if (route.type === "chat") {
-            const retrieved = await retrieveMemory(data.goal);
-            if (retrieved) {
-              ws.send(JSON.stringify({ type: "goal_result", success: true, result: retrieved }));
-              return;
-            }
-            const reply = await chatReply(data.goal);
-            ws.send(JSON.stringify({ type: "goal_result", success: true, result: reply }));
-            return;
-          }
-
-          if (route.type === "research") {
-            ws.send(JSON.stringify({ type: "goal_status", status: "Researching..." }));
-            const { runResearch } = await import("../research/research.js");
-            const reply = await runResearch(data.goal);
-            ws.send(JSON.stringify({ type: "goal_result", success: true, result: reply }));
-            return;
-          }
-
-          const goal = createGoal(data.goal);
-          const agentResult = await runAgent({ goal, executePlan: executePlanRemotely });
-
-          const response = formatAgentResult(agentResult);
-          ws.send(JSON.stringify({ type: "goal_result", success: agentResult.success, result: response }));
-        } catch (error) {
-          ws.send(JSON.stringify({ type: "goal_result", success: false, result: `Error: ${error.message}` }));
-        }
-        return;
-      }
-
-      if (data.type === "execution_result") {
-        const latestObservation = data.observations?.[data.observations.length - 1];
-        const pageState = latestObservation?.pageState;
-        if (pageState) setBrowserState(pageState);
-        const goalId = data.goalId;
-        const resolver = pendingResolvers.get(goalId);
-        if (resolver) {
-          resolver(data);
-          pendingResolvers.delete(goalId);
-        } else {
-          log(`[WS] execution_result for unknown goalId: ${goalId}`);
-        }
-        return;
-      }
-
-      if (isDebug()) {
-        log("Received:", JSON.stringify(data, null, 2));
-      } else {
-        log(`Received WebSocket message of type: ${data.type}`);
       }
     });
   });
 
   log(`WebSocket listening on ${port}`);
   return wss;
-}
-
-export async function executePlanRemotely(plan) {
-  if (!connectedClient || connectedClient.readyState !== 1) {
-    throw new Error("No connected client");
-  }
-
-  if (isDebug()) {
-    console.log("\n===== SENDING PLAN =====");
-    console.log(JSON.stringify(plan, null, 2));
-  } else {
-    console.log(`\n===== SENDING PLAN actionsCount=${plan.actions?.length || 0} =====`);
-  }
-
-  return new Promise((resolve) => {
-    pendingResolvers.set(plan.goalId, resolve);
-    connectedClient.send(JSON.stringify({ type: "execute_plan", plan }));
-  });
 }

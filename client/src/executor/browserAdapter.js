@@ -25,7 +25,7 @@ export async function executeBrowserAction(action) {
     case ACTIONS.NAVIGATE:
       return await navigate(action.params.url);
     case ACTIONS.TYPE:
-      return await typeText(action.params.text, action.params.element);
+      return await typeText(action.params.text, action.params.element, action.params.submit === true);
     case ACTIONS.CLICK:
       return await clickText(action.params.text, action.params.element);
     case ACTIONS.READ_UI:

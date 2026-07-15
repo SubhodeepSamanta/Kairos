@@ -1,55 +1,12 @@
 import { getPage, listTabs } from "../../browser.js";
-import { updateBrowserContext } from "../../context.js";
 import { clearRegistry, registerElement } from "../../elements/registry.js";
-import { classifyPage } from "../classifier/index.js";
 import { extractPageText } from "./pageReader.js";
 import { readAriaElements } from "./ariaReader.js";
 import { readButtons } from "./buttonReader.js";
 import { readInputs } from "./inputReader.js";
 import { readLinks } from "./linkReader.js";
-import { readForms } from "./formReader.js";
-import { scoreObservation } from "./qualityScorer.js";
 
 const DOM_ONLY_OFFSET = 100000;
-
-const ARIA_ROLE_TYPE_MAP = {
-  searchbox: "search_input",
-  textbox: "input_element",
-  combobox: "search_input",
-  button: "action_target",
-  link: "navigation_element",
-  tab: "navigation_element",
-  menuitem: "navigation_element",
-  checkbox: "selection_candidate",
-  radio: "selection_candidate",
-  option: "selection_candidate"
-};
-
-const ARIA_ROLE_PURPOSE_MAP = {
-  searchbox: "search_input",
-  textbox: "input_element",
-  combobox: "search_input",
-  button: "action_target",
-  link: "navigation_target"
-};
-
-const ARIA_ROLE_ACTION_MAP = {
-  button: ["click"],
-  link: ["click", "navigate"],
-  searchbox: ["type", "search"],
-  textbox: ["type"],
-  combobox: ["type", "search"],
-  checkbox: ["click"],
-  radio: ["click"],
-  switch: ["click"],
-  tab: ["click"],
-  menuitem: ["click"],
-  option: ["click"],
-  listbox: ["click"],
-  spinbutton: ["type"],
-  slider: ["click"],
-  treeitem: ["click"]
-};
 
 function makeDomLocator(page, el, tag) {
   const text = el.text || el.ariaLabel || el.placeholder || el.name || "";
@@ -67,21 +24,22 @@ function makeDomLocator(page, el, tag) {
   return page.locator(`:has-text("${escaped}")`).first();
 }
 
-function findDomMatch(ae, domButtons, domInputs, domLinks) {
-  const source = ae.role === "link" ? domLinks
-    : ae.role === "button" ? domButtons
-    : domInputs;
-  return source.find(d => {
-    if (!d.text) return false;
-    const aName = ae.name.toLowerCase();
-    const dText = d.text.toLowerCase();
-    return aName === dText || aName.includes(dText) || dText.includes(aName);
-  });
+function slim(el) {
+  return {
+    id: el.id,
+    ariaRole: el.ariaRole,
+    text: el.text || "",
+    value: el.value || "",
+    href: el.href || null,
+    disabled: Boolean(el.disabled),
+    placeholder: el.placeholder || "",
+    type: el.type || ""
+  };
 }
 
 export async function readPage() {
   const page = await getPage();
-  if (!page) return { success: false, reason: "No page available", buttons: [], inputs: [], links: [], forms: [], text: "", tabs: [], observationQuality: null };
+  if (!page) return { success: false, reason: "No page available", buttons: [], inputs: [], links: [], text: "", tabs: [] };
   const title = await page.title().catch(() => "unknown");
   const url = page.url();
 
@@ -91,7 +49,6 @@ export async function readPage() {
   const domButtons = await readButtons(page);
   const domInputs = await readInputs(page);
   const domLinks = await readLinks(page);
-  const forms = await readForms(page);
   const text = await extractPageText(page);
 
   const ariaIndex = new Map();
@@ -119,25 +76,13 @@ export async function readPage() {
   for (const ae of ariaElements) {
     const id = nextId++;
     registerElement(id, ae.locator, ae.name, ae.role, ae.visualInfo);
-
-    const domMatch = findDomMatch(ae, domButtons, domInputs, domLinks);
-
-    const defaultType = ARIA_ROLE_TYPE_MAP[ae.role] || null;
-    const defaultPurpose = ARIA_ROLE_PURPOSE_MAP[ae.role] || null;
-    const semanticType = (domMatch?.semanticType && domMatch.semanticType !== "interactive_control")
-      ? domMatch.semanticType : defaultType;
-    const purpose = (domMatch?.purpose && domMatch.purpose !== "generic")
-      ? domMatch.purpose : defaultPurpose;
-    const confidence = domMatch?.confidence || 0.95;
-
     allElements.push({
-      id, text: ae.name, role: ae.role, ariaRole: ae.role,
-      value: ae.value || "", visible: true, enabled: ae.enabled,
+      id,
+      ariaRole: ae.role,
+      text: ae.name,
+      value: ae.value || "",
       disabled: !ae.enabled,
-      href: ae.role === "link" && domMatch?.href ? domMatch.href : null,
-      semanticType, purpose,
-      actionHints: ARIA_ROLE_ACTION_MAP[ae.role] || ["click"],
-      confidence, ...ae.visualInfo
+      top: ae.visualInfo?.top ?? null
     });
   }
 
@@ -146,41 +91,22 @@ export async function readPage() {
   for (const btn of domButtons) {
     if (isCoveredByAria("button", btn.text)) continue;
     const id = domOnlyId++;
-    const locator = makeDomLocator(page, btn, "button");
-    registerElement(id, locator, btn.text, "button", { inViewport: btn.inViewport, top: btn.top, left: btn.left, width: btn.width, height: btn.height });
-    allElements.push({
-      id, ...btn, ariaRole: "button",
-      semanticType: btn.semanticType || "action_target",
-      purpose: btn.purpose || "action_target",
-      actionHints: ["click"], confidence: btn.confidence || 0.7
-    });
+    registerElement(id, makeDomLocator(page, btn, "button"), btn.text, "button", { top: btn.top, left: btn.left });
+    allElements.push({ ...btn, id, ariaRole: "button" });
   }
 
   for (const inp of domInputs) {
     if (isCoveredByAria("input", inp.text)) continue;
     const id = domOnlyId++;
-    const locator = makeDomLocator(page, inp, "input");
-    registerElement(id, locator, inp.text, "input", { inViewport: inp.inViewport, top: inp.top, left: inp.left, width: inp.width, height: inp.height });
-    const ariaRole = inp.type === "search" ? "searchbox" : "textbox";
-    allElements.push({
-      id, ...inp, ariaRole,
-      semanticType: inp.semanticType || (inp.type === "search" ? "search_input" : "input_element"),
-      purpose: inp.purpose || (inp.type === "search" ? "search_input" : "input_element"),
-      actionHints: ["type"], confidence: inp.confidence || 0.7
-    });
+    registerElement(id, makeDomLocator(page, inp, "input"), inp.text, "input", { top: inp.top, left: inp.left });
+    allElements.push({ ...inp, id, ariaRole: inp.type === "search" ? "searchbox" : "textbox" });
   }
 
   for (const link of domLinks) {
     if (isCoveredByAria("link", link.text)) continue;
     const id = domOnlyId++;
-    const locator = makeDomLocator(page, link, "link");
-    registerElement(id, locator, link.text, "link", { inViewport: link.inViewport, top: link.top, left: link.left, width: link.width, height: link.height });
-    allElements.push({
-      id, ...link, ariaRole: "link",
-      semanticType: link.semanticType || "navigation_element",
-      purpose: link.purpose || "navigation_target",
-      actionHints: ["click", "navigate"], confidence: link.confidence || 0.7
-    });
+    registerElement(id, makeDomLocator(page, link, "link"), link.text, "link", { top: link.top, left: link.left });
+    allElements.push({ ...link, id, ariaRole: "link" });
   }
 
   if (ariaElements.length < 3 && allElements.length < 5) {
@@ -188,55 +114,40 @@ export async function readPage() {
       const { visionReadPage } = await import("./visionReader.js");
       const visionElements = await visionReadPage(page);
       for (const ve of visionElements) {
-        registerElement(ve.id, null, ve.text, "vision", {
-          inViewport: true, top: ve.top, left: ve.left, width: ve.width, height: ve.height
-        });
-        allElements.push(ve);
+        registerElement(ve.id, null, ve.text, "vision", { top: ve.top, left: ve.left, width: ve.width, height: ve.height });
+        allElements.push({ ...ve, ariaRole: "vision_text" });
       }
       if (visionElements.length > 0) {
-        console.log(`[VISION READER] OCR found ${visionElements.length} text elements as fallback`);
+        console.log(`[VISION] OCR fallback found ${visionElements.length} text elements`);
       }
     } catch (visionErr) {
-      console.log(`[VISION READER] OCR unavailable: ${visionErr.message}`);
+      console.log(`[VISION] OCR unavailable: ${visionErr.message}`);
     }
   }
 
-  const buttons = allElements.filter(e => e.ariaRole === "button" || e.role === "button");
-  const inputs = allElements.filter(e => ["searchbox", "textbox", "combobox", "input"].includes(e.ariaRole));
-  const links = allElements.filter(e => e.ariaRole === "link" || e.role === "link");
+  const byPosition = (a, b) => (a.top ?? Infinity) - (b.top ?? Infinity);
+  const inputRoles = ["searchbox", "textbox", "combobox", "input", "spinbutton"];
+  const inputs = allElements.filter(e => inputRoles.includes(e.ariaRole)).sort(byPosition).map(slim);
+  const links = allElements.filter(e => e.ariaRole === "link").sort(byPosition).map(slim);
+  const buttons = allElements
+    .filter(e => !inputRoles.includes(e.ariaRole) && e.ariaRole !== "link")
+    .sort(byPosition)
+    .map(slim);
 
-  const sortByPosition = (a, b) => (a.top ?? Infinity) - (b.top ?? Infinity);
-  const cappedButtons = buttons.sort(sortByPosition).slice(0, 50);
-  const cappedInputs = inputs.sort(sortByPosition).slice(0, 20);
-  const cappedLinks = links.sort(sortByPosition).slice(0, 200);
-
-  console.log(`[ARIA READER] ${ariaElements.length} ARIA interactive, ${allElements.length} total (${domOnlyId - DOM_ONLY_OFFSET} DOM-only, ${allElements.filter(e => e.ariaRole === "vision_text").length} vision)`);
+  console.log(`[READ] ${ariaElements.length} ARIA, ${allElements.length} total elements`);
 
   const tabs = await listTabs().catch(() => []);
   const activeTab = tabs.find(t => t.active) || null;
-  const classification = classifyPage(url, title, { inputs, buttons, links });
-  const pageType = classification.pageType;
-  const site = classification.site;
-  const environment = classification.environment || "generic";
-  const genericPageType = classification.pageType;
-
-  updateBrowserContext({
-    title, url, pageType, site, environment, genericPageType,
-    buttons: cappedButtons,
-    inputs: cappedInputs,
-    links: cappedLinks,
-    forms, text, tabs, activeTab
-  });
-
-  const quality = scoreObservation(text, cappedButtons, cappedInputs, cappedLinks);
 
   return {
     success: true,
-    title, url, pageType, site, environment, genericPageType,
-    buttons: cappedButtons,
-    inputs: cappedInputs,
-    links: cappedLinks,
-    forms, text, tabs, activeTab,
-    observationQuality: quality
+    title,
+    url,
+    buttons,
+    inputs,
+    links,
+    text,
+    tabs,
+    activeTab
   };
 }

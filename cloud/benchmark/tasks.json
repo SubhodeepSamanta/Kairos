@@ -1,0 +1,12 @@
+[
+  { "id": 1, "goal": "open youtube and play some lofi music" },
+  { "id": 2, "goal": "go to github and search for the react repository" },
+  { "id": 3, "goal": "open leetcode problem 112" },
+  { "id": 4, "goal": "open the leetcode 150 questions roadmap" },
+  { "id": 5, "goal": "open the leetcode contest page" },
+  { "id": 6, "goal": "open chatgpt in a new tab" },
+  { "id": 7, "goal": "play a react tutorial video on youtube and open the react documentation in another tab" },
+  { "id": 8, "goal": "search for the weather in kolkata and tell me what it says" },
+  { "id": 9, "goal": "give me the top 5 tech news headlines today" },
+  { "id": 10, "goal": "open twitch" }
+]

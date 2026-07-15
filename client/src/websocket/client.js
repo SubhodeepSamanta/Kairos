@@ -1,100 +1,64 @@
 import WebSocket from "ws";
+import { env } from "../config/env.js";
 import { log } from "../utils/logger.js";
-import { executePlan } from "../executor/executor.js";
-import { observeAction } from "../observer/observer.js";
+import { executeAction } from "../executor/executor.js";
+
+const RECONNECT_DELAY_MS = 3000;
 
 let socket = null;
 
 export function connectToCloud(url) {
-
   function connect() {
-
     log(`Connecting to ${url}...`);
-
     socket = new WebSocket(url);
 
     socket.on("open", () => {
-      log("Connected to cloud");
-      socket.send(JSON.stringify({ type: "register_client" }));
+      socket.send(JSON.stringify({ type: "register_client", secret: env.CLIENT_SECRET }));
     });
 
     socket.on("close", () => {
-
-      log("Disconnected from cloud");
-
-      setTimeout(() => {
-        connect();
-      }, 3000);
+      log("Disconnected from cloud, retrying in 3s");
+      setTimeout(connect, RECONNECT_DELAY_MS);
     });
 
     socket.on("error", (error) => {
-
-      log(
-        "Socket error:",
-        error.message
-      );
-
+      log("Socket error:", error.message);
     });
 
-    socket.on("message", async (message) => {
-
-      const data = JSON.parse(
-        message.toString()
-      );
-
-      if (
-        data.type !==
-        "execute_plan"
-      ) {
+    socket.on("message", async (raw) => {
+      let data;
+      try {
+        data = JSON.parse(raw.toString());
+      } catch {
         return;
       }
 
-      log("Executing plan");
+      if (data.type === "registered") {
+        log("Registered with cloud");
+        return;
+      }
 
-      const plan = data.plan;
+      if (data.type === "auth_failed") {
+        log("Cloud rejected our CLIENT_SECRET. Check that client/.env and cloud/.env match.");
+        return;
+      }
 
-      const results =
-        await executePlan(plan);
-
-      const observations = [];
-
-for (
-  let i = 0;
-  i < plan.actions.length;
-  i++
-) {
-
-  const obs =
-    await observeAction(
-      plan.actions[i],
-      results[i]
-    );
-
-  console.log(
-    "OBS CREATED:",
-    JSON.stringify(
-      obs,
-      null,
-      2
-    )
-  );
-
-  observations.push(obs);
-}
-
-      socket.send(
-        JSON.stringify({
-          type:
-            "execution_result",
-          goalId: data.plan.goalId,
-          observations
-        })
-      );
+      if (data.type === "execute") {
+        let observation;
+        try {
+          observation = await executeAction(data.action);
+        } catch (err) {
+          observation = { success: false, reason: err.message };
+        }
+        if (socket && socket.readyState === WebSocket.OPEN) {
+          socket.send(JSON.stringify({ type: "result", requestId: data.requestId, observation }));
+        }
+        return;
+      }
     });
   }
 
   connect();
-
   return socket;
 }
 

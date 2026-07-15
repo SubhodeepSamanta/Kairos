@@ -1,443 +1,206 @@
-import { createPlan } from "../../shared/schemas/plan.js";
-import { llmCallCount, resetLlmCallCount } from "../../llm/provider.js";
-import { updateWorldModel, addFinding } from "../../world/worldModel.js";
-import { extractDataFromPage } from "../../reasoning/extractor.js";
-import { understandPage } from "../../world/pageUnderstandingV2.js";
-import { initTracker } from "../../reasoning/objectiveTracker.js";
-import { verifyGoal } from "../../verification/objectiveVerifier.js";
-import { createExecutionContext, generateExecutionSummary } from "../../world/executionContext.js";
-import { loadAgentSession, saveAgentSession } from "../state/agentSession.js";
-import { selectActionWithLLM } from "../../reasoning/llmActionSelector.js";
-import { determineRecovery } from "../recovery/recovery.js";
-import { WorkflowMemory } from "../../memory/workflowMemory.js";
-import { decomposeGoal } from "./goalDecomposer.js";
-import { estimateProgress, updateSubObjectives } from "./subObjectives.js";
-import { printMetrics, extractBrowserState, detectActionLoop } from "./loopUtils.js";
-import { requestHumanIntervention } from "./humanIntervention.js";
+import { askLLMJson, createBudget } from "../../llm/provider.js";
+import { SYSTEM_PROMPT, buildStepPrompt } from "../prompt.js";
+import { formatSnapshot, describePageChange } from "../snapshot.js";
+import { rememberFact, relevantFacts, formatFactsForPrompt } from "../../memory/store.js";
+import { webSearch, formatSearchResults, fetchPageText } from "../webTools.js";
 
-export async function runAgent({
-    goal,
-    executePlan
-}) {
-  resetLlmCallCount();
-  const startTime = Date.now();
-  const startLlmCalls = llmCallCount;
-  goal.metrics = {
-    skillExecutions: 0,
-    fallbackCount: 0,
-    plannerPromptChars: 0,
-    compressedPromptChars: 0,
-    totalActions: 0,
-    intent_calls: 0,
-    planning_calls: 0,
-    verification_calls: 0
-  };
+const MAX_STEPS = 30;
+const MAX_LLM_CALLS = 45;
+const MAX_HISTORY_LINES = 22;
+const MAX_REPEATS_BEFORE_WARNING = 2;
+const MAX_REPEATS_BEFORE_ABORT = 4;
 
-  const wrapExecutePlan = async (plan) => {
-    if (plan && plan.actions) {
-      goal.metrics.totalActions += plan.actions.length;
-    }
-    try {
-      return await executePlan(plan);
-    } catch (err) {
-      if (err.message === "No connected client") {
-        console.error("[AGENT] Client disconnected during execution. Stopping agent.");
-        return { observations: [], clientDisconnected: true };
-      }
-      throw err;
-    }
-  };
+const BROWSER_ACTIONS = {
+  navigate: a => ({ type: "navigate", params: { url: a.url } }),
+  click: a => ({ type: "click", params: { element: a.id } }),
+  type: a => ({ type: "type", params: { element: a.id, text: a.text, submit: a.submit === true } }),
+  press_key: a => ({ type: "press_key", params: { key: a.key } }),
+  scroll: a => ({ type: "scroll", params: { direction: a.direction || "down" } }),
+  back: () => ({ type: "back", params: {} }),
+  refresh: () => ({ type: "refresh", params: {} }),
+  new_tab: () => ({ type: "new_tab", params: {} }),
+  switch_tab: a => ({ type: "switch_tab", params: { index: a.index } }),
+  close_tab: a => ({ type: "close_tab", params: { index: a.index } }),
+  read: () => ({ type: "read_ui", params: {} }),
+  wait: a => ({ type: "wait", params: { seconds: Math.min(Number(a.seconds) || 2, 10) } }),
+  screenshot: () => ({ type: "screenshot", params: {} })
+};
 
-  try {
-    const res = await _runAgentInternal({ goal, executePlan: wrapExecutePlan });
-    printMetrics(goal, startTime, startLlmCalls);
-    return res;
-  } catch (err) {
-    console.error(`[AGENT FATAL ERROR] Goal "${goal.objective}" crashed with:`, err.message);
-    console.error(err.stack);
-    printMetrics(goal, startTime, startLlmCalls);
-    throw err;
-  }
+function actionSignature(action) {
+  return JSON.stringify(action);
 }
 
-async function _runAgentInternal({
-    goal,
-    executePlan
-}) {
-  const MAX_GOAL_ACTIONS = 30;
-  const initReadPlan = {
-    goalId: goal.id,
-    actions: [{ type: "read_ui", params: {} }]
+function describeAction(action) {
+  const { type, ...params } = action;
+  const rendered = Object.entries(params)
+    .map(([k, v]) => `${k}=${String(v).slice(0, 60)}`)
+    .join(" ");
+  return rendered ? `${type} ${rendered}` : type;
+}
+
+function trimHistory(history) {
+  if (history.length <= MAX_HISTORY_LINES) return history;
+  return [`(${history.length - MAX_HISTORY_LINES} earlier steps omitted)`, ...history.slice(-MAX_HISTORY_LINES)];
+}
+
+export async function runAgent({ goal, goalId, executeAction, askHuman, onStatus }) {
+  const budget = createBudget(MAX_LLM_CALLS);
+  const history = [];
+  const repeatCounts = {};
+  let lastPage = null;
+  let notice = "";
+  let step = 0;
+  const startTime = Date.now();
+
+  const status = (msg) => {
+    console.log(`[AGENT] ${msg}`);
+    if (onStatus) { try { onStatus(msg); } catch {} }
   };
-  console.log("[AGENT] Fetching initial page state...");
-  const initResult = await executePlan(initReadPlan);
-  const initObs = initResult?.observations?.[initResult.observations.length - 1];
-  if (initObs) {
-    updateWorldModel(goal, initObs);
-    goal.metrics.totalActions = 0;
-  }
 
-  let latestObs = initObs || goal.world?.history?.[goal.world.history.length - 1]?.observation;
-  let browserState = extractBrowserState(latestObs);
+  const finish = (success, answer) => {
+    const secs = ((Date.now() - startTime) / 1000).toFixed(1);
+    console.log(`[AGENT] ${success ? "DONE" : "FAILED"} in ${step} steps, ${budget.used} LLM calls, ~${budget.estimatedTokens} tokens, ${secs}s`);
+    return { success, answer, steps: step, llmCalls: budget.used };
+  };
 
-  const savedSession = loadAgentSession(goal.id);
-  let context;
-  let workflowMemory;
-  if (savedSession) {
-    console.log(`[AGENT] Resuming workflow from saved state: ${savedSession.stateType}`);
-    context = savedSession.context;
-    goal.tracker = savedSession.tracker;
-    workflowMemory = Object.assign(new WorkflowMemory(), savedSession.workflowMemory);
-    if (savedSession.findings && goal.world) {
-      goal.world.findings = savedSession.findings;
-    }
-  } else {
-    context = createExecutionContext(goal);
-    goal.tracker = initTracker([{ desiredState: "goal_completed", objective: goal.objective }]);
-    workflowMemory = new WorkflowMemory();
+  while (step < MAX_STEPS) {
+    step++;
 
-    const subObjectives = await decomposeGoal(goal.objective, browserState);
-    workflowMemory.currentObjective = goal.objective;
-    workflowMemory.currentSubObjective = subObjectives[0] || goal.objective;
-    workflowMemory.subObjectives = subObjectives;
-    workflowMemory.completedSubObjectives = [];
-  }
-  goal.context = context;
-  goal.workflowMemory = workflowMemory;
-
-  const intentCheck = workflowMemory.handleWorkflowIntents(goal.objective);
-  if (intentCheck) {
-    console.log(`[WORKFLOW INTENT] Intercepted memory directive: ${intentCheck.action}`);
-    if (intentCheck.action === "close_tab") {
-      const closePlan = {
-        goalId: goal.id,
-        actions: [{ type: "close_tab", params: {} }]
-      };
-      await executePlan(closePlan);
-    } else if (intentCheck.action === "navigate" && intentCheck.url) {
-      const navPlan = {
-        goalId: goal.id,
-        actions: [{ type: "navigate", params: { url: intentCheck.url } }]
-      };
-      await executePlan(navPlan);
-    }
-  }
-
-  const initResultObs = await requestHumanIntervention(
-    goal, browserState, null, null, context, workflowMemory, latestObs, executePlan
-  );
-  if (initResultObs?.escalation) {
-    return { success: false, reason: initResultObs.escalation, observation: latestObs, contextSummary: generateExecutionSummary(context, goal.tracker) };
-  }
-  if (initResultObs && initResultObs !== latestObs) {
-    latestObs = initResultObs;
-    browserState = extractBrowserState(latestObs);
-  }
-
-  if (await verifyGoal(goal, browserState, goal.world)) {
-    console.log(`[GOAL COMPLETE] Initial browser state already satisfies the goal.`);
-    const summary = generateExecutionSummary(context, goal.tracker);
-    return {
-      success: true,
-      confidence: 1.0,
-      observation: latestObs,
-      contextSummary: summary
-    };
-  }
-
-  let retryCount = 0;
-  let lastAction = null;
-  let staleRefCount = 0;
-  let consecutiveFailuresByElement = {};
-
-  let previousBrowserState = null;
-
-  while (goal.metrics.totalActions < MAX_GOAL_ACTIONS) {
-    previousBrowserState = { ...browserState };
-    let result = null;
-
-    if (detectActionLoop(goal.world)) {
-      console.log("[LOOP DETECTION] Agent appears stuck.");
-      retryCount++;
-
-      if (retryCount <= 1) {
-        console.log("[LOOP DETECTION] Attempting scroll+read recovery.");
-        const unstickPlan = createPlan(goal.id, [
-          { type: "scroll", params: { direction: "down", amount: 500 } },
-          { type: "read_ui", params: {} }
-        ]);
-        const unstickResult = await executePlan(unstickPlan);
-        latestObs = unstickResult?.observations?.[unstickResult.observations.length - 1] || latestObs;
-        browserState = extractBrowserState(latestObs);
-        updateWorldModel(goal, latestObs);
-      } else if (retryCount === 2) {
-        console.log("[LOOP DETECTION] Attempting go-back recovery.");
-        const backPlan = createPlan(goal.id, [
-          { type: "back", params: {} },
-          { type: "read_ui", params: {} }
-        ]);
-        const backResult = await executePlan(backPlan);
-        latestObs = backResult?.observations?.[backResult.observations.length - 1] || latestObs;
-        browserState = extractBrowserState(latestObs);
-        updateWorldModel(goal, latestObs);
-      } else if (retryCount === 3) {
-        console.log("[LOOP DETECTION] Attempting refresh+scroll recovery.");
-        const refreshPlan = createPlan(goal.id, [
-          { type: "refresh", params: {} },
-          { type: "scroll", params: { direction: "down", amount: 1000 } },
-          { type: "read_ui", params: {} }
-        ]);
-        const refreshResult = await executePlan(refreshPlan);
-        latestObs = refreshResult?.observations?.[refreshResult.observations.length - 1] || latestObs;
-        browserState = extractBrowserState(latestObs);
-        updateWorldModel(goal, latestObs);
-      } else {
-        console.log("[LOOP DETECTION] Scroll didn't help. Replanning from current context.");
-        const pageUnderstanding = understandPage(browserState);
-        const newObjectives = await decomposeGoal(goal.objective, browserState);
-        if (newObjectives && newObjectives.length > 0) {
-          workflowMemory.subObjectives = newObjectives;
-          workflowMemory.currentSubObjective = newObjectives[0];
-          workflowMemory.completedSubObjectives = [];
-          console.log(`[LOOP DETECTION] Replanned to: ${JSON.stringify(newObjectives)}`);
-        }
-        const bestCandidate = await selectActionWithLLM({
+    let decision;
+    try {
+      decision = await askLLMJson(
+        SYSTEM_PROMPT,
+        buildStepPrompt({
           goal,
-          pageUnderstanding,
-          browserState,
-          workflowMemory
-        });
-        if (bestCandidate && bestCandidate.actions && bestCandidate.actions.length > 0) {
-          const plan = createPlan(goal.id, bestCandidate.actions);
-          const result = await executePlan(plan);
-          if (result?.clientDisconnected) {
-            return {
-              success: false,
-              reason: "client_disconnected",
-              observation: latestObs,
-              contextSummary: generateExecutionSummary(context, goal.tracker)
-            };
+          memories: formatFactsForPrompt(relevantFacts(goal)),
+          history: trimHistory(history),
+          snapshot: lastPage
+            ? formatSnapshot(lastPage)
+            : "not observed yet — use {\"type\":\"read\"} to see the current browser, navigate somewhere, or answer directly with done",
+          notice
+        }),
+        budget
+      );
+    } catch (err) {
+      if (err.message.startsWith("llm_budget_exceeded")) {
+        return finish(false, "I ran out of AI budget for this goal. Partial progress: " + (history.slice(-3).join("; ") || "none"));
+      }
+      return finish(false, `AI error: ${err.message}`);
+    }
+    notice = "";
+
+    const action = decision.action || decision;
+    const thought = String(decision.thought || "").slice(0, 200);
+    if (!action || typeof action.type !== "string") {
+      notice = "Your reply had no valid action object. Follow the response format exactly.";
+      continue;
+    }
+    console.log(`[STEP ${step}] ${thought} -> ${describeAction(action)}`);
+
+    if (action.type === "done") {
+      const success = action.success !== false;
+      if (action.remember && typeof action.remember === "object") {
+        for (const [k, v] of Object.entries(action.remember)) rememberFact(k, v);
+      }
+      return finish(success, action.answer || (success ? "Done." : "Could not complete the goal."));
+    }
+
+    const sig = actionSignature(action);
+    repeatCounts[sig] = (repeatCounts[sig] || 0) + 1;
+    if (repeatCounts[sig] > MAX_REPEATS_BEFORE_ABORT) {
+      return finish(false, `I kept repeating the same step (${describeAction(action)}) without progress and stopped. History: ${history.slice(-3).join("; ")}`);
+    }
+    if (repeatCounts[sig] > MAX_REPEATS_BEFORE_WARNING) {
+      notice = `You already tried "${describeAction(action)}" ${repeatCounts[sig] - 1} times. It is not working. Choose a DIFFERENT approach.`;
+    }
+
+    if (action.type === "remember") {
+      rememberFact(action.key, action.value);
+      history.push(`#${step} remembered ${action.key}`);
+      continue;
+    }
+
+    if (action.type === "web_search") {
+      status(`Searching: ${action.query}`);
+      try {
+        const results = await webSearch(String(action.query || ""));
+        history.push(`#${step} web_search "${String(action.query).slice(0, 60)}" →\n${formatSearchResults(results).slice(0, 900)}`);
+      } catch (err) {
+        history.push(`#${step} web_search FAILED: ${err.message}`);
+      }
+      continue;
+    }
+
+    if (action.type === "fetch_page") {
+      status(`Reading: ${action.url}`);
+      try {
+        const text = await fetchPageText(String(action.url || ""));
+        history.push(`#${step} fetch_page ${String(action.url).slice(0, 80)} →\n${text.slice(0, 1500)}`);
+      } catch (err) {
+        history.push(`#${step} fetch_page FAILED: ${err.message}`);
+      }
+      continue;
+    }
+
+    if (action.type === "ask_human") {
+      const question = String(action.question || "I need your input to continue.");
+      status("Waiting for your reply…");
+      let answer;
+      try {
+        answer = await askHuman(question, { secretName: action.secret_name || null });
+      } catch (err) {
+        return finish(false, `I asked you: "${question}" but got no reply (${err.message}).`);
+      }
+      if (action.secret_name) {
+        const name = String(action.secret_name).toLowerCase().replace(/\s+/g, "_");
+        try {
+          const stored = await executeAction({ type: "store_secret", params: { name, value: answer } });
+          if (stored?.success) {
+            history.push(`#${step} asked for secret "${name}" → saved on your machine; type it with {{secret:${name}}}`);
+          } else {
+            history.push(`#${step} asked for secret "${name}" → FAILED to store: ${stored?.reason || "unknown"}`);
           }
-          latestObs = result?.observations?.[result.observations.length - 1] || latestObs;
-          browserState = extractBrowserState(latestObs);
-          lastAction = bestCandidate.actions[0];
-          updateWorldModel(goal, latestObs);
+        } catch (err) {
+          history.push(`#${step} asked for secret "${name}" → FAILED to store: ${err.message}`);
         }
-      }
-
-      if (retryCount > 5) {
-        return {
-          success: false,
-          reason: "agent_stuck_in_loop",
-          observation: latestObs,
-          contextSummary: generateExecutionSummary(context, goal.tracker)
-        };
+      } else {
+        history.push(`#${step} asked: "${question.slice(0, 120)}" → user replied: "${String(answer).slice(0, 300)}"`);
       }
       continue;
     }
 
-    const pageUnderstanding = understandPage(browserState);
-
-    updateSubObjectives(workflowMemory, browserState, pageUnderstanding, goal.world?.actionHistory);
-    const progress = estimateProgress(workflowMemory, browserState);
-    console.log(`[PROGRESS] ${progress.percent}% - ${progress.stage}`);
-
-    const bestCandidate = await selectActionWithLLM({
-      goal,
-      pageUnderstanding,
-      browserState,
-      workflowMemory
-    });
-
-    const loopResult = await requestHumanIntervention(
-      goal, browserState, pageUnderstanding, bestCandidate, context, workflowMemory, latestObs, executePlan
-    );
-    if (loopResult?.escalation) {
-      return { success: false, reason: loopResult.escalation, observation: latestObs, contextSummary: generateExecutionSummary(context, goal.tracker) };
-    }
-    if (loopResult && loopResult !== latestObs) {
-      latestObs = loopResult;
-      browserState = extractBrowserState(latestObs);
-    }
-
-    if (!bestCandidate || !bestCandidate.actions || bestCandidate.actions.length === 0) {
-      console.log(`[AGENT] No action candidate selected. Running recovery.`);
-      const recoveryActions = determineRecovery(lastAction, browserState, previousBrowserState, retryCount);
-
-      if (recoveryActions && recoveryActions.escalate) {
-        console.log(`[RECOVERY ESCALATION] Escalating to: ${recoveryActions.state}`);
-        const summary = generateExecutionSummary(context, goal.tracker);
-        saveAgentSession(goal, goal.tracker, context, recoveryActions.state, null, workflowMemory);
-        return {
-          success: false,
-          reason: recoveryActions.state,
-          observation: latestObs,
-          contextSummary: summary
-        };
-      }
-
-      console.log(`[RECOVERY] Executing recovery actions.`);
-      const recPlan = createPlan(goal.id, recoveryActions);
-      const recResult = await executePlan(recPlan);
-      if (recResult?.clientDisconnected) {
-        return {
-          success: false,
-          reason: "client_disconnected",
-          observation: latestObs,
-          contextSummary: generateExecutionSummary(context, goal.tracker)
-        };
-      }
-      latestObs = recResult?.observations?.[recResult.observations.length - 1] || latestObs;
-      browserState = extractBrowserState(latestObs);
-      updateWorldModel(goal, latestObs);
-      retryCount++;
+    const toClientAction = BROWSER_ACTIONS[action.type];
+    if (!toClientAction) {
+      notice = `Unknown action type "${action.type}". Use only the documented actions.`;
       continue;
     }
 
-    console.log(`[AGENT] Executing action: "${bestCandidate.label}"`);
-
-    const plan = createPlan(goal.id, bestCandidate.actions);
-    result = await executePlan(plan);
-
-    if (result?.clientDisconnected) {
-      return {
-        success: false,
-        reason: "client_disconnected",
-        observation: latestObs,
-        contextSummary: generateExecutionSummary(context, goal.tracker)
-      };
-    }
-
-    latestObs = result?.observations?.[result.observations.length - 1] || latestObs;
-    browserState = extractBrowserState(latestObs);
-
-    const postResult = await requestHumanIntervention(
-      goal, browserState, pageUnderstanding, bestCandidate, context, workflowMemory, latestObs, executePlan
-    );
-    if (postResult?.escalation) {
-      return { success: false, reason: postResult.escalation, observation: latestObs, contextSummary: generateExecutionSummary(context, goal.tracker) };
-    }
-    if (postResult && postResult !== latestObs) {
-      latestObs = postResult;
-      browserState = extractBrowserState(latestObs);
-    }
-
-    lastAction = bestCandidate.actions[0];
-    updateWorldModel(goal, latestObs);
-
-    if (bestCandidate.type === "extract" && latestObs?.success) {
-      const pageText = browserState.text || "";
-      const cleanQuery = bestCandidate.actions[0]?.params?.query || goal.objective;
-      console.log(`[EXTRACT] Extracting data for query: "${cleanQuery}"...`);
-      const extractedData = await extractDataFromPage(pageText, cleanQuery);
-      addFinding(goal, {
-        query: cleanQuery,
-        data: extractedData,
-        source: { url: browserState.url || "", title: browserState.title || "" }
-      });
-      console.log(`[EXTRACT] Finding added to world model:`, JSON.stringify(extractedData));
-    }
-
-    const actionSucceeded = result?.success !== false && latestObs?.success !== false;
-    const pageChanged = latestObs && previousBrowserState && (
-      (latestObs.url && latestObs.url !== previousBrowserState.url) ||
-      (latestObs.title && latestObs.title !== previousBrowserState.title)
-    );
-    if (actionSucceeded && !pageChanged && bestCandidate.type !== "read_ui") {
-      staleRefCount++;
-      console.log(`[STALE_REF] Action succeeded but page unchanged (count: ${staleRefCount}).`);
-      if (staleRefCount >= 2) {
-        console.log(`[STALE_REF] Enforcing re-snapshot.`);
-        const reReadPlan = createPlan(goal.id, [{ type: "read_ui", params: {} }]);
-        const reReadResult = await executePlan(reReadPlan);
-        latestObs = reReadResult?.observations?.[reReadResult.observations.length - 1] || latestObs;
-        browserState = extractBrowserState(latestObs);
-        updateWorldModel(goal, latestObs);
-        staleRefCount = 0;
-        continue;
+    const clientAction = toClientAction(action);
+    status(`${describeAction(action)}`);
+    let observation;
+    try {
+      observation = await executeAction(clientAction);
+    } catch (err) {
+      if (err.message === "client_disconnected" || err.message === "no_client_connected") {
+        return finish(false, "The Kairos client on your computer is not connected, so I cannot control the browser.");
       }
+      history.push(`#${step} ${describeAction(action)} → ERROR: ${err.message}`);
+      continue;
+    }
+
+    const previousPage = lastPage;
+    if (observation?.page && observation.page.url !== undefined) {
+      lastPage = observation.page;
+    }
+
+    if (observation?.success === false) {
+      history.push(`#${step} ${describeAction(action)} → FAILED: ${String(observation.reason || "unknown").slice(0, 150)}`);
     } else {
-      staleRefCount = 0;
-    }
-
-    const actionElement = bestCandidate.elementId || bestCandidate.actions?.[0]?.params?.element;
-    const actionType = bestCandidate.actions?.[0]?.type || "";
-    const actionFailed = result?.success === false || latestObs?.success === false;
-    if (actionFailed && actionElement !== undefined) {
-      const key = `${actionType}:${actionElement}`;
-      consecutiveFailuresByElement[key] = (consecutiveFailuresByElement[key] || 0) + 1;
-      console.log(`[RECOVERY] Consecutive failures on ${key}: ${consecutiveFailuresByElement[key]}`);
-      if (consecutiveFailuresByElement[key] >= 2) {
-        console.log(`[RECOVERY] Marking ${key} as failed.`);
-        if (!goal.world.failedActionHistory) goal.world.failedActionHistory = [];
-        goal.world.failedActionHistory.push({
-          action: { type: actionType, params: { element: actionElement } },
-          reason: `${consecutiveFailuresByElement[key]} consecutive failures`
-        });
-      }
-    } else if (!actionFailed) {
-      consecutiveFailuresByElement = {};
-    }
-
-    const verifyState = {
-      ...browserState,
-      pagePurpose: pageUnderstanding?.pagePurpose || browserState.pagePurpose || "",
-      resolvedState: pageUnderstanding?.resolvedState || null
-    };
-
-    if (await verifyGoal(goal, verifyState, goal.world)) {
-      console.log(`[GOAL COMPLETE] Overall goal satisfied.`);
-      const summary = generateExecutionSummary(context, goal.tracker);
-      return {
-        success: true,
-        confidence: 0.95,
-        observation: latestObs,
-        contextSummary: summary
-      };
-    }
-
-    if (actionFailed) {
-      console.log(`[AGENT] Action failed. Diagnosing...`);
-      const recoveryActions = await determineRecovery(lastAction, browserState, previousBrowserState, retryCount);
-
-      if (recoveryActions && recoveryActions.escalate) {
-        console.log(`[RECOVERY ESCALATION] Escalating to: ${recoveryActions.state}`);
-        const summary = generateExecutionSummary(context, goal.tracker);
-        saveAgentSession(goal, goal.tracker, context, recoveryActions.state, null, workflowMemory);
-        return {
-          success: false,
-          reason: recoveryActions.state,
-          observation: latestObs,
-          contextSummary: summary
-        };
-      }
-
-      const recPlan = createPlan(goal.id, recoveryActions);
-      const recResult = await executePlan(recPlan);
-      if (recResult?.clientDisconnected) {
-        return {
-          success: false,
-          reason: "client_disconnected",
-          observation: latestObs,
-          contextSummary: generateExecutionSummary(context, goal.tracker)
-        };
-      }
-      latestObs = recResult?.observations?.[recResult.observations.length - 1] || latestObs;
-      browserState = extractBrowserState(latestObs);
-      updateWorldModel(goal, latestObs);
-      retryCount++;
-    } else {
-      retryCount = 0;
+      const extra =
+        action.type === "screenshot" && observation?.data?.path ? ` (saved ${observation.data.path})` : "";
+      history.push(`#${step} ${describeAction(action)} → ok; ${describePageChange(previousPage, lastPage)}${extra}`);
     }
   }
 
-  console.log(`[BUDGET] Goal action limit reached.`);
-  const summary = generateExecutionSummary(context, goal.tracker);
-
-  return {
-    success: false,
-    reason: "goal_action_budget_exceeded",
-    observation: latestObs,
-    contextSummary: summary
-  };
+  return finish(false, `I hit the ${MAX_STEPS}-step limit. Progress so far: ${history.slice(-4).join("; ")}`);
 }

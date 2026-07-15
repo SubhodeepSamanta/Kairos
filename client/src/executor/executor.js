@@ -1,157 +1,81 @@
-import { ACTIONS } from "../shared/schemas/action.js";
 import { executeDeviceAction } from "./deviceAdapter.js";
-import { createSnapshot } from "../automation/browser/actions/snapshot.js";
 import { readPage } from "../automation/browser/actions/observation/read.js";
 import { getCurrentPage } from "../automation/browser/browser.js";
+import { storeSecret } from "../secrets/vault.js";
 
-export async function executePlan(plan) {
-  console.log("\n===== EXECUTING PLAN =====");
-  console.log(JSON.stringify(plan, null, 2));
+const STATE_CHANGING = new Set([
+  "navigate", "click", "type", "press_key", "back", "forward", "refresh",
+  "switch_tab", "new_tab", "close_tab", "scroll", "wait"
+]);
 
-  const results = [];
+const SETTLE_TIMEOUT_MS = 4000;
+const SETTLE_PAUSE_MS = 700;
 
-  for (const action of plan.actions) {
-    console.log("[ACTION START]");
-    console.log(action);
-    console.log("\nACTION:", action.type, action.params);
-
-    let pageStateBefore = null;
-    if (action.type === ACTIONS.CLICK || action.type === "click") {
-      try {
-        pageStateBefore = await readPage();
-      } catch {}
-    }
-
-    const before = await createSnapshot();
-    const result = await executeAction(action);
-
-    if (action.type === ACTIONS.PRESS_KEY) {
-      const page = getCurrentPage();
-      if (page) {
-        try {
-          await page.waitForLoadState("domcontentloaded", { timeout: 3000 });
-        } catch {}
-      }
-      await new Promise(resolve => setTimeout(resolve, 500));
-    }
-
-    const after = await createSnapshot();
-    result.before = before;
-    result.after = after;
-
-    const pageChanged =
-      before.url !== after.url ||
-      before.title !== after.title ||
-      before.tabCount !== after.tabCount ||
-      result.newTabOpened === true;
-
-    const forceReadActions = [
-      ACTIONS.NAVIGATE,
-      ACTIONS.BACK,
-      ACTIONS.FORWARD,
-      ACTIONS.REFRESH,
-      ACTIONS.SWITCH_TAB,
-      ACTIONS.PRESS_KEY,
-      ACTIONS.TYPE,
-      ACTIONS.CLICK,
-      "extract_data"
-    ];
-
-    const shouldRead = pageChanged || forceReadActions.includes(action.type);
-
-    if (result.success && shouldRead) {
-      const page = getCurrentPage();
-      if (page) {
-        try {
-          await page.waitForLoadState("domcontentloaded", { timeout: 3000 });
-        } catch {}
-      }
-
-      if (action.type === ACTIONS.CLICK || action.type === "click") {
-        const maxTimeout = 8000;
-        const interval = 250;
-        const startTime = Date.now();
-
-        const prevUrl = pageStateBefore?.url || before.url || "";
-        const prevPageType = pageStateBefore?.pageType || "";
-        const prevSemanticState = pageStateBefore?.semanticState || "";
-
-        console.log(`[SPA WAIT] Start polling. Previous URL: ${prevUrl} | Previous PageType: ${prevPageType} | Previous State: ${prevSemanticState}`);
-
-        let lastReadState, currentUrl, currentPageType, currentSemanticState;
-        try {
-          lastReadState = await readPage();
-          currentUrl = lastReadState.url || "";
-          currentPageType = lastReadState.pageType || "";
-          currentSemanticState = lastReadState.semanticState || "";
-        } catch (readErr) {
-          lastReadState = { success: false, reason: readErr.message };
-          currentUrl = "";
-          currentPageType = "";
-          currentSemanticState = "";
-        }
-
-        while (Date.now() - startTime < maxTimeout) {
-          if (
-            currentUrl !== prevUrl ||
-            currentPageType !== prevPageType ||
-            currentSemanticState !== prevSemanticState
-          ) {
-            console.log(`[SPA WAIT] State change detected! Stopping wait.`);
-            break;
-          }
-
-          await new Promise(resolve => setTimeout(resolve, interval));
-          try {
-            lastReadState = await readPage();
-            currentUrl = lastReadState.url || "";
-            currentPageType = lastReadState.pageType || "";
-            currentSemanticState = lastReadState.semanticState || "";
-          } catch (readErr) {
-            console.log(`[SPA WAIT] readPage failed: ${readErr.message}`);
-            lastReadState = { success: false, reason: readErr.message };
-            currentUrl = "";
-            currentPageType = "";
-            currentSemanticState = "";
-          }
-
-          console.log(`[SPA WAIT] Polling...
-  Previous URL: ${prevUrl} | Current URL: ${currentUrl}
-  Previous PageType: ${prevPageType} | Current PageType: ${currentPageType}
-  Previous State: ${prevSemanticState} | Current State: ${currentSemanticState}`);
-        }
-
-        result.pageState = lastReadState;
-      } else {
-        await new Promise(resolve => setTimeout(resolve, 500));
-        try {
-          result.pageState = await readPage();
-        } catch (readErr) {
-          console.log(`[EXECUTOR] readPage failed: ${readErr.message}`);
-          result.pageState = { success: false, reason: readErr.message };
-        }
-      }
-
-      console.log("AUTO READ:", action.type, result.pageState?.url);
-    }
-
-    console.log("[ACTION RESULT]");
-    console.log(result);
-
-    results.push(result);
+async function settle() {
+  const page = getCurrentPage();
+  if (page) {
+    try {
+      await page.waitForLoadState("domcontentloaded", { timeout: SETTLE_TIMEOUT_MS });
+    } catch {}
   }
-
-  return results;
+  await new Promise(r => setTimeout(r, SETTLE_PAUSE_MS));
 }
 
-async function executeAction(action) {
+export async function executeAction(action) {
+  const isSecret = action.type === "store_secret" || /\{\{secret:/.test(action.params?.text || "");
+  console.log(`[EXECUTE] ${action.type}${isSecret ? " (secret redacted)" : " " + JSON.stringify(action.params || {})}`);
+
+  if (action.type === "store_secret") {
+    const ok = storeSecret(action.params?.name, action.params?.value);
+    return { success: ok, reason: ok ? undefined : "invalid secret name or value" };
+  }
+
+  let result;
   try {
-    return await executeDeviceAction(action);
+    result = await executeDeviceAction(action);
   } catch (error) {
-    return {
-      success: false,
-      reason: error.message,
-      action
-    };
+    result = { success: false, reason: error.message };
+  }
+
+  const observation = {
+    success: result?.success !== false,
+    reason: result?.success === false ? (result.reason || "action failed") : undefined,
+    data: extractData(action, result)
+  };
+
+  if (action.type === "read_ui") {
+    observation.page = result?.success !== false ? result : null;
+    observation.success = result?.success !== false;
+    if (!observation.success) observation.reason = result?.reason || "read failed";
+    return observation;
+  }
+
+  if (STATE_CHANGING.has(action.type)) {
+    await settle();
+    try {
+      observation.page = await readPage();
+    } catch (err) {
+      console.log(`[EXECUTE] post-action read failed: ${err.message}`);
+    }
+  }
+
+  return observation;
+}
+
+function extractData(action, result) {
+  if (!result || typeof result !== "object") return undefined;
+  switch (action.type) {
+    case "screenshot":
+      return { path: result.path };
+    case "list_tabs":
+      return { tabs: result.tabs };
+    case "new_tab":
+    case "switch_tab":
+    case "close_tab":
+      return { index: result.index };
+    case "type":
+      return { typed: result.text, submitted: result.submitted };
+    default:
+      return undefined;
   }
 }

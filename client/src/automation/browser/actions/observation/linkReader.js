@@ -1,4 +1,3 @@
-import { classifyElement } from "../classifier/index.js";
 
 export async function readLinks(page) {
   const links = [];
@@ -43,10 +42,6 @@ export async function readLinks(page) {
       enabled,
       ...visualInfo
     };
-    const cls = classifyElement(linkObj, "link");
-    linkObj.purpose = cls.purpose;
-    linkObj.confidence = cls.confidence;
-    linkObj.semanticType = cls.semanticType;
     links.push(linkObj);
   }
   return links;
