@@ -46,7 +46,7 @@ export function classifyElement(el, role) {
   }
 
   if (isIconOnly && purpose === "generic") {
-    confidence = 0.6; // icon-only with a real label is more informative than truly unlabeled generic text
+    confidence = 0.6;
   }
 
   let semanticType = "interactive_control";

@@ -183,7 +183,6 @@ export async function readPage() {
     });
   }
 
-  // Tertiary: vision OCR fallback for zero-accessibility pages
   if (ariaElements.length < 3 && allElements.length < 5) {
     try {
       const { visionReadPage } = await import("./visionReader.js");

@@ -23,10 +23,8 @@ export function scoreAction(goal, pageUnderstanding, candidate, failedActionHist
   const href = candidate.href || "";
   const textContent = `${label} ${role} ${candidate.reason || ""}`.toLowerCase();
 
-  // 1. Goal Relevance (Objective and Term Overlap)
   score += overlapScore(goal, `${label} ${role} ${href}`);
 
-  // Boost action if it matches the semantic objective
   if (parsedGoal.objective === "consume media") {
     if (/play|pause|mute|skip|video|watch|stream/i.test(textContent) || ["primary_content", "media_element"].includes(candidate.semanticType || "") || candidate.purpose === "action_target") {
       score += 60;
@@ -41,7 +39,6 @@ export function scoreAction(goal, pageUnderstanding, candidate, failedActionHist
     }
   }
 
-  // 2. Page Relevance by Resolved State
   const resolvedCurrentState = pageUnderstanding?.resolvedState?.currentState || "";
 
   if (resolvedCurrentState === "home" || resolvedCurrentState === "blank") {
@@ -70,7 +67,6 @@ export function scoreAction(goal, pageUnderstanding, candidate, failedActionHist
     }
   }
 
-  // 3. Goal Intent Words Matching Action Type
   if (["type", "search"].includes(candidate.type) && /type|fill|write|enter/i.test(goalLower)) score += 40;
   if (candidate.type === "click" && /open|click|select|choose|continue|submit|play|apply|add|next/i.test(goalLower)) score += 55;
   
@@ -84,7 +80,6 @@ export function scoreAction(goal, pageUnderstanding, candidate, failedActionHist
       score += 180;
     }
     const destUrl = candidate.actions?.[0]?.params?.url || "";
-    // Check dynamic matching using parsedGoal constraints
     parsedGoal.constraints.forEach(constraint => {
       if (destUrl.includes(constraint)) {
         score += 150;
@@ -94,17 +89,14 @@ export function scoreAction(goal, pageUnderstanding, candidate, failedActionHist
   
   if (candidate.type === "extract" && /extract|get|find|retrieve|read/i.test(goalLower)) score += 100;
 
-  // Search input typing optimization
   if (candidate.type === "search" && (candidate.purpose === "search_input" || candidate.semanticType === "search_input")) {
-    score += 30; // Prefer search action over simple type action for search fields
+    score += 30;
   }
 
-  // 4. Affordance Confidence
   if (candidate.confidence) {
     score += Math.round(candidate.confidence * 20);
   }
 
-  // 5. Risk & Penalties
   if (candidate.type === "scroll") score -= 30;
   if (candidate.type === "back") score -= 50;
   if (candidate.type === "read_ui") score -= 40;
@@ -130,7 +122,6 @@ export function scoreAction(goal, pageUnderstanding, candidate, failedActionHist
     score -= 90;
   }
 
-  // 6. Failure History Penalties
   for (const failed of failedActionHistory) {
     if (failed.action?.type === candidate.type) {
       if (failed.action?.params?.element === candidate.elementId && candidate.elementId) {
@@ -142,10 +133,9 @@ export function scoreAction(goal, pageUnderstanding, candidate, failedActionHist
     }
   }
 
-  // Result rank bonus: lower rank (higher priority) gets bonus
   if (candidate.rank !== undefined) {
     if (candidate.rank === 1) {
-      score += 50; // Top result gets significant boost
+      score += 50;
     } else if (candidate.rank <= 3) {
       score += 30;
     } else if (candidate.rank <= 5) {
@@ -153,8 +143,6 @@ export function scoreAction(goal, pageUnderstanding, candidate, failedActionHist
     }
   }
 
-  // Visual prominence bonus: elements visible without scrolling are more likely
-  // to be the primary/intended target, similar to how a human scans a page top-down.
   if (candidate.inViewport === true) {
     score += 10;
   }

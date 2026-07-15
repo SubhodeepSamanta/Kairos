@@ -7,11 +7,10 @@ export class WorkflowMemory {
     this.previousActions = [];
     this.unfinishedForms = {};
     
-    // Expanded workflow state tracking
     this.currentObjective = "";
     this.currentSubObjective = "";
-    this.openTabs = {}; // tabId -> { url, title, purpose, workflowStage, originTabId, relationship }
-    this.visitedPages = []; // List of URLs visited
+    this.openTabs = {};
+    this.visitedPages = [];
     this.completedActions = [];
     this.failedActions = [];
     this.userResponses = [];
@@ -27,7 +26,6 @@ export class WorkflowMemory {
     this.currentWebsite = browserState.url || "";
     this.activeTab = browserState.activeTab || 0;
 
-    // Track current workflow stage from resolved state
     const resolvedState = pageUnderstanding?.resolvedState;
     if (resolvedState) {
       const stageMap = {
@@ -41,12 +39,10 @@ export class WorkflowMemory {
       this.currentWorkflowStage = stageMap[resolvedState.currentState] || resolvedState.semanticState || "active";
     }
 
-    // Track visited pages
     if (this.currentWebsite && !this.visitedPages.includes(this.currentWebsite) && this.currentWebsite !== "about:blank") {
       this.visitedPages.push(this.currentWebsite);
     }
 
-    // Keep tabs registry up to date
     const tabs = browserState.tabs || [];
     tabs.forEach(tab => {
       const existing = this.openTabs[tab.id] || {};
@@ -69,7 +65,6 @@ export class WorkflowMemory {
         this.openWorkflows = [...new Set([...this.openWorkflows, ...pageUnderstanding.workflows])];
       }
       
-      // Track unfinished forms
       if (pageUnderstanding.pagePurpose === "form" || pageUnderstanding.pagePurpose === "login flow") {
         const inputs = browserState.inputs || [];
         inputs.forEach(input => {
@@ -90,7 +85,6 @@ export class WorkflowMemory {
         this.previousActions.shift();
       }
 
-      // Track tab origins and relationships on new tab creation
       if (lastAction.type === "new_tab") {
         const currentTabIds = Object.keys(this.openTabs).map(Number);
         const nextTabId = currentTabIds.length > 0 ? Math.max(...currentTabIds) + 1 : 1;
@@ -104,7 +98,6 @@ export class WorkflowMemory {
         };
       }
 
-      // Track searches
       if (lastAction.type === "type" || lastAction.type === "search") {
         const text = lastAction.params?.text;
         if (text && !this.previousSearches.includes(text)) {

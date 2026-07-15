@@ -12,7 +12,6 @@ export function parseGoal(goalText) {
   const constraints = [];
   const capabilities = [];
 
-  // Determine objective (universal)
   if (/play|video|music|listen|watch/i.test(text)) {
     objective = "consume media";
   } else if (/login|signin|sign in|auth|signup|register/i.test(text)) {
@@ -36,7 +35,6 @@ export function parseGoal(goalText) {
     constraints.push("latest");
   }
 
-  // Extract capabilities from goal text (universal)
   const capabilityKeywords = [
     'search', 'navigation', 'content', 'form', 'login',
     'video', 'media', 'article', 'product', 'results'
@@ -48,7 +46,6 @@ export function parseGoal(goalText) {
     }
   });
 
-  // Extract target from context (universal)
   let target = null;
 
   const forMatch = goalText.match(/(?:for|of|to|about)\s+([A-Za-z0-9\s_\-]+)(?:\s+and|\s+on|\s+in|$)/i);

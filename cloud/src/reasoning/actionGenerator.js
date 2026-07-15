@@ -63,8 +63,6 @@ export function generateActions(goal, pageUnderstanding, browserState, goalObjec
 
   const queryTerm = extractQueryTerm(goal);
 
-  // If already on results page with a query, skip generating type/search
-  // candidates for search inputs (prevents re-searching loop)
   const isOnResultsPage = (pageUnderstanding?.resolvedState?.currentState === "results") ||
     (browserState?.url || "").toLowerCase().includes("/results") ||
     (browserState?.url || "").match(/\?(?:q|query)=/);
@@ -78,11 +76,10 @@ export function generateActions(goal, pageUnderstanding, browserState, goalObjec
   affordances.typeable.forEach(element => {
     const isSearchInput = element.purpose === "search_input" || element.semanticType === "search_input";
     if (isOnResultsPage && alreadyHasQuery && isSearchInput) {
-      return; // Skip search input candidates on results page — search already done
+      return;
     }
 
     if (isSearchInput) {
-      // Search inputs: only search (type+Enter) candidate — bare type without Enter is useless
       candidates.push({
         type: "search",
         actions: [
@@ -97,7 +94,6 @@ export function generateActions(goal, pageUnderstanding, browserState, goalObjec
         reason: "Submit search query via input field Enter press"
       });
     } else {
-      // Non-search inputs: bare type (no Enter)
       candidates.push({
         type: "type",
         actions: [{ type: "type", params: { element: element.id, text: queryTerm } }],
@@ -124,7 +120,6 @@ export function generateActions(goal, pageUnderstanding, browserState, goalObjec
     });
   });
 
-  // Generate ranked result-clicking candidates on results pages
   if (isOnResultsPage) {
     const resultLinkTypes = ["primary_content", "content_item", "selection_candidate"];
     const resultLinks = (browser.links || []).filter(link =>
@@ -175,7 +170,6 @@ export function generateActions(goal, pageUnderstanding, browserState, goalObjec
     });
   });
 
-  // Generate tab management candidates
   const tabs = browser.tabs || [];
   if (tabs.length > 1) {
     for (const tab of tabs) {
@@ -203,7 +197,6 @@ export function generateActions(goal, pageUnderstanding, browserState, goalObjec
     reason: "Open a new blank tab"
   });
 
-  // Login credential flow: if page is access_control, generate credential request
   const pagePurpose = pageUnderstanding?.pagePurpose || browserState?.pagePurpose || "";
   if (pagePurpose === "access_control" || pagePurpose === "login") {
     const hasCredentials = (goalObject?.humanInputResponse) || (browserState.inputs || []).some(i => (i.value || "").length > 0);

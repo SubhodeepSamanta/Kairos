@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-// visionReader uses tesseract.js — mock it to avoid loading the real worker
 vi.mock("tesseract.js", () => {
   const mockRecognize = vi.fn();
   const mockTerminate = vi.fn();
@@ -12,7 +11,6 @@ vi.mock("tesseract.js", () => {
   };
 });
 
-// Must import after mocks are set up
 import * as visionReader from "../../../../../src/automation/browser/actions/observation/visionReader.js";
 
 describe("visionReadPage", () => {

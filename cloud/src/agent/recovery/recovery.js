@@ -27,7 +27,6 @@ export async function determineRecovery(lastAction, browserState, previousState 
     };
   }
 
-  // Use adaptive recovery system for intelligent recovery
   const context = {
     pagePurpose: browserState.pagePurpose || "unknown",
     url: browserState.url || "",
@@ -45,7 +44,6 @@ export async function determineRecovery(lastAction, browserState, previousState 
       return adaptiveResult.actions || [];
     } else if (adaptiveResult && !adaptiveResult.success) {
       console.log(`[ADAPTIVE RECOVERY] Adaptive recovery failed: ${adaptiveResult.error || 'unknown error'}`);
-      // Fall back to traditional recovery
       return diagnosis.alternative || [
         { type: "refresh", params: {} },
         { type: "read_ui", params: {} }
@@ -53,17 +51,14 @@ export async function determineRecovery(lastAction, browserState, previousState 
     }
   } catch (error) {
     console.error(`[ADAPTIVE RECOVERY] Error during adaptive recovery: ${error.message}`);
-    // Fall back to traditional recovery
     return diagnosis.alternative || [
       { type: "refresh", params: {} },
       { type: "read_ui", params: {} }
     ];
   }
 
-
 }
 
-// Export adaptive recovery functions
 export { adaptiveRecovery };
 export function setAdaptiveLearning(enabled) {
   adaptiveRecovery.setAdaptiveLearning(enabled);

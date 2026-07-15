@@ -1,263 +1,19 @@
 import { createPlan } from "../../shared/schemas/plan.js";
-import { llmCallCount, resetLlmCallCount, askLLM } from "../../llm/provider.js";
+import { llmCallCount, resetLlmCallCount } from "../../llm/provider.js";
 import { updateWorldModel, addFinding } from "../../world/worldModel.js";
 import { extractDataFromPage } from "../../reasoning/extractor.js";
 import { understandPage } from "../../world/pageUnderstandingV2.js";
 import { initTracker } from "../../reasoning/objectiveTracker.js";
 import { verifyGoal } from "../../verification/objectiveVerifier.js";
 import { createExecutionContext, generateExecutionSummary } from "../../world/executionContext.js";
-import { loadAgentSession, saveAgentSession, checkForHumanIntervention, storeCredential, getCredential, detectOTPInput } from "../state/agentSession.js";
+import { loadAgentSession, saveAgentSession } from "../state/agentSession.js";
 import { selectActionWithLLM } from "../../reasoning/llmActionSelector.js";
 import { determineRecovery } from "../recovery/recovery.js";
 import { WorkflowMemory } from "../../memory/workflowMemory.js";
-import { requestHumanInputRemotely } from "../../websocket/server.js";
-
-function printMetrics(goal, startTime, startLlmCalls) {
-  const durationSec = ((Date.now() - startTime) / 1000).toFixed(1);
-  const llmCallsUsed = llmCallCount - startLlmCalls;
-  const metrics = goal.metrics || { skillExecutions: 0, fallbackCount: 0, plannerPromptChars: 0, compressedPromptChars: 0, totalActions: 0, intent_calls: 0, planning_calls: 0, verification_calls: 0 };
-  
-  console.log(`
-===== EXECUTION METRICS =====
-
-Goal:
-${goal.objective}
-
-LLM Calls: ${llmCallsUsed}
-  - intent_calls: ${metrics.intent_calls || 0}
-  - planning_calls: ${metrics.planning_calls || 0}
-  - verification_calls: ${metrics.verification_calls || 0}
-
-Actions: ${metrics.totalActions || 0}
-Skill Executions: ${metrics.skillExecutions}
-Fallbacks: ${metrics.fallbackCount}
-
-Duration: ${durationSec}s
-===========================
-`);
-  
-}
-
-async function decomposeGoal(objective, currentBrowserState = null) {
-  const text = (objective || "").trim();
-  if (!text) return ["navigate to destination", "verify page content"];
-
-  let contextStr = "";
-  if (currentBrowserState && currentBrowserState.url && currentBrowserState.url !== "about:blank") {
-    const url = currentBrowserState.url;
-    const title = currentBrowserState.title || "";
-    const hostname = (() => { try { return new URL(url).hostname.replace("www.", "").split(".")[0]; } catch (e) { return ""; } })();
-    contextStr = `\nCurrent page:\n- URL: ${url}\n- Title: ${title}\n- Platform: ${hostname || "unknown"}`;
-    const resultsPatterns = [/\/results/, /\?q=/, /\?query=/, /\/search\//];
-    const isResults = resultsPatterns.some(p => p.test(url.toLowerCase()));
-    const hasResultLinks = (currentBrowserState.links || []).some(l =>
-      l.purpose === "primary_content" || l.semanticType === "content_item" || l.semanticType === "selection_candidate"
-    );
-    if (isResults || hasResultLinks) {
-      contextStr += `\n- This page CONTAINS search results`;
-      try {
-        const urlObj = new URL(url);
-        const query = urlObj.searchParams.get("q") || urlObj.searchParams.get("query") || "";
-        if (query) contextStr += ` for query: "${query}"`;
-      } catch (e) {}
-      contextStr += `\n- The search/query stage is ALREADY COMPLETE`;
-    }
-    if (currentBrowserState.title) {
-      contextStr += `\n- Page title: "${currentBrowserState.title}"`;
-    }
-  }
-
-  try {
-    const systemPrompt = `You are a browser automation planner. Given a user's goal and the CURRENT page state, decompose the REMAINING work into sequential sub-objectives that a browser agent should complete. Each sub-objective must be a short, action-oriented phrase. Output ONLY a JSON array of strings.
-
-EXAMPLES OF CONTEXT-AWARE DECOMPOSITION:
-
-Goal: "search for lofi music"
-Current page: about:blank (no URL)
-→ ["navigate to music platform", "search for lofi music", "select a result"]
-
-Goal: "search for lofi music"
-Current page: youtube.com/search?q=lofi (already shows results)
-→ ["select a result", "interact with content"]
-
-Goal: "search for lofi music"
-Current page: youtube.com (homepage with search box)
-→ ["search for lofi music", "select a result", "interact with content"]
-
-Goal: "play the first video"
-Current page: youtube.com/results?q=lofi (shows results for lofi)
-→ ["select first result", "play video"]
-
-Goal: "play the first video"
-Current page: youtube.com/watch?v=abc123 (already on a video page)
-→ ["play video"] (just one step remaining)
-
-CRITICAL RULES:
-- NEVER include sub-objectives already satisfied by the current page.
-- If current page already shows search results with the query, skip search steps.
-- If current page is already on a content/video/detail page, skip selection steps.
-- Keep it minimal: 1-3 objectives if most work is done.`;
-    const userPrompt = `Goal: "${text}"${contextStr}\n\nDecompose the REMAINING work into sub-objectives. Current page details are provided above. Output ONLY a JSON array of strings. Keep it minimal.`;
-
-    const responseText = await askLLM(systemPrompt, userPrompt);
-    let cleaned = (responseText || "").trim();
-    const match = cleaned.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
-    if (match) cleaned = match[1].trim();
-    const parsed = JSON.parse(cleaned);
-    if (Array.isArray(parsed) && parsed.length > 0 && parsed.every(s => typeof s === "string")) {
-      console.log(`[DECOMPOSE] LLM generated ${parsed.length} sub-objectives (context-aware)`);
-      return parsed;
-    }
-  } catch (err) {
-    console.error(`[DECOMPOSE] LLM decomposition failed, using fallback:`, err.message);
-  }
-
-  // Context-aware fallback
-  if (contextStr && contextStr.includes("ALREADY COMPLETE")) {
-    return ["select result", "extract or interact with content", "verify completion"];
-  }
-  return ["navigate to destination", "locate target content", "interact with target", "verify completion"];
-}
-
-function estimateProgress(workflowMemory, browserState) {
-  if (!workflowMemory || !workflowMemory.subObjectives) {
-    return { percent: 50, stage: "executing workflow" };
-  }
-  const total = workflowMemory.subObjectives.length;
-  if (total === 0) return { percent: 0, stage: "not started" };
-
-  const currentIdx = workflowMemory.subObjectives.indexOf(workflowMemory.currentSubObjective);
-  const completedCount = currentIdx >= 0 ? currentIdx : 0;
-  
-  let percent = Math.round((completedCount / total) * 100);
-
-  if (browserState && browserState.url && browserState.url !== "about:blank") {
-    percent = Math.max(percent, 20);
-  }
-
-  return {
-    percent: Math.min(95, percent),
-    stage: workflowMemory.currentSubObjective || "processing",
-    completed: workflowMemory.subObjectives.slice(0, completedCount),
-    remaining: workflowMemory.subObjectives.slice(completedCount)
-  };
-}
-
-function updateSubObjectives(workflowMemory, browserState, pageUnderstanding, actionHistory) {
-  const subObjectives = workflowMemory.subObjectives || [];
-  const currentIdx = subObjectives.indexOf(workflowMemory.currentSubObjective);
-  if (currentIdx === -1) return;
-
-  const resolvedState = pageUnderstanding?.resolvedState || {};
-  const currentState = resolvedState.currentState || "";
-  const purpose = (pageUnderstanding?.pagePurpose || "").toLowerCase();
-  const url = (browserState.url || "").toLowerCase();
-
-  const hasRealPage = url && url !== "about:blank";
-
-  function currentSubObjectiveMatches(...keywords) {
-    const sub = (workflowMemory.currentSubObjective || "").toLowerCase();
-    return keywords.some(k => sub.includes(k));
-  }
-
-  const isOnResultsPage = currentState === "results" || /result|search/.test(purpose);
-  const isOnContentPage = currentState === "content" || /content|detail|media|article|product|profile/.test(purpose);
-
-  // Check if current sub-objective is already satisfied by page state
-  // If it's a search objective and we're on results, mark it complete
-  const currentIsSearch = currentSubObjectiveMatches("search", "query", "find", "locate");
-  const currentIsNavigation = currentSubObjectiveMatches("navigate", "go to", "open", "launch", "destination");
-  const currentIsSelect = currentSubObjectiveMatches("select", "choose", "pick", "click", "open result");
-
-  let satisfied = false;
-  if (currentIsSearch && isOnResultsPage) {
-    const activeQuery = resolvedState.parameters?.query;
-    if (activeQuery) {
-      const subText = (workflowMemory.currentSubObjective || "").toLowerCase();
-      const queryText = activeQuery.toLowerCase();
-      if (subText.includes(queryText) || queryText.includes(subText)) {
-        satisfied = true;
-      }
-    } else {
-      satisfied = true;
-    }
-  }
-  if (currentIsNavigation && hasRealPage) satisfied = true;
-  if (currentIsSelect && isOnContentPage) satisfied = true;
-
-  // If current sub-objective is satisfied, advance or mark completion
-  if (satisfied) {
-    workflowMemory.completedSubObjectives.push(workflowMemory.currentSubObjective);
-    const nextIdx = currentIdx + 1;
-    if (nextIdx < subObjectives.length) {
-      workflowMemory.currentSubObjective = subObjectives[nextIdx];
-      console.log(`[SUB-OBJECTIVE] Advanced to: "${workflowMemory.currentSubObjective}" (satisfied by page state)`);
-    } else {
-      workflowMemory.currentSubObjective = "";
-      console.log(`[SUB-OBJECTIVE] All sub-objectives completed (last one satisfied by page state)`);
-    }
-    return;
-  }
-
-  if (currentIdx >= subObjectives.length - 1) return;
-
-  // --- Direct state-based advancement (skip ahead when past certain stages) ---
-  if (isOnResultsPage) {
-    if (currentSubObjectiveMatches("navigate", "destination", "search for", "locate", "find")) {
-      let targetIdx = currentIdx;
-      while (targetIdx < subObjectives.length) {
-        const sobj = subObjectives[targetIdx].toLowerCase();
-        if (sobj.includes("select") || sobj.includes("result") || sobj.includes("click") || sobj.includes("open") || sobj.includes("extract") || sobj.includes("interact") || sobj.includes("verify") || sobj.includes("content")) {
-          break;
-        }
-        targetIdx++;
-      }
-      if (targetIdx > currentIdx) {
-        for (let i = currentIdx; i < targetIdx; i++) {
-          workflowMemory.completedSubObjectives.push(subObjectives[i]);
-        }
-        workflowMemory.currentSubObjective = subObjectives[targetIdx];
-        console.log(`[SUB-OBJECTIVE] Skipped to: "${workflowMemory.currentSubObjective}" (already on results page)`);
-        return;
-      }
-    }
-  }
-
-  if (isOnContentPage && currentSubObjectiveMatches("select result", "click result", "choose result")) {
-    let targetIdx = currentIdx + 1;
-    if (targetIdx < subObjectives.length) {
-      workflowMemory.completedSubObjectives.push(workflowMemory.currentSubObjective);
-      workflowMemory.currentSubObjective = subObjectives[targetIdx];
-      console.log(`[SUB-OBJECTIVE] Skipped to: "${workflowMemory.currentSubObjective}" (already on content page)`);
-      return;
-    }
-  }
-
-  // --- Fallback heuristic advancement (resolvedState-driven) ---
-  // Don't advance via fallback if no actions have been executed yet
-  const hasExecutedActions = actionHistory && actionHistory.some(a => a.action?.type !== "read_ui");
-  const purposeIsSpecific = purpose && !["generic", "landing_page"].includes(purpose);
-  let advance = false;
-  const progressPercent = currentIdx / Math.max(subObjectives.length - 1, 1);
-
-  if (hasExecutedActions) {
-    if (progressPercent < 0.25 && hasRealPage && purposeIsSpecific) {
-      advance = true;
-    } else if (progressPercent < 0.5 && isOnResultsPage) {
-      advance = true;
-    } else if (progressPercent < 0.75 && isOnContentPage) {
-      advance = true;
-    } else if (progressPercent >= 0.75 && (isOnContentPage || purpose === "access_control")) {
-      advance = true;
-    }
-  }
-
-  if (advance) {
-    workflowMemory.completedSubObjectives.push(workflowMemory.currentSubObjective);
-    workflowMemory.currentSubObjective = subObjectives[currentIdx + 1];
-    console.log(`[SUB-OBJECTIVE] Advanced to: "${workflowMemory.currentSubObjective}"`);
-  }
-}
+import { decomposeGoal } from "./goalDecomposer.js";
+import { estimateProgress, updateSubObjectives } from "./subObjectives.js";
+import { printMetrics, extractBrowserState, detectActionLoop } from "./loopUtils.js";
+import { requestHumanIntervention } from "./humanIntervention.js";
 
 export async function runAgent({
     goal,
@@ -266,11 +22,11 @@ export async function runAgent({
   resetLlmCallCount();
   const startTime = Date.now();
   const startLlmCalls = llmCallCount;
-  goal.metrics = { 
-    skillExecutions: 0, 
-    fallbackCount: 0, 
-    plannerPromptChars: 0, 
-    compressedPromptChars: 0, 
+  goal.metrics = {
+    skillExecutions: 0,
+    fallbackCount: 0,
+    plannerPromptChars: 0,
+    compressedPromptChars: 0,
     totalActions: 0,
     intent_calls: 0,
     planning_calls: 0,
@@ -301,107 +57,6 @@ export async function runAgent({
     console.error(err.stack);
     printMetrics(goal, startTime, startLlmCalls);
     throw err;
-  }
-}
-
-function extractBrowserState(obs) {
-  if (!obs) return {};
-  // If obs has pageState nested, use that; otherwise use obs itself
-  const state = obs?.pageState || obs || {};
-  // Ensure common fields exist at top level
-  return {
-    url: state.url || obs.url || "",
-    title: state.title || obs.title || "",
-    text: state.text || obs.text || "",
-    inputs: state.inputs || obs.inputs || [],
-    buttons: state.buttons || obs.buttons || [],
-    links: state.links || obs.links || [],
-    pageType: state.pageType || obs.pageType || "",
-    capabilities: state.capabilities || obs.capabilities || [],
-    tabs: state.tabs || obs.tabs || [],
-    activeTab: state.activeTab || obs.activeTab || null,
-    pagePurpose: state.pagePurpose || obs.pagePurpose || "",
-    ...state
-  };
-}
-
-function detectActionLoop(world) {
-  if (!world) return false;
-  const history = world.actionHistory || [];
-  if (history.length < 4) return false;
-  const last4 = history.slice(-4).map(h => {
-    const a = h.action;
-    return `${a.type}:${a.params?.element || ""}:${a.params?.url || ""}:${a.params?.text || ""}`;
-  });
-  if (last4[2] === last4[0] && last4[3] === last4[1] && last4[0] === last4[2]) {
-    return true;
-  }
-  if (last4[1] === last4[2] && last4[2] === last4[3]) {
-    return true;
-  }
-  return false;
-}
-
-async function requestHumanIntervention(goal, browserState, pageUnderstanding, bestCandidate, context, workflowMemory, latestObs, executePlan) {
-  const intervention = checkForHumanIntervention(browserState, pageUnderstanding, bestCandidate);
-  if (!intervention || !intervention.interventionNeeded) return null;
-
-  console.log(`[HUMAN INPUT REQUIRED] ${intervention.reason}`);
-  saveAgentSession(goal, goal.tracker, context, intervention.state, null, workflowMemory, {
-    humanInputPrompt: intervention.reason,
-    humanInputResponseType: intervention.state
-  });
-
-  let prompt = intervention.reason;
-  let responseType = "confirmation";
-  if (intervention.state === "WAITING_FOR_OTP") {
-    prompt = "Two-Factor Authentication / OTP detected. Please enter the code:";
-    responseType = "otp";
-  } else if (intervention.state === "WAITING_FOR_CAPTCHA") {
-    prompt = "CAPTCHA detected. Please solve it in the browser, then type 'done':";
-    responseType = "confirmation";
-  } else if (intervention.state === "WAITING_FOR_PAYMENT_APPROVAL") {
-    prompt = "Payment checkout detected. Type 'approve' to confirm or 'cancel':";
-    responseType = "confirmation";
-  } else if (intervention.state === "WAITING_FOR_DELETION_APPROVAL") {
-    prompt = "Destructive action detected. Type 'approve' to confirm or 'cancel':";
-    responseType = "confirmation";
-  } else if (intervention.state === "WAITING_FOR_CLARIFICATION") {
-    prompt = `${intervention.reason}\nWhat would you like the agent to do?`;
-    responseType = "free_text";
-  }
-
-  try {
-    const humanResponse = await requestHumanInputRemotely(
-      goal.id, prompt, responseType,
-      { url: browserState.url || "", title: browserState.title || "", pagePurpose: pageUnderstanding?.pagePurpose }
-    );
-    goal.humanInputResponse = humanResponse;
-    console.log(`[HUMAN INPUT] Received response for goal ${goal.id}`);
-
-    if (intervention.state === "WAITING_FOR_OTP" && humanResponse) {
-      const otpInput = detectOTPInput(browserState.inputs || []);
-      if (otpInput) {
-        const otpPlan = createPlan(goal.id, [
-          { type: "type", params: { element: otpInput.id, text: humanResponse } },
-          { type: "press_key", params: { key: "Enter" } },
-          { type: "read_ui", params: {} }
-        ]);
-        await executePlan(otpPlan).catch(err => console.error("[OTP] OTP plan execution failed:", err.message));
-      }
-    }
-
-    const reReadPlan = { goalId: goal.id, actions: [{ type: "read_ui", params: {} }] };
-    const reReadResult = await executePlan(reReadPlan).catch(() => null);
-    const newObs = reReadResult?.observations?.[reReadResult.observations.length - 1];
-    if (newObs) {
-      updateWorldModel(goal, newObs);
-      return newObs;
-    }
-    return latestObs;
-  } catch (err) {
-    console.log(`[HUMAN INPUT] Failed: ${err.message}`);
-    return { escalation: err.message };
   }
 }
 
@@ -537,7 +192,6 @@ async function _runAgentInternal({
         browserState = extractBrowserState(latestObs);
         updateWorldModel(goal, latestObs);
       } else {
-        // Stuck after retries: replan from current page state
         console.log("[LOOP DETECTION] Scroll didn't help. Replanning from current context.");
         const pageUnderstanding = understandPage(browserState);
         const newObjectives = await decomposeGoal(goal.objective, browserState);
@@ -547,7 +201,6 @@ async function _runAgentInternal({
           workflowMemory.completedSubObjectives = [];
           console.log(`[LOOP DETECTION] Replanned to: ${JSON.stringify(newObjectives)}`);
         }
-        // Also apply page understanding for this iteration
         const bestCandidate = await selectActionWithLLM({
           goal,
           pageUnderstanding,
@@ -685,11 +338,10 @@ async function _runAgentInternal({
       console.log(`[EXTRACT] Finding added to world model:`, JSON.stringify(extractedData));
     }
 
-    // Stale-ref detection: action reports success but page didn't change
     const actionSucceeded = result?.success !== false && latestObs?.success !== false;
-    const pageChanged = latestObs && browserState && (
-      (latestObs.url && latestObs.url !== browserState.url) ||
-      (latestObs.title && latestObs.title !== browserState.title)
+    const pageChanged = latestObs && previousBrowserState && (
+      (latestObs.url && latestObs.url !== previousBrowserState.url) ||
+      (latestObs.title && latestObs.title !== previousBrowserState.title)
     );
     if (actionSucceeded && !pageChanged && bestCandidate.type !== "read_ui") {
       staleRefCount++;
@@ -708,7 +360,6 @@ async function _runAgentInternal({
       staleRefCount = 0;
     }
 
-    // Track consecutive failures per element for alternate element escalation
     const actionElement = bestCandidate.elementId || bestCandidate.actions?.[0]?.params?.element;
     const actionType = bestCandidate.actions?.[0]?.type || "";
     const actionFailed = result?.success === false || latestObs?.success === false;
@@ -728,7 +379,6 @@ async function _runAgentInternal({
       consecutiveFailuresByElement = {};
     }
 
-    // Enrich browserState with page understanding for richer goal verification
     const verifyState = {
       ...browserState,
       pagePurpose: pageUnderstanding?.pagePurpose || browserState.pagePurpose || "",

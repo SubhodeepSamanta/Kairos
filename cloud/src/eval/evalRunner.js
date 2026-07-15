@@ -41,7 +41,6 @@ class BrowserSimulator {
         this.url = action.params.url;
         const lowerUrl = this.url.toLowerCase();
         
-        // 1. Identify portal type from URL
         if (lowerUrl.includes("youtube.com")) {
           this.title = "Media Portal";
           this.pageType = "media_home";
@@ -68,7 +67,6 @@ class BrowserSimulator {
         }
         this.text = `Welcome to ${this.title}. Find your desired content.`;
 
-        // If goal was login, configure password inputs
         if (lowerUrl.includes("login") || lowerUrl.includes("auth")) {
           this.pageType = "login_page";
           this.inputs = [
@@ -91,14 +89,12 @@ class BrowserSimulator {
         this.title = `${queryVal} - Search Results`;
         this.text = `Here are the top results for ${queryVal}. Location details and requirements available. July 15 deadline. Price is $120. Stars count: 45k.`;
         
-        // Expose appropriate result links
         if (this.url.includes("youtube")) {
           this.links = [{ id: "v1", purpose: "video_link", semanticType: "content_item", href: "/watch?v=1" }];
         } else {
           this.links = [{ id: "r3", purpose: "result_link", semanticType: "selection_candidate" }];
         }
       } else if (action.type === "click") {
-        // Handle close overlay
         if (action.params.element === "b1") {
           this.pageType = "search_home";
           this.title = "Overlay Portal Home";
@@ -158,23 +154,17 @@ async function runEvaluationSuite() {
     console.log(`\n--- Running Scenario: ${scen.id} ("${scen.goal}") ---`);
     sim.reset();
 
-    // Map capabilities to urls for navigate target (universal)
     let startUrl = "about:blank";
     
-    // Universal capability-to-URL mapping
-    // Instead of hardcoded site-specific URLs, use intelligent capability-based navigation
     const capabilityToUrl = {
       "youtube": "https://youtube.com",
       "github": "https://github.com",
-      // Note: Removed hardcoded site-specific URLs for better universality
-      // Use capability-based navigation instead
     };
     
-    // Use capability if present, otherwise default
     if (scen.platform && capabilityToUrl[scen.platform]) {
       startUrl = capabilityToUrl[scen.platform];
     } else {
-      startUrl = "https://portal.com"; // Default fallback
+      startUrl = "https://portal.com";
     }
 
     const goal = {

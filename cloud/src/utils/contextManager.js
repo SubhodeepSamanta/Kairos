@@ -1,32 +1,24 @@
-// Context Size Management and Token Optimization
-// Manages context size, token usage, and compression for efficient AI processing
 
 import fs from 'fs';
 import path from 'path';
 
-// Token counting utilities
 const tokenUtils = {
-  // Approximate token counting (GPT-style tokenizer)
   countTokens(text) {
     if (!text) return 0;
     
-    // Rough approximation: 1 token ≈ 4 characters for English text
     const baseTokens = Math.ceil(text.length / 4);
     
-    // Account for special characters and patterns
     const specialChars = (text.match(/[^a-zA-Z0-9\s]/g) || []).length;
     const specialTokenPenalty = Math.ceil(specialChars / 2);
     
-    // Account for common multi-word patterns
     const multiWordPatterns = text.match(/\b\w+\s+\w+\s+\w+\s+\w+\s+\w+/g) || [];
     const multiWordBonus = multiWordPatterns.length * 0.5;
     
     return Math.ceil(baseTokens + specialTokenPenalty - multiWordBonus);
   },
 
-  // Count tokens in an object (recursive)
   countObjectTokens(obj, depth = 0) {
-    if (depth > 10) return 0; // Prevent infinite recursion
+    if (depth > 10) return 0;
     
     if (obj === null || obj === undefined) return 0;
     if (typeof obj === 'string') return this.countTokens(obj);
@@ -44,7 +36,6 @@ const tokenUtils = {
     return 0;
   },
 
-  // Estimate tokens for a message (system + user)
   estimateMessageTokens(systemPrompt, userPrompt, context) {
     const systemTokens = this.countTokens(systemPrompt);
     const userTokens = this.countTokens(userPrompt);
@@ -54,9 +45,7 @@ const tokenUtils = {
   }
 };
 
-// Context compression utilities
 const compressionUtils = {
-  // Compress context by removing redundant information
   compressContext(context, maxTokens = 1000) {
     if (!context || tokenUtils.countObjectTokens(context) <= maxTokens) {
       return context;
@@ -64,7 +53,6 @@ const compressionUtils = {
     
     const compressed = {};
     
-    // Always keep essential fields
     const essentialFields = ['url', 'title', 'pageType', 'site', 'environment'];
     essentialFields.forEach(field => {
       if (context[field] !== undefined) {
@@ -72,17 +60,14 @@ const compressionUtils = {
       }
     });
     
-    // Add important elements if space allows
     if (tokenUtils.countObjectTokens(compressed) < maxTokens * 0.7 && context.importantElements) {
       compressed.importantElements = context.importantElements.slice(0, 10);
     }
     
-    // Add recent observations if space allows
     if (tokenUtils.countObjectTokens(compressed) < maxTokens * 0.8 && context.recentObservations) {
       compressed.recentObservations = context.recentObservations.slice(-3);
     }
     
-    // Add key findings if space allows
     if (tokenUtils.countObjectTokens(compressed) < maxTokens * 0.9 && context.keyFindings) {
       compressed.keyFindings = context.keyFindings.slice(-2);
     }
@@ -90,7 +75,6 @@ const compressionUtils = {
     return compressed;
   },
 
-  // Summarize context for LLM consumption
   summarizeContext(context) {
     const summary = {
       pageType: context.pageType || 'unknown',
@@ -101,7 +85,6 @@ const compressionUtils = {
       goals: context.goals || []
     };
     
-    // Extract key elements
     if (context.importantElements) {
       summary.keyElements = context.importantElements
         .filter(el => el.purpose && el.purpose !== 'generic')
@@ -109,7 +92,6 @@ const compressionUtils = {
         .map(el => `${el.role}: ${el.purpose} (${el.label || 'no label'})`);
     }
     
-    // Extract recent actions
     if (context.recentActions) {
       summary.recentActions = context.recentActions.slice(-3);
     }
@@ -118,14 +100,13 @@ const compressionUtils = {
   }
 };
 
-// Token budget manager
 class TokenBudgetManager {
   constructor() {
     this.budgets = {
-      system: 4000,      // System prompt budget
-      user: 8000,        // User prompt budget
-      context: 2000,     // Context budget
-      total: 200000      // Total LLM call budget
+      system: 4000,
+      user: 8000,
+      context: 2000,
+      total: 200000
     };
     this.currentUsage = {
       system: 0,
@@ -142,13 +123,11 @@ class TokenBudgetManager {
     };
   }
 
-  // Check if we have enough budget for a request
   canMakeRequest(systemPrompt, userPrompt, context) {
     const estimatedTokens = tokenUtils.estimateMessageTokens(systemPrompt, userPrompt, context);
     return this.currentUsage.total + estimatedTokens <= this.budgets.total;
   }
 
-  // Allocate tokens for a request
   allocateTokens(systemPrompt, userPrompt, context) {
     const estimatedTokens = tokenUtils.estimateMessageTokens(systemPrompt, userPrompt, context);
     
@@ -176,7 +155,6 @@ class TokenBudgetManager {
     };
   }
 
-  // Reset usage for a new session
   resetUsage() {
     this.currentUsage = {
       system: 0,
@@ -188,7 +166,6 @@ class TokenBudgetManager {
     console.log('[TOKEN BUDGET] Token usage reset for new session');
   }
 
-  // Get current usage statistics
   getUsageStats() {
     return {
       current: { ...this.currentUsage },
@@ -198,16 +175,14 @@ class TokenBudgetManager {
     };
   }
 
-  // Optimize context based on available budget
   optimizeContext(context, systemPrompt, userPrompt) {
     const estimatedTokens = tokenUtils.estimateMessageTokens(systemPrompt, userPrompt, context);
     const totalEstimated = estimatedTokens + this.currentUsage.total;
     
     if (totalEstimated <= this.budgets.total * 0.9) {
-      return context; // No optimization needed
+      return context;
     }
     
-    // Apply optimization strategies
     let optimizedContext = context;
     
     if (this.optimizationStrategies.compressContext) {
@@ -226,7 +201,6 @@ class TokenBudgetManager {
     return optimizedContext;
   }
 
-  // Prioritize essential fields
   prioritizeEssentialFields(context) {
     const essentialFields = ['url', 'title', 'pageType', 'site', 'environment', 'goals'];
     const optimized = {};
@@ -237,7 +211,6 @@ class TokenBudgetManager {
       }
     });
     
-    // Add a few key elements if available
     if (context.importantElements && context.importantElements.length > 0) {
       optimized.keyElements = context.importantElements.slice(0, 5);
     }
@@ -245,14 +218,12 @@ class TokenBudgetManager {
     return optimized;
   }
 
-  // Update optimization strategies
   updateOptimizationStrategies(strategies) {
     Object.assign(this.optimizationStrategies, strategies);
     console.log('[TOKEN BUDGET] Optimization strategies updated:', this.optimizationStrategies);
   }
 }
 
-// Context manager
 class ContextManager {
   constructor() {
     this.tokenBudget = new TokenBudgetManager();
@@ -262,7 +233,6 @@ class ContextManager {
     this.tokenOptimizationEnabled = true;
   }
 
-  // Create a new context
   createContext(initialData = {}) {
     const context = {
       id: Date.now().toString(36) + Math.random().toString(36).substr(2),
@@ -278,7 +248,6 @@ class ContextManager {
     return context;
   }
 
-  // Update context with new data
   updateContext(contextId, updates) {
     const context = this.contextHistory.find(c => c.id === contextId);
     if (!context) {
@@ -291,7 +260,6 @@ class ContextManager {
     return context;
   }
 
-  // Get context by ID
   getContext(contextId) {
     if (contextId && typeof contextId === 'object') {
       const id = contextId.id;
@@ -300,7 +268,6 @@ class ContextManager {
     return this.contextHistory.find(c => c.id === contextId);
   }
 
-  // Optimize context for LLM consumption
   async optimizeContextForLLM(contextId, systemPrompt, userPrompt) {
     const context = this.getContext(contextId);
     if (!context) {
@@ -316,29 +283,23 @@ class ContextManager {
     return optimizedContext;
   }
 
-  // Make LLM call with context management
   async makeLLMCall(contextId, systemPrompt, userPrompt, llmFunction) {
     const context = this.getContext(contextId);
     if (!context) {
       throw new Error(`Context not found: ${contextId}`);
     }
     
-    // Optimize context if needed
     const optimizedContext = await this.optimizeContextForLLM(contextId, systemPrompt, userPrompt);
     
-    // Check token budget
     if (!this.tokenBudget.canMakeRequest(systemPrompt, userPrompt, optimizedContext)) {
       throw new Error('Token budget exceeded');
     }
     
-    // Allocate tokens
     const allocation = this.tokenBudget.allocateTokens(systemPrompt, userPrompt, optimizedContext);
     
     try {
-      // Make the LLM call
       const result = await llmFunction(systemPrompt, userPrompt, optimizedContext);
       
-      // Update context with result
       await this.updateContext(contextId, {
         lastLLMCall: {
           timestamp: Date.now(),
@@ -353,13 +314,11 @@ class ContextManager {
       return result;
       
     } catch (error) {
-      // Log error and rethrow
       console.error('[CONTEXT MANAGER] LLM call failed:', error.message);
       throw error;
     }
   }
 
-  // Get context statistics
   getContextStats() {
     return {
       totalContexts: this.contextHistory.length,
@@ -368,7 +327,6 @@ class ContextManager {
     };
   }
 
-  // Reset everything
   reset() {
     this.tokenBudget.resetUsage();
     this.contextHistory = [];
@@ -376,14 +334,11 @@ class ContextManager {
   }
 }
 
-// Global context manager instance
 const contextManager = new ContextManager();
 
-// Export utilities
 export { tokenUtils, compressionUtils, ContextManager };
 export default contextManager;
 
-// Export convenience functions
 export async function makeOptimizedLLMCall(contextId, systemPrompt, userPrompt, llmFunction) {
   return contextManager.makeLLMCall(contextId, systemPrompt, userPrompt, llmFunction);
 }

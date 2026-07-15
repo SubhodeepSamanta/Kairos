@@ -62,7 +62,6 @@ export async function executeBrowserAction(action) {
       return await extractMetadata();
     case ACTIONS.SCREENSHOT:
       return await takeScreenshot();
-    // Allow extract_data to be executed as a readPage for observation updates
     case "extract_data":
       return await readPage();
     default:

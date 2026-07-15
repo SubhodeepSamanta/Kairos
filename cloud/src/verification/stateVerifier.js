@@ -52,8 +52,6 @@ export async function verifyState({
       : null;
   }
 
-  // Compatibility path for legacy task-shaped callers. Browser Operator objective
-  // completion should use objectiveVerifier directly.
   const criteriaResult = evaluateSuccessCriteria(task, normalizedObservation);
   if (criteriaResult !== null) {
     if (criteriaResult === true) {

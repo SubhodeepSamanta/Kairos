@@ -22,7 +22,6 @@ export function connectToCloud(url, onResult, onStatus) {
         if (onStatusCallback) onStatusCallback(message.status);
       }
     } catch (e) {
-      // Ignore invalid JSON
     }
   });
 

@@ -8,13 +8,11 @@ export function cleanAndParseJson(text) {
   if (!text) return null;
   let cleanText = text.trim();
   
-  // Strip markdown code blocks
   const match = cleanText.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
   if (match) {
     cleanText = match[1].trim();
   }
   
-  // Extract the first JSON object/array from surrounding text
   const firstBrace = cleanText.indexOf('{');
   const firstBracket = cleanText.indexOf('[');
   const jsonStart = firstBrace >= 0 && (firstBracket < 0 || firstBrace < firstBracket) ? firstBrace : firstBracket;
@@ -139,7 +137,6 @@ export async function selectActionWithLLM({
     .slice(0, 20)
     .map(el => {
       let label = (el.label || "").trim();
-      // Truncate long labels so the LLM can't dump them back as action text
       if (label.length > 60) label = label.slice(0, 57) + "...";
       const visibility = el.inViewport === true ? "above-the-fold" : el.inViewport === false ? "requires-scroll" : "";
       const visPart = visibility ? `, visibility="${visibility}"` : "";
@@ -237,7 +234,6 @@ ${contractPrompt}`;
     console.error(`[LLM_ERROR] LLM selection or parsing failed:`, err.message);
   }
 
-  // Retry once if LLM didn't produce valid JSON — with minimal prompt
   if (!isValid) {
     try {
       goal.metrics.planning_calls = (goal.metrics.planning_calls || 0) + 1;
@@ -256,7 +252,6 @@ ${contractPrompt}`;
   }
 
   if (isValid && parsed) {
-    // Phase 1: Override hallucinated text with extracted query, then sanitize
     const rawAction = parsed.actions[0];
     if (rawAction?.params?.text && (rawAction.type === "type" || rawAction.type === "search")) {
       const correctQuery = extractQueryTerm(goal.objective);
@@ -271,7 +266,6 @@ ${contractPrompt}`;
     }
     const cleanAction = sanitizeLlmAction(rawAction, pageUnderstanding);
 
-    // If sanitizer stripped the element ID, the action is invalid
     if (!cleanAction) {
       console.log(`[SANITIZE] LLM action was completely invalid after sanitization. Falling back to heuristic.`);
       parsed = null;
@@ -294,7 +288,6 @@ ${contractPrompt}`;
       if (elementId !== undefined && !elementExists) {
         console.log(`[LLM_MATCH_MISS] LLM chose element ${elementId} which does not exist. Falling back to heuristic.`);
       } else if (elementExists && matchedElement) {
-        // If LLM chose type on a non-typeable element (e.g., button search trigger), convert to click
         let actionType = cleanAction.type;
         let actionParams = { ...cleanAction.params };
         if (actionType === "type" && matchedElement.actionHints?.includes("click") && !matchedElement.actionHints?.includes("type")) {

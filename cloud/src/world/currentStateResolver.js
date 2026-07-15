@@ -9,7 +9,6 @@ function resolveSemanticPageState(browser, url, pageType) {
 
   const evidence = `${pageType} ${[...semanticTypes].join(" ")} ${capabilities.join(" ")}`;
 
-  // Prioritize explicit content/detail types
   if (/details|product|item|article|post|view/.test(pageType) || semanticTypes.has("product_item") || semanticTypes.has("repository_item")) {
     return "content detail";
   }
@@ -73,7 +72,6 @@ export function resolveCurrentState(observation, previousResolvedState = null) {
   let query = "";
   let isHomeUrl = false;
 
-  // Derive platform dynamically from hostname
   if (url && url !== "about:blank") {
     try {
       const host = new URL(url).hostname;
@@ -93,7 +91,6 @@ export function resolveCurrentState(observation, previousResolvedState = null) {
     }
   }
 
-  // Derive environment dynamically
   let environment = observation?.environment || browser?.environment || "generic";
   if (environment === "generic" && platform !== "generic") {
     const p = platform.toLowerCase();

@@ -86,7 +86,7 @@ describe("humanLoopBus", () => {
     humanLoopBus.on("input_cancelled", handler);
     humanLoopBus.cancelHumanInput("goal-5");
     expect(handler).toHaveBeenCalledWith({ goalId: "goal-5" });
-    try { await p; } catch { /* expected */ }
+    try { await p; } catch {  }
   });
 
   it("requestHumanInput rejects after timeout", async () => {
@@ -95,7 +95,6 @@ describe("humanLoopBus", () => {
     try {
       await inputPromise;
     } catch {
-      /* expected */
       return;
     }
     expect(true).toBe(false);

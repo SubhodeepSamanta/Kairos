@@ -14,7 +14,6 @@ export function diagnose(lastAction, browserState, previousState = null, retryCo
   const pageTitle = (browserState.title || "").toLowerCase();
   const url = (browserState.url || "").toLowerCase();
 
-  // 1. CAPTCHA / Human verification / authentication required
   const captchaProvider = detectCaptchaProvider(pageText, pageTitle, browserState.inputs, browserState.buttons, browserState.links);
   if (/captcha|verify you are human/i.test(pageText) || /captcha/i.test(pageTitle) || captchaProvider) {
     return {
@@ -28,7 +27,6 @@ export function diagnose(lastAction, browserState, previousState = null, retryCo
     };
   }
 
-  // 2. Rate Limit
   if (/rate limit|too many requests|429/i.test(pageText) || /rate limit/i.test(pageTitle)) {
     return {
       type: "rate limit",
@@ -41,7 +39,6 @@ export function diagnose(lastAction, browserState, previousState = null, retryCo
     };
   }
 
-  // 3. Modal / Popup blocking
   const closeBtn = (browserState.buttons || []).find(btn => 
     btn.purpose === "confirmation_action" || 
     (btn.text && /close|dismiss|reject|accept|agree|ok/i.test(btn.text))
@@ -58,7 +55,6 @@ export function diagnose(lastAction, browserState, previousState = null, retryCo
     };
   }
 
-  // 4. Page load failure / blank page
   if (!browserState.url || browserState.url === "about:blank") {
     return {
       type: "page load failure",
@@ -71,7 +67,6 @@ export function diagnose(lastAction, browserState, previousState = null, retryCo
     };
   }
 
-  // 5. Missing Element — includes tab search
   if (lastAction && (lastAction.type === "click" || lastAction.type === "type")) {
     const targetElementId = lastAction.params?.element;
     const elements = [...(browserState.inputs || []), ...(browserState.buttons || []), ...(browserState.links || [])];
@@ -101,7 +96,6 @@ export function diagnose(lastAction, browserState, previousState = null, retryCo
     }
   }
 
-  // 6. Dead End / Missing Affordance
   const hasInteractiveElements = [...(browserState.inputs || []), ...(browserState.buttons || []), ...(browserState.links || [])].some(el => el.visible);
   if (!hasInteractiveElements) {
     const tabs = browserState.tabs || [];
@@ -126,7 +120,6 @@ export function diagnose(lastAction, browserState, previousState = null, retryCo
     };
   }
 
-  // 7. Stale Page / No Progress
   if (previousState && (previousState.url || "").toLowerCase() === url && (previousState.title || "").toLowerCase() === pageTitle) {
     if (retryCount > 1) {
       return {

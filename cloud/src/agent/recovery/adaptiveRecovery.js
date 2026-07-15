@@ -1,10 +1,7 @@
-// Adaptive Recovery System with Learning Capabilities
-// Replaces hardcoded recovery with intelligent, learning-based recovery mechanisms
 
 import fs from 'fs';
 import path from 'path';
 
-// Recovery learning and adaptation system
 const recoveryLearning = {
   failurePatterns: new Map(),
   successPatterns: new Map(),
@@ -13,7 +10,6 @@ const recoveryLearning = {
   maxPatternHistory: 100,
   confidenceThreshold: 0.7,
   
-  // Learn from failures
   learnFromFailure(action, context, outcome) {
     const patternKey = `${action.type}:${context.pagePurpose || 'unknown'}`;
     const failurePattern = {
@@ -31,18 +27,15 @@ const recoveryLearning = {
     const patterns = this.failurePatterns.get(patternKey);
     patterns.push(failurePattern);
     
-    // Keep only recent patterns
     if (patterns.length > this.maxPatternHistory) {
       patterns.splice(0, patterns.length - this.maxPatternHistory);
     }
     
-    // Analyze failure patterns
     this.analyzeFailurePattern(patternKey, patterns);
     
     console.log(`[RECOVERY LEARNING] Learned from failure: ${patternKey} - ${outcome.reason || 'unknown reason'}`);
   },
   
-  // Learn from successes
   learnFromSuccess(action, context, outcome) {
     const patternKey = `${action.type}:${context.pagePurpose || 'unknown'}`;
     const successPattern = {
@@ -67,13 +60,11 @@ const recoveryLearning = {
     console.log(`[RECOVERY LEARNING] Learned from success: ${patternKey}`);
   },
   
-  // Analyze failure patterns to identify recovery strategies
   analyzeFailurePattern(patternKey, patterns) {
     const recentFailures = patterns.slice(-10);
     const failureTypes = recentFailures.map(p => p.outcome.reason || 'unknown').filter(r => r);
     const commonReasons = this.getMostCommon(failureTypes);
     
-    // Suggest recovery strategies based on common failure reasons
     const suggestedStrategies = [];
     
     if (commonReasons.includes('element_not_found')) {
@@ -111,7 +102,6 @@ const recoveryLearning = {
     console.log(`[RECOVERY LEARNING] Suggested strategies for ${patternKey}: ${suggestedStrategies.map(s => s.type).join(', ')}`);
   },
   
-  // Get most common items in an array
   getMostCommon(arr) {
     const counts = {};
     arr.forEach(item => {
@@ -124,21 +114,17 @@ const recoveryLearning = {
       .map(([item]) => item);
   },
   
-  // Get recovery strategies for a given action and context
   getRecoveryStrategies(action, context) {
     const patternKey = `${action.type}:${context.pagePurpose || 'unknown'}`;
     const strategies = [];
     
-    // Get failure patterns for this action
     const failurePatterns = this.failurePatterns.get(patternKey) || [];
     const successPatterns = this.successPatterns.get(patternKey) || [];
     
-    // Analyze recent failures
     if (failurePatterns.length > 0) {
       const recentFailures = failurePatterns.slice(-5);
       const commonReasons = this.getMostCommon(recentFailures.map(p => p.outcome.reason || 'unknown').filter(r => r));
       
-      // Generate recovery strategies based on common reasons
       if (commonReasons.includes('element_not_found')) {
         strategies.push({
           type: 'expand_search',
@@ -176,14 +162,12 @@ const recoveryLearning = {
       }
     }
     
-    // Get success patterns for this action
     if (successPatterns.length > 0) {
       const recentSuccesses = successPatterns.slice(-5);
       const successfulActions = recentSuccesses.map(p => p.action);
       
-      // Use successful actions as recovery strategies
       successfulActions.forEach((action, index) => {
-        if (index < 3) { // Limit to top 3 successful actions
+        if (index < 3) {
           strategies.push({
             type: 'retry_successful_action',
             description: `Retry successful action: ${action.type}`,
@@ -194,7 +178,6 @@ const recoveryLearning = {
       });
     }
     
-    // Add generic recovery strategies
     strategies.push({
       type: 'generic_recovery',
       description: 'Apply generic recovery strategy',
@@ -209,7 +192,6 @@ const recoveryLearning = {
   }
 };
 
-// Adaptive recovery system
 class AdaptiveRecoverySystem {
   constructor() {
     this.recoveryStrategies = [];
@@ -225,42 +207,34 @@ class AdaptiveRecoverySystem {
     };
   }
 
-  // Determine recovery strategy based on action and context
   determineRecovery(action, context, retryCount = 0) {
-    // Get recovery strategies from learning system
     const strategies = recoveryLearning.getRecoveryStrategies(action, context);
     
-    // Filter strategies based on retry count
     const availableStrategies = strategies.filter(s => {
-      if (retryCount === 0) return true; // All strategies available on first attempt
-      if (s.type === 'retry_successful_action') return retryCount < 3; // Only retry successful actions up to 3 times
+      if (retryCount === 0) return true;
+      if (s.type === 'retry_successful_action') return retryCount < 3;
       return true;
     });
     
-    // Select best strategy
     const selectedStrategy = availableStrategies[0];
     if (!selectedStrategy) {
-      return null; // No recovery strategy available
+      return null;
     }
     
-    // Log recovery decision
     console.log(`[ADAPTIVE RECOVERY] Selected strategy: ${selectedStrategy.type} (confidence: ${selectedStrategy.confidence.toFixed(2)}) for action: ${action.type} (retry: ${retryCount})`);
     
     return selectedStrategy;
   }
 
-  // Execute recovery with learning
   async executeRecovery(action, context, retryCount = 0) {
     const startTime = Date.now();
     
-    // Determine recovery strategy
     const strategy = this.determineRecovery(action, context, retryCount);
     if (!strategy) {
       console.log(`[ADAPTIVE RECOVERY] No recovery strategy available for action: ${action.type}`);
       return null;
     }
     
-    // Execute recovery actions
     console.log(`[ADAPTIVE RECOVERY] Executing recovery: ${strategy.description}`);
     
     try {
@@ -290,10 +264,8 @@ class AdaptiveRecoverySystem {
       };
       
     } catch (error) {
-      // Log failed recovery
       console.error(`[ADAPTIVE RECOVERY] Recovery failed: ${error.message}`);
       
-      // Learn from failed recovery
       if (this.adaptiveLearning) {
         recoveryLearning.learnFromFailure(action, context, {
           success: false,
@@ -310,7 +282,6 @@ class AdaptiveRecoverySystem {
     }
   }
 
-  // Escalate recovery when normal strategies fail
   async escalateRecovery(action, context, retryCount) {
     console.log(`[ADAPTIVE RECOVERY] Escalating recovery for action: ${action.type} (retry: ${retryCount})`);
     
@@ -340,7 +311,6 @@ class AdaptiveRecoverySystem {
     
     const selectedStrategy = escalationStrategies[0];
     
-    // Log escalation
     console.log(`[ADAPTIVE RECOVERY] Escalation strategy: ${selectedStrategy.type}`);
     
     return {
@@ -351,7 +321,6 @@ class AdaptiveRecoverySystem {
     };
   }
 
-  // Update recovery statistics
   updateStats(action, success, recoveryTime) {
     this.recoveryStats.totalRecoveries++;
     if (success) {
@@ -365,7 +334,6 @@ class AdaptiveRecoverySystem {
     this.recoveryStats.adaptationCount++;
   }
 
-  // Get recovery statistics
   getRecoveryStats() {
     const successRate = this.recoveryStats.totalRecoveries > 0 
       ? (this.recoveryStats.successfulRecoveries / this.recoveryStats.totalRecoveries) * 100 
@@ -381,28 +349,23 @@ class AdaptiveRecoverySystem {
     };
   }
 
-  // Enable or disable adaptive learning
   setAdaptiveLearning(enabled) {
     this.adaptiveLearning = enabled;
     recoveryLearning.learningEnabled = enabled;
     console.log(`[ADAPTIVE RECOVERY] Adaptive learning ${enabled ? 'enabled' : 'disabled'}`);
   }
 
-  // Add custom recovery strategy
   addRecoveryStrategy(strategy) {
     this.recoveryStrategies.push(strategy);
     console.log(`[ADAPTIVE RECOVERY] Added custom recovery strategy: ${strategy.type}`);
   }
 }
 
-// Global adaptive recovery system instance
 const adaptiveRecovery = new AdaptiveRecoverySystem();
 
-// Export recovery system
 export { AdaptiveRecoverySystem, adaptiveRecovery };
 export default adaptiveRecovery;
 
-// Export convenience functions
 export async function executeAdaptiveRecovery(action, context, retryCount = 0) {
   return adaptiveRecovery.executeRecovery(action, context, retryCount);
 }

@@ -68,7 +68,6 @@ function inferPagePurpose(resolvedState, browser = {}, elements = []) {
     pathname = new URL(url).pathname;
   } catch (e) {}
 
-  // 1. Check for modal/overlay constraints
   const closeBtn = (browser.buttons || []).some(btn => 
     btn.purpose === "close_button" || 
     (btn.text && /close|dismiss|reject|accept/i.test(btn.text))
@@ -77,59 +76,48 @@ function inferPagePurpose(resolvedState, browser = {}, elements = []) {
     return "modal flow";
   }
 
-  // 2. Login/auth flow
   if (resolvedState.currentState === "login" || hasPasswordInput || /login|signin|sign-in|auth|register|signup/i.test(pathname) || /sign in|log in|create account/i.test(title)) {
     return "login flow";
   }
 
-  // 3. Search results
   const isSearchUrl = /\/search|\/results|[?&](q|query|search_query)=/.test(url);
   if (resolvedState.currentState === "results" || isSearchUrl || /search/i.test(title)) {
     return "search results";
   }
 
-  // 4. Video player
   if (resolvedState.currentState === "content" && (url.includes("/watch") || url.includes("/shorts") || /video|play/i.test(title) || (browser.capabilities || []).includes("media_available"))) {
     return "video player";
   }
 
-  // 5. Checkout / cart
   if (/checkout|payment|cart|basket/i.test(pathname) || /checkout|payment|cart/i.test(title) || elements.some(e => e.semanticType === "checkout_action" || /checkout|buy|pay/i.test(e.label))) {
     return "checkout";
   }
 
-  // 6. Settings
   if (resolvedState.currentState === "settings" || /settings|preferences|config/i.test(pathname) || /settings|preferences/i.test(title)) {
     return "settings";
   }
 
-  // 7. Profile
   if (/profile|account|my-account/i.test(pathname) || /profile|my account/i.test(title)) {
     return "profile";
   }
 
-  // 8. Product catalogs/repositories list
   if (elements.some(e => e.semanticType === "repository_item" || e.purpose === "repository_link" || e.semanticType === "product_item")) {
     return "catalog";
   }
 
-  // 9. Dashboard
   if (/dashboard|feed/i.test(url) || /dashboard|console/i.test(title)) {
     return "dashboard";
   }
 
-  // 10. Data entry form
   const inputCount = (browser.inputs || []).length;
   if (inputCount >= 3) {
     return "form";
   }
 
-  // 11. Article / blog / wiki
   if (/wiki|article|post|blog/i.test(url) || pageText.length > 1000) {
     return "article";
   }
 
-  // 12. Search interface (main search inputs, landing pages of search engines/portals)
   if (resolvedState.currentState === "home" || (browser.inputs || []).some(input => input.purpose === "search_input")) {
     return "search interface";
   }

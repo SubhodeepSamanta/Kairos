@@ -27,7 +27,6 @@ function normalizeElement(element = {}, source = "element", index = 0) {
   }
   if (element.href) actionHints.push("navigate");
 
-  // Use ARIA role to determine semanticType if classifier didn't provide one
   let semanticType = element.semanticType || null;
   let purpose = element.purpose || null;
   if (!semanticType && ariaRole) {
@@ -97,7 +96,6 @@ function inferPagePurpose(resolvedState, browser = {}, elements = []) {
   const pageText = (browser.text || "").toLowerCase();
   const hasPasswordInput = (browser.inputs || []).some(input => input.type === "password");
 
-  // 1. Check for modal/overlay constraints
   const closeBtn = (browser.buttons || []).some(btn => 
     btn.purpose === "confirmation_action" || 
     (btn.text && /close|dismiss|reject|accept/i.test(btn.text))
@@ -106,12 +104,10 @@ function inferPagePurpose(resolvedState, browser = {}, elements = []) {
     return "modal flow";
   }
 
-  // 2. Content access flow (remove platform-specific naming)
   const hasInteractiveElements = (browser.inputs || []).length > 0 || 
     (browser.buttons || []).length > 0 || 
     (browser.links || []).length > 0;
 
-  // 3. User input opportunities
   const hasSearchIntent = elements.some(el => 
     el.semanticType === "search_input" || 
     el.purpose === "search_input" ||
@@ -140,8 +136,6 @@ function inferPagePurpose(resolvedState, browser = {}, elements = []) {
     el.purpose === "input_element" ||
     (browser.inputs || []).length > 0
   );
-
-  // Semantic classification based on user interaction patterns
 
   if (hasPasswordInput || /credential|authentication|access|sign|log in/i.test(title) || /login|signin|auth|protected/i.test(url)) {
     return "access_control";
@@ -268,25 +262,21 @@ function extractEntities(browser, elements) {
   const entities = [];
   const text = browser.text || "";
   
-  // Extract possible financial values
   const financialMatch = text.match(/\$\d+(?:\.\d{2})?|\d+(?:\.\d{2})?\s*(?:USD|EUR|GBP)/g);
   if (financialMatch) {
     financialMatch.forEach(value => entities.push({ type: "price", value: value }));
   }
 
-  // Extract numerical counts or metrics
   const countMatch = text.match(/(\d+(?:\.\d+)?k?)\s*(?:total|count|items?|users?|views?|pageviews?|repo)\b/i);
   if (countMatch) {
     entities.push({ type: "metric_count", value: countMatch[1] });
   }
 
-  // Extract date/time references
   const dateMatch = text.match(/(?:by|deadline|due|on)\s+([A-Za-z]+ \d{1,2}(?:,? \d{4})?)/i);
   if (dateMatch) {
     entities.push({ type: "deadline", value: dateMatch[1] });
   }
 
-  // Extract interface elements
   const interfaceMatch = text.match(/(?:username|email|password|login|sign in|sign up|register)/i);
   if (interfaceMatch) {
     entities.push({ type: "interface_element", value: interfaceMatch[0] });
@@ -326,7 +316,7 @@ export function understandPage(observation, previousResolvedState = null) {
     constraints,
     risks,
     confidence,
-    importantElements, // Keep for backward compatibility / reasoner usage
+    importantElements,
     resolvedState
   };
 }

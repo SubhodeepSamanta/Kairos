@@ -48,7 +48,6 @@ export function heuristicVerifyGoal(goal, browserState, worldState = null) {
     ...(browserState.links || [])
   ];
 
-  // 1. Data extraction verification
   if (parsedGoal.objective === "extract_information") {
     if (worldState?.findings && worldState.findings.length > 0) {
       return true;
@@ -62,7 +61,6 @@ export function heuristicVerifyGoal(goal, browserState, worldState = null) {
     return false;
   }
 
-  // 2. Consume media verification
   if (parsedGoal.objective === "consume media") {
     const capabilities = browserState.capabilities || [];
     if (capabilities.includes("media_active") || capabilities.includes("media_playing") || capabilities.includes("media_available")) {
@@ -71,11 +69,9 @@ export function heuristicVerifyGoal(goal, browserState, worldState = null) {
     if (pageType === "media content") {
       return true;
     }
-    // URL-based detection: on a content page satisfies the goal
     if (url.includes("/watch") || url.includes("/video")) {
       return true;
     }
-    // Resolved state detection
     const semanticState = browserState.resolvedState?.semanticState || "";
     if (semanticState === "media content" || semanticState === "content detail") {
       return true;
@@ -83,7 +79,6 @@ export function heuristicVerifyGoal(goal, browserState, worldState = null) {
     return false;
   }
 
-  // 3. Search verification
   if (parsedGoal.objective === "search_content") {
     const hasResultElements = elements.some(el => 
       el.semanticType === "primary_content" || 
@@ -99,7 +94,6 @@ export function heuristicVerifyGoal(goal, browserState, worldState = null) {
     return false;
   }
 
-  // 4. Authenticate verification
   if (parsedGoal.objective === "authenticate") {
     if (pageType === "profile" || pageType === "dashboard" || (worldState && worldState.authenticated)) {
       return true;
@@ -110,7 +104,6 @@ export function heuristicVerifyGoal(goal, browserState, worldState = null) {
     return false;
   }
 
-  // 5. Retrieve artifact verification
   if (parsedGoal.objective === "retrieve artifact") {
     if (text.includes("download complete") || text.includes("exported successfully")) {
       return true;
@@ -118,22 +111,16 @@ export function heuristicVerifyGoal(goal, browserState, worldState = null) {
     return false;
   }
 
-  // 6. Navigation verification (universal capability-based)
   if (parsedGoal.objective === "navigate") {
-    // Only verify as complete if we landed on the exact capability mentioned
-    // AND the goal doesn't mention any additional actions to perform
     const goalText = typeof goal === "object" ? goal.objective : goal;
     const goalLower = goalText.toLowerCase();
     const hasAdditionalAction = /search|find|play|click|type|fill|login|signin|extract|get|download|compare|open\s+and|then/.test(goalLower);
     
     if (hasAdditionalAction) {
-      // Multi-step goal - don't verify navigation as complete
       return false;
     }
     
-    // Check for capabilities instead of platforms
     if (parsedGoal.capabilities && parsedGoal.capabilities.length > 0) {
-      // Check if any capability matches the URL
       const capabilities = parsedGoal.capabilities.map(c => c.toLowerCase());
       for (const capability of capabilities) {
         if (url.includes(capability)) {
@@ -142,7 +129,6 @@ export function heuristicVerifyGoal(goal, browserState, worldState = null) {
       }
     }
     
-    // Only verify if we're on a non-blank page AND goal was purely navigational
     if (url.startsWith("http") && !hasAdditionalAction) {
       return true;
     }
@@ -154,16 +140,13 @@ export function heuristicVerifyGoal(goal, browserState, worldState = null) {
 export async function verifyGoal(goal, browserState, worldState = null) {
   if (!goal || !browserState) return false;
 
-  // 1. Keep the fast heuristic check as a FIRST PASS
   const heuristicResult = heuristicVerifyGoal(goal, browserState, worldState);
   console.log(`[VERIFY_HEURISTIC] Heuristic verification result: ${heuristicResult}`);
 
-  // 2. If heuristic returns TRUE, run a second LLM verification call to confirm
   if (!heuristicResult) {
     return false;
   }
 
-  // 3. LLM verification call
   try {
     if (typeof goal === "object" && goal.metrics) {
       goal.metrics.verification_calls = (goal.metrics.verification_calls || 0) + 1;
@@ -247,7 +230,6 @@ Has this goal been achieved?`;
     console.error(`[VERIFY_LLM] LLM verification failed or returned invalid JSON:`, err.message);
   }
 
-  // 5. Fallback to heuristic result if LLM fails or is unavailable
   console.log(`[VERIFY_LLM] Falling back to heuristic result: ${heuristicResult}`);
   return heuristicResult;
 }

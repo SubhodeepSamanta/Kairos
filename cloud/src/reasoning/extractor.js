@@ -6,7 +6,6 @@ export async function extractDataFromPage(pageText, query) {
   
   const response = await askLLM(systemPrompt, userPrompt);
   try {
-    // Extract JSON block if LLM returned markdown wrapped JSON
     const objectStart = response.indexOf("{");
     const end = response.lastIndexOf("}");
     if (objectStart !== -1 && end !== -1) {

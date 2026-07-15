@@ -30,7 +30,6 @@ function startPrompt() {
       return;
     }
 
-    // Treat as goal
     isWaiting = true;
     sendGoal(input);
   });

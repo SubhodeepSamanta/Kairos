@@ -13,7 +13,6 @@ export function startTelegramBot(
         );
 
     bot.on("polling_error", (error) => {
-        // Quietly handle connection errors due to blocked Telegram bot API access
     });
 
     bot.on(

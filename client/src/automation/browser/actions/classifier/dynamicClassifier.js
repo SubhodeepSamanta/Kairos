@@ -1,10 +1,7 @@
-// Dynamic ML-based Element Classifier
-// Replaces hardcoded classification with adaptive ML models
 
 import fs from 'fs';
 import path from 'path';
 
-// In-memory ML model cache
 let mlModelCache = null;
 let modelTrainingStats = {
   lastTraining: null,
@@ -13,7 +10,6 @@ let modelTrainingStats = {
   adaptationCount: 0
 };
 
-// Simple neural network implementation for element classification
 class ElementClassifierNN {
   constructor() {
     this.weights = this.initializeWeights();
@@ -44,37 +40,30 @@ class ElementClassifierNN {
     return function(el, role) {
       const features = {};
       
-      // Text features
       features.text = (el.text || "").toLowerCase();
       features.textLength = features.text.length;
       features.hasText = !!features.text;
       features.isEmptyText = features.text.trim() === "";
       
-      // Context features
       features.placeholder = (el.placeholder || "").toLowerCase();
       features.ariaLabel = (el.ariaLabel || "").toLowerCase();
       features.name = (el.name || "").toLowerCase();
       features.title = (el.title || "").toLowerCase();
       features.href = (el.href || "").toLowerCase();
       
-      // Combined features
       features.combined = `${features.text} ${features.placeholder} ${features.ariaLabel} ${features.name} ${features.title} ${features.href}`;
       
-      // Role features
       features.role = role;
       features.isInput = role === "input";
       features.isButton = role === "button";
       features.isLink = role === "link";
       
-      // Attribute features
       features.readOnly = el.readOnly || el.readonly || false;
       features.disabled = el.disabled || false;
       features.enabled = !features.disabled;
       
-      // Visual features
       features.hasIcon = !features.hasText && (features.ariaLabel || features.title);
       
-      // Pattern features
       features.patterns = {
         search: /search|find|query|jump to/i.test(features.combined),
         navigation: /home|logo|profile|account|cart/i.test(features.combined),
@@ -95,7 +84,6 @@ class ElementClassifierNN {
     const scores = {};
     const role = features.role;
     
-    // Calculate scores based on patterns and weights
     if (role === "input") {
       if (features.patterns.search && features.readOnly) {
         scores.navigation_target = (this.weights.purposeWeights.navigation_target || 0.7) * 1.2;
@@ -125,12 +113,10 @@ class ElementClassifierNN {
       }
     }
     
-    // Default to generic if no specific patterns matched
     if (Object.keys(scores).length === 0) {
       scores.generic = (this.weights.purposeWeights.generic || 0.2);
     }
     
-    // Find best match
     const bestPurpose = Object.keys(scores).reduce((a, b) => scores[a] > scores[b] ? a : b, 'generic');
     const confidence = Math.min(scores[bestPurpose] || 0.5, 1.0);
     
@@ -141,11 +127,9 @@ class ElementClassifierNN {
     const features = this.extractFeatures(el, role);
     const prediction = this.predict(features);
     
-    // Calculate error
     const error = prediction.purpose === correctPurpose ? 0 : 1;
     const confidenceAdjustment = error ? -0.1 : 0.05;
     
-    // Update weights based on learning
     if (this.weights.purposeWeights[prediction.purpose]) {
       this.weights.purposeWeights[prediction.purpose] += confidenceAdjustment;
     }
@@ -157,11 +141,9 @@ class ElementClassifierNN {
   }
 
   adaptFromContext(browserContext) {
-    // Adapt weights based on browser context and user behavior patterns
     if (browserContext && browserContext.pageType) {
       const pageType = browserContext.pageType.toLowerCase();
       
-      // Adjust weights based on page type
       if (pageType.includes('search')) {
         this.weights.purposeWeights.search_input *= 1.1;
         this.weights.purposeWeights.navigation_target *= 1.05;
@@ -179,7 +161,6 @@ class ElementClassifierNN {
   }
 }
 
-// Dynamic classifier with ML and fallback mechanisms
 class DynamicElementClassifier {
   constructor() {
     this.nnClassifier = new ElementClassifierNN();
@@ -190,7 +171,6 @@ class DynamicElementClassifier {
 
   createFallbackClassifier() {
     return function(el, role) {
-      // Simple fallback logic for when ML is not available
       const text = (el.text || "").toLowerCase();
       const placeholder = (el.placeholder || "").toLowerCase();
       const combined = `${text} ${placeholder}`;
@@ -238,12 +218,9 @@ class DynamicElementClassifier {
 
   classifyElement(el, role, context = {}) {
     try {
-      // Try ML-based classification first
       const mlResult = this.nnClassifier.predict(this.nnClassifier.extractFeatures(el, role));
       
-      // Check if ML confidence is high enough
       if (mlResult.confidence >= this.confidenceThreshold) {
-        // Adapt from context if learning is enabled
         if (this.adaptiveLearning && context.pageType) {
           this.nnClassifier.adaptFromContext(context);
         }
@@ -256,7 +233,6 @@ class DynamicElementClassifier {
         };
       }
       
-      // Fallback to traditional classifier if ML confidence is low
       const fallbackResult = this.fallbackClassifier(el, role);
       
       return {
@@ -284,7 +260,6 @@ class DynamicElementClassifier {
   }
 
   learnFromUserInteraction(el, role, userAction, context) {
-    // Learn from user interactions to improve classification
     const correctPurpose = this.inferPurposeFromUserAction(userAction);
     
     if (correctPurpose) {
@@ -293,7 +268,6 @@ class DynamicElementClassifier {
   }
 
   inferPurposeFromUserAction(action) {
-    // Infer the correct purpose from user action
     const actionType = (action.type || "").toLowerCase();
     const actionText = (action.text || "").toLowerCase();
     
@@ -313,7 +287,6 @@ class DynamicElementClassifier {
   }
 
   updateContext(context) {
-    // Update classifier context for adaptive learning
     this.currentContext = context;
   }
 
@@ -328,30 +301,24 @@ class DynamicElementClassifier {
   }
 }
 
-// Global classifier instance
 const dynamicClassifier = new DynamicElementClassifier();
 
-// Export the main classification function
 export function classifyElement(el, role, context = {}) {
   return dynamicClassifier.classifyElement(el, role, context);
 }
 
-// Export learning function
 export function learnFromInteraction(el, role, userAction, context) {
   dynamicClassifier.learnFromUserInteraction(el, role, userAction, context);
 }
 
-// Export context update function
 export function updateClassifierContext(context) {
   dynamicClassifier.updateContext(context);
 }
 
-// Export stats function
 export function getClassifierStats() {
   return dynamicClassifier.getModelStats();
 }
 
-// Initialize with default context
 export function initializeClassifier() {
   console.log("[DYNAMIC CLASSIFIER] Initialized ML-based element classifier");
   console.log("[DYNAMIC CLASSIFIER] Model ready for adaptive learning");

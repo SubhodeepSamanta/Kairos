@@ -76,7 +76,6 @@ export function updateWorldModel(
     world.lastStateHash = stateHash;
   }
 
-  // 1. Upgrade: Track page understandings cache
   world.recentPageUnderstandings = world.recentPageUnderstandings || [];
   try {
     const pageState = observation?.pageState || observation || {};
@@ -94,7 +93,6 @@ export function updateWorldModel(
   if (observation?.action) {
     world.lastAction = observation.action;
     
-    // 2. Upgrade: Action history tracking
     world.actionHistory = world.actionHistory || [];
     world.actionHistory.push({
       action: observation.action,
@@ -142,7 +140,6 @@ export function updateWorldModel(
       }
     }
 
-    // 3. Upgrade: Progress Indicators
     world.progressIndicators = world.progressIndicators || { totalActions: 0, unchangedPagesCount: 0 };
     world.progressIndicators.totalActions++;
     if (outcome === "page unchanged") {
@@ -241,7 +238,6 @@ export function getWorldSummary(
     parts.push(`Current Title: ${w.lastTitle}`);
   }
 
-  // 4. Upgrade: Add Page Purpose/Workflow info to summary
   if (w.recentPageUnderstandings?.length > 0) {
     const latest = w.recentPageUnderstandings[w.recentPageUnderstandings.length - 1];
     parts.push(`Page Purpose: ${latest.pagePurpose}`);

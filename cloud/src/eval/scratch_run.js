@@ -1,7 +1,6 @@
 import { SCENARIOS } from "./scenarios.js";
 import { runAgent } from "../agent/index.js";
 
-// Same BrowserSimulator as evalRunner.js
 class BrowserSimulator {
   constructor() {
     this.reset();
@@ -42,7 +41,6 @@ class BrowserSimulator {
         this.url = action.params.url;
         const lowerUrl = this.url.toLowerCase();
         
-        // 1. Identify portal type from URL
         if (lowerUrl.includes("youtube.com")) {
           this.title = "Media Portal";
           this.pageType = "media_home";
@@ -69,7 +67,6 @@ class BrowserSimulator {
         }
         this.text = `Welcome to ${this.title}. Find your desired content.`;
 
-        // If goal was login, configure password inputs
         if (lowerUrl.includes("login") || lowerUrl.includes("auth")) {
           this.pageType = "login_page";
           this.inputs = [
@@ -92,14 +89,12 @@ class BrowserSimulator {
         this.title = `${queryVal} - Search Results`;
         this.text = `Here are the top results for ${queryVal}. Location details and requirements available. July 15 deadline. Price is $120. Stars count: 45k.`;
         
-        // Expose appropriate result links (universal)
         if (this.url.includes("youtube")) {
           this.links = [{ id: "v1", purpose: "video_link", semanticType: "content_item", href: "/watch?v=1" }];
         } else {
           this.links = [{ id: "r3", purpose: "result_link", semanticType: "selection_candidate" }];
         }
       } else if (action.type === "click") {
-        // Handle close overlay
         if (action.params.element === "b1") {
           this.pageType = "search_home";
           this.title = "Overlay Portal Home";
@@ -144,7 +139,6 @@ class BrowserSimulator {
 }
 
 async function run() {
-  // 1. Take optional CLI argument for scenario id
   let scenarioId = null;
   const args = process.argv;
   const idx = args.indexOf("--scenario");
@@ -152,10 +146,8 @@ async function run() {
     scenarioId = args[idx + 1];
   }
 
-  // Find scenario
   let scen = SCENARIOS.find(s => s.id === scenarioId);
   if (!scen) {
-    // Default to the first scenario if not specified or not found
     scen = SCENARIOS[0];
     console.log(`[SCRATCH] Scenario '${scenarioId || ""}' not specified/found. Defaulting to '${scen.id}'`);
   }

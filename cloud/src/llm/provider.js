@@ -16,7 +16,6 @@ export async function askLLM(
   contextId = null
 ) {
   try {
-    // Create context if not provided
     let actualContextId = contextId;
     if (!actualContextId) {
       const contextObj = contextManager.createContext({
@@ -26,13 +25,11 @@ export async function askLLM(
       actualContextId = contextObj.id;
     }
 
-    // Check LLM call limit
     if (llmCallCount >= maxLlmCalls) {
       throw new Error(`LLM Call Budget Exceeded: limit of ${maxLlmCalls} calls reached.`);
     }
     llmCallCount++;
 
-    // Log token usage for monitoring
     const systemTokens = Math.ceil(systemPrompt.length / 4);
     const userTokens = Math.ceil(userPrompt.length / 4);
     console.log(
@@ -53,13 +50,11 @@ export async function askLLM(
       );
 
       try {
-        // Use context manager for optimized LLM calls
         const result = await contextManager.makeLLMCall(
           actualContextId,
           systemPrompt,
           userPrompt,
           async (sysPrompt, usrPrompt, ctx) => {
-            // Make the actual provider call
             return await provider(sysPrompt, usrPrompt);
           }
         );

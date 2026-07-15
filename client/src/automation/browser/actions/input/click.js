@@ -100,7 +100,6 @@ export async function clickText(
           }
         }
 
-        // Phase 2: Coordinate-based fallback using stored bounding box
         if (!fallbackSuccess) {
           const box = getElementBox(element);
           if (box && box.left !== null && box.top !== null && box.width > 0 && box.height > 0) {
