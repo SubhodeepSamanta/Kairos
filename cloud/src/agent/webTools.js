@@ -17,10 +17,10 @@ async function fetchWithTimeout(url, options = {}) {
   }
 }
 
-export async function webSearch(query, maxResults = 8) {
+async function searchDuckDuckGo(query, maxResults) {
   const url = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
   const response = await fetchWithTimeout(url, { method: "POST" });
-  if (!response.ok) throw new Error(`search failed: ${response.status}`);
+  if (!response.ok) return [];
   const html = await response.text();
 
   const $ = cheerio.load(html);
@@ -35,6 +35,47 @@ export async function webSearch(query, maxResults = 8) {
     const snippet = $(el).find(".result__snippet").text().trim().slice(0, 200);
     if (title && href) results.push({ title, url: href, snippet });
   });
+  return results;
+}
+
+function unwrapBingUrl(href) {
+  const m = href.match(/[?&]u=a1([^&]+)/);
+  if (!m) return href;
+  try {
+    const b64 = m[1].replace(/-/g, "+").replace(/_/g, "/");
+    return Buffer.from(b64, "base64").toString("utf8");
+  } catch {
+    return href;
+  }
+}
+
+async function searchBing(query, maxResults) {
+  const url = `https://www.bing.com/search?q=${encodeURIComponent(query)}`;
+  const response = await fetchWithTimeout(url, { headers: { "Accept-Language": "en-US,en;q=0.9" } });
+  if (!response.ok) return [];
+  const html = await response.text();
+
+  const $ = cheerio.load(html);
+  const results = [];
+  $("li.b_algo").each((_, el) => {
+    if (results.length >= maxResults) return false;
+    const a = $(el).find("h2 a").first();
+    const href = a.attr("href");
+    const title = a.text().trim();
+    const snippet = $(el).find(".b_caption p").text().trim().slice(0, 200);
+    if (title && href) results.push({ title, url: unwrapBingUrl(href), snippet });
+  });
+  return results;
+}
+
+export async function webSearch(query, maxResults = 8) {
+  let results = await searchDuckDuckGo(query, maxResults).catch(() => []);
+  if (!results.length) {
+    results = await searchBing(query, maxResults).catch(() => []);
+  }
+  if (!results.length) {
+    throw new Error("search engines are blocking us right now — open the browser, navigate to https://www.bing.com/search?q=… and read the page instead");
+  }
   return results;
 }
 

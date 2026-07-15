@@ -15,7 +15,7 @@ export async function askOpenRouter(
   const timeout =
     setTimeout(
       () => controller.abort(),
-      30000
+      45000
     );
 
   try {
@@ -34,8 +34,8 @@ export async function askOpenRouter(
           },
 
           body: JSON.stringify({
-            model:
-              "meta-llama/llama-3.3-70b-instruct",
+            model: "meta-llama/llama-3.3-70b-instruct:free",
+            max_tokens: 1024,
 
             messages: [
               {

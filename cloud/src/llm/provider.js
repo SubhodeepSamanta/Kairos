@@ -1,10 +1,11 @@
-import { askGroq } from "./groq.js";
+import { askGroq, askGroqSmall } from "./groq.js";
 import { askOpenRouter } from "./openrouter.js";
 import { askNvidia } from "./nvidia.js";
 
 const providers = [
-  { name: "groq", ask: askGroq },
+  { name: "groq-70b", ask: askGroq },
   { name: "openrouter", ask: askOpenRouter },
+  { name: "groq-8b", ask: askGroqSmall },
   { name: "nvidia", ask: askNvidia }
 ];
 

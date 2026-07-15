@@ -9,6 +9,7 @@ const MAX_LLM_CALLS = 45;
 const MAX_HISTORY_LINES = 22;
 const MAX_REPEATS_BEFORE_WARNING = 2;
 const MAX_REPEATS_BEFORE_ABORT = 4;
+const LLM_RETRY_WAITS_MS = [8000, 20000, 45000, 0];
 
 const BROWSER_ACTIONS = {
   navigate: a => ({ type: "navigate", params: { url: a.url } }),
@@ -66,26 +67,36 @@ export async function runAgent({ goal, goalId, executeAction, askHuman, onStatus
   while (step < MAX_STEPS) {
     step++;
 
-    let decision;
-    try {
-      decision = await askLLMJson(
-        SYSTEM_PROMPT,
-        buildStepPrompt({
-          goal,
-          memories: formatFactsForPrompt(relevantFacts(goal)),
-          history: trimHistory(history),
-          snapshot: lastPage
-            ? formatSnapshot(lastPage)
-            : "not observed yet — use {\"type\":\"read\"} to see the current browser, navigate somewhere, or answer directly with done",
-          notice
-        }),
-        budget
-      );
-    } catch (err) {
-      if (err.message.startsWith("llm_budget_exceeded")) {
-        return finish(false, "I ran out of AI budget for this goal. Partial progress: " + (history.slice(-3).join("; ") || "none"));
+    const stepPrompt = buildStepPrompt({
+      goal,
+      memories: formatFactsForPrompt(relevantFacts(goal)),
+      history: trimHistory(history),
+      snapshot: lastPage
+        ? formatSnapshot(lastPage)
+        : "not observed yet — use {\"type\":\"read\"} to see the current browser, navigate somewhere, or answer directly with done",
+      notice
+    });
+
+    let decision = null;
+    let llmError = null;
+    for (const waitMs of LLM_RETRY_WAITS_MS) {
+      try {
+        decision = await askLLMJson(SYSTEM_PROMPT, stepPrompt, budget);
+        llmError = null;
+        break;
+      } catch (err) {
+        llmError = err;
+        if (err.message.startsWith("llm_budget_exceeded")) {
+          return finish(false, "I ran out of AI budget for this goal. Partial progress: " + (history.slice(-3).join("; ") || "none"));
+        }
+        if (waitMs > 0) {
+          status(`AI providers busy, retrying in ${waitMs / 1000}s…`);
+          await new Promise(r => setTimeout(r, waitMs));
+        }
       }
-      return finish(false, `AI error: ${err.message}`);
+    }
+    if (!decision) {
+      return finish(false, `AI error after retries: ${llmError.message}`);
     }
     notice = "";
 
@@ -111,7 +122,7 @@ export async function runAgent({ goal, goalId, executeAction, askHuman, onStatus
       return finish(false, `I kept repeating the same step (${describeAction(action)}) without progress and stopped. History: ${history.slice(-3).join("; ")}`);
     }
     if (repeatCounts[sig] > MAX_REPEATS_BEFORE_WARNING) {
-      notice = `You already tried "${describeAction(action)}" ${repeatCounts[sig] - 1} times. It is not working. Choose a DIFFERENT approach.`;
+      notice = `You already tried "${describeAction(action)}" ${repeatCounts[sig] - 1} times. It is not working. Choose a DIFFERENT approach — usually best: web_search the exact target and navigate directly to the URL from the results.`;
     }
 
     if (action.type === "remember") {

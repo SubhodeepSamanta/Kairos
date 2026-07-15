@@ -15,7 +15,7 @@ export async function askNvidia(
   const timeout =
     setTimeout(
       () => controller.abort(),
-      30000
+      45000
     );
 
   try {
@@ -34,8 +34,8 @@ export async function askNvidia(
           },
 
           body: JSON.stringify({
-            model:
-              "meta/llama-3.3-70b-instruct",
+            model: "meta/llama-3.3-70b-instruct",
+            max_tokens: 1024,
 
             messages: [
               {
