@@ -6,7 +6,7 @@ import { webSearch, formatSearchResults, fetchPageText } from "../webTools.js";
 
 const MAX_STEPS = 30;
 const MAX_LLM_CALLS = 45;
-const MAX_HISTORY_LINES = 22;
+const MAX_HISTORY_LINES = 16;
 const MAX_REPEATS_BEFORE_WARNING = 2;
 const MAX_REPEATS_BEFORE_ABORT = 4;
 const LLM_RETRY_WAITS_MS = [8000, 20000, 45000, 0];
@@ -24,8 +24,18 @@ const BROWSER_ACTIONS = {
   close_tab: a => ({ type: "close_tab", params: { index: a.index } }),
   read: () => ({ type: "read_ui", params: {} }),
   wait: a => ({ type: "wait", params: { seconds: Math.min(Number(a.seconds) || 2, 10) } }),
-  screenshot: () => ({ type: "screenshot", params: {} })
+  screenshot: () => ({ type: "screenshot", params: {} }),
+  list_browsers: () => ({ type: "list_browsers", params: {} }),
+  use_browser: a => ({ type: "use_browser", params: { browser: a.browser, profile: a.profile || null } })
 };
+
+const DATA_SUMMARY = {
+  list_browsers: d => `\n${d.browsers}`,
+  use_browser: d => ` (now using ${d.browser}${d.profileLabel ? ` profile "${d.profileLabel}"` : ""})`,
+  screenshot: d => d.path ? ` (saved ${d.path})` : ""
+};
+
+const IDEMPOTENT_INFO = new Set(["list_browsers"]);
 
 function actionSignature(action) {
   return JSON.stringify(action);
@@ -48,6 +58,7 @@ export async function runAgent({ goal, goalId, executeAction, askHuman, onStatus
   const budget = createBudget(MAX_LLM_CALLS);
   const history = [];
   const repeatCounts = {};
+  const succeededResults = {};
   let lastPage = null;
   let notice = "";
   let step = 0;
@@ -117,6 +128,13 @@ export async function runAgent({ goal, goalId, executeAction, askHuman, onStatus
     }
 
     const sig = actionSignature(action);
+
+    if (succeededResults[sig] && action.type !== "read") {
+      notice = `You ALREADY ran "${describeAction(action)}" at step ${succeededResults[sig].step} and it succeeded — its result is in HISTORY and has not changed. Do not run it again. Use that result now: either answer with done, or take the NEXT step toward the goal.`;
+      console.log(`[STEP ${step}] blocked repeat of already-successful ${action.type}`);
+      continue;
+    }
+
     repeatCounts[sig] = (repeatCounts[sig] || 0) + 1;
     if (repeatCounts[sig] > MAX_REPEATS_BEFORE_ABORT) {
       return finish(false, `I kept repeating the same step (${describeAction(action)}) without progress and stopped. History: ${history.slice(-3).join("; ")}`);
@@ -133,9 +151,10 @@ export async function runAgent({ goal, goalId, executeAction, askHuman, onStatus
 
     if (action.type === "web_search") {
       status(`Searching: ${action.query}`);
+      succeededResults[sig] = { step };
       try {
         const results = await webSearch(String(action.query || ""));
-        history.push(`#${step} web_search "${String(action.query).slice(0, 60)}" →\n${formatSearchResults(results).slice(0, 900)}`);
+        history.push(`#${step} web_search "${String(action.query).slice(0, 60)}" →\n${formatSearchResults(results).slice(0, 500)}`);
       } catch (err) {
         history.push(`#${step} web_search FAILED: ${err.message}`);
       }
@@ -144,9 +163,10 @@ export async function runAgent({ goal, goalId, executeAction, askHuman, onStatus
 
     if (action.type === "fetch_page") {
       status(`Reading: ${action.url}`);
+      succeededResults[sig] = { step };
       try {
         const text = await fetchPageText(String(action.url || ""));
-        history.push(`#${step} fetch_page ${String(action.url).slice(0, 80)} →\n${text.slice(0, 1500)}`);
+        history.push(`#${step} fetch_page ${String(action.url).slice(0, 80)} →\n${text.slice(0, 1200)}`);
       } catch (err) {
         history.push(`#${step} fetch_page FAILED: ${err.message}`);
       }
@@ -205,11 +225,13 @@ export async function runAgent({ goal, goalId, executeAction, askHuman, onStatus
     }
 
     if (observation?.success === false) {
-      history.push(`#${step} ${describeAction(action)} → FAILED: ${String(observation.reason || "unknown").slice(0, 150)}`);
+      history.push(`#${step} ${describeAction(action)} → FAILED: ${String(observation.reason || "unknown").slice(0, 200)}`);
     } else {
-      const extra =
-        action.type === "screenshot" && observation?.data?.path ? ` (saved ${observation.data.path})` : "";
-      history.push(`#${step} ${describeAction(action)} → ok; ${describePageChange(previousPage, lastPage)}${extra}`);
+      if (IDEMPOTENT_INFO.has(action.type)) succeededResults[sig] = { step };
+      const summarize = DATA_SUMMARY[action.type];
+      const extra = summarize && observation?.data ? summarize(observation.data) : "";
+      const change = action.type === "list_browsers" ? "" : `; ${describePageChange(previousPage, lastPage)}`;
+      history.push(`#${step} ${describeAction(action)} → ok${change}${extra}`);
     }
   }
 

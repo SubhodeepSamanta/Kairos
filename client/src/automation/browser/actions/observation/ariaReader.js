@@ -5,68 +5,68 @@ const INTERACTIVE_ROLES = new Set([
   "menuitemcheckbox", "menuitemradio", "treeitem"
 ]);
 
-function flattenTree(node, depth = 0, maxDepth = 8) {
-  if (!node || depth > maxDepth) return [];
-  const result = [];
-  const role = (node.role || "").toLowerCase();
-  const name = (node.name || "").trim();
-  if (role && name) {
-    result.push({
+const LINE = /^(\s*)-\s+([a-zA-Z]+)(?:\s+"((?:[^"\\]|\\.)*)")?((?:\s*\[[^\]]+\])*)\s*:?\s*(.*)$/;
+
+export function parseAriaSnapshot(yaml) {
+  const nodes = [];
+  for (const raw of String(yaml || "").split("\n")) {
+    const match = raw.match(LINE);
+    if (!match) continue;
+
+    const [, , role, rawName = "", rawAttrs = "", trailing = ""] = match;
+    if (!INTERACTIVE_ROLES.has(role)) continue;
+
+    const name = rawName.replace(/\\"/g, '"').trim();
+    const attrs = rawAttrs || "";
+    const value = trailing && !trailing.startsWith("/") ? trailing.trim() : "";
+
+    nodes.push({
       role,
       name,
-      value: node.value,
-      focused: node.focused === true,
-      disabled: node.disabled === true,
-      checked: node.checked === true
+      value: value && value !== "-" ? value : "",
+      disabled: /\[disabled\]/.test(attrs),
+      checked: /\[checked\]/.test(attrs),
+      level: /\[level=(\d+)\]/.exec(attrs)?.[1] || null
     });
   }
-  if (node.children && Array.isArray(node.children)) {
-    for (const child of node.children) {
-      result.push(...flattenTree(child, depth + 1, maxDepth));
-    }
-  }
-  return result;
+  return nodes;
 }
 
 export async function readAriaElements(page) {
-  const snapshot = await page.accessibility?.snapshot().catch(() => null);
-  if (!snapshot) return [];
+  let yaml;
+  try {
+    yaml = await page.locator("body").ariaSnapshot({ timeout: 5000 });
+  } catch {
+    return [];
+  }
 
-  const nodes = flattenTree(snapshot);
-  const interactive = nodes.filter(n => INTERACTIVE_ROLES.has(n.role));
-
+  const nodes = parseAriaSnapshot(yaml);
   const elements = [];
-  const seen = new Set();
+  const seen = new Map();
 
-  for (const node of interactive) {
+  for (const node of nodes) {
+    if (!node.name) continue;
+
     const key = `${node.role}:${node.name}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
+    const occurrence = seen.get(key) || 0;
+    seen.set(key, occurrence + 1);
 
     try {
-      const locator = page.getByRole(node.role, { name: node.name, exact: true }).first();
-      const visible = await locator.isVisible().catch(() => false);
-      if (!visible) continue;
+      const locator = page.getByRole(node.role, { name: node.name, exact: true }).nth(occurrence);
+      if (!(await locator.isVisible().catch(() => false))) continue;
 
       const box = await locator.boundingBox().catch(() => null);
-      const visualInfo = box ? {
-        inViewport: true,
-        top: Math.round(box.y),
-        left: Math.round(box.x),
-        width: Math.round(box.width),
-        height: Math.round(box.height)
-      } : { inViewport: false, top: null, left: null, width: null, height: null };
-
-      const enabled = await locator.isEnabled().catch(() => true);
+      const enabled = node.disabled ? false : await locator.isEnabled().catch(() => true);
 
       elements.push({
         role: node.role,
         name: node.name,
         locator,
-        visualInfo,
-        enabled: enabled && !node.disabled,
+        visualInfo: box
+          ? { inViewport: true, top: Math.round(box.y), left: Math.round(box.x), width: Math.round(box.width), height: Math.round(box.height) }
+          : { inViewport: false, top: null, left: null, width: null, height: null },
+        enabled,
         value: node.value || null,
-        focused: node.focused,
         checked: node.checked
       });
     } catch {

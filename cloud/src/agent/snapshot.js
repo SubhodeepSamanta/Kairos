@@ -1,6 +1,7 @@
-const MAX_LABEL_CHARS = 70;
-const MAX_LINKS = 200;
-const MAX_TEXT_CHARS = 1200;
+const MAX_LABEL_CHARS = 45;
+const MAX_LINKS = 35;
+const MAX_TEXT_CHARS = 500;
+const NAV_NOISE = /^(home|skip to|sign in|sign up|log in|about|privacy|terms|help|settings|cookie|accessibility|advertise|press|copyright|contact us|careers)$/i;
 
 function cleanLabel(text) {
   return String(text || "")
@@ -76,8 +77,11 @@ export function formatSnapshot(page) {
   }
   if (links.length) {
     const total = links.length;
-    if (links.length > MAX_LINKS) links = links.slice(0, MAX_LINKS);
-    lines.push(`LINKS (${total}${total > MAX_LINKS ? `, showing first ${MAX_LINKS} — scroll then read to see more` : ""}):`);
+    if (links.length > MAX_LINKS) {
+      const meaningful = links.filter(l => !NAV_NOISE.test(cleanLabel(l.text)));
+      links = (meaningful.length >= MAX_LINKS ? meaningful : links).slice(0, MAX_LINKS);
+    }
+    lines.push(`LINKS (${total}${total > links.length ? `, showing ${links.length} most relevant — scroll then read for more` : ""}):`);
     for (const el of links) lines.push(formatLink(el));
   }
   if (!inputs.length && !buttons.length && !links.length) {

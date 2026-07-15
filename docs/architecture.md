@@ -1,609 +1,106 @@
-# Kairos Roadmap
+# Kairos Architecture
+
+Kairos is a personal assistant that drives a real browser on your computer. You talk to it from Telegram or the CLI console; it decides what to do and does it.
+
+## Shape
+
+```
+Telegram / CLI  ──WebSocket──►  CLOUD (brain)  ──WebSocket──►  CLIENT (hands)
+                                     │                              │
+                                 LLM + memory                   Playwright
+                                 web search                    real Chrome/Brave/Edge
+                                 Postgres                      secrets vault (local)
+```
+
+- **Cloud** — decides. Holds the LLM loop, memory, web search. Deployable to Render.
+- **Client** — acts. Owns the browser and your secrets. Never leaves your laptop.
+- One WebSocket carries both connector traffic (goals in, answers out) and client traffic (actions out, observations in).
+
+## The agent loop — LLM-first
+
+This is the core idea, and the reason the previous rebuild happened.
+
+```
+loop until done / limit:
+  snapshot = last observation of the page
+  decision = ONE LLM call(system prompt + goal + memories + history + snapshot)
+  execute exactly what the model said
+  record honest result in history
+```
+
+The model sees a complete list of interactive elements with numeric ids and picks one. There is **no code that reasons about the page** — no regex classifiers, no candidate generation, no heuristic verification. This matches how OpenAI Operator and browser-use work.
+
+**Working agreement #1: if the agent picks wrong, fix the prompt or the snapshot. Never add a regex.**
+
+The old system did the opposite (heuristics decided, LLM rubber-stamped) and failed for ~100 hours. Its failure mode is documented in git history at tag `pre-rebuild`.
+
+### Actions the model can take
+
+| Group | Actions |
+|---|---|
+| Browser | `navigate` `click` `type` `press_key` `scroll` `back` `refresh` `new_tab` `switch_tab` `close_tab` `read` `wait` `screenshot` |
+| Browser choice | `list_browsers` `use_browser{browser,profile}` |
+| Knowledge | `web_search` `fetch_page` (no browser — fast and cheap) |
+| Memory | `remember{key,value}` |
+| People | `ask_human{question}` · `ask_human{question,secret_name}` |
+| End | `done{success,answer}` |
+
+### Guards (safety rails, not reasoning)
+
+- 30 steps and 45 LLM calls per goal
+- Same action 4× → abort with an honest report
+- An action that already succeeded cannot be re-run; the model is told to use the result it has
+- Per-step LLM retry with 8s/20s/45s backoff
+- Token-bucket pacing keeps us under the provider's tokens-per-minute ceiling
+
+## Files that matter
+
+| Path | Role |
+|---|---|
+| `cloud/src/agent/loop/agentLoop.js` | the loop |
+| `cloud/src/agent/prompt.js` | the system prompt — **the main lever on behavior** |
+| `cloud/src/agent/snapshot.js` | page → compact text the model reads |
+| `cloud/src/agent/webTools.js` | DuckDuckGo → Bing fallback search, page fetch |
+| `cloud/src/agent/goalManager.js` | serial goal queue |
+| `cloud/src/llm/provider.js` | fallback chain + rate pacing |
+| `cloud/src/memory/{store,db}.js` | facts, Postgres with JSON fallback |
+| `cloud/src/websocket/server.js` | protocol v2 |
+| `client/src/executor/executor.js` | one action → one observation |
+| `client/src/automation/browser/browser.js` | launch/tabs, real browsers + profiles |
+| `client/src/automation/browser/profiles.js` | browser + profile discovery |
+| `client/src/automation/browser/humanize.js` | human-like timing/mouse/typing |
+| `client/src/secrets/vault.js` | passwords, local only |
+
+## Protocol v2
+
+Every message authenticates with `CLIENT_SECRET`. Actions carry a `requestId`; the cloud correlates the reply and times out after 60s. If the client disconnects, pending requests reject immediately instead of hanging. Goals run one at a time through a queue.
+
+```
+connector → cloud   {type:"goal", goal:"…"}
+cloud → client      {type:"execute", requestId, action}
+client → cloud      {type:"result", requestId, observation}
+cloud → connector   {type:"goal_status"|"human_input_request"|"goal_result"}
+```
+
+## Memory and secrets — deliberately split
+
+| | Where | Why |
+|---|---|---|
+| Facts (usernames, resolved URLs, preferences) | Postgres `kairos_facts`, mirrored to `cloud/data/memory.json` | must survive Render restarts; safe to send to the LLM |
+| Passwords / tokens | `client/data/secrets.json` on your laptop only | the LLM and cloud only ever see `{{secret:name}}`; the client substitutes at typing time |
+
+Facts are injected into every prompt (relevance-filtered above 40 entries). The model saves them itself via `remember` — e.g. after resolving Twitch once it navigates straight there next time.
+
+## Browsers
+
+Default is an isolated Playwright Chromium (no logins). When a goal needs your account, or you name a browser/profile, the model calls `use_browser` and the client launches your **real** Chrome/Brave/Edge with `launchPersistentContext` and `--profile-directory=…`, so your existing logins are there.
+
+Profiles resolve by display name ("Kami"), account email, directory ("Profile 8"), or ordinal ("first"). If that browser is already running, the launch fails cleanly and the model asks you to close it.
+
+## Human behaviour
+
+Clicks hover the element with a multi-step mouse move first; typing is per-character with 35–85ms jitter; scrolling is chunked wheel events; short randomized think-time between actions. Set `HUMANIZE=false` to disable.
 
 ## Vision
 
-Kairos is a personal AI companion and operator.
-
-Goals:
-
-* Understand and converse naturally
-* Remember people, projects and preferences
-* Operate browsers and applications
-* Execute long-running tasks
-* Learn and use tools
-* Act as both assistant and companion
-
----
-
-# Phase 1 — Foundation ✅
-
-Status: Complete
-
-Components:
-
-* Cloud service
-* Client service
-* WebSocket communication
-* Planner
-* Executor
-* Telegram integration
-* Shared schemas
-* Basic desktop actions
-
-Outcome:
-
-Kairos can receive goals and execute actions remotely.
-
----
-
-# Phase 2 — Agent Core ✅
-
-Status: Complete
-
-Components:
-
-* Memory v1
-* Research system
-* Observation system
-* Replanning
-* Retry limits
-* Goal verification
-* Postgres persistence
-* User preferences
-
-Outcome:
-
-Kairos can plan, execute, observe, retry and remember.
-
----
-
-# Phase 3 — Browser Operator 🚧
-
-Status: In Progress
-
-## 3.1 Browser Engine
-
-Status: Mostly Complete
-
-* Playwright
-* Browser launch
-* Browser sessions
-* Navigation
-
-## 3.2 Navigation
-
-Status: Mostly Complete
-
-* Navigate
-* Back
-* Refresh
-
-## 3.3 Tab Management
-
-Status: Not Started
-
-* New tab
-* Close tab
-* Switch tab
-* List tabs
-
-## 3.4 Interaction
-
-Status: In Progress
-
-* Click
-* Type
-* Scroll
-* Keyboard input
-* Wait actions
-
-## 3.5 Extraction
-
-Status: In Progress
-
-* Read page
-* Extract text
-* Extract links
-* Screenshots
-
-## 3.6 Search Workflows
-
-Status: Not Started
-
-Examples:
-
-* Search YouTube
-* Search Google
-* Search GitHub
-
-## 3.7 Session Memory
-
-Status: Not Started
-
-Examples:
-
-* Open YouTube
-* Play music
-* Pause it
-
-## 3.8 Browser State Memory
-
-Status: Not Started
-
-Remember:
-
-* Active browser
-* Active tab
-* Current page
-
-## 3.9 Profiles
-
-Status: Not Started
-
-* Chrome profiles
-* Browser profiles
-
-## 3.10 Login Flows
-
-Status: Not Started
-
-* Gmail
-* GitHub
-* Reddit
-
-## 3.11 Browser Observations
-
-Status: Complete
-
-* Page change verification
-* Action verification
-
-## 3.12 Browser Replanning
-
-Status: Mostly Complete
-
-* Retry browser actions
-* Alternative strategies
-
-## 3.13 Workspaces
-
-Status: Not Started
-
-Examples:
-
-* Coding workspace
-* Research workspace
-
-## 3.14 Research Pipelines
-
-Status: Not Started
-
-Examples:
-
-* Multi-site reading
-* Comparison
-* Summarization
-
-## 3.15 Monitoring
-
-Status: Not Started
-
-Examples:
-
-* News monitoring
-* Website monitoring
-
-Outcome:
-
-Kairos becomes a real browser operator.
-
----
-
-# Phase 4 — Companion Layer
-
-Status: Planned
-
-Components:
-
-* Session awareness
-* Relationship memory
-* Personality system
-* Project awareness
-* Reflection system
-
-Outcome:
-
-Kairos becomes a companion instead of a tool.
-
----
-
-# Phase 5 — Memory V2
-
-Status: Planned
-
-Components:
-
-* Episodic memory
-* Semantic memory
-* Project memory
-* Embeddings
-* Vector retrieval
-
-Outcome:
-
-Smarter recall and contextual understanding.
-
----
-
-# Phase 6 — Files & Documents
-
-Status: Planned
-
-Components:
-
-* PDF support
-* Word documents
-* Excel files
-* CSV analysis
-* File operations
-
-Outcome:
-
-Kairos can understand and manage documents.
-
----
-
-# Phase 7 — Desktop Operator
-
-Status: Planned
-
-Target Order:
-
-1. Windows (UIA)
-2. macOS
-3. Linux
-
-Components:
-
-* Window management
-* Element interaction
-* Form filling
-* Desktop workflows
-
-Deferred:
-
-* focusApp implementation
-* advanced window control
-
-Outcome:
-
-Kairos can operate desktop applications.
-
----
-
-# Phase 8 — Long Running Agents
-
-Status: Planned
-
-Components:
-
-* Scheduled tasks
-* Background monitoring
-* Task queues
-
-Outcome:
-
-Kairos can work for hours or days.
-
----
-
-# Phase 9 — Vision
-
-Status: Planned
-
-Components:
-
-* Screenshots
-* OCR
-* Screen understanding
-
-Outcome:
-
-Kairos can understand visual interfaces.
-
----
-
-# Phase 10 — Tool Learning
-
-Status: Planned
-
-Components:
-
-* Dynamic tool registration
-* Tool discovery
-* Tool selection
-
-Outcome:
-
-Kairos can use tools without hardcoded workflows.
-
----
-
-# Phase 11 — Multi-Agent System
-
-Status: Planned
-
-Components:
-
-* Research agent
-* Browser agent
-* Memory agent
-* Desktop agent
-* Coordinator agent
-
-Outcome:
-
-Kairos becomes a distributed agent system.
-
-
-# Companion Phase
-
-Honestly, I think this is where Kairos becomes interesting.
-
-Not:
-
-```text
-AI tool
-```
-
-but:
-
-```text
-AI teammate
-```
-
-I'd split it like this:
-
-# 4.1 Session System
-
-Current:
-
-```text
-message
-reply
-message
-reply
-```
-
-Future:
-
-```text
-Session A
-Session B
-Session C
-```
-
-Examples:
-
-```text
-continue
-what were we doing?
-```
-
----
-
-# 4.2 Project Awareness
-
-Kairos knows:
-
-```text
-Current project
-Current phase
-Completed phases
-Next tasks
-Known blockers
-```
-
-Example:
-
-```text
-Where are we in Kairos?
-```
-
-Instant answer.
-
----
-
-# 4.3 Relationship Memory
-
-Not:
-
-```text
-browser=chrome
-```
-
-But:
-
-```text
-User likes finishing phases.
-User dislikes half-built systems.
-User prefers discussion before implementation.
-```
-
-This is probably already starting to emerge.
-
----
-
-# 4.4 Personality System
-
-Modes:
-
-```text
-Engineer
-Teacher
-Friend
-Coach
-Reviewer
-```
-
-Later maybe:
-
-```text
-Custom personalities
-```
-
-stored in DB.
-
----
-
-# 4.5 Reflection Engine
-
-Questions like:
-
-```text
-What did we finish this week?
-What is blocked?
-What should we do next?
-```
-
-Kairos generates answers from project history.
-
----
-
-# 4.6 Goal Tracking
-
-Store:
-
-```text
-Active goals
-Completed goals
-Abandoned goals
-```
-
-Example:
-
-```text
-Finish Browser Phase
-```
-
-Kairos tracks progress.
-
----
-
-# 4.7 Project Timeline
-
-Kairos remembers:
-
-```text
-Yesterday:
-Fixed browser search.
-
-Last week:
-Finished Phase 2.
-
-Current:
-Phase 3.4 Interaction.
-```
-
-This is one of the most powerful companion features.
-
----
-
-# 4.8 Conversation Continuity
-
-Examples:
-
-```text
-Open Spotify
-
-Close it
-```
-
-```text
-Open Chrome
-
-Close that
-```
-
-```text
-We were discussing memory
-
-Continue
-```
-
-No need to restate context.
-
----
-
-# 4.9 Weekly Reviews
-
-Example:
-
-```text
-What did we accomplish this week?
-```
-
-Kairos produces:
-
-```text
-Completed:
-- Goal verification
-- Browser observations
-
-In progress:
-- Browser interaction
-
-Blocked:
-- Tabs
-```
-
----
-
-# 4.10 Identity Layer
-
-This is the last piece.
-
-Kairos knows:
-
-```text
-Who it is
-What it is building
-Who it is helping
-```
-
-Not roleplay.
-
-Actual project identity.
-
-Example:
-
-```text
-What are you?
-
-I am Kairos, your personal AI companion and operator.
-Current project phase: Browser Operator.
-```
-
----
-
-If Browser Phase is:
-
-```text
-Kairos learns to operate software
-```
-
-then Companion Phase is:
-
-```text
-Kairos learns to maintain a relationship and shared history
-```
-
-And honestly, I think 4.2 (Project Awareness), 4.7 (Project Timeline), and 4.8 (Conversation Continuity) are the features that will make the biggest difference for us personally, because they're exactly the things we've been struggling with during the last few days.
-
-Desktop Phase TODO
-
-- Track spawned PIDs
-- Track browser PIDs
-- Close by PID
-- Focus by PID
-- Window handles
+OCR (`visionReader.js`, Tesseract) fires **only** when a page yields almost no accessible elements. ARIA + DOM is always the primary path. This is intentional and stays a last resort.

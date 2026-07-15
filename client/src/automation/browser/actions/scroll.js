@@ -1,48 +1,19 @@
 import { getPage } from "../browser.js";
+import { humanScroll } from "../humanize.js";
 
-export async function scrollPage(
-  direction
-) {
+export async function scrollPage(direction) {
+  const page = await getPage();
+  const beforeY = await page.evaluate(() => window.scrollY).catch(() => 0);
 
-  const page =
-    await getPage();
+  await humanScroll(page, direction, 800);
 
-const beforeY =
-  await page.evaluate(
-    () => window.scrollY
-  );
+  const afterY = await page.evaluate(() => window.scrollY).catch(() => 0);
 
-const amount = 800;
-
-await page.evaluate(
-  ({ direction, amount }) => {
-
-    window.scrollBy(
-      0,
-      direction === "up"
-        ? -amount
-        : amount
-    );
-
-  },
-  {
+  return {
+    success: true,
     direction,
-    amount
-  }
-);
-
-const afterY =
-  await page.evaluate(
-    () => window.scrollY
-  );
-
-return {
-  success:
-    beforeY !== afterY,
-
-  direction,
-
-  beforeY,
-  afterY
-};
+    beforeY,
+    afterY,
+    reachedEdge: beforeY === afterY
+  };
 }

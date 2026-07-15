@@ -19,6 +19,8 @@ import { extractMetadata } from "../automation/browser/actions/observation/extra
 import { takeScreenshot } from "../automation/browser/actions/observation/screenshot.js";
 import { restartCurrentBrowser } from "../automation/browser/restartBrowser.js";
 import { closeCurrentBrowser } from "../automation/browser/closeBrowser.js";
+import { useBrowser, currentBrowser } from "../automation/browser/browser.js";
+import { describeBrowsers, installedBrowsers } from "../automation/browser/profiles.js";
 
 export async function executeBrowserAction(action) {
   switch (action.type) {
@@ -62,6 +64,14 @@ export async function executeBrowserAction(action) {
       return await extractMetadata();
     case ACTIONS.SCREENSHOT:
       return await takeScreenshot();
+    case ACTIONS.LIST_BROWSERS:
+      return { success: true, browsers: describeBrowsers(), installed: installedBrowsers(), active: currentBrowser() };
+    case ACTIONS.USE_BROWSER:
+      try {
+        return await useBrowser(action.params.browser, action.params.profile || null);
+      } catch (err) {
+        return { success: false, reason: err.message };
+      }
     case "extract_data":
       return await readPage();
     default:

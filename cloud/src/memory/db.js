@@ -1,0 +1,66 @@
+import pg from "pg";
+import { env } from "../config/env.js";
+
+let pool = null;
+
+export function hasDatabase() {
+  return Boolean(env.DATABASE_URL);
+}
+
+export async function connectMemoryDb() {
+  if (!hasDatabase()) return null;
+  pool = new pg.Pool({
+    connectionString: env.DATABASE_URL,
+    max: 3,
+    connectionTimeoutMillis: 25000,
+    idleTimeoutMillis: 10000,
+    allowExitOnIdle: true
+  });
+
+  pool.on("error", (err) => {
+    console.log(`[MEMORY] Idle database connection dropped (${err.message.slice(0, 60)}) — will reconnect on next write`);
+  });
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS kairos_facts (
+      memory_key TEXT PRIMARY KEY,
+      value TEXT NOT NULL,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+  return pool;
+}
+
+export async function loadAllFromDb() {
+  if (!pool) return {};
+  const { rows } = await pool.query("SELECT memory_key, value, updated_at FROM kairos_facts");
+  const out = {};
+  for (const row of rows) {
+    out[row.memory_key] = { value: row.value, updatedAt: new Date(row.updated_at).toISOString() };
+  }
+  return out;
+}
+
+export async function upsertFact(key, value) {
+  if (!pool) return false;
+  await pool.query(
+    `INSERT INTO kairos_facts (memory_key, value, updated_at) VALUES ($1, $2, NOW())
+     ON CONFLICT (memory_key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()`,
+    [key, value]
+  );
+  return true;
+}
+
+export async function deleteFact(key) {
+  if (!pool) return false;
+  await pool.query("DELETE FROM kairos_facts WHERE memory_key = $1", [key]);
+  return true;
+}
+
+export async function closeMemoryDb() {
+  if (pool) await pool.end().catch(() => {});
+  pool = null;
+}
+
+export function isDbActive() {
+  return pool !== null;
+}

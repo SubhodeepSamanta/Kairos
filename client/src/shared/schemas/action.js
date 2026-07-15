@@ -33,7 +33,9 @@ SWITCH_TAB:
   "restart_browser",
   GET_BROWSER_CONTEXT: "get_browser_context",
   EXTRACT_DATA: "extract_data",
-  HUMAN_INPUT: "human_input"
+  HUMAN_INPUT: "human_input",
+  USE_BROWSER: "use_browser",
+  LIST_BROWSERS: "list_browsers"
 };
 
 export function createAction(

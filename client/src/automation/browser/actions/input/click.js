@@ -4,6 +4,7 @@ import {
   getElementInfo,
   getElementBox
 } from "../../elements/registry.js";
+import { moveToElement, thinkBeforeAction } from "../../humanize.js";
 
 export async function clickText(
   text,
@@ -72,6 +73,9 @@ export async function clickText(
     }
 
     try {
+      await thinkBeforeAction();
+      await locator.scrollIntoViewIfNeeded({ timeout: 3000 }).catch(() => {});
+      await moveToElement(page, locator);
       await locator.click({ timeout: 5000 });
     } catch (err) {
       console.log(`[CLICK] Direct stable ID click failed: "${err.message}". Attempting fallback...`);

@@ -5,7 +5,7 @@ import { storeSecret } from "../secrets/vault.js";
 
 const STATE_CHANGING = new Set([
   "navigate", "click", "type", "press_key", "back", "forward", "refresh",
-  "switch_tab", "new_tab", "close_tab", "scroll", "wait"
+  "switch_tab", "new_tab", "close_tab", "scroll", "wait", "use_browser"
 ]);
 
 const SETTLE_TIMEOUT_MS = 4000;
@@ -75,6 +75,10 @@ function extractData(action, result) {
       return { index: result.index };
     case "type":
       return { typed: result.text, submitted: result.submitted };
+    case "list_browsers":
+      return { browsers: result.browsers, installed: result.installed, active: result.active };
+    case "use_browser":
+      return { browser: result.browser, profile: result.profile, profileLabel: result.profileLabel };
     default:
       return undefined;
   }

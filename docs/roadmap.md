@@ -1,299 +1,53 @@
-Honestly, after seeing the schemas, I think Wave 3 is **the most important architectural wave in the whole project**.
+# Roadmap
 
-The good news:
+## Done
 
-```text
-Wave 1 ≈ done
-Wave 2 ≈ mostly done
-Wave 3 = where Kairos actually becomes an agent
-```
+**Phase 0 — hygiene.** Junk purged, comments stripped, 400–500 line cap enforced, `pre-rebuild` tag saved.
 
----
+**Phase 1 — LLM-first operator.** Thin loop replaced ~10k lines of heuristics. Protocol v2 (auth, requestId, timeouts). Memory, secrets vault, human-in-the-loop, web search. Verified 7/10 on the benchmark.
 
-# How many parts in Wave 3?
+**Phase 2 — real browsers + robustness.**
+- Real Chrome / Brave / Edge via persistent context; profiles by name, email, directory, or ordinal
+- Human-like interaction (mouse paths, per-char typing, chunked scroll, think-time)
+- Token cuts: system prompt 1832 → 949 tokens, snapshot ~1663 → ~1243 on heavy pages; TPM pacing
+- Postgres memory with JSON fallback; fixed a pool crash that would have killed the Render deploy
+- Guard: an already-successful action can't be re-run
+- 84 tests incl. simulated-browser suite
 
-I would split it into **4 sub-parts**, not 10 tiny ones.
+## Next
 
-### Part A — Task Graph Schema
-
-Replace:
+### Phase 2b — finish multi-goal (small)
+`open A and B and C` mostly works today because the model sequences it itself. What's missing:
+- **New-window** support alongside new-tab (`new_window` action → `context.newPage()` in a fresh window)
+- Explicit **task list in the prompt** for 3+ part goals so nothing is silently dropped
+- Do **not** rebuild sub-objective machinery. That was the old failure. Tasks are user-visible units; the model tracks them in history.
 
-```text
-Goal
- ↓
-Plan
- ↓
-Actions
-```
+### Phase 3 — Telegram + memory polish
+- Status already streams and edits in place; add per-step detail ("typed 'lofi' into search")
+- `/forget <key>`, `/memory` to inspect what it knows
+- Recall: current keyword+recency filter is fine to ~300 facts. Only add embeddings if that breaks.
 
-with:
-
-```text
-Goal
- ↓
-Tasks
- ↓
-Plan
- ↓
-Actions
-```
-
-Files:
-
-```text
-cloud/src/shared/schemas/task.js
-cloud/src/shared/schemas/plan.js
-cloud/src/shared/schemas/goal.js
-```
-
----
-
-### Part B — Goal → Tasks
+### Phase 4 — Companion mode
+See `companion-and-voice.md`. Build **before** voice — voice is a transport for this.
 
-This is the big one.
+### Phase 5 — Voice (STT/TTS)
+See `companion-and-voice.md`.
 
-User:
+### Phase 6 — Desktop automation
+The stubs were deleted in Phase 0 (they were empty). Rebuild as real actions: `open_app`, `focus_window`, `type_into_app`, file ops. Same rule as the browser — LLM decides, code executes. Windows UIA via PowerShell or a native binding.
 
-```text
-Play a Greece history video
-Open Wikipedia in a new tab
-```
+### Phase 7 — Hosting
+Cloud → Render. Needs: `DATABASE_URL` (already Postgres), `PORT` from env (done), keep-alive ping, and a public WS URL for the client's `CLOUD_URL`. Client stays on the laptop — it must, since it owns the browser and secrets.
 
-becomes:
+## The honest bottleneck
 
-```js
-[
-  {
-    intent: "FIND_MEDIA",
-    topic: "greece history"
-  },
-  {
-    intent: "PLAY_MEDIA"
-  },
-  {
-    intent: "OPEN_REFERENCE",
-    target: "wikipedia",
-    topic: "greece history",
-    newTab: true
-  }
-]
-```
+The architecture now matches Operator/browser-use. The gap to "as good as OpenAI/Claude" is **model quality**, not design.
 
-Files:
+Llama-3.3-70b on Groq free is the weak link. Observed: it re-ran an action whose result was already in its history, and needed a code guard to stop. GPT-4o / Claude Sonnet do not make that class of mistake.
 
-```text
-cloud/src/planner/goalParser.js
-cloud/src/planner/agent.js
-```
+`provider.js` is model-agnostic — one entry in the providers array swaps it. Ranked by leverage:
+1. **Better model** (Claude Sonnet / GPT-4o) — biggest single jump in reliability
+2. More free fallback keys (Gemini, Cerebras) — fixes quota deaths, not smarts
+3. Prompt tuning — real but diminishing returns
 
-Possibly a new file:
-
-```text
-cloud/src/planner/taskGraph.js
-```
-
----
-
-### Part C — Task → Plan
-
-Current:
-
-```text
-Goal
- ↓
-LLM
- ↓
-Actions
-```
-
-Future:
-
-```text
-Task
- ↓
-LLM
- ↓
-Actions
-```
-
-Example:
-
-Task:
-
-```js
-{
-  intent: "OPEN_REFERENCE",
-  target: "wikipedia",
-  topic: "greece"
-}
-```
-
-Planner generates:
-
-```js
-[
-  navigate,
-  type,
-  click
-]
-```
-
-Files:
-
-```text
-cloud/src/planner/planner.js
-cloud/src/planner/replanner.js
-cloud/src/planner/validator.js
-```
-
----
-
-### Part D — Task Execution Loop
-
-Current:
-
-```text
-Execute entire plan
-Verify goal
-Done
-```
-
-Future:
-
-```text
-Task 1
- ↓
-Verify
-
-Task 2
- ↓
-Verify
-
-Task 3
- ↓
-Verify
-```
-
-Files:
-
-```text
-cloud/src/planner/agent.js
-```
-
-This is the biggest change.
-
----
-
-# How long?
-
-If done cleanly:
-
-```text
-Part A : 30 mins
-Part B : 1-2 hours
-Part C : 1 hour
-Part D : 1-2 hours
-```
-
-So roughly:
-
-```text
-4-6 hours of coding
-```
-
-Not weeks.
-
-The hard part is architecture, not code volume.
-
----
-
-# How many files?
-
-Probably:
-
-```text
-goal.js
-task.js
-plan.js
-
-goalParser.js
-
-agent.js
-
-planner.js
-replanner.js
-validator.js
-
-(possibly)
-taskGraph.js
-```
-
-Around:
-
-```text
-8-10 files
-```
-
----
-
-# Biggest thing we must decide BEFORE coding
-
-This is the key design question:
-
-Should tasks be:
-
-### Option 1
-
-```js
-{
-  intent: "OPEN_REFERENCE",
-  target: "wikipedia"
-}
-```
-
-Very abstract.
-
-Planner figures out everything.
-
----
-
-### Option 2
-
-```js
-{
-  intent: "OPEN_REFERENCE",
-  target: "wikipedia",
-  topic: "greece",
-  newTab: true
-}
-```
-
-Structured.
-
-Planner gets more information.
-
----
-
-OpenClaw/Hermes style systems use something much closer to:
-
-```text
-Option 2
-```
-
-because it reduces hallucinations.
-
----
-
-# What I need before starting
-
-Only these now:
-
-```text
-cloud/src/planner/planner.js
-cloud/src/planner/replanner.js
-cloud/src/planner/prompts/systemPrompt.js
-```
-
-I've seen parts of planner/replanner earlier, but I want the current versions together before designing the task graph layer.
-
-After those 3 files, we can design Wave 3 properly and avoid another major refactor later.
+Everything else is built to be ready for that swap.

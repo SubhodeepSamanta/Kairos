@@ -28,12 +28,12 @@ describe("formatSnapshot", () => {
     expect(out).toContain("[3]");
   });
 
-  it("caps links at 200 with a note but keeps the true count", () => {
+  it("caps links with a note but keeps the true count", () => {
     const links = Array.from({ length: 250 }, (_, i) => ({ id: i + 1, text: `link ${i + 1}`, href: `/l${i}` }));
     const out = formatSnapshot({ url: "u", title: "t", inputs: [], buttons: [], links, text: "" });
-    expect(out).toContain("LINKS (250, showing first 200");
-    expect(out).toContain("[200]");
-    expect(out).not.toContain("[201]");
+    expect(out).toContain("LINKS (250, showing 35 most relevant");
+    expect(out).toContain("[35]");
+    expect(out).not.toContain("[36]");
   });
 
   it("shows tabs and truncates page text", () => {

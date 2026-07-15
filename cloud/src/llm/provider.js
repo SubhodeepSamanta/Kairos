@@ -9,34 +9,58 @@ const providers = [
   { name: "nvidia", ask: askNvidia }
 ];
 
+const TPM_LIMIT = Number(process.env.LLM_TPM_LIMIT) || 10000;
+const recentCalls = [];
+
+function estimateTokens(text) {
+  return Math.ceil(text.length / 4);
+}
+
+async function paceForRateLimit(tokens) {
+  const now = Date.now();
+  while (recentCalls.length && now - recentCalls[0].at > 60000) recentCalls.shift();
+
+  const usedThisMinute = recentCalls.reduce((sum, c) => sum + c.tokens, 0);
+  if (usedThisMinute + tokens <= TPM_LIMIT) return;
+
+  const oldest = recentCalls[0];
+  if (!oldest) return;
+  const waitMs = Math.max(0, 60000 - (now - oldest.at)) + 250;
+  console.log(`[LLM] Pacing: ${usedThisMinute}+${tokens} tokens would exceed ${TPM_LIMIT}/min, waiting ${(waitMs / 1000).toFixed(1)}s`);
+  await new Promise(r => setTimeout(r, waitMs));
+  return paceForRateLimit(tokens);
+}
+
 export function createBudget(maxCalls = 45) {
   return { used: 0, maxCalls, estimatedTokens: 0 };
 }
 
 export async function askLLM(systemPrompt, userPrompt, budget = null) {
+  const tokens = estimateTokens(systemPrompt) + estimateTokens(userPrompt);
+
   if (budget) {
     if (budget.used >= budget.maxCalls) {
       throw new Error(`llm_budget_exceeded: ${budget.maxCalls} calls`);
     }
     budget.used++;
-    budget.estimatedTokens += Math.ceil((systemPrompt.length + userPrompt.length) / 4);
+    budget.estimatedTokens += tokens;
   }
+
+  await paceForRateLimit(tokens);
+  recentCalls.push({ at: Date.now(), tokens });
 
   let lastError = null;
   for (const provider of providers) {
     try {
       const result = await provider.ask(systemPrompt, userPrompt);
       if (result && result.trim()) {
-        console.log(`[LLM] ${provider.name} ok (call ${budget ? budget.used : "-"}, ~${Math.ceil((systemPrompt.length + userPrompt.length) / 4)} tokens in)`);
+        console.log(`[LLM] ${provider.name} ok (call ${budget ? budget.used : "-"}, ~${tokens} tokens in)`);
         return result;
       }
       lastError = new Error(`${provider.name} returned empty response`);
     } catch (err) {
-      console.log(`[LLM] ${provider.name} failed: ${err.message.slice(0, 200)}`);
+      console.log(`[LLM] ${provider.name} failed: ${err.message.slice(0, 160)}`);
       lastError = err;
-      if (err.message.includes("429")) {
-        await new Promise(r => setTimeout(r, 1000));
-      }
     }
   }
   throw lastError || new Error("no_llm_provider_available");
