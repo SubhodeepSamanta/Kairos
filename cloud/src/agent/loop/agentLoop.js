@@ -47,9 +47,16 @@ function actionSignature(action) {
   return JSON.stringify(action);
 }
 
+function normalizeAction(action) {
+  if (!action || typeof action !== "object") return action;
+  const { params, ...rest } = action;
+  return params && typeof params === "object" ? { ...rest, ...params } : action;
+}
+
 function describeAction(action) {
-  const { type, ...params } = action;
+  const { type, mood, thought, ...params } = normalizeAction(action);
   const rendered = Object.entries(params)
+    .filter(([, v]) => v !== null && v !== undefined && typeof v !== "object")
     .map(([k, v]) => `${k}=${String(v).slice(0, 60)}`)
     .join(" ");
   return rendered ? `${type} ${rendered}` : type;
@@ -148,7 +155,7 @@ export async function runAgent({ goal, goalId, chatId = "default", executeAction
     }
     notice = "";
 
-    const action = decision.action || decision;
+    const action = normalizeAction(decision.action || decision);
     const thought = String(decision.thought || "").slice(0, 200);
     if (!action || typeof action.type !== "string") {
       notice = "Your reply had no valid action object. Follow the response format exactly.";

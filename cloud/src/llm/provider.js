@@ -45,19 +45,33 @@ function orderedCandidates() {
   return ready.length ? ready : all;
 }
 
-async function paceForRateLimit(tokens) {
-  const now = Date.now();
+function usedByModel(name, now) {
+  const calls = recentCalls.filter(c => c.name === name && now - c.at <= 60000);
+  return calls.reduce((sum, c) => sum + c.tokens, 0);
+}
+
+function pruneCalls(now) {
   while (recentCalls.length && now - recentCalls[0].at > 60000) recentCalls.shift();
+}
 
-  const usedThisMinute = recentCalls.reduce((sum, c) => sum + c.tokens, 0);
-  if (usedThisMinute + tokens <= TPM_LIMIT) return;
+function readyCandidate(candidates, tokens) {
+  const now = Date.now();
+  pruneCalls(now);
+  return candidates.find(c => usedByModel(c.name, now) + tokens <= TPM_LIMIT) || null;
+}
 
-  const oldest = recentCalls[0];
-  if (!oldest) return;
-  const waitMs = Math.max(0, 60000 - (now - oldest.at)) + 250;
-  console.log(`[LLM] Pacing: ${usedThisMinute}+${tokens} would exceed ${TPM_LIMIT}/min, waiting ${(waitMs / 1000).toFixed(1)}s`);
+async function waitForAnyModel(candidates, tokens) {
+  const now = Date.now();
+  const soonest = candidates
+    .map(c => {
+      const calls = recentCalls.filter(x => x.name === c.name && now - x.at <= 60000);
+      return calls.length ? 60000 - (now - calls[0].at) : 0;
+    })
+    .sort((a, b) => a - b)[0];
+
+  const waitMs = Math.max(0, soonest) + 250;
+  console.log(`[LLM] All models at ${TPM_LIMIT}/min — waiting ${(waitMs / 1000).toFixed(1)}s`);
   await new Promise(r => setTimeout(r, waitMs));
-  return paceForRateLimit(tokens);
 }
 
 export function createBudget(maxCalls = 45) {
@@ -83,12 +97,21 @@ export async function askLLM(systemPrompt, userPrompt, budget = null) {
     budget.estimatedTokens += tokens;
   }
 
-  await paceForRateLimit(tokens);
-  recentCalls.push({ at: Date.now(), tokens });
+  let candidates = orderedCandidates();
+  if (!readyCandidate(candidates, tokens)) {
+    await waitForAnyModel(candidates, tokens);
+    candidates = orderedCandidates();
+  }
+
+  const preferred = readyCandidate(candidates, tokens);
+  if (preferred) {
+    candidates = [preferred, ...candidates.filter(c => c.name !== preferred.name)];
+  }
 
   let lastError = null;
-  for (const candidate of orderedCandidates()) {
+  for (const candidate of candidates) {
     try {
+      recentCalls.push({ at: Date.now(), tokens, name: candidate.name });
       const result = await callModel(candidate, systemPrompt, userPrompt);
       if (result && result.trim()) {
         console.log(`[LLM] ${candidate.name} ok (call ${budget ? budget.used : "-"}, ~${tokens} tokens in)`);
