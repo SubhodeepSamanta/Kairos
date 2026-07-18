@@ -29,6 +29,8 @@ vi.mock("../../src/companion/store.js", () => ({
   setSummary: vi.fn(async () => {}),
   countTurns: vi.fn(async () => 0),
   loadTurnsBefore: vi.fn(async () => []),
+  getDigest: vi.fn(async () => null),
+  setDigest: vi.fn(async () => {}),
   forgetChat: vi.fn(async () => [])
 }));
 

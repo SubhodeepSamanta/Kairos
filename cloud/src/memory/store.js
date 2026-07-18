@@ -1,6 +1,7 @@
-import fs from "fs";
 import path from "path";
-import { hasDatabase, connectMemoryDb, loadAllFromDb, upsertFact, deleteFact, isDbActive } from "./db.js";
+import { hasDatabase, connectMemoryDb, loadAllFromDb, upsertFact, deleteFact, isDbActive, memoryPool } from "./db.js";
+import { readJson, writeJsonAtomic } from "../utils/jsonFile.js";
+import { enqueueDbWrite, flushDbWrites } from "./syncQueue.js";
 
 const MAX_ENTRIES = 300;
 const MAX_PROMPT_ENTRIES = 40;
@@ -12,11 +13,7 @@ let cache = null;
 let useDb = false;
 
 function loadFile() {
-  try {
-    return JSON.parse(fs.readFileSync(memoryFile(), "utf8"));
-  } catch {
-    return {};
-  }
+  return readJson(memoryFile(), {});
 }
 
 function load() {
@@ -26,8 +23,7 @@ function load() {
 }
 
 function persistFile() {
-  fs.mkdirSync(dataDir(), { recursive: true });
-  fs.writeFileSync(memoryFile(), JSON.stringify(cache, null, 2), "utf8");
+  writeJsonAtomic(memoryFile(), cache);
 }
 
 export async function initMemory() {
@@ -63,12 +59,19 @@ export async function initMemory() {
   }
 }
 
+const UPSERT_SQL = `INSERT INTO kairos_facts (memory_key, value, updated_at) VALUES ($1, $2, NOW())
+     ON CONFLICT (memory_key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()`;
+
 function persist(key) {
   persistFile();
   if (useDb && isDbActive() && key) {
-    upsertFact(key, cache[key].value).catch(err =>
-      console.log(`[MEMORY] DB write failed for ${key}: ${err.message.slice(0, 80)}`)
-    );
+    const value = cache[key].value;
+    flushDbWrites(memoryPool())
+      .then(() => upsertFact(key, value))
+      .catch(err => {
+        enqueueDbWrite(UPSERT_SQL, [key, value], `fact ${key}`);
+        console.log(`[MEMORY] DB write for ${key} queued for retry: ${err.message.slice(0, 80)}`);
+      });
   }
 }
 
@@ -113,6 +116,12 @@ export function getAllFacts() {
   return Object.fromEntries(Object.entries(store).map(([k, v]) => [k, v.value]));
 }
 
+const RECENT_BOOST_DAYS = 7;
+
+function escapeRegex(word) {
+  return word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 export function relevantFacts(goalText) {
   const store = load();
   const entries = Object.entries(store);
@@ -120,14 +129,27 @@ export function relevantFacts(goalText) {
     return Object.fromEntries(entries.map(([k, v]) => [k, v.value]));
   }
 
-  const words = String(goalText || "")
-    .toLowerCase()
-    .split(/[^a-z0-9]+/)
-    .filter(w => w.length > 2);
+  const words = [...new Set(
+    String(goalText || "")
+      .toLowerCase()
+      .split(/[^a-z0-9]+/)
+      .filter(w => w.length > 2)
+  )];
+  const now = Date.now();
 
   const scored = entries.map(([k, v]) => {
-    const haystack = `${k} ${v.value}`.toLowerCase();
-    const score = words.reduce((s, w) => s + (haystack.includes(w) ? 1 : 0), 0);
+    const key = k.toLowerCase();
+    const value = String(v.value).toLowerCase();
+    let score = 0;
+    for (const w of words) {
+      const atStart = new RegExp(`(?:^|[^a-z0-9])${escapeRegex(w)}`);
+      if (atStart.test(key)) score += 2;
+      else if (key.includes(w)) score += 1;
+      if (atStart.test(value)) score += 1;
+      else if (value.includes(w)) score += 0.5;
+    }
+    const ageDays = (now - new Date(v.updatedAt).getTime()) / 86400000;
+    if (score > 0 && ageDays <= RECENT_BOOST_DAYS) score += 0.5;
     return { k, v, score, updatedAt: v.updatedAt };
   });
 

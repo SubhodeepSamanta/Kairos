@@ -1,7 +1,8 @@
-import fs from "fs";
 import path from "path";
 import { memoryPool, isDbActive } from "../memory/db.js";
 import { DEFAULT_PERSONA } from "./personas.js";
+import { readJson, writeJsonAtomic } from "../utils/jsonFile.js";
+import { enqueueDbWrite, flushDbWrites } from "../memory/syncQueue.js";
 
 const KEEP_TURNS = 14;
 const ARCHIVE_TURNS = 300;
@@ -11,25 +12,32 @@ const KEEP_MOODS = 80;
 const dataDir = () => path.join(process.cwd(), "data");
 const fileFor = (name) => path.join(dataDir(), `${name}.json`);
 
-const cache = { turns: null, events: null, moods: null, prefs: null };
+const cache = { turns: null, events: null, moods: null, prefs: null, digests: null };
 
 function loadFile(name, fallback) {
   if (cache[name]) return cache[name];
-  try {
-    cache[name] = JSON.parse(fs.readFileSync(fileFor(name), "utf8"));
-  } catch {
-    cache[name] = fallback;
-  }
+  cache[name] = readJson(fileFor(name), fallback);
   return cache[name];
 }
 
 function saveFile(name) {
-  fs.mkdirSync(dataDir(), { recursive: true });
-  fs.writeFileSync(fileFor(name), JSON.stringify(cache[name], null, 2), "utf8");
+  writeJsonAtomic(fileFor(name), cache[name]);
 }
 
 function db() {
   return isDbActive() ? memoryPool() : null;
+}
+
+async function dbWrite(sql, params, label) {
+  const pool = db();
+  if (!pool) return;
+  await flushDbWrites(pool);
+  try {
+    await pool.query(sql, params);
+  } catch (err) {
+    enqueueDbWrite(sql, params, label);
+    console.log(`[COMPANION] ${label} write queued for retry: ${err.message.slice(0, 60)}`);
+  }
 }
 
 function trimList(list, keep) {
@@ -56,14 +64,7 @@ export async function addTurn(chatId, role, text) {
   entry.dropped += trimList(entry.list, ARCHIVE_TURNS);
   saveFile("turns");
 
-  const pool = db();
-  if (pool) {
-    try {
-      await pool.query("INSERT INTO kairos_turns (chat_id, role, text) VALUES ($1, $2, $3)", [chatId, role, clean]);
-    } catch (err) {
-      console.log(`[COMPANION] turn write failed: ${err.message.slice(0, 60)}`);
-    }
-  }
+  await dbWrite("INSERT INTO kairos_turns (chat_id, role, text) VALUES ($1, $2, $3)", [chatId, role, clean], "turn");
 }
 
 export async function loadTurns(chatId) {
@@ -87,14 +88,9 @@ export async function addEvent(chatId, summary, success, steps) {
   trimList(events[chatId], KEEP_EVENTS);
   saveFile("events");
 
-  const pool = db();
-  if (pool) {
-    try {
-      await pool.query("INSERT INTO kairos_events (chat_id, summary, success, steps) VALUES ($1, $2, $3, $4)", [
-        chatId, String(summary).slice(0, 300), success, steps
-      ]);
-    } catch {}
-  }
+  await dbWrite("INSERT INTO kairos_events (chat_id, summary, success, steps) VALUES ($1, $2, $3, $4)", [
+    chatId, String(summary).slice(0, 300), success, steps
+  ], "event");
 }
 
 export async function loadEvents(chatId, sinceDays = 4) {
@@ -119,14 +115,9 @@ export async function addMood(chatId, label, confidence, why) {
   trimList(moods[chatId], KEEP_MOODS);
   saveFile("moods");
 
-  const pool = db();
-  if (pool) {
-    try {
-      await pool.query("INSERT INTO kairos_moods (chat_id, label, confidence, why) VALUES ($1, $2, $3, $4)", [
-        chatId, label, confidence, String(why || "").slice(0, 160)
-      ]);
-    } catch {}
-  }
+  await dbWrite("INSERT INTO kairos_moods (chat_id, label, confidence, why) VALUES ($1, $2, $3, $4)", [
+    chatId, label, confidence, String(why || "").slice(0, 160)
+  ], "mood");
 }
 
 export async function loadMoods(chatId, sinceDays = 7) {
@@ -232,24 +223,50 @@ export async function setPrefs(chatId, patch) {
   saveFile("prefs");
 
   if (pool) {
-    try {
-      const current = prefs[chatId];
-      await pool.query(
-        `INSERT INTO kairos_prefs (chat_id, persona, mood_tracking, summary, covered_turns, updated_at)
-         VALUES ($1, $2, $3, $4, $5, NOW())
-         ON CONFLICT (chat_id) DO UPDATE SET persona = EXCLUDED.persona, mood_tracking = EXCLUDED.mood_tracking,
-           summary = EXCLUDED.summary, covered_turns = EXCLUDED.covered_turns, updated_at = NOW()`,
-        [chatId, current.persona || DEFAULT_PERSONA, current.moodTracking !== false, current.summary || null, current.coveredTurns || 0]
-      );
-    } catch {}
+    const current = prefs[chatId];
+    await dbWrite(
+      `INSERT INTO kairos_prefs (chat_id, persona, mood_tracking, summary, covered_turns, updated_at)
+       VALUES ($1, $2, $3, $4, $5, NOW())
+       ON CONFLICT (chat_id) DO UPDATE SET persona = EXCLUDED.persona, mood_tracking = EXCLUDED.mood_tracking,
+         summary = EXCLUDED.summary, covered_turns = EXCLUDED.covered_turns, updated_at = NOW()`,
+      [chatId, current.persona || DEFAULT_PERSONA, current.moodTracking !== false, current.summary || null, current.coveredTurns || 0],
+      "prefs"
+    );
   }
   return prefs[chatId];
 }
 
+export async function getDigest(chatId, day) {
+  const pool = db();
+  if (pool) {
+    try {
+      const { rows } = await pool.query("SELECT line FROM kairos_digests WHERE chat_id = $1 AND day = $2", [chatId, day]);
+      if (rows[0]) return rows[0].line;
+    } catch {}
+  }
+  return loadFile("digests", {})[chatId]?.[day] || null;
+}
+
+export async function setDigest(chatId, day, line) {
+  const digests = loadFile("digests", {});
+  if (!digests[chatId]) digests[chatId] = {};
+  digests[chatId][day] = String(line).slice(0, 300);
+  const days = Object.keys(digests[chatId]).sort();
+  for (const old of days.slice(0, Math.max(0, days.length - 30))) delete digests[chatId][old];
+  saveFile("digests");
+
+  await dbWrite(
+    `INSERT INTO kairos_digests (chat_id, day, line) VALUES ($1, $2, $3)
+     ON CONFLICT (chat_id, day) DO UPDATE SET line = EXCLUDED.line`,
+    [chatId, day, String(line).slice(0, 300)],
+    "digest"
+  );
+}
+
 export async function forgetChat(chatId, what) {
   const pool = db();
-  const tables = { turns: "kairos_turns", events: "kairos_events", moods: "kairos_moods" };
-  const targets = what === "all" ? Object.keys(tables) : [what];
+  const tables = { turns: "kairos_turns", events: "kairos_events", moods: "kairos_moods", digests: "kairos_digests" };
+  const targets = what === "all" ? Object.keys(tables) : what === "events" ? ["events", "digests"] : [what];
 
   for (const t of targets) {
     if (!tables[t]) continue;
@@ -268,4 +285,5 @@ export function resetCompanionCacheForTests() {
   cache.events = null;
   cache.moods = null;
   cache.prefs = null;
+  cache.digests = null;
 }

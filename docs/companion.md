@@ -108,6 +108,8 @@ yesterday: GitHub react research, 4 tabs of docs; LeetCode contest — didn't fi
 
 Digest generation is a single cheap call per day, not per turn. This is what makes "you were up till 2 yesterday" possible without paying for it every message.
 
+**Implemented (2026-07-19)** in `digest.js`: computed lazily on the first message that needs the day, cached in `kairos_digests` (Postgres) / `digests.json` (file). Quiet days (<3 events) skip the LLM and keep the raw line; if the LLM is down the raw line is cached instead — recall never degrades to nothing.
+
 ### 3.2 Mood tracking
 
 **How mood is captured** — two sources, no guessing games:
@@ -351,4 +353,4 @@ Load STT/TTS lazily on `/voice` so text sessions stay light.
 1. TTS engine — benchmark Piper vs Edge-TTS on the actual laptop before writing `tts.js`
 2. Wake word — whisper on a rolling buffer (simple, heavier) vs porcupine (accurate, another dep)
 3. Whether `aria` should have a *name* the user picks
-4. Do digests run at local midnight, or lazily on the first message of a new day? (lazy is simpler and cheaper — probably that)
+4. ~~Do digests run at local midnight, or lazily?~~ **Resolved: lazy**, on the first message that needs the day (shipped 2026-07-19)

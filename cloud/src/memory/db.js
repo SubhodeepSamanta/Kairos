@@ -71,6 +71,14 @@ export async function connectMemoryDb() {
   `);
   await pool.query(`ALTER TABLE kairos_prefs ADD COLUMN IF NOT EXISTS summary TEXT`);
   await pool.query(`ALTER TABLE kairos_prefs ADD COLUMN IF NOT EXISTS covered_turns INT NOT NULL DEFAULT 0`);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS kairos_digests (
+      chat_id TEXT NOT NULL,
+      day TEXT NOT NULL,
+      line TEXT NOT NULL,
+      PRIMARY KEY (chat_id, day)
+    )
+  `);
   return pool;
 }
 

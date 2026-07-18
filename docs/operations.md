@@ -38,7 +38,7 @@ Telegram works the moment the cloud is up — message the bot directly.
 ## Tests
 
 ```bash
-cd cloud && npx vitest run     # 125 tests
+cd cloud && npx vitest run     # 140 tests
 cd client && npx vitest run    # 75 tests
 ```
 

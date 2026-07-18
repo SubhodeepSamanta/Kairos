@@ -1,4 +1,5 @@
-import { loadTurns, loadEvents, loadMoods, getPrefs, getSummary } from "./store.js";
+import { loadTurns, loadMoods, getPrefs, getSummary } from "./store.js";
+import { buildRecentDays } from "./digest.js";
 
 function dayLabel(date) {
   const now = new Date();
@@ -56,9 +57,9 @@ export function formatMood(moods) {
 
 export async function buildCompanionContext(chatId) {
   const prefs = await getPrefs(chatId);
-  const [turns, events, moods, summary] = await Promise.all([
+  const [turns, recentDays, moods, summary] = await Promise.all([
     loadTurns(chatId),
-    loadEvents(chatId),
+    buildRecentDays(chatId),
     prefs.moodTracking ? loadMoods(chatId) : Promise.resolve([]),
     getSummary(chatId)
   ]);
@@ -68,7 +69,7 @@ export async function buildCompanionContext(chatId) {
     turns,
     summary: summary.text,
     conversation: formatConversation(turns),
-    recentDays: formatEvents(events),
+    recentDays,
     mood: prefs.moodTracking ? formatMood(moods) : "(mood tracking is off)"
   };
 }

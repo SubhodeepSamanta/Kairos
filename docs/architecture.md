@@ -89,7 +89,9 @@ cloud → connector   {type:"goal_status"|"human_input_request"|"goal_result"}
 | Facts (usernames, resolved URLs, preferences) | Postgres `kairos_facts`, mirrored to `cloud/data/memory.json` | must survive Render restarts; safe to send to the LLM |
 | Passwords / tokens | `client/data/secrets.json` on your laptop only | the LLM and cloud only ever see `{{secret:name}}`; the client substitutes at typing time |
 
-Facts are injected into every prompt (relevance-filtered above 40 entries). The model saves them itself via `remember` — e.g. after resolving Twitch once it navigates straight there next time.
+Facts are injected into every prompt (relevance-filtered above 40 entries — word-boundary matches outrank substrings, key hits outrank value hits, recently-updated facts get a small boost). The model saves them itself via `remember` — e.g. after resolving Twitch once it navigates straight there next time.
+
+Durability: every JSON file is written atomically (tmp + rename, so a crash can't corrupt it), and any Postgres write that fails while the DB is down goes into a retry queue that replays on the next successful write — the local file is always the complete copy, Postgres catches up. `/memory` shows the backend and any writes waiting to sync. Past days of episodic memory are compressed into one cached line each (`digest.js`), so the RECENT block stays ~150 tokens no matter how long you've used Kairos.
 
 ## Browsers
 

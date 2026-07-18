@@ -1,7 +1,8 @@
 import { listPersonas, getPersona, PERSONAS } from "./personas.js";
 import { getPrefs, setPrefs, loadMoods, loadEvents, getSummary, forgetChat } from "./store.js";
 import { formatMood } from "./context.js";
-import { getAllFacts, forgetFact } from "../memory/store.js";
+import { getAllFacts, forgetFact, memoryBackend } from "../memory/store.js";
+import { pendingDbWrites } from "../memory/syncQueue.js";
 
 export const COMMANDS = [
   { name: "/personality", args: "[name]", help: "switch how Kairos talks to you" },
@@ -103,8 +104,10 @@ export async function runCommand(chatId, text) {
     case "/memory": {
       const facts = getAllFacts();
       const entries = Object.entries(facts);
-      if (!entries.length) return "i don't know anything about you yet.";
-      return `what i remember:\n${entries.map(([k, v]) => `${k}: ${v}`).join("\n")}\n\n/forget <key> to remove one`;
+      const pending = pendingDbWrites();
+      const status = `stored in ${memoryBackend() === "postgres" ? "postgres (survives restarts)" : "a local file"}${pending ? ` · ${pending} write${pending === 1 ? "" : "s"} waiting to re-sync` : ""}`;
+      if (!entries.length) return `i don't know anything about you yet.\n${status}`;
+      return `what i remember (${status}):\n${entries.map(([k, v]) => `${k}: ${v}`).join("\n")}\n\n/forget <key> to remove one`;
     }
 
     case "/recent": {

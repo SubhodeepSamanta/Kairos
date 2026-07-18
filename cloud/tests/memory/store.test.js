@@ -61,4 +61,23 @@ describe("memory store", () => {
     expect(formatFactsForPrompt({})).toBe("none yet");
     expect(formatFactsForPrompt({ a: "1", b: "2" })).toBe("a: 1\nb: 2");
   });
+
+  it("ranks word-boundary matches above buried substrings", () => {
+    for (let i = 0; i < 45; i++) rememberFact(`filler_${i}`, `value ${i}`);
+    rememberFact("git_config", "aliases set");
+    rememberFact("github_username", "torvalds");
+    rememberFact("site:github", "https://github.com");
+
+    const relevant = relevantFacts("open github");
+    expect(relevant.github_username).toBe("torvalds");
+    expect(relevant["site:github"]).toBe("https://github.com");
+  });
+
+  it("prefers matching facts over unrelated recent ones", () => {
+    rememberFact("site:twitch", "https://twitch.tv");
+    for (let i = 0; i < 45; i++) rememberFact(`noise_${i}`, `nothing ${i}`);
+    const relevant = relevantFacts("play something on twitch");
+    expect(relevant["site:twitch"]).toBe("https://twitch.tv");
+    expect(Object.keys(relevant)[0]).toBe("site:twitch");
+  });
 });
