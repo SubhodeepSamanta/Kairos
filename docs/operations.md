@@ -39,7 +39,7 @@ Telegram works the moment the cloud is up — message the bot directly.
 
 ```bash
 cd cloud && npx vitest run     # 140 tests
-cd client && npx vitest run    # 75 tests
+cd client && npx vitest run    # 78 tests
 ```
 
 Browser tests use a **simulated page** (fake locators/ARIA tree) — no real Chromium, fast, deterministic. They cover the regressions that historically broke things: element slicing, ordering, disabled/invisible handling, profile resolution, humanize behaviour, token budget, secrets, protocol timeouts.
@@ -52,6 +52,12 @@ cd cloud && node benchmark/run.js 8 9 10 # specific tasks
 ```
 
 Runs your real goals end to end and asks you to confirm each. Gate: **≥8/10**.
+
+For a quick unattended smoke test (no confirmations — checks goals complete, not quality):
+
+```bash
+cd cloud && node e2e-check.cjs "hi kairos" "open example.com in the browser"
+```
 
 Last full run: **7/10**. Tasks 8–10 (weather / news / twitch) were blocked by exhausted free-tier quotas, not logic errors.
 
@@ -103,8 +109,8 @@ To go further: another free key (Gemini, Cerebras) as a third primary, or $5 of 
 
 ## Known cleanup
 
-The legacy `memories` table in Postgres is **untouched and unused** — Kairos now writes `kairos_facts`. It still contains junk from the old system including a plaintext `password: 123` row. Drop it when convenient:
+The legacy `memories` table in Postgres is **untouched and unused** — Kairos now writes `kairos_facts`. It still contains junk from the old system including a plaintext `password: 123` row. Drop it by running (once, then delete the script):
 
-```sql
-DROP TABLE memories;
+```bash
+cd cloud && node drop-legacy-table.cjs
 ```

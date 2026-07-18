@@ -24,7 +24,7 @@ fs.writeFileSync(
 );
 
 process.env.LOCALAPPDATA = tmp;
-const { listProfiles, resolveProfile, automationDataDir, describeBrowsers } = await import(
+const { listProfiles, resolveProfile, automationDataDir, describeBrowsers, seedProfileIdentity } = await import(
   "../../../src/automation/browser/profiles.js"
 );
 
@@ -84,6 +84,36 @@ describe("automationDataDir", () => {
     expect(dir).toContain(path.join("Kairos", "Browsers"));
     expect(dir).not.toContain(path.join("Google", "Chrome", "User Data"));
     expect(automationDataDir("brave")).not.toBe(automationDataDir("chrome"));
+  });
+});
+
+describe("seedProfileIdentity", () => {
+  const prefsPath = (dir) => path.join(dir, "Default", "Preferences");
+
+  it("names a fresh Kairos profile so the window is recognizable", () => {
+    const dir = path.join(tmp, "seed-fresh");
+    expect(seedProfileIdentity(dir, "Kairos")).toBe(true);
+    const prefs = JSON.parse(fs.readFileSync(prefsPath(dir), "utf8"));
+    expect(prefs.profile.name).toBe("Kairos");
+  });
+
+  it("renames Chrome's default placeholder name", () => {
+    const dir = path.join(tmp, "seed-placeholder");
+    fs.mkdirSync(path.join(dir, "Default"), { recursive: true });
+    fs.writeFileSync(prefsPath(dir), JSON.stringify({ profile: { name: "Person 1" }, other: { keep: 1 } }));
+    expect(seedProfileIdentity(dir, "Kairos")).toBe(true);
+    const prefs = JSON.parse(fs.readFileSync(prefsPath(dir), "utf8"));
+    expect(prefs.profile.name).toBe("Kairos");
+    expect(prefs.other.keep).toBe(1);
+  });
+
+  it("never overwrites a name the user chose themselves", () => {
+    const dir = path.join(tmp, "seed-custom");
+    fs.mkdirSync(path.join(dir, "Default"), { recursive: true });
+    fs.writeFileSync(prefsPath(dir), JSON.stringify({ profile: { name: "My Setup" } }));
+    expect(seedProfileIdentity(dir, "Kairos")).toBe(false);
+    const prefs = JSON.parse(fs.readFileSync(prefsPath(dir), "utf8"));
+    expect(prefs.profile.name).toBe("My Setup");
   });
 });
 

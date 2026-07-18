@@ -5,7 +5,8 @@ import {
   resolveProfile,
   isBrowserInstalled,
   listProfiles,
-  automationDataDir
+  automationDataDir,
+  seedProfileIdentity
 } from "./profiles.js";
 
 const DEFAULT_BROWSER = process.env.DEFAULT_BROWSER || "chrome";
@@ -85,6 +86,9 @@ async function launchDedicated(browserName) {
   if (!spec) throw new Error(`unknown_browser:${browserName}`);
   if (!isBrowserInstalled(browserName)) throw new Error(`${browserName} is not installed on this computer`);
 
+  try {
+    seedProfileIdentity(automationDataDir(browserName), "Kairos");
+  } catch {}
   try {
     await openContext(browserName, automationDataDir(browserName), null);
   } catch (err) {

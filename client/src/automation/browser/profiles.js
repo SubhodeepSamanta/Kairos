@@ -11,6 +11,23 @@ export function automationDataDir(name) {
   return path.join(KAIROS_DATA, name);
 }
 
+const DEFAULT_PROFILE_NAMES = /^(Person \d+|Your Chrome|Your Brave|Your Edge|)$/;
+
+export function seedProfileIdentity(dataDir, label) {
+  const prefsFile = path.join(dataDir, "Default", "Preferences");
+  let prefs = {};
+  try {
+    prefs = JSON.parse(fs.readFileSync(prefsFile, "utf8"));
+  } catch {}
+  const name = prefs?.profile?.name || "";
+  if (name && !DEFAULT_PROFILE_NAMES.test(name)) return false;
+  prefs.profile = { ...(prefs.profile || {}), name: label };
+  prefs.browser = { ...(prefs.browser || {}), has_seen_welcome_page: true };
+  fs.mkdirSync(path.dirname(prefsFile), { recursive: true });
+  fs.writeFileSync(prefsFile, JSON.stringify(prefs), "utf8");
+  return true;
+}
+
 const BROWSERS = {
   chrome: {
     label: "Chrome",
