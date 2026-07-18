@@ -38,8 +38,8 @@ Telegram works the moment the cloud is up — message the bot directly.
 ## Tests
 
 ```bash
-cd cloud && npx vitest run     # 140 tests
-cd client && npx vitest run    # 78 tests
+cd cloud && npx vitest run     # 142 tests
+cd client && npx vitest run    # 83 tests
 ```
 
 Browser tests use a **simulated page** (fake locators/ARIA tree) — no real Chromium, fast, deterministic. They cover the regressions that historically broke things: element slicing, ordering, disabled/invisible handling, profile resolution, humanize behaviour, token budget, secrets, protocol timeouts.

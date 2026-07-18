@@ -24,7 +24,7 @@ fs.writeFileSync(
 );
 
 process.env.LOCALAPPDATA = tmp;
-const { listProfiles, resolveProfile, automationDataDir, describeBrowsers, seedProfileIdentity } = await import(
+const { listProfiles, resolveProfile, automationDataDir, describeBrowsers, seedProfileIdentity, defaultProfile } = await import(
   "../../../src/automation/browser/profiles.js"
 );
 
@@ -84,6 +84,27 @@ describe("automationDataDir", () => {
     expect(dir).toContain(path.join("Kairos", "Browsers"));
     expect(dir).not.toContain(path.join("Google", "Chrome", "User Data"));
     expect(automationDataDir("brave")).not.toBe(automationDataDir("chrome"));
+  });
+});
+
+describe("defaultProfile", () => {
+  const statePath = path.join(userData, "Local State");
+
+  it("falls back to the Default directory when no last_used is recorded", () => {
+    expect(defaultProfile("chrome").directory).toBe("Default");
+  });
+
+  it("prefers the profile the user last used", () => {
+    const original = fs.readFileSync(statePath, "utf8");
+    const state = JSON.parse(original);
+    state.profile.last_used = "Profile 8";
+    fs.writeFileSync(statePath, JSON.stringify(state));
+    expect(defaultProfile("chrome").name).toBe("Side");
+    fs.writeFileSync(statePath, original);
+  });
+
+  it("returns null when the browser has no profiles", () => {
+    expect(defaultProfile("brave")).toBeNull();
   });
 });
 

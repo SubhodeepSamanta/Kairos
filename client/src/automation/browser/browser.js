@@ -6,7 +6,8 @@ import {
   isBrowserInstalled,
   listProfiles,
   automationDataDir,
-  seedProfileIdentity
+  seedProfileIdentity,
+  defaultProfile
 } from "./profiles.js";
 
 const DEFAULT_BROWSER = process.env.DEFAULT_BROWSER || "chrome";
@@ -135,6 +136,22 @@ async function launchRealProfile(browserName, profileWanted) {
   return pages[activePageIndex];
 }
 
+async function launchAuto(browserName) {
+  const spec = browserSpec(browserName);
+  if (!spec) throw new Error(`unknown_browser:${browserName}`);
+  const profile = defaultProfile(browserName);
+  if (profile) {
+    try {
+      return await launchRealProfile(browserName, profile.directory);
+    } catch (err) {
+      console.log(
+        `[BROWSER] Your real ${spec.label} profile "${profile.name}" is unavailable (${String(err.message).slice(0, 70)}…) — using the private Kairos ${spec.label} window instead`
+      );
+    }
+  }
+  return launchDedicated(browserName);
+}
+
 export async function useBrowser(browserName, profileWanted = null) {
   await closeBrowser();
   if (!browserName || browserName === "playwright") {
@@ -142,14 +159,22 @@ export async function useBrowser(browserName, profileWanted = null) {
   } else if (profileWanted) {
     await launchRealProfile(browserName, profileWanted);
   } else {
-    await launchDedicated(browserName);
+    await launchAuto(browserName);
   }
-  preferred = { browser: current.browser, profile: current.mode === "real" ? current.profile : null };
+  preferred = { browser: current.browser, profile: profileWanted && current.mode === "real" ? current.profile : null };
   return { success: true, ...current };
 }
 
 export function currentBrowser() {
   return { ...current };
+}
+
+export function browserDescription() {
+  const label = browserSpec(current.browser)?.label || current.browser;
+  if (current.mode === "real") return `your ${label} profile "${current.profileLabel}" (logged in)`;
+  if (current.mode === "dedicated") return `the private ${current.profileLabel} window (its own logins — sign in once and it sticks)`;
+  if (current.mode === "playwright") return "a throwaway browser (no logins)";
+  return null;
 }
 
 export async function launchBrowser() {
@@ -165,7 +190,7 @@ export async function launchBrowser() {
     try {
       return preferred.profile
         ? await launchRealProfile(name, preferred.profile)
-        : await launchDedicated(name);
+        : await launchAuto(name);
     } catch (err) {
       console.log(`[BROWSER] ${name} unavailable (${String(err.message).slice(0, 90)}) — using isolated browser`);
       return launchPlaywright();

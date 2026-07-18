@@ -79,6 +79,8 @@ function extractData(action, result) {
       return result.newTabOpened ? { newTabOpened: true } : undefined;
     case "select_option":
       return { selected: result.selected };
+    case "open_for_user":
+      return { opened: result.opened };
     case "list_browsers":
       return { browsers: result.browsers, installed: result.installed, active: result.active };
     case "use_browser":

@@ -35,7 +35,8 @@ function makeAriaLocator(role, name) {
 
 vi.mock("../../../../src/automation/browser/browser.js", () => ({
   getPage: async () => fakePage,
-  listTabs: async () => []
+  listTabs: async () => [],
+  browserDescription: () => "a throwaway browser (no logins)"
 }));
 vi.mock("../../../../src/automation/browser/actions/observation/pageReader.js", () => ({
   extractPageText: async () => ""

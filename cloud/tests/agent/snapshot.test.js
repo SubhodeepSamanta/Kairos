@@ -7,6 +7,14 @@ describe("formatSnapshot", () => {
     expect(formatSnapshot({})).toContain("no page loaded");
   });
 
+  it("shows which browser the page is open in", () => {
+    const out = formatSnapshot({
+      url: "https://x.com", title: "X", via: 'your Chrome profile "Kami" (logged in)',
+      inputs: [], buttons: [], links: [], text: ""
+    });
+    expect(out).toContain('VIA: your Chrome profile "Kami" (logged in)');
+  });
+
   it("renders select options so the model can pick one", () => {
     const inputs = [
       { id: 3, ariaRole: "combobox", text: "Country", value: "India", options: ["India", "Japan", "Brazil"], totalOptions: 40 }

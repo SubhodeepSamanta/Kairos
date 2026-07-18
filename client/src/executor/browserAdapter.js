@@ -5,6 +5,7 @@ import { getContext } from "../automation/browser/actions/getContext.js";
 import { typeText } from "../automation/browser/actions/input/type.js";
 import { clickText } from "../automation/browser/actions/input/click.js";
 import { selectOption } from "../automation/browser/actions/input/selectOption.js";
+import { openForUser } from "../automation/browser/actions/openForUser.js";
 import { goBack } from "../automation/browser/actions/navigation/back.js";
 import { goForward } from "../automation/browser/actions/navigation/forward.js";
 import { refreshPage } from "../automation/browser/actions/navigation/refresh.js";
@@ -34,6 +35,8 @@ export async function executeBrowserAction(action) {
       return await clickText(action.params.text, action.params.element);
     case ACTIONS.SELECT_OPTION:
       return await selectOption(action.params.element, action.params.value);
+    case ACTIONS.OPEN_FOR_USER:
+      return await openForUser(action.params.url);
     case ACTIONS.READ_UI:
       return await readPage();
     case ACTIONS.GET_BROWSER_CONTEXT:

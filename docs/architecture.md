@@ -39,6 +39,7 @@ The old system did the opposite (heuristics decided, LLM rubber-stamped) and fai
 | Group | Actions |
 |---|---|
 | Browser | `navigate` `click` `type` `select_option` `press_key` `scroll` `back` `refresh` `new_tab` `switch_tab` `close_tab` `read` `wait` `screenshot` |
+| User's own browser | `open_for_user{url}` — new tab in their everyday browser (their logins, their window); Kairos cannot see or control that tab. Default for plain "open X" goals |
 | Browser choice | `list_browsers` `use_browser{browser,profile}` |
 | Knowledge | `web_search` `fetch_page` (no browser — fast and cheap) |
 | Memory | `remember{key,value}` |
@@ -95,9 +96,11 @@ Durability: every JSON file is written atomically (tmp + rename, so a crash can'
 
 ## Browsers
 
-Default is an isolated Playwright Chromium (no logins). When a goal needs your account, or you name a browser/profile, the model calls `use_browser` and the client launches your **real** Chrome/Brave/Edge with `launchPersistentContext` and `--profile-directory=…`, so your existing logins are there.
+Plain "open X" goals go straight to **your own everyday browser** via `open_for_user` — a tab appears in the window you already have open, logged in as you. Kairos cannot see or control that tab, which is fine because nothing more was asked.
 
-Profiles resolve by display name ("Kami"), account email, directory ("Profile 8"), or ordinal ("first"). If that browser is already running, the launch fails cleanly and the model asks you to close it.
+Goals that need Kairos to *act on* a page use a controlled browser, chosen automatically: your **real last-used profile** (all your logins) when that browser is fully closed; otherwise a **private Kairos window** of the same real browser (Chromium locks a profile to one process, so a running Chrome cannot be driven). The Kairos window keeps its own logins across sessions and its profile is named "Kairos" so it is recognizable. "Anonymous / incognito" requests use the isolated throwaway Chromium. Every snapshot carries a `VIA:` line so the model — and you — always know which one is active.
+
+Profiles resolve by display name ("Kami"), account email, directory ("Profile 8"), or ordinal ("first"). If that browser is already running, a real-profile launch fails cleanly and the model asks you to close it or falls back.
 
 ## Human behaviour
 

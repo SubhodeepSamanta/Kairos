@@ -32,7 +32,8 @@ function makeLocator(meta) {
 
 vi.mock("../../../src/automation/browser/browser.js", () => ({
   getPage: async () => fakePage,
-  listTabs: async () => [{ index: 0, title: "Fake Search", url: "https://fake.test/search", active: true }]
+  listTabs: async () => [{ index: 0, title: "Fake Search", url: "https://fake.test/search", active: true }],
+  browserDescription: () => "a throwaway browser (no logins)"
 }));
 vi.mock("../../../src/automation/browser/actions/observation/pageReader.js", () => ({
   extractPageText: async () => "some page text"

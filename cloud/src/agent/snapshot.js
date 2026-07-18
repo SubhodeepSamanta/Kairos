@@ -72,6 +72,7 @@ export function formatSnapshot(page, { fullText = false } = {}) {
   const lines = [];
   lines.push(`URL: ${page.url || "unknown"}`);
   lines.push(`TITLE: ${cleanLabel(page.title) || "unknown"}`);
+  if (page.via) lines.push(`VIA: ${page.via}`);
 
   const tabs = page.tabs || [];
   if (tabs.length > 1 || (tabs.length === 1 && tabs[0].index !== 0)) {

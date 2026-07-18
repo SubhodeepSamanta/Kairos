@@ -1,4 +1,4 @@
-import { getPage, listTabs } from "../../browser.js";
+import { getPage, listTabs, browserDescription } from "../../browser.js";
 import { clearRegistry, registerElement } from "../../elements/registry.js";
 import { extractPageText } from "./pageReader.js";
 import { readAriaElements } from "./ariaReader.js";
@@ -173,6 +173,7 @@ export async function readPage() {
     success: true,
     title,
     url,
+    via: browserDescription(),
     buttons,
     inputs,
     links,

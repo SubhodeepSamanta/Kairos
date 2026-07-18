@@ -110,6 +110,25 @@ export function listProfiles(browserName) {
   });
 }
 
+export function defaultProfile(browserName) {
+  const spec = BROWSERS[browserName];
+  if (!spec) return null;
+  const profiles = listProfiles(browserName);
+  if (!profiles.length) return null;
+
+  let lastUsed = null;
+  try {
+    const state = JSON.parse(fs.readFileSync(path.join(spec.userDataDir, "Local State"), "utf8"));
+    lastUsed = state.profile?.last_used || null;
+  } catch {}
+
+  return (
+    profiles.find(p => p.directory === lastUsed) ||
+    profiles.find(p => p.directory === "Default") ||
+    profiles[0]
+  );
+}
+
 export function resolveProfile(browserName, wanted) {
   const profiles = listProfiles(browserName);
   if (!profiles.length) return null;
@@ -143,13 +162,13 @@ export function describeBrowsers() {
     const spec = BROWSERS[name];
     const profiles = listProfiles(name);
     const rendered = profiles.length
-      ? profiles.map(p => `"${p.name}"${p.account ? ` (${p.account})` : ""}`).join(", ")
+      ? profiles.map((p, i) => `${i + 1}. "${p.name}"${p.account ? ` (${p.account})` : ""}`).join(", ")
       : "none found";
     lines.push(
-      `${spec.label} — default is a private Kairos ${spec.label} window that keeps its own logins and never clashes with the ${spec.label} you use daily. Your real profiles (${rendered}) can be used by naming one, but that needs ${spec.label} fully closed first.`
+      `${spec.label} — real profiles: ${rendered}. Using one (or the automatic default) needs ${spec.label} fully closed; while it is open Kairos falls back to a private Kairos ${spec.label} window that keeps its own logins.`
     );
   }
   if (!lines.length) lines.push("No Chrome, Brave or Edge found on this computer.");
-  lines.push("playwright — throwaway isolated browser, no logins.");
+  lines.push("playwright — throwaway isolated browser, no logins (for anonymous/incognito).");
   return lines.join("\n");
 }

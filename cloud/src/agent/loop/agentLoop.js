@@ -23,6 +23,7 @@ const BROWSER_ACTIONS = {
   click: a => ({ type: "click", params: { element: a.id } }),
   type: a => ({ type: "type", params: { element: a.id, text: a.text, submit: a.submit === true } }),
   select_option: a => ({ type: "select_option", params: { element: a.id, value: a.value } }),
+  open_for_user: a => ({ type: "open_for_user", params: { url: a.url } }),
   press_key: a => ({ type: "press_key", params: { key: a.key } }),
   scroll: a => ({ type: "scroll", params: { direction: a.direction || "down" } }),
   back: () => ({ type: "back", params: {} }),
@@ -43,7 +44,8 @@ const DATA_SUMMARY = {
   use_browser: d => ` (now using ${d.browser}${d.profileLabel ? ` profile "${d.profileLabel}"` : ""})`,
   screenshot: d => d.path ? ` (saved ${d.path})` : "",
   click: d => d?.newTabOpened ? " (it opened a new tab, which is now the active one)" : "",
-  select_option: d => d?.selected ? ` (selected "${d.selected}")` : ""
+  select_option: d => d?.selected ? ` (selected "${d.selected}")` : "",
+  open_for_user: d => d?.opened ? ` (${d.opened} opened as a tab in the user's OWN browser — done, you cannot see that tab)` : ""
 };
 
 const IDEMPOTENT_INFO = new Set(["list_browsers"]);

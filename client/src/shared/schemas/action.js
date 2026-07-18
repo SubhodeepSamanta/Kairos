@@ -37,7 +37,8 @@ SWITCH_TAB:
   USE_BROWSER: "use_browser",
   LIST_BROWSERS: "list_browsers",
   NEW_WINDOW: "new_window",
-  SELECT_OPTION: "select_option"
+  SELECT_OPTION: "select_option",
+  OPEN_FOR_USER: "open_for_user"
 };
 
 export function createAction(
