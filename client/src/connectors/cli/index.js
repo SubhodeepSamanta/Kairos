@@ -31,7 +31,7 @@ function say(text, isError = false) {
   ui.write(`${color}${text}${C.reset}`);
 }
 
-connectToCloud(env.CLOUD_URL || "ws://localhost:8080", {
+connectToCloud(env.CLOUD_URL || "ws://localhost:3000", {
   onReady() {
     ui.prompt();
   },

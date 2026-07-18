@@ -24,7 +24,9 @@ fs.writeFileSync(
 );
 
 process.env.LOCALAPPDATA = tmp;
-const { listProfiles, resolveProfile } = await import("../../../src/automation/browser/profiles.js");
+const { listProfiles, resolveProfile, automationDataDir, describeBrowsers } = await import(
+  "../../../src/automation/browser/profiles.js"
+);
 
 afterAll(() => fs.rmSync(tmp, { recursive: true, force: true }));
 
@@ -73,5 +75,22 @@ describe("resolveProfile", () => {
 
   it("returns null for no match", () => {
     expect(resolveProfile("chrome", "nonexistent person")).toBeNull();
+  });
+});
+
+describe("automationDataDir", () => {
+  it("is a Kairos-owned dir, never the user's real User Data dir", () => {
+    const dir = automationDataDir("chrome");
+    expect(dir).toContain(path.join("Kairos", "Browsers"));
+    expect(dir).not.toContain(path.join("Google", "Chrome", "User Data"));
+    expect(automationDataDir("brave")).not.toBe(automationDataDir("chrome"));
+  });
+});
+
+describe("describeBrowsers", () => {
+  it("explains the private default and that real profiles need the browser closed", () => {
+    const text = describeBrowsers();
+    expect(text).toMatch(/private Kairos/i);
+    expect(text).toMatch(/fully closed/i);
   });
 });

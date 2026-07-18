@@ -20,7 +20,7 @@ export function startTelegramBot(token) {
 
   const say = async (chatId, text) => {
     try {
-      return await bot.sendMessage(chatId, text.slice(0, 4000));
+      return await bot.sendMessage(chatId, String(text ?? "done.").slice(0, 4000) || "done.");
     } catch {
       return null;
     }

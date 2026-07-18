@@ -4,7 +4,8 @@ import path from "path";
 import os from "os";
 import {
   addTurn, loadTurns, addEvent, loadEvents, addMood, loadMoods,
-  getPrefs, setPrefs, forgetChat, resetCompanionCacheForTests
+  getPrefs, setPrefs, forgetChat, resetCompanionCacheForTests,
+  countTurns, loadTurnsBefore, setSummary
 } from "../../src/companion/store.js";
 import { formatConversation, formatEvents, formatMood } from "../../src/companion/context.js";
 
@@ -43,6 +44,36 @@ describe("conversation memory", () => {
   it("ignores empty turns", async () => {
     await addTurn("a", "user", "");
     expect(await loadTurns("a")).toHaveLength(0);
+  });
+
+  it("keeps counting past the 300-turn archive cap", async () => {
+    for (let i = 0; i < 310; i++) await addTurn("a", "user", `msg ${i}`);
+    expect(await countTurns("a")).toBe(310);
+    const turns = await loadTurns("a");
+    expect(turns[turns.length - 1].text).toBe("msg 309");
+  });
+
+  it("summarizes the right turns even after old ones were archived away", async () => {
+    for (let i = 0; i < 310; i++) await addTurn("a", "user", `msg ${i}`);
+    await setSummary("a", "old summary", 100);
+    const older = await loadTurnsBefore("a", 310);
+    expect(older[0].text).toBe("msg 100");
+    expect(older[older.length - 1].text).toBe("msg 295");
+  });
+
+  it("still reads turns saved in the old array format", async () => {
+    const fs = await import("fs");
+    const path = await import("path");
+    fs.mkdirSync(path.join(process.cwd(), "data"), { recursive: true });
+    fs.writeFileSync(
+      path.join(process.cwd(), "data", "turns.json"),
+      JSON.stringify({ legacy: [{ role: "user", text: "old style", at: new Date().toISOString() }] })
+    );
+    resetCompanionCacheForTests();
+    const turns = await loadTurns("legacy");
+    expect(turns).toHaveLength(1);
+    expect(turns[0].text).toBe("old style");
+    expect(await countTurns("legacy")).toBe(1);
   });
 });
 

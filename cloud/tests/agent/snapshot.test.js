@@ -7,6 +7,24 @@ describe("formatSnapshot", () => {
     expect(formatSnapshot({})).toContain("no page loaded");
   });
 
+  it("renders select options so the model can pick one", () => {
+    const inputs = [
+      { id: 3, ariaRole: "combobox", text: "Country", value: "India", options: ["India", "Japan", "Brazil"], totalOptions: 40 }
+    ];
+    const out = formatSnapshot({ url: "u", title: "t", inputs, buttons: [], links: [], text: "" });
+    expect(out).toContain('[3] select "Country" value="India" options: India | Japan | Brazil, +37 more');
+  });
+
+  it("gives more page text after an explicit read", () => {
+    const page = { url: "u", title: "t", inputs: [], buttons: [], links: [], text: "y".repeat(3000) };
+    const normal = formatSnapshot(page);
+    const afterRead = formatSnapshot(page, { fullText: true });
+    expect(normal).toContain("y".repeat(500));
+    expect(normal).not.toContain("y".repeat(501));
+    expect(afterRead).toContain("y".repeat(1500));
+    expect(afterRead).not.toContain("y".repeat(1501));
+  });
+
   it("includes every input even when there are many", () => {
     const inputs = Array.from({ length: 45 }, (_, i) => ({ id: i + 1, ariaRole: "textbox", text: `field ${i + 1}` }));
     const out = formatSnapshot({ url: "https://x.com", title: "X", inputs, buttons: [], links: [], text: "" });

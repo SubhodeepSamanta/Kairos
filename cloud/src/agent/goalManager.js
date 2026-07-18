@@ -17,8 +17,9 @@ export function submitGoal({ goal, chatId = "default", executeAction, askHuman, 
   }
 
   queue.push({ goal, chatId, executeAction, askHuman, onStatus, onResult });
-  if (queue.length > 1 || running) {
-    try { onStatus(`queued (${queue.length} ahead)`); } catch {}
+  const ahead = queue.length - 1 + (running ? 1 : 0);
+  if (ahead > 0) {
+    try { onStatus(`queued (${ahead} ahead)`); } catch {}
   }
   processQueue();
 }

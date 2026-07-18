@@ -55,11 +55,11 @@ export function formatMood(moods) {
 }
 
 export async function buildCompanionContext(chatId) {
-  const [prefs, turns, events, moods, summary] = await Promise.all([
-    getPrefs(chatId),
+  const prefs = await getPrefs(chatId);
+  const [turns, events, moods, summary] = await Promise.all([
     loadTurns(chatId),
     loadEvents(chatId),
-    getPrefsSafeMoods(chatId),
+    prefs.moodTracking ? loadMoods(chatId) : Promise.resolve([]),
     getSummary(chatId)
   ]);
 
@@ -71,10 +71,4 @@ export async function buildCompanionContext(chatId) {
     recentDays: formatEvents(events),
     mood: prefs.moodTracking ? formatMood(moods) : "(mood tracking is off)"
   };
-}
-
-async function getPrefsSafeMoods(chatId) {
-  const prefs = await getPrefs(chatId);
-  if (!prefs.moodTracking) return [];
-  return loadMoods(chatId);
 }

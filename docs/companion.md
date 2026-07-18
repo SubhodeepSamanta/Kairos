@@ -297,7 +297,7 @@ Each step is independently useful and testable. **Text before voice** — if the
 
 ### Commands
 
-`/personality [name]` · `/mood [on|off|clear]` · `/memory` · `/recent` · `/forget <key|chat|moods|all>` · `/help`
+`/personality [name]` · `/mood [on|off|clear]` · `/memory` · `/recent` · `/about` · `/forget <key|chat|moods|all>` · `/help`
 
 CLI shows them live as you type `/` — arrow keys, tab to complete, no Enter needed. Telegram registers them natively and `/personality` opens a tappable picker.
 

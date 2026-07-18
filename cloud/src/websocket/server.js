@@ -84,8 +84,17 @@ function send(ws, message) {
   }
 }
 
-export function startWebSocketServer(port = Number(env.PORT) || 8080) {
+export function startWebSocketServer(port = Number(env.PORT) || 3000) {
   const wss = new WebSocketServer({ port });
+
+  wss.on("error", (err) => {
+    if (err.code === "EADDRINUSE") {
+      console.log(`\n✗ Port ${port} is already in use — is another Kairos cloud running?`);
+      console.log(`  Stop it, or set a different PORT in cloud/.env (and match it in client CLOUD_URL).\n`);
+      process.exit(1);
+    }
+    log("WebSocket server error:", err.message);
+  });
 
   wss.on("connection", (ws) => {
     ws.isAuthed = false;

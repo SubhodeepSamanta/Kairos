@@ -5,6 +5,7 @@ import { readAriaElements } from "./ariaReader.js";
 import { readButtons } from "./buttonReader.js";
 import { readInputs } from "./inputReader.js";
 import { readLinks } from "./linkReader.js";
+import { readSelects } from "./selectReader.js";
 
 const DOM_ONLY_OFFSET = 100000;
 
@@ -33,7 +34,9 @@ function slim(el) {
     href: el.href || null,
     disabled: Boolean(el.disabled),
     placeholder: el.placeholder || "",
-    type: el.type || ""
+    type: el.type || "",
+    options: el.options || undefined,
+    totalOptions: el.totalOptions || undefined
   };
 }
 
@@ -49,6 +52,7 @@ export async function readPage() {
   const domButtons = await readButtons(page);
   const domInputs = await readInputs(page);
   const domLinks = await readLinks(page);
+  const domSelects = await readSelects(page);
   const text = await extractPageText(page);
 
   const ariaIndex = new Map();
@@ -70,17 +74,28 @@ export async function readPage() {
     return false;
   }
 
+  const selectByName = new Map();
+  for (const sel of domSelects) selectByName.set(sel.text.toLowerCase(), sel);
+
   let nextId = 1;
   const allElements = [];
 
   for (const ae of ariaElements) {
     const id = nextId++;
-    registerElement(id, ae.locator, ae.name, ae.role, ae.visualInfo);
+    const matchedSelect = ae.role === "combobox" ? selectByName.get(ae.name.toLowerCase()) : null;
+    if (matchedSelect) {
+      registerElement(id, matchedSelect.locator, ae.name, "select", ae.visualInfo);
+      selectByName.delete(ae.name.toLowerCase());
+    } else {
+      registerElement(id, ae.locator, ae.name, ae.role, ae.visualInfo);
+    }
     allElements.push({
       id,
       ariaRole: ae.role,
       text: ae.name,
-      value: ae.value || "",
+      value: matchedSelect?.value || ae.value || "",
+      options: matchedSelect?.options,
+      totalOptions: matchedSelect?.totalOptions,
       disabled: !ae.enabled,
       top: ae.visualInfo?.top ?? null
     });
@@ -107,6 +122,21 @@ export async function readPage() {
     const id = domOnlyId++;
     registerElement(id, makeDomLocator(page, link, "link"), link.text, "link", { top: link.top, left: link.left });
     allElements.push({ ...link, id, ariaRole: "link" });
+  }
+
+  for (const sel of selectByName.values()) {
+    const id = domOnlyId++;
+    registerElement(id, sel.locator, sel.text, "select", { top: sel.top, left: sel.left });
+    allElements.push({
+      id,
+      ariaRole: "combobox",
+      text: sel.text,
+      value: sel.value,
+      options: sel.options,
+      totalOptions: sel.totalOptions,
+      disabled: false,
+      top: sel.top
+    });
   }
 
   if (ariaElements.length < 3 && allElements.length < 5) {

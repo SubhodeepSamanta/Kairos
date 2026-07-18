@@ -38,7 +38,7 @@ The old system did the opposite (heuristics decided, LLM rubber-stamped) and fai
 
 | Group | Actions |
 |---|---|
-| Browser | `navigate` `click` `type` `press_key` `scroll` `back` `refresh` `new_tab` `switch_tab` `close_tab` `read` `wait` `screenshot` |
+| Browser | `navigate` `click` `type` `select_option` `press_key` `scroll` `back` `refresh` `new_tab` `switch_tab` `close_tab` `read` `wait` `screenshot` |
 | Browser choice | `list_browsers` `use_browser{browser,profile}` |
 | Knowledge | `web_search` `fetch_page` (no browser — fast and cheap) |
 | Memory | `remember{key,value}` |

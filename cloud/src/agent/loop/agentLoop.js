@@ -12,6 +12,8 @@ import { maybeSummarize } from "../../companion/summary.js";
 const MAX_STEPS = 30;
 const MAX_LLM_CALLS = 45;
 const MAX_HISTORY_LINES = 16;
+const FULL_HISTORY_TAIL = 6;
+const OLD_HISTORY_CHARS = 300;
 const MAX_REPEATS_BEFORE_WARNING = 2;
 const MAX_REPEATS_BEFORE_ABORT = 4;
 const LLM_RETRY_WAITS_MS = [8000, 20000, 45000, 0];
@@ -20,6 +22,7 @@ const BROWSER_ACTIONS = {
   navigate: a => ({ type: "navigate", params: { url: a.url } }),
   click: a => ({ type: "click", params: { element: a.id } }),
   type: a => ({ type: "type", params: { element: a.id, text: a.text, submit: a.submit === true } }),
+  select_option: a => ({ type: "select_option", params: { element: a.id, value: a.value } }),
   press_key: a => ({ type: "press_key", params: { key: a.key } }),
   scroll: a => ({ type: "scroll", params: { direction: a.direction || "down" } }),
   back: () => ({ type: "back", params: {} }),
@@ -38,7 +41,9 @@ const BROWSER_ACTIONS = {
 const DATA_SUMMARY = {
   list_browsers: d => `\n${d.browsers}`,
   use_browser: d => ` (now using ${d.browser}${d.profileLabel ? ` profile "${d.profileLabel}"` : ""})`,
-  screenshot: d => d.path ? ` (saved ${d.path})` : ""
+  screenshot: d => d.path ? ` (saved ${d.path})` : "",
+  click: d => d?.newTabOpened ? " (it opened a new tab, which is now the active one)" : "",
+  select_option: d => d?.selected ? ` (selected "${d.selected}")` : ""
 };
 
 const IDEMPOTENT_INFO = new Set(["list_browsers"]);
@@ -63,8 +68,13 @@ function describeAction(action) {
 }
 
 function trimHistory(history) {
-  if (history.length <= MAX_HISTORY_LINES) return history;
-  return [`(${history.length - MAX_HISTORY_LINES} earlier steps omitted)`, ...history.slice(-MAX_HISTORY_LINES)];
+  const kept = history.length > MAX_HISTORY_LINES
+    ? [`(${history.length - MAX_HISTORY_LINES} earlier steps omitted)`, ...history.slice(-MAX_HISTORY_LINES)]
+    : [...history];
+  const cutoff = kept.length - FULL_HISTORY_TAIL;
+  return kept.map((entry, i) =>
+    i < cutoff && entry.length > OLD_HISTORY_CHARS ? `${entry.slice(0, OLD_HISTORY_CHARS)} …(older detail trimmed)` : entry
+  );
 }
 
 export async function runAgent({ goal, goalId, chatId = "default", executeAction, askHuman, onStatus }) {
@@ -75,6 +85,7 @@ export async function runAgent({ goal, goalId, chatId = "default", executeAction
   let lastPage = null;
   let notice = "";
   let step = 0;
+  let justRead = false;
   const startTime = Date.now();
 
   const status = (msg) => {
@@ -101,7 +112,7 @@ export async function runAgent({ goal, goalId, chatId = "default", executeAction
     const secs = ((Date.now() - startTime) / 1000).toFixed(1);
     console.log(`[AGENT] ${success ? "DONE" : "FAILED"} in ${step} steps, ${budget.used} LLM calls, ~${budget.estimatedTokens} tokens, ${secs}s`);
     await addTurn(chatId, "assistant", answer);
-    if (step > 0) {
+    if (history.length > 0) {
       await addEvent(chatId, `${goal.slice(0, 120)}${success ? "" : " (didn't work)"}`, success, step);
     }
     maybeSummarize(chatId).catch(() => {});
@@ -123,7 +134,7 @@ export async function runAgent({ goal, goalId, chatId = "default", executeAction
       memories: formatFactsForPrompt(relevantFacts(goal)),
       history: trimHistory(history),
       snapshot: lastPage
-        ? formatSnapshot(lastPage)
+        ? formatSnapshot(lastPage, { fullText: justRead })
         : "not observed yet — use {\"type\":\"read\"} to see the current browser, navigate somewhere, or answer directly with done",
       notice,
       summary: companion.summary,
@@ -162,6 +173,7 @@ export async function runAgent({ goal, goalId, chatId = "default", executeAction
       continue;
     }
     console.log(`[STEP ${step}] ${thought} -> ${describeAction(action)}`);
+    justRead = action.type === "read";
 
     if (action.type === "done") {
       const success = action.success !== false;
@@ -195,9 +207,9 @@ export async function runAgent({ goal, goalId, chatId = "default", executeAction
 
     if (action.type === "web_search") {
       status(`Searching: ${action.query}`);
-      succeededResults[sig] = { step };
       try {
         const results = await webSearch(String(action.query || ""));
+        succeededResults[sig] = { step };
         history.push(`#${step} web_search "${String(action.query).slice(0, 60)}" →\n${formatSearchResults(results).slice(0, 500)}`);
       } catch (err) {
         history.push(`#${step} web_search FAILED: ${err.message}`);
@@ -207,9 +219,9 @@ export async function runAgent({ goal, goalId, chatId = "default", executeAction
 
     if (action.type === "fetch_page") {
       status(`Reading: ${action.url}`);
-      succeededResults[sig] = { step };
       try {
         const text = await fetchPageText(String(action.url || ""));
+        succeededResults[sig] = { step };
         history.push(`#${step} fetch_page ${String(action.url).slice(0, 80)} →\n${text.slice(0, 1200)}`);
       } catch (err) {
         history.push(`#${step} fetch_page FAILED: ${err.message}`);

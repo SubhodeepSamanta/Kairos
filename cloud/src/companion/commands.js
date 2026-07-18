@@ -1,5 +1,6 @@
 import { listPersonas, getPersona, PERSONAS } from "./personas.js";
-import { getPrefs, setPrefs, loadMoods, loadEvents, forgetChat } from "./store.js";
+import { getPrefs, setPrefs, loadMoods, loadEvents, getSummary, forgetChat } from "./store.js";
+import { formatMood } from "./context.js";
 import { getAllFacts, forgetFact } from "../memory/store.js";
 
 export const COMMANDS = [
@@ -7,6 +8,7 @@ export const COMMANDS = [
   { name: "/mood", args: "[on|off|clear]", help: "see or control the mood read" },
   { name: "/memory", args: "", help: "what Kairos remembers about you" },
   { name: "/recent", args: "", help: "what you did recently" },
+  { name: "/about", args: "", help: "who Kairos thinks you are" },
   { name: "/forget", args: "<key|chat|moods|all>", help: "make Kairos forget something" },
   { name: "/help", args: "", help: "show commands" }
 ];
@@ -109,6 +111,28 @@ export async function runCommand(chatId, text) {
       const events = await loadEvents(chatId, 7);
       if (!events.length) return "nothing recorded yet.";
       return `recently:\n${events.slice(-12).map(e => `${new Date(e.at).toLocaleString()} — ${e.summary}${e.success ? "" : " (failed)"}`).join("\n")}`;
+    }
+
+    case "/about": {
+      const [prefs, summary, events] = await Promise.all([
+        getPrefs(chatId),
+        getSummary(chatId),
+        loadEvents(chatId, 7)
+      ]);
+      const persona = getPersona(prefs.persona);
+      const factCount = Object.keys(getAllFacts()).length;
+      const lines = [`you're talking to ${persona.label} — ${persona.blurb}.`];
+      lines.push(`i'm holding ${factCount} fact${factCount === 1 ? "" : "s"} about you.`);
+      if (events.length) {
+        const worked = events.filter(e => e.success).length;
+        lines.push(`${events.length} thing${events.length === 1 ? "" : "s"} this week (${worked} worked out).`);
+      }
+      if (prefs.moodTracking) {
+        const moods = await loadMoods(chatId, 14);
+        if (moods.length) lines.push(`mood read: ${formatMood(moods)}`);
+      }
+      lines.push(summary.text ? `\nwhat i've picked up:\n${summary.text}` : `\nstill getting to know you.`);
+      return lines.join("\n");
     }
 
     case "/forget": {

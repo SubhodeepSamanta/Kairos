@@ -1,14 +1,14 @@
 import { env } from "./src/config/env.js";
+import { clientPreflight, reportPreflight } from "./src/config/preflight.js";
 import { connectToCloud } from "./src/websocket/client.js";
 import { launchKairosConsole } from "./src/connectors/cli/launcher.js";
 import readline from "readline";
 
-console.log("Client Connected");
-console.log("Browser Connected");
-console.log("Cloud Connected\n");
+reportPreflight(clientPreflight());
+
 console.log("Commands:\n  startKairos\n  exit\n");
 
-connectToCloud(env.CLOUD_URL || "ws://localhost:8080");
+connectToCloud(env.CLOUD_URL || "ws://localhost:3000");
 
 const rl = readline.createInterface({
   input: process.stdin,

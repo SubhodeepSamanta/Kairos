@@ -1,10 +1,32 @@
-import { getPage } from "../../browser.js";
+import { getPage, activatePage } from "../../browser.js";
 import {
   getElement,
   getElementInfo,
   getElementBox
 } from "../../elements/registry.js";
 import { moveToElement, thinkBeforeAction } from "../../humanize.js";
+
+function detectChanges(before, after, tabOpened) {
+  return (
+    before.url !== after.url ||
+    before.title !== after.title ||
+    before.body !== after.body ||
+    tabOpened ||
+    JSON.stringify(before.active) !== JSON.stringify(after.active) ||
+    JSON.stringify(before.media) !== JSON.stringify(after.media) ||
+    JSON.stringify(before.elementStates) !== JSON.stringify(after.elementStates) ||
+    (!before.overlayVisible && after.overlayVisible)
+  );
+}
+
+async function followNewTab(context, pagesBeforeList) {
+  const newPage = context.pages().find(p => !pagesBeforeList.includes(p));
+  if (!newPage) return false;
+  await newPage.waitForLoadState("domcontentloaded", { timeout: 4000 }).catch(() => {});
+  await newPage.bringToFront().catch(() => {});
+  activatePage(newPage);
+  return true;
+}
 
 export async function clickText(
   text,
@@ -13,7 +35,8 @@ export async function clickText(
   const page = await getPage();
   if (!page) return { success: false, reason: "No page available" };
   const context = page.context();
-  const pagesBefore = context.pages().length;
+  const pagesBeforeList = context.pages();
+  const pagesBefore = pagesBeforeList.length;
 
   const getSnapshot = async () => {
     try {
@@ -144,20 +167,10 @@ export async function clickText(
     await page.waitForLoadState("domcontentloaded", { timeout: 3000 }).catch(err => console.error("[click] loadState wait failed:", err.message));
     await page.waitForTimeout(1000);
     const after = await getSnapshot();
-    const pagesAfter = context.pages().length;
+    const tabOpened = context.pages().length > pagesBefore;
+    if (tabOpened) await followNewTab(context, pagesBeforeList);
 
-    const urlChanged = before.url !== after.url;
-    const titleChanged = before.title !== after.title;
-    const bodyChanged = before.body !== after.body;
-    const tabOpened = pagesAfter > pagesBefore;
-    const focusChanged = JSON.stringify(before.active) !== JSON.stringify(after.active);
-    const mediaChanged = JSON.stringify(before.media) !== JSON.stringify(after.media);
-    const elementStateChanged = JSON.stringify(before.elementStates) !== JSON.stringify(after.elementStates);
-    const overlayOpened = !before.overlayVisible && after.overlayVisible;
-    const activeElementTagChanged = before.active?.tag !== after.active?.tag;
-    const activeElementValueChanged = before.active?.value !== after.active?.value;
-
-    const success = urlChanged || titleChanged || bodyChanged || tabOpened || focusChanged || mediaChanged || elementStateChanged || overlayOpened || activeElementTagChanged || activeElementValueChanged;
+    const success = detectChanges(before, after, tabOpened);
 
     return {
       success,
@@ -219,20 +232,10 @@ input[type='button'],
   await page.waitForLoadState("domcontentloaded", { timeout: 3000 }).catch(err => console.error("[click] loadState (fallback) failed:", err.message));
   await page.waitForTimeout(1000);
   const after = await getSnapshot();
-  const pagesAfter = context.pages().length;
+  const tabOpened = context.pages().length > pagesBefore;
+  if (tabOpened) await followNewTab(context, pagesBeforeList);
 
-  const urlChanged = before.url !== after.url;
-  const titleChanged = before.title !== after.title;
-  const bodyChanged = before.body !== after.body;
-  const tabOpened = pagesAfter > pagesBefore;
-  const focusChanged = JSON.stringify(before.active) !== JSON.stringify(after.active);
-  const mediaChanged = JSON.stringify(before.media) !== JSON.stringify(after.media);
-  const elementStateChanged = JSON.stringify(before.elementStates) !== JSON.stringify(after.elementStates);
-  const overlayOpened = !before.overlayVisible && after.overlayVisible;
-  const activeElementTagChanged = before.active?.tag !== after.active?.tag;
-  const activeElementValueChanged = before.active?.value !== after.active?.value;
-
-  const success = urlChanged || titleChanged || bodyChanged || tabOpened || focusChanged || mediaChanged || elementStateChanged || overlayOpened || activeElementTagChanged || activeElementValueChanged;
+  const success = detectChanges(before, after, tabOpened);
 
   return {
     success,

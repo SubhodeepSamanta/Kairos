@@ -36,7 +36,8 @@ SWITCH_TAB:
   HUMAN_INPUT: "human_input",
   USE_BROWSER: "use_browser",
   LIST_BROWSERS: "list_browsers",
-  NEW_WINDOW: "new_window"
+  NEW_WINDOW: "new_window",
+  SELECT_OPTION: "select_option"
 };
 
 export function createAction(

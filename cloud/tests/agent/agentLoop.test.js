@@ -5,6 +5,7 @@ const remembered = {};
 
 vi.mock("../../src/llm/provider.js", () => ({
   createBudget: (maxCalls = 45) => ({ used: 0, maxCalls, estimatedTokens: 0 }),
+  askLLM: vi.fn(async () => "NOTHING"),
   askLLMJson: vi.fn(async (system, user, budget) => {
     if (budget.used >= budget.maxCalls) throw new Error("llm_budget_exceeded: test");
     budget.used++;
@@ -13,6 +14,22 @@ vi.mock("../../src/llm/provider.js", () => ({
     if (typeof next === "function") return next(system, user);
     return next;
   })
+}));
+
+vi.mock("../../src/companion/store.js", () => ({
+  addTurn: vi.fn(async () => {}),
+  addEvent: vi.fn(async () => {}),
+  addMood: vi.fn(async () => {}),
+  loadTurns: vi.fn(async () => []),
+  loadEvents: vi.fn(async () => []),
+  loadMoods: vi.fn(async () => []),
+  getPrefs: vi.fn(async () => ({ persona: "aria", moodTracking: true })),
+  setPrefs: vi.fn(async () => ({})),
+  getSummary: vi.fn(async () => ({ text: "", coveredTurns: 0 })),
+  setSummary: vi.fn(async () => {}),
+  countTurns: vi.fn(async () => 0),
+  loadTurnsBefore: vi.fn(async () => []),
+  forgetChat: vi.fn(async () => [])
 }));
 
 vi.mock("../../src/memory/store.js", () => ({
@@ -28,10 +45,13 @@ vi.mock("../../src/agent/webTools.js", () => ({
 }));
 
 import { runAgent } from "../../src/agent/loop/agentLoop.js";
+import { addEvent } from "../../src/companion/store.js";
+import { fetchPageText } from "../../src/agent/webTools.js";
 
 beforeEach(() => {
   llmQueue.length = 0;
   for (const k of Object.keys(remembered)) delete remembered[k];
+  vi.mocked(addEvent).mockClear();
 });
 
 function makeExecutor(pages = {}) {
@@ -147,5 +167,35 @@ describe("runAgent", () => {
     });
     const { executeAction } = makeExecutor();
     await runAgent({ goal: "show my github", goalId: "g10", executeAction, askHuman: vi.fn() });
+  });
+
+  it("does not record an episodic event for a pure chat turn", async () => {
+    llmQueue.push({ thought: "", action: { type: "done", success: true, answer: "that sounds rough. want to talk about it?" } });
+    const { executeAction } = makeExecutor();
+    await runAgent({ goal: "been really tired lately", goalId: "g11", executeAction, askHuman: vi.fn() });
+    expect(addEvent).not.toHaveBeenCalled();
+  });
+
+  it("records an episodic event when the goal actually did something", async () => {
+    llmQueue.push({ thought: "", action: { type: "navigate", url: "https://youtube.com" } });
+    llmQueue.push({ thought: "", action: { type: "done", success: true, answer: "opened" } });
+    const { executeAction } = makeExecutor();
+    await runAgent({ goal: "open youtube", goalId: "g12", executeAction, askHuman: vi.fn() });
+    expect(addEvent).toHaveBeenCalledOnce();
+  });
+
+  it("trims detail from old history entries but keeps recent ones verbatim", async () => {
+    vi.mocked(fetchPageText).mockResolvedValue("A".repeat(1000));
+    for (let i = 0; i < 8; i++) {
+      llmQueue.push({ thought: "", action: { type: "fetch_page", url: `https://site${i}.com` } });
+    }
+    llmQueue.push((system, user) => {
+      expect(user).toContain("(older detail trimmed)");
+      expect(user).toContain(`site7.com →\n${"A".repeat(1000)}`);
+      return { thought: "", action: { type: "done", success: true, answer: "ok" } };
+    });
+    const { executeAction } = makeExecutor();
+    const result = await runAgent({ goal: "research", goalId: "g13", executeAction, askHuman: vi.fn() });
+    expect(result.success).toBe(true);
   });
 });

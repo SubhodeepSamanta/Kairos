@@ -1,6 +1,7 @@
 const MAX_LABEL_CHARS = 45;
 const MAX_LINKS = 30;
 const MAX_TEXT_CHARS = 500;
+const MAX_TEXT_CHARS_AFTER_READ = 1500;
 const NAV_NOISE = /^(home|skip to|sign in|sign up|log in|about|privacy|terms|help|settings|cookie|accessibility|advertise|press|copyright|contact us|careers)$/i;
 
 function cleanLabel(text) {
@@ -12,11 +13,15 @@ function cleanLabel(text) {
 
 function formatInput(el) {
   const parts = [`[${el.id}]`];
-  const role = el.ariaRole || el.type || "input";
+  const role = el.options ? "select" : el.ariaRole || el.type || "input";
   parts.push(role);
   const label = cleanLabel(el.text || el.placeholder || el.name || el.ariaLabel);
   if (label) parts.push(`"${label}"`);
   if (el.value) parts.push(`value="${cleanLabel(el.value)}"`);
+  if (el.options?.length) {
+    const more = el.totalOptions > el.options.length ? `, +${el.totalOptions - el.options.length} more` : "";
+    parts.push(`options: ${el.options.map(o => cleanLabel(o)).join(" | ")}${more}`);
+  }
   if (el.disabled) parts.push("(disabled)");
   return parts.join(" ");
 }
@@ -55,7 +60,7 @@ export function isBlankPage(page) {
   return hasStuff === 0;
 }
 
-export function formatSnapshot(page) {
+export function formatSnapshot(page, { fullText = false } = {}) {
   if (!page || (!page.url && !page.title)) {
     return "BROWSER: no page loaded yet (use navigate to open one)";
   }
@@ -107,7 +112,8 @@ export function formatSnapshot(page) {
 
   const text = String(page.text || "").replace(/\s+/g, " ").trim();
   if (text) {
-    lines.push(`PAGE TEXT: ${text.slice(0, MAX_TEXT_CHARS)}${text.length > MAX_TEXT_CHARS ? " …" : ""}`);
+    const cap = fullText ? MAX_TEXT_CHARS_AFTER_READ : MAX_TEXT_CHARS;
+    lines.push(`PAGE TEXT: ${text.slice(0, cap)}${text.length > cap ? " …(use read for more)" : ""}`);
   }
 
   return lines.join("\n");

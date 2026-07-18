@@ -11,7 +11,7 @@ dotenv.config({ path: path.join(__dirname, "..", ".env") });
 const tasks = JSON.parse(fs.readFileSync(path.join(__dirname, "tasks.json"), "utf8"));
 const resultsFile = path.join(__dirname, "results.json");
 const only = process.argv[2] ? Number(process.argv[2]) : null;
-const url = process.env.CLOUD_URL || "ws://localhost:8080";
+const url = process.env.CLOUD_URL || `ws://localhost:${process.env.PORT || 3000}`;
 
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
 const ask = (q) => new Promise(r => rl.question(q, r));

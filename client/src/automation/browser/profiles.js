@@ -5,6 +5,12 @@ const LOCAL = process.env.LOCALAPPDATA || path.join(process.env.HOME || "", "App
 const PROGRAM_FILES = process.env.ProgramFiles || "C:\\Program Files";
 const PROGRAM_FILES_X86 = process.env["ProgramFiles(x86)"] || "C:\\Program Files (x86)";
 
+const KAIROS_DATA = path.join(LOCAL, "Kairos", "Browsers");
+
+export function automationDataDir(name) {
+  return path.join(KAIROS_DATA, name);
+}
+
 const BROWSERS = {
   chrome: {
     label: "Chrome",
@@ -117,12 +123,16 @@ export function resolveProfile(browserName, wanted) {
 export function describeBrowsers() {
   const lines = [];
   for (const name of installedBrowsers()) {
+    const spec = BROWSERS[name];
     const profiles = listProfiles(name);
     const rendered = profiles.length
-      ? profiles.map(p => `"${p.name}"${p.account ? ` (${p.account})` : ""} [${p.directory}]`).join(", ")
-      : "no profiles found";
-    lines.push(`${BROWSERS[name].label} → ${rendered}`);
+      ? profiles.map(p => `"${p.name}"${p.account ? ` (${p.account})` : ""}`).join(", ")
+      : "none found";
+    lines.push(
+      `${spec.label} — default is a private Kairos ${spec.label} window that keeps its own logins and never clashes with the ${spec.label} you use daily. Your real profiles (${rendered}) can be used by naming one, but that needs ${spec.label} fully closed first.`
+    );
   }
-  lines.push('playwright → isolated throwaway browser, no logins (default)');
+  if (!lines.length) lines.push("No Chrome, Brave or Edge found on this computer.");
+  lines.push("playwright — throwaway isolated browser, no logins.");
   return lines.join("\n");
 }

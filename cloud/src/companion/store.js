@@ -33,17 +33,27 @@ function db() {
 }
 
 function trimList(list, keep) {
-  if (list.length > keep) list.splice(0, list.length - keep);
+  if (list.length <= keep) return 0;
+  const drop = list.length - keep;
+  list.splice(0, drop);
+  return drop;
+}
+
+function turnsFor(chatId) {
+  const turns = loadFile("turns", {});
+  const raw = turns[chatId];
+  if (!raw) return (turns[chatId] = { list: [], dropped: 0 });
+  if (Array.isArray(raw)) return (turns[chatId] = { list: raw, dropped: 0 });
+  return raw;
 }
 
 export async function addTurn(chatId, role, text) {
   const clean = String(text || "").slice(0, 2000);
   if (!clean) return;
 
-  const turns = loadFile("turns", {});
-  if (!turns[chatId]) turns[chatId] = [];
-  turns[chatId].push({ role, text: clean, at: new Date().toISOString() });
-  trimList(turns[chatId], ARCHIVE_TURNS);
+  const entry = turnsFor(chatId);
+  entry.list.push({ role, text: clean, at: new Date().toISOString() });
+  entry.dropped += trimList(entry.list, ARCHIVE_TURNS);
   saveFile("turns");
 
   const pool = db();
@@ -67,7 +77,7 @@ export async function loadTurns(chatId) {
       return rows.reverse().map(r => ({ role: r.role, text: r.text, at: r.said_at }));
     } catch {}
   }
-  return (loadFile("turns", {})[chatId] || []).slice(-KEEP_TURNS);
+  return turnsFor(chatId).list.slice(-KEEP_TURNS);
 }
 
 export async function addEvent(chatId, summary, success, steps) {
@@ -142,7 +152,8 @@ export async function countTurns(chatId) {
       return rows[0]?.n || 0;
     } catch {}
   }
-  return (loadFile("turns", {})[chatId] || []).length;
+  const entry = turnsFor(chatId);
+  return entry.dropped + entry.list.length;
 }
 
 export async function loadTurnsBefore(chatId, total) {
@@ -161,7 +172,9 @@ export async function loadTurnsBefore(chatId, total) {
       return rows.map(r => ({ role: r.role, text: r.text }));
     } catch {}
   }
-  return (loadFile("turns", {})[chatId] || []).slice(skip, skip + take);
+  const entry = turnsFor(chatId);
+  const start = Math.max(0, skip - entry.dropped);
+  return entry.list.slice(start, start + take);
 }
 
 export async function getSummary(chatId) {
