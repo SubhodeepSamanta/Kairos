@@ -1,13 +1,11 @@
 import { getPage } from "../../browser.js";
 import { updateBrowserContext } from "../../context.js";
-import { readPage } from "../observation/read.js";
 
 export async function navigate(url) {
   const page = await getPage();
-  await page.goto(url);
+  await page.goto(url, { waitUntil: "domcontentloaded", timeout: 25000 });
   const title = await page.title();
   const currentUrl = page.url();
-  const pageState = await readPage();
 
   updateBrowserContext({
     title,
@@ -17,7 +15,6 @@ export async function navigate(url) {
   return {
     success: true,
     title,
-    url: currentUrl,
-    pageState
+    url: currentUrl
   };
 }

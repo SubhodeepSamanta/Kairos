@@ -23,7 +23,9 @@ export function storeSecret(name, value) {
   const vault = load();
   vault[String(name).toLowerCase().replace(/\s+/g, "_")] = String(value);
   fs.mkdirSync(dataDir(), { recursive: true });
-  fs.writeFileSync(vaultFile(), JSON.stringify(vault, null, 2), "utf8");
+  const tmp = `${vaultFile()}.${process.pid}.tmp`;
+  fs.writeFileSync(tmp, JSON.stringify(vault, null, 2), "utf8");
+  fs.renameSync(tmp, vaultFile());
   console.log(`[VAULT] Stored secret "${name}" locally`);
   return true;
 }

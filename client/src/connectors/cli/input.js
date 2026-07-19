@@ -78,13 +78,14 @@ export function createInput({ onSubmit, onSuggest }) {
   }
 
   input.on("keypress", (str, key) => {
-    if (locked) return;
     if (!key) return;
 
     if (key.ctrl && key.name === "c") {
       out.write("\n");
       process.exit(0);
     }
+
+    if (locked) return;
 
     if (menu.open) {
       if (key.name === "up") { menu.selected = (menu.selected - 1 + menu.items.length) % menu.items.length; refreshMenu(); return; }

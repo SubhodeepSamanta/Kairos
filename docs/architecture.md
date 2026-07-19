@@ -100,7 +100,7 @@ Plain "open X" goals go straight to **your own everyday browser** via `open_for_
 
 Goals that need Kairos to *act on* a page use a controlled browser, chosen automatically: your **real last-used profile** (all your logins) when that browser is fully closed; otherwise a **private Kairos window** of the same real browser (Chromium locks a profile to one process, so a running Chrome cannot be driven). The Kairos window keeps its own logins across sessions and its profile is named "Kairos" so it is recognizable. "Anonymous / incognito" requests use the isolated throwaway Chromium. Every snapshot carries a `VIA:` line so the model — and you — always know which one is active.
 
-Profiles resolve by display name ("Kami"), account email, directory ("Profile 8"), or ordinal ("first"). If that browser is already running, a real-profile launch fails cleanly and the model asks you to close it or falls back.
+Profiles resolve by display name ("Kami"), account email, directory ("Profile 8"), or ordinal ("first"). One browser process owns **all** its real profiles — while your Chrome is open, every real profile is locked (trying "the next profile" can never work). If you name a profile while the browser is running, Kairos asks whether to close your browser and take that profile over; on yes it closes it gracefully (`close_user_browser`, forced only as a consented fallback — tabs restore) and relaunches with your profile. A leftover Kairos-window process holding the automation data dir is detected and cleaned up automatically instead of falling back to the isolated browser.
 
 ## Human behaviour
 
