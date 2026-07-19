@@ -14,7 +14,9 @@ export async function connectMemoryDb() {
     max: 3,
     connectionTimeoutMillis: 25000,
     idleTimeoutMillis: 10000,
-    allowExitOnIdle: true
+    allowExitOnIdle: true,
+    query_timeout: 15000,
+    keepAlive: true
   });
 
   pool.on("error", (err) => {

@@ -65,16 +65,18 @@ Last full run: **7/10**. Tasks 8–10 (weather / news / twitch) were blocked by 
 
 ## Models — measured, not guessed
 
-All free. Benchmarked 2026-07-16 on 8 real Kairos decisions (say-done-when-open, answer-from-history, ambiguity, don't-search-twice, obey-notice, …), paced to separate genuine mistakes from rate limits:
+All free. Original benchmark 2026-07-16 on 8 real Kairos decisions. **2026-07-19: Groq decommissioned `llama-4-scout` and `qwen3-32b` (404)** — lineup rebuilt from Groq's live catalog; a 404 now puts a model in a 6-hour cooldown so a dead model can't slow every goal.
 
-| Score | Avg | Model | Role |
-|---|---|---|---|
-| **8/8** | 807ms | `groq/openai/gpt-oss-120b` | **primary A** |
-| 6/8 | 605ms | `groq/meta-llama/llama-4-scout-17b-16e-instruct` | **primary B** |
-| 6/8 | 6.0s | `groq/qwen/qwen3-32b` | backup |
-| 5/8 | 28s | `openrouter/nvidia/nemotron-3-super-120b-a12b:free` | backup (cross-provider) |
-| 1/8 | 56s | `groq/llama-3.3-70b-versatile` | backup (was the old default) |
-| 0/8 | 66s | `openrouter/qwen/qwen3-next-80b-a3b-instruct:free` | rejected |
+| Model | Role | Note |
+|---|---|---|
+| `groq/openai/gpt-oss-120b` | **primary A** | 8/8 on the decision benchmark |
+| `groq/openai/gpt-oss-20b` | **primary B** | same family, separate per-model quota pool |
+| `groq/qwen/qwen3.6-27b` | backup | emits `<think>` blocks; JSON extractor strips them |
+| `groq/llama-3.1-8b-instant` | backup | fast, small |
+| `openrouter/nvidia/nemotron-3-super-120b-a12b:free` | backup (cross-provider) | slow (28s+) but independent |
+| `groq/llama-3.3-70b-versatile` | backup | 1/8 — last-ditch only |
+
+Groq also hosts `whisper-large-v3`/`-turbo` — a free STT option for the voice phase.
 
 Rerun anytime: the benchmark script pattern is in git history (`modelbench.tmp.js`), or just swap an entry in `provider.js` — it is model-agnostic.
 

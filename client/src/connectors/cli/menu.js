@@ -24,8 +24,7 @@ export function renderMenu(out, items, selected) {
 
 export function clearMenu(out, lines) {
   if (!lines) return;
-  out.write(`\x1b[${lines}A`);
-  for (let i = 0; i < lines; i++) out.write("\x1b[2K\x1b[1B");
+  for (let i = 0; i < lines; i++) out.write("\x1b[1B\x1b[2K");
   out.write(`\x1b[${lines}A`);
 }
 

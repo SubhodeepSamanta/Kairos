@@ -46,28 +46,36 @@ export function startTelegramBot(token) {
     let lastEdit = 0;
     let latest = "";
     let timer = null;
+    let inFlight = null;
+    let finished = false;
 
-    const flush = async () => {
+    const flush = () => {
       timer = null;
+      if (finished) return;
       lastEdit = Date.now();
-      if (!messageId) {
-        const sent = await say(chatId, `⏳ ${latest}`);
-        messageId = sent?.message_id || null;
-      } else {
-        try {
-          await bot.editMessageText(`⏳ ${latest}`, { chat_id: chatId, message_id: messageId });
-        } catch {}
-      }
+      inFlight = (async () => {
+        if (!messageId) {
+          const sent = await say(chatId, `⏳ ${latest}`);
+          messageId = sent?.message_id || messageId;
+        } else {
+          try {
+            await bot.editMessageText(`⏳ ${latest}`, { chat_id: chatId, message_id: messageId });
+          } catch {}
+        }
+      })();
     };
 
     return {
       update(status) {
+        if (finished) return;
         latest = status.slice(0, 500);
         const wait = Math.max(0, STATUS_EDIT_INTERVAL_MS - (Date.now() - lastEdit));
         if (!timer) timer = setTimeout(flush, wait);
       },
       async finish(success, result) {
+        finished = true;
         if (timer) { clearTimeout(timer); timer = null; }
+        if (inFlight) { try { await inFlight; } catch {} }
         if (messageId) {
           try { await bot.deleteMessage(chatId, messageId); } catch {}
         }

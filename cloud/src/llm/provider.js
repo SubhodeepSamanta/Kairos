@@ -2,11 +2,12 @@ import { callModel } from "./models.js";
 
 const PRIMARY = [
   { name: "groq/gpt-oss-120b", provider: "groq", model: "openai/gpt-oss-120b" },
-  { name: "groq/llama-4-scout", provider: "groq", model: "meta-llama/llama-4-scout-17b-16e-instruct" }
+  { name: "groq/gpt-oss-20b", provider: "groq", model: "openai/gpt-oss-20b" }
 ];
 
 const BACKUP = [
-  { name: "groq/qwen3-32b", provider: "groq", model: "qwen/qwen3-32b" },
+  { name: "groq/qwen3.6-27b", provider: "groq", model: "qwen/qwen3.6-27b" },
+  { name: "groq/llama-3.1-8b", provider: "groq", model: "llama-3.1-8b-instant" },
   { name: "openrouter/nemotron-120b", provider: "openrouter", model: "nvidia/nemotron-3-super-120b-a12b:free" },
   { name: "groq/llama-3.3-70b", provider: "groq", model: "llama-3.3-70b-versatile" },
   { name: "nvidia/nemotron-super-49b", provider: "nvidia", model: "nvidia/llama-3.3-nemotron-super-49b-v1.5" }
@@ -123,6 +124,9 @@ export async function askLLM(systemPrompt, userPrompt, budget = null) {
       if (err.rateLimited) {
         cool(candidate.name);
         console.log(`[LLM] ${candidate.name} rate limited — cooling 60s, trying next`);
+      } else if (err.status === 404) {
+        cool(candidate.name, 6 * 3600 * 1000);
+        console.log(`[LLM] ${candidate.name} returned 404 — likely decommissioned, cooling 6h`);
       } else {
         cool(candidate.name, 15000);
         console.log(`[LLM] ${candidate.name} failed: ${err.message.slice(0, 120)}`);
