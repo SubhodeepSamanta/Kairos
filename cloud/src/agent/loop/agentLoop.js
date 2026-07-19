@@ -137,7 +137,7 @@ export async function runAgent({ goal, goalId, chatId = "default", executeAction
       history: trimHistory(history),
       snapshot: lastPage
         ? formatSnapshot(lastPage, { fullText: justRead })
-        : "not observed yet — use {\"type\":\"read\"} to see the current browser, navigate somewhere, or answer directly with done",
+        : "NO browser action has run this goal — anything they asked you to open/play/do is NOT done yet, no matter what CONVERSATION or MEMORIES say. Act first (open_for_user, navigate, or read). done without acting is ONLY for pure conversation or answers you know.",
       notice,
       summary: companion.summary,
       conversation: companion.conversation,

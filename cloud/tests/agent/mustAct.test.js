@@ -17,7 +17,13 @@ describe("open/play goals must actually act", () => {
 
   it("requires a real opening action for open goals", () => {
     expect(SYSTEM_PROMPT).toContain("open_for_user{url}, done");
-    expect(SYSTEM_PROMPT).toContain("the controlled browser (navigate)");
+    expect(SYSTEM_PROMPT).toContain("the controlled browser: navigate");
+  });
+
+  it("bans open_for_user for play/watch goals and distrusts recalled video ids", () => {
+    expect(SYSTEM_PROMPT).toContain("NEVER open_for_user for play/watch");
+    expect(SYSTEM_PROMPT).toContain("video ids you recall may be dead");
+    expect(SYSTEM_PROMPT).toContain("unavailable → pick another result");
   });
 
   it("does not let the have-the-answer rule excuse skipping actions", () => {

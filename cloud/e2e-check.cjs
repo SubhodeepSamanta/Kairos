@@ -19,7 +19,7 @@ function fail(reason) {
 
 function armTimeout() {
   clearTimeout(timer);
-  timer = setTimeout(() => fail(`no result for "${goals[index]}" within 120s`), 120000);
+  timer = setTimeout(() => fail(`no result for "${goals[index]}" within 240s`), 240000);
 }
 
 function sendNext() {

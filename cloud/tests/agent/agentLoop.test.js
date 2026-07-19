@@ -186,6 +186,21 @@ describe("runAgent", () => {
     expect(addEvent).toHaveBeenCalledOnce();
   });
 
+  it("tells the model on step 1 that nothing has run yet, whatever the conversation says", async () => {
+    llmQueue.push((system, user) => {
+      expect(user).toContain("NO browser action has run this goal");
+      expect(user).toContain("no matter what CONVERSATION or MEMORIES say");
+      return { thought: "", action: { type: "navigate", url: "https://twitch.tv" } };
+    });
+    llmQueue.push((system, user) => {
+      expect(user).not.toContain("NO browser action has run this goal");
+      return { thought: "", action: { type: "done", success: true, answer: "opened" } };
+    });
+    const { executeAction } = makeExecutor();
+    const result = await runAgent({ goal: "open twitch", goalId: "g14", executeAction, askHuman: vi.fn() });
+    expect(result.success).toBe(true);
+  });
+
   it("trims detail from old history entries but keeps recent ones verbatim", async () => {
     vi.mocked(fetchPageText).mockResolvedValue("A".repeat(1000));
     for (let i = 0; i < 8; i++) {

@@ -9,6 +9,7 @@ import {
   seedProfileIdentity,
   defaultProfile
 } from "./profiles.js";
+import { releaseKairosLock } from "./kairosLock.js";
 
 const DEFAULT_BROWSER = process.env.DEFAULT_BROWSER || "chrome";
 
@@ -23,9 +24,17 @@ const VIEWPORT = { width: 1440, height: 900 };
 const BLANK_URL = /^(about:blank|chrome:\/\/newtab|chrome:\/\/new-tab-page|edge:\/\/newtab|brave:\/\/newtab)/;
 
 function isSingletonError(err) {
-  return /ProcessSingleton|SingletonLock|already running|browser has been closed|Target page, context or browser has been closed|Target closed/i.test(
+  return /ProcessSingleton|SingletonLock|already running|Opening in existing browser|browser has been closed|Target page, context or browser has been closed|Target closed/i.test(
     String(err?.message || "")
   );
+}
+
+function resetState() {
+  browser = null;
+  context = null;
+  pages = [];
+  activePageIndex = 0;
+  current = { browser: null, profile: null, profileLabel: null, mode: "closed" };
 }
 
 function trackPage(page) {
@@ -42,6 +51,9 @@ function trackPage(page) {
 function attachContext(ctx) {
   context = ctx;
   ctx.on("page", trackPage);
+  ctx.on("close", () => {
+    if (context === ctx) resetState();
+  });
 }
 
 async function launchPlaywright() {
@@ -93,12 +105,20 @@ async function launchDedicated(browserName) {
   try {
     await openContext(browserName, automationDataDir(browserName), null);
   } catch (err) {
-    if (isSingletonError(err)) {
-      throw new Error(
-        `A Kairos ${spec.label} window from another session is still open. Close it and try again.`
-      );
+    if (!isSingletonError(err)) throw err;
+    console.log(`[BROWSER] Kairos ${spec.label} data dir is locked by a leftover process — cleaning it up`);
+    const released = await releaseKairosLock(browserName);
+    if (released) await new Promise(r => setTimeout(r, 1500));
+    try {
+      await openContext(browserName, automationDataDir(browserName), null);
+    } catch (retryErr) {
+      if (isSingletonError(retryErr)) {
+        throw new Error(
+          `A Kairos ${spec.label} window from another session is still open and I couldn't close it. Close it manually and try again.`
+        );
+      }
+      throw retryErr;
     }
-    throw err;
   }
   current = { browser: browserName, profile: null, profileLabel: `Kairos ${spec.label}`, mode: "dedicated" };
   console.log(`[BROWSER] Launched private Kairos ${spec.label} (separate from your everyday ${spec.label})`);
@@ -181,6 +201,10 @@ export async function launchBrowser() {
   if (browser && pages.length > 0 && !pages[activePageIndex]?.isClosed()) {
     return pages[activePageIndex];
   }
+  if (browser || context) {
+    console.log("[BROWSER] Previous browser window was closed — starting fresh");
+    await closeBrowser();
+  }
   const name = preferred.browser;
   if (name && name !== "playwright") {
     if (!isBrowserInstalled(name)) {
@@ -246,11 +270,7 @@ export async function closeBrowser() {
     if (context) await context.close();
     else if (browser) await browser.close();
   } catch {}
-  browser = null;
-  context = null;
-  pages = [];
-  activePageIndex = 0;
-  current = { browser: null, profile: null, profileLabel: null, mode: "closed" };
+  resetState();
 }
 
 export async function restartBrowser() {
