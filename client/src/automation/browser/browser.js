@@ -146,7 +146,7 @@ async function launchRealProfile(browserName, profileWanted) {
   } catch (err) {
     if (isSingletonError(err)) {
       throw new Error(
-        `${spec.label} is already running, so I can't open your real "${profile.name}" profile — Chromium only lets one process own a profile at a time. Close ${spec.label} completely (check the system tray) and ask again, or let me use the private Kairos ${spec.label} instead.`
+        `${spec.label} is already running, so the real "${profile.name}" profile is locked — one ${spec.label} process owns ALL its profiles, so every other real profile is locked too. Either use the private Kairos ${spec.label}, or ask the user if they want their ${spec.label} closed and taken over — on yes, close_user_browser{browser:"${browserName}"} then retry this profile.`
       );
     }
     throw err;

@@ -6,6 +6,7 @@ import { typeText } from "../automation/browser/actions/input/type.js";
 import { clickText } from "../automation/browser/actions/input/click.js";
 import { selectOption } from "../automation/browser/actions/input/selectOption.js";
 import { openForUser } from "../automation/browser/actions/openForUser.js";
+import { closeUserBrowser } from "../automation/browser/closeUserBrowser.js";
 import { goBack } from "../automation/browser/actions/navigation/back.js";
 import { goForward } from "../automation/browser/actions/navigation/forward.js";
 import { refreshPage } from "../automation/browser/actions/navigation/refresh.js";
@@ -37,6 +38,8 @@ export async function executeBrowserAction(action) {
       return await selectOption(action.params.element, action.params.value);
     case ACTIONS.OPEN_FOR_USER:
       return await openForUser(action.params.url);
+    case ACTIONS.CLOSE_USER_BROWSER:
+      return await closeUserBrowser(action.params.browser);
     case ACTIONS.READ_UI:
       return await readPage();
     case ACTIONS.GET_BROWSER_CONTEXT:

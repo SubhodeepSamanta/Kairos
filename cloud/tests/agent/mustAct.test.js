@@ -20,6 +20,13 @@ describe("open/play goals must actually act", () => {
     expect(SYSTEM_PROMPT).toContain("the controlled browser: navigate");
   });
 
+  it("teaches the profile-lock reality and the consented takeover flow", () => {
+    expect(SYSTEM_PROMPT).toContain("locks ALL its real profiles");
+    expect(SYSTEM_PROMPT).toContain("trying another real profile won't help");
+    expect(SYSTEM_PROMPT).toContain("close_user_browser");
+    expect(SYSTEM_PROMPT).toContain("ONLY after they said yes to ask_human");
+  });
+
   it("bans open_for_user for play/watch goals and distrusts recalled video ids", () => {
     expect(SYSTEM_PROMPT).toContain("NEVER open_for_user for play/watch");
     expect(SYSTEM_PROMPT).toContain("video ids you recall may be dead");

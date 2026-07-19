@@ -38,7 +38,8 @@ SWITCH_TAB:
   LIST_BROWSERS: "list_browsers",
   NEW_WINDOW: "new_window",
   SELECT_OPTION: "select_option",
-  OPEN_FOR_USER: "open_for_user"
+  OPEN_FOR_USER: "open_for_user",
+  CLOSE_USER_BROWSER: "close_user_browser"
 };
 
 export function createAction(

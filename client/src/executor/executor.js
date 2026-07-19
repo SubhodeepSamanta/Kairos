@@ -81,6 +81,8 @@ function extractData(action, result) {
       return { selected: result.selected };
     case "open_for_user":
       return { opened: result.opened };
+    case "close_user_browser":
+      return { closed: result.closed, label: result.label };
     case "list_browsers":
       return { browsers: result.browsers, installed: result.installed, active: result.active };
     case "use_browser":
