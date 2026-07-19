@@ -6,7 +6,16 @@ export function enqueueDbWrite(sql, params, label) {
   queue.push({ sql, params, label });
 }
 
-export async function flushDbWrites(pool) {
+let flushing = null;
+
+export function flushDbWrites(pool) {
+  if (!flushing) {
+    flushing = doFlush(pool).finally(() => { flushing = null; });
+  }
+  return flushing;
+}
+
+async function doFlush(pool) {
   if (!pool || !queue.length) return 0;
   let flushed = 0;
   while (queue.length) {

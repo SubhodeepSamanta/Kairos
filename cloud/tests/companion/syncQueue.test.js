@@ -22,7 +22,7 @@ vi.mock("../../src/memory/db.js", () => ({
   deleteFact: async () => true
 }));
 
-const { addTurn, resetCompanionCacheForTests } = await import("../../src/companion/store.js");
+const { addTurn, resetCompanionCacheForTests, pendingDbChain } = await import("../../src/companion/store.js");
 const { pendingDbWrites, resetSyncQueueForTests } = await import("../../src/memory/syncQueue.js");
 
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "kairos-sync-"));
@@ -47,10 +47,12 @@ describe("postgres write resilience", () => {
     dbFailing = true;
     await addTurn("a", "user", "first while down");
     await addTurn("a", "user", "second while down");
+    await pendingDbChain();
     expect(pendingDbWrites()).toBe(2);
 
     dbFailing = false;
     await addTurn("a", "user", "third after recovery");
+    await pendingDbChain();
     expect(pendingDbWrites()).toBe(0);
     expect(queries.map(q => q.params[2])).toEqual([
       "first while down",
@@ -68,6 +70,7 @@ describe("postgres write resilience", () => {
 
   it("writes straight through when the database is healthy", async () => {
     await addTurn("a", "user", "hello");
+    await pendingDbChain();
     expect(pendingDbWrites()).toBe(0);
     expect(queries).toHaveLength(1);
   });
