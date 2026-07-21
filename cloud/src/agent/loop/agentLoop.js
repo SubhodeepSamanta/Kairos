@@ -92,7 +92,7 @@ function trimHistory(history) {
   );
 }
 
-export async function runAgent({ goal, goalId, chatId = "default", executeAction, askHuman, onStatus, voiceMode = false, isCancelled }) {
+export async function runAgent({ goal, tone = null, goalId, chatId = "default", executeAction, askHuman, onStatus, voiceMode = false, isCancelled }) {
   const budget = createBudget(MAX_LLM_CALLS);
   const history = [];
   const repeatCounts = {};
@@ -124,6 +124,10 @@ export async function runAgent({ goal, goalId, chatId = "default", executeAction
 
   if (shouldStayQuiet(goal)) {
     notice = "They are telling you how they feel, not asking for a task. Do NOT touch the browser. Reply as yourself with done — react to what they said, in character. Ask what they need only if it fits.";
+  }
+
+  if (tone) {
+    notice = `${notice ? `${notice} ` : ""}How they SOUND right now: ${tone}. That is how their voice reads against their own normal, not what they said. Let it colour your tone if it fits; never mention it or repeat it back.`;
   }
 
   const finish = async (success, answer, extra = {}) => {

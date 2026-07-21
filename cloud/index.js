@@ -5,12 +5,17 @@ import { hydrateCompanionFromDb } from "./src/companion/hydrate.js";
 import { unifyIdentity } from "./src/companion/store.js";
 import { memoryPool } from "./src/memory/db.js";
 import { flushDbWrites, pendingDbWrites } from "./src/memory/syncQueue.js";
+import { sweepStaleTemps } from "./src/utils/jsonFile.js";
+import path from "path";
 import { startWebSocketServer } from "./src/websocket/server.js";
 import { startTelegramBot } from "./src/connectors/telegram/telegram.js";
 
 if (!reportPreflight(cloudPreflight())) {
   process.exit(1);
 }
+
+const swept = sweepStaleTemps(path.join(process.cwd(), "data"));
+if (swept) console.log(`[STORE] cleaned ${swept} stale temp file${swept === 1 ? "" : "s"}`);
 
 await initMemory();
 await hydrateCompanionFromDb();

@@ -96,8 +96,8 @@ function send(payload) {
   return false;
 }
 
-export function sendGoal(goal) {
-  if (!send({ type: "goal", goal })) {
+export function sendGoal(goal, tone) {
+  if (!send({ type: "goal", goal, tone: tone || undefined })) {
     handlers.onLink?.("not connected to the cloud yet — try again in a moment");
   }
 }

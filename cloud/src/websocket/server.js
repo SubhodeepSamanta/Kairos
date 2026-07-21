@@ -195,6 +195,7 @@ export function startWebSocketServer(port = Number(env.PORT) || 3000) {
         ws.activeGoalId = goalId;
         submitGoal({
           goal: String(data.goal || ""),
+          tone: data.tone ? String(data.tone).slice(0, 120) : null,
           chatId: IDENTITY,
           executeAction: executeActionRemotely,
           askHuman: askHumanVia(ws, goalId),

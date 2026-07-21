@@ -100,7 +100,7 @@ export function createVoiceController({ write, sendGoal, onModeChange, onCancel,
           return;
         }
         line(`  you: ${text}${tone ? `  (${tone})` : ""}`);
-        sendGoal(tone ? `${text}\n[voice tone: ${tone}]` : text);
+        sendGoal(text, tone);
       }
     });
   }

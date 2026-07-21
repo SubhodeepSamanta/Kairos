@@ -17,7 +17,7 @@ const STOP_TYPED = /^\/?(?:stop|cancel|abort)$/i;
 
 const voice = createVoiceController({
   write: (text) => ui.write(`${C.dim}${text}${C.reset}`),
-  sendGoal: (text) => { goalInFlight = true; sendGoal(text); },
+  sendGoal: (text, tone) => { goalInFlight = true; sendGoal(text, tone); },
   onModeChange: (on) => sendVoiceMode(on),
   onCancel: () => sendCancel(),
   isBusy: () => goalInFlight

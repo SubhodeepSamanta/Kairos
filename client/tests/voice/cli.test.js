@@ -18,7 +18,7 @@ function controller() {
 
   const ctrl = createVoiceController({
     write: (t) => written.push(t),
-    sendGoal: (t) => sent.push(t),
+    sendGoal: (t, tone) => sent.push({ text: t, tone }),
     sessionFactory: (opts) => { handlers = opts; return session; }
   });
 
@@ -76,8 +76,8 @@ describe("voice controller", () => {
 
     fire().onTranscript({ text: "open my inbox", tone: "quieter than usual" });
 
-    expect(sent[0]).toContain("open my inbox");
-    expect(sent[0]).toContain("quieter than usual");
+    expect(sent[0].text).toBe("open my inbox");
+    expect(sent[0].tone).toBe("quieter than usual");
   });
 
   it("sends plain text when there is no tone to report", async () => {
@@ -86,7 +86,8 @@ describe("voice controller", () => {
 
     fire().onTranscript({ text: "open my inbox", tone: null });
 
-    expect(sent[0]).toBe("open my inbox");
+    expect(sent[0].text).toBe("open my inbox");
+    expect(sent[0].tone).toBeNull();
   });
 
   it("strips delivery markup before showing a reply", async () => {
@@ -159,7 +160,7 @@ describe("saying stop out loud", () => {
     };
     const ctrl = createVoiceController({
       write: t => written.push(t),
-      sendGoal: t => sent.push(t),
+      sendGoal: (t) => sent.push(t),
       onCancel: () => cancels.push(true),
       isBusy: () => busy,
       sessionFactory: (opts) => { handlers = opts; return session; }

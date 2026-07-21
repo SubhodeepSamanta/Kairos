@@ -17,7 +17,7 @@ export function cancelGoals() {
   return { wasRunning, dropped };
 }
 
-export function submitGoal({ goal, chatId = "default", executeAction, askHuman, onStatus, onResult, voiceMode = false }) {
+export function submitGoal({ goal, tone = null, chatId = "default", executeAction, askHuman, onStatus, onResult, voiceMode = false }) {
   if (isCommand(goal)) {
     runCommand(chatId, goal)
       .then(reply => onResult(true, reply))
@@ -25,7 +25,7 @@ export function submitGoal({ goal, chatId = "default", executeAction, askHuman, 
     return;
   }
 
-  queue.push({ goal, chatId, executeAction, askHuman, onStatus, onResult, voiceMode });
+  queue.push({ goal, tone, chatId, executeAction, askHuman, onStatus, onResult, voiceMode });
   const ahead = queue.length - 1 + (running ? 1 : 0);
   if (ahead > 0) {
     try { onStatus(`queued (${ahead} ahead)`); } catch {}
@@ -46,6 +46,7 @@ async function processQueue() {
   try {
     const result = await runAgent({
       goal: item.goal,
+      tone: item.tone,
       goalId,
       chatId: item.chatId,
       executeAction: item.executeAction,
