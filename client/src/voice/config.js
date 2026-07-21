@@ -21,7 +21,7 @@ export const voiceConfig = {
     .split(",")
     .map(w => w.trim().toLowerCase())
     .filter(Boolean),
-  requireWake: flag("VOICE_REQUIRE_WAKE", true),
+  requireWake: flag("VOICE_REQUIRE_WAKE", false),
   followUpMs: num("VOICE_FOLLOW_UP_MS", 8000),
   device: process.env.VOICE_INPUT_DEVICE || null,
   speak: flag("VOICE_SPEAK", true),

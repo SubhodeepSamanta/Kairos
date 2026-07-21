@@ -263,11 +263,18 @@ No fixed listening window. A 30-second timer either cuts you off or leaves you w
 - **voiced-ratio gate** — before anything reaches the speech model, the clip must actually be *pitched*. Measured on this laptop: real speech scores 0.44–0.56, the laptop's own fan scores 0.203, white noise 0.00. The gate sits at 0.30. Energy thresholds alone could not separate fan noise from speech — the fan is loud enough to cross any floor low enough to hear you — but the fan has almost no periodicity, so pitch does separate them
 - **calibration is capped** — the trigger can never exceed `VOICE_MAX_FLOOR` (600). Ambient measured 142, 165, 227 and 894 across runs: model loading spins the fan up exactly when calibration runs, so an uncapped peak-based floor would occasionally leave her deaf
 
-### Wake word
+### Wake word — off by default, and here is why
 
-Reuses the STT model rather than adding porcupine — one model, ~0 CPU while silent. Matching is **fuzzy by necessity**: the benchmark showed "Kairos" transcribed as *Kai Rose, Cairos, Cairo's, Chiros, Kyros*. An exact word list would miss constantly, so `wake.js` matches on edit distance, folds possessives, and allows a leading filler ("hey Kairos").
+**A general speech model cannot hear the word "Kairos."** This was settled by an acoustic loopback test: play a reference sentence through the speakers, record it back through the microphone, transcribe that.
 
-Say just "Kairos" → opens an 8s window and she waits. Say "Kairos, do X" → runs immediately. Either way the window stays open while the conversation continues, so follow-ups need no wake word.
+> reference: "**Kairos**, open my inbox and check the weather for tomorrow."
+> loopback&nbsp;: "**Tylose** opened my inbox and set the weather for tomorrow."
+
+The sentence survives; only the name fails. Every observed rendering: *Tylose, Titos, Kidos, Cuddles, Carlos, Thai rolls, Kai rolls, Kai rose, Chiros, Cairo's, Hi Rose, virus*. No edit-distance rule spans that set without also matching ordinary words — the starting consonant alone ranges across K, T, Th, C, H and V. Adding variants one at a time is whack-a-mole and was abandoned.
+
+So `requireWake` defaults to **false**: she listens and answers whatever you say. This is only safe because the noise gates above are strict — measured 0 spurious goals across 60s of silence in a room with an audible fan. `VOICE_REQUIRE_WAKE=1` restores wake-word gating for shared spaces.
+
+`wake.js` still runs when a wake word *is* required, and still strips a recognized name off the front of a command in either mode. Keyword spotting is the correct tool for this job (openWakeWord, porcupine) — a dedicated detector trained on the word, not a transcriber asked to spell it. That is the real fix if wake-word gating ever becomes a requirement.
 
 **Barge-in**: speaking during playback cancels it. During a 400ms grace period after she starts talking, mic frames are ignored entirely so she never hears herself; after that a *higher* threshold (6× noise floor) is required, so only deliberate interruption cuts her off — and the interrupting words are kept, not discarded.
 

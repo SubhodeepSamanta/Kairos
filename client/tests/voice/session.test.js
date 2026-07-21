@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { createVoiceSession } from "../../src/voice/session.js";
 import { FRAME_SAMPLES } from "../../src/voice/config.js";
+import { isNoiseTranscript } from "../../src/voice/stt.js";
 
 function frame(amplitude) {
   const f = new Int16Array(FRAME_SAMPLES);
@@ -13,7 +14,7 @@ function frame(amplitude) {
 const LOUD = frame(6000);
 const QUIET = frame(20);
 
-function harness({ transcripts = [], speaking = false } = {}) {
+function harness({ transcripts = [], speaking = false, requireWake = true } = {}) {
   const events = { transcripts: [], statuses: [], errors: [] };
   let feed = null;
   const queue = [...transcripts];
@@ -33,13 +34,18 @@ function harness({ transcripts = [], speaking = false } = {}) {
     speakerFactory: () => speaker,
     transcriberFactory: () => ({
       ready: async () => true,
-      transcribe: async () => (queue.length ? { text: queue.shift(), durationMs: 900 } : null)
+      transcribe: async () => {
+        if (!queue.length) return null;
+        const text = queue.shift();
+        return isNoiseTranscript(text) ? null : { text, durationMs: 900 };
+      }
     }),
     microphoneFactory: async ({ onFrame }) => {
       feed = onFrame;
       return { device: "Fake Mic", stop: vi.fn() };
     },
-    calibrationMs: 0
+    calibrationMs: 0,
+    requireWake
   });
 
   return {
@@ -238,5 +244,48 @@ describe("noise rejection", () => {
 
     expect(h.events.transcripts).toHaveLength(0);
     expect(h.events.statuses).not.toContain("didn't catch that");
+  });
+});
+
+describe("wake-free mode", () => {
+  it("sends whatever you say without needing her name", async () => {
+    const h = harness({ transcripts: ["open my inbox please"], requireWake: false });
+    await h.session.start();
+
+    h.push(QUIET, 30);
+    h.push(LOUD, 40);
+    h.push(QUIET, 45);
+    await settle();
+
+    expect(h.events.transcripts).toHaveLength(1);
+    expect(h.events.transcripts[0].text).toBe("open my inbox please");
+  });
+
+  it("still refuses noise when the wake word is not required", async () => {
+    const h = harness({ transcripts: ["you"], requireWake: false });
+    await h.session.start();
+
+    h.push(QUIET, 30);
+    h.push(LOUD, 40);
+    h.push(QUIET, 45);
+    await settle();
+
+    expect(h.events.transcripts).toHaveLength(0);
+  });
+});
+
+describe("back to back speech", () => {
+  it("does not throw away a second sentence spoken while the first is still being read", async () => {
+    const h = harness({ transcripts: ["first thing", "second thing"], requireWake: false });
+    await h.session.start();
+
+    h.push(QUIET, 30);
+    h.push(LOUD, 40);
+    h.push(QUIET, 45);
+    h.push(LOUD, 40);
+    h.push(QUIET, 45);
+    await new Promise((r) => setTimeout(r, 60));
+
+    expect(h.events.transcripts.map(t => t.text)).toEqual(["first thing", "second thing"]);
   });
 });

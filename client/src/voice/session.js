@@ -18,11 +18,12 @@ export function createVoiceSession({
   speakerFactory = createSpeaker,
   transcriberFactory = createTranscriber,
   microphoneFactory = startMicrophone,
-  calibrationMs = vadConfig.calibrationMs
+  calibrationMs = vadConfig.calibrationMs,
+  requireWake = voiceConfig.requireWake
 } = {}) {
   const vad = createVad();
   const prosody = createProsodyReader();
-  const gate = createWakeGate();
+  const gate = createWakeGate({ requireWake });
   const stt = transcriberFactory();
   const speaker = speakerFactory({ onStatus, onError });
 
@@ -36,11 +37,12 @@ export function createVoiceSession({
   let calibrating = false;
   let ambientPeak = 0;
   let ambientFrames = 0;
+  let queued = null;
 
   const status = (text) => onStatus?.(text);
   const fail = (err) => onError?.(err instanceof Error ? err : new Error(String(err)));
 
-  const idle = () => status(gate.isOpen() ? "listening…" : ready);
+  const idle = () => status("");
 
   function waitForAmbient(targetFrames) {
     const deadline = Date.now() + CALIBRATION_TIMEOUT_MS;
@@ -53,8 +55,15 @@ export function createVoiceSession({
     });
   }
 
+  function enqueue(pcm) {
+    if (busy) {
+      queued = pcm;
+      return;
+    }
+    handleUtterance(pcm);
+  }
+
   async function handleUtterance(pcm) {
-    if (busy) return;
     busy = true;
     try {
       const voiced = analyseProsody(pcm);
@@ -100,6 +109,11 @@ export function createVoiceSession({
       idle();
     } finally {
       busy = false;
+      if (queued) {
+        const next = queued;
+        queued = null;
+        setImmediate(() => enqueue(next));
+      }
     }
   }
 
@@ -127,13 +141,9 @@ export function createVoiceSession({
     const event = vad.push(frame);
     if (!event) return;
 
-    if (event.type === "speech_start") {
-      status(gate.isOpen() ? "listening…" : "");
-      return;
-    }
     if (event.type === "speech_end") {
       status("thinking…");
-      handleUtterance(event.audio);
+      enqueue(event.audio);
     }
   }
 
@@ -204,10 +214,10 @@ export function createVoiceSession({
       }
 
       running = true;
-      ready = voiceConfig.requireWake ? `listening — say "Kairos"` : "listening";
-      status(voiceConfig.requireWake
+      ready = requireWake ? `listening — say "Kairos"` : "listening";
+      status(requireWake
         ? `listening on ${mic.device} — say "Kairos" to start`
-        : `listening on ${mic.device}`);
+        : `listening on ${mic.device} — just talk`);
       return true;
     },
 
