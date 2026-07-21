@@ -2,7 +2,22 @@
 import path from "path";
 import fs from "fs";
 
+const MIN_WORD_CONFIDENCE = 40;
+
 let worker = null;
+
+export function wordsFrom(data) {
+  if (data?.words?.length) return data.words;
+  const out = [];
+  for (const block of data?.blocks || []) {
+    for (const paragraph of block?.paragraphs || []) {
+      for (const line of paragraph?.lines || []) {
+        for (const word of line?.words || []) out.push(word);
+      }
+    }
+  }
+  return out;
+}
 
 async function getWorker() {
   if (!worker) {
@@ -20,14 +35,15 @@ export async function visionReadPage(page) {
   await page.screenshot({ path: screenshotPath, fullPage: false });
 
   const w = await getWorker();
-  const { data } = await w.recognize(screenshotPath);
+  const { data } = await w.recognize(screenshotPath, {}, { blocks: true });
 
   const elements = [];
   const seen = new Set();
 
-  for (const word of data.words || []) {
+  for (const word of wordsFrom(data)) {
     const text = word.text.trim();
     if (!text || text.length < 2 || seen.has(text.toLowerCase())) continue;
+    if ((word.confidence ?? 0) < MIN_WORD_CONFIDENCE) continue;
     seen.add(text.toLowerCase());
 
     const centerX = (word.bbox.x0 + word.bbox.x1) / 2;
