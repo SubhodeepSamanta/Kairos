@@ -1,0 +1,79 @@
+{
+  "date": "2026-07-21T20:54:33.564Z",
+  "model": "groq/openai/gpt-oss-120b",
+  "score": 100,
+  "passed": 10,
+  "of": 10,
+  "results": [
+    {
+      "id": "greeting-stays-conversational",
+      "why": "rule 3 — a greeting must never touch the browser",
+      "passed": 1,
+      "of": 1,
+      "failures": []
+    },
+    {
+      "id": "mentioning-is-not-asking",
+      "why": "rule 19 — naming a site in passing is conversation, not a request",
+      "passed": 1,
+      "of": 1,
+      "failures": []
+    },
+    {
+      "id": "venting-gets-no-tabs",
+      "why": "rule 20 — feelings first, no fixes, no browser",
+      "passed": 1,
+      "of": 1,
+      "failures": []
+    },
+    {
+      "id": "plain-open-uses-their-browser",
+      "why": "rule 4 — nothing to do on the page, so it belongs in their own browser",
+      "passed": 1,
+      "of": 1,
+      "failures": []
+    },
+    {
+      "id": "already-opened-does-not-open-again",
+      "why": "the duplicate-tab bug — once it is open, the goal is finished",
+      "passed": 1,
+      "of": 1,
+      "failures": []
+    },
+    {
+      "id": "play-never-uses-their-browser",
+      "why": "rule 4 — playing needs a page she can act on, so open_for_user is wrong",
+      "passed": 1,
+      "of": 1,
+      "failures": []
+    },
+    {
+      "id": "answer-already-in-history",
+      "why": "rule 0 — the information is already fetched, so answer instead of refetching",
+      "passed": 1,
+      "of": 1,
+      "failures": []
+    },
+    {
+      "id": "search-results-are-not-an-answer",
+      "why": "rule 6 — titles and urls must never be handed over as the answer",
+      "passed": 1,
+      "of": 1,
+      "failures": []
+    },
+    {
+      "id": "clicks-a-real-result",
+      "why": "acts on the current snapshot rather than guessing an id",
+      "passed": 1,
+      "of": 1,
+      "failures": []
+    },
+    {
+      "id": "does-not-invent-element-ids",
+      "why": "rule 1 — when the element is not in the snapshot, scroll or read instead of guessing",
+      "passed": 1,
+      "of": 1,
+      "failures": []
+    }
+  ]
+}

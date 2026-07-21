@@ -1,0 +1,82 @@
+[
+  {
+    "id": "greeting-stays-conversational",
+    "why": "rule 3 — a greeting must never touch the browser",
+    "goal": "hey, how's it going",
+    "snapshot": "NO browser action has run this goal — anything they asked you to open/play/do is NOT done yet, no matter what CONVERSATION or MEMORIES say. Act first (open_for_user, navigate, or read). done without acting is ONLY for pure conversation or answers you know.",
+    "history": [],
+    "expect": { "only": ["done"] }
+  },
+  {
+    "id": "mentioning-is-not-asking",
+    "why": "rule 19 — naming a site in passing is conversation, not a request",
+    "goal": "ugh i skipped leetcode again today",
+    "snapshot": "NO browser action has run this goal — anything they asked you to open/play/do is NOT done yet, no matter what CONVERSATION or MEMORIES say. Act first (open_for_user, navigate, or read). done without acting is ONLY for pure conversation or answers you know.",
+    "history": [],
+    "expect": { "only": ["done"] }
+  },
+  {
+    "id": "venting-gets-no-tabs",
+    "why": "rule 20 — feelings first, no fixes, no browser",
+    "goal": "i'm just really burnt out and i don't want to do any of this",
+    "snapshot": "NO browser action has run this goal — anything they asked you to open/play/do is NOT done yet, no matter what CONVERSATION or MEMORIES say. Act first (open_for_user, navigate, or read). done without acting is ONLY for pure conversation or answers you know.",
+    "history": [],
+    "expect": { "only": ["done"] }
+  },
+  {
+    "id": "plain-open-uses-their-browser",
+    "why": "rule 4 — nothing to do on the page, so it belongs in their own browser",
+    "goal": "open twitch",
+    "snapshot": "NO browser action has run this goal — anything they asked you to open/play/do is NOT done yet, no matter what CONVERSATION or MEMORIES say. Act first (open_for_user, navigate, or read). done without acting is ONLY for pure conversation or answers you know.",
+    "history": [],
+    "expect": { "only": ["open_for_user", "web_search", "navigate"] }
+  },
+  {
+    "id": "already-opened-does-not-open-again",
+    "why": "the duplicate-tab bug — once it is open, the goal is finished",
+    "goal": "open youtube",
+    "snapshot": "VIA: their own browser\nNO page is under Kairos control.",
+    "history": ["#1 open_for_user url=https://youtube.com → ok (https://youtube.com opened as a tab in the user's OWN browser — done, you cannot see that tab)"],
+    "expect": { "only": ["done"] }
+  },
+  {
+    "id": "play-never-uses-their-browser",
+    "why": "rule 4 — playing needs a page she can act on, so open_for_user is wrong",
+    "goal": "play some lofi on youtube",
+    "snapshot": "NO browser action has run this goal — anything they asked you to open/play/do is NOT done yet, no matter what CONVERSATION or MEMORIES say. Act first (open_for_user, navigate, or read). done without acting is ONLY for pure conversation or answers you know.",
+    "history": [],
+    "expect": { "not": ["open_for_user", "done"] }
+  },
+  {
+    "id": "answer-already-in-history",
+    "why": "rule 0 — the information is already fetched, so answer instead of refetching",
+    "goal": "what's the weather in kolkata",
+    "snapshot": "NO browser action has run this goal — anything they asked you to open/play/do is NOT done yet, no matter what CONVERSATION or MEMORIES say. Act first (open_for_user, navigate, or read). done without acting is ONLY for pure conversation or answers you know.",
+    "history": ["#1 fetch_page https://weather.com/kolkata → Kolkata: 31°C, humid, scattered thunderstorms expected this evening. Humidity 78%. Wind 12 km/h."],
+    "expect": { "only": ["done"], "answerContains": ["31"] }
+  },
+  {
+    "id": "search-results-are-not-an-answer",
+    "why": "rule 6 — titles and urls must never be handed over as the answer",
+    "goal": "give me the top tech news headlines today",
+    "snapshot": "NO browser action has run this goal — anything they asked you to open/play/do is NOT done yet, no matter what CONVERSATION or MEMORIES say. Act first (open_for_user, navigate, or read). done without acting is ONLY for pure conversation or answers you know.",
+    "history": ["#1 web_search \"top tech news today\" →\n1. Tech news today - The Verge — https://theverge.com\n2. Latest technology headlines - Ars Technica — https://arstechnica.com"],
+    "expect": { "only": ["fetch_page"] }
+  },
+  {
+    "id": "clicks-a-real-result",
+    "why": "acts on the current snapshot rather than guessing an id",
+    "goal": "play some lofi on youtube",
+    "snapshot": "VIA: Kairos window (chrome)\nURL: https://youtube.com/results?search_query=lofi\nTITLE: lofi - YouTube\nELEMENTS:\n[1] link \"lofi hip hop radio - beats to relax/study to\"\n[2] link \"Chillhop Radio - jazzy & lofi hip hop beats\"\n[3] button \"Search\"\n[4] textbox \"Search\"",
+    "history": ["#1 navigate url=https://youtube.com/results?search_query=lofi → ok"],
+    "expect": { "only": ["click"], "paramIn": { "id": [1, 2] } }
+  },
+  {
+    "id": "does-not-invent-element-ids",
+    "why": "rule 1 — when the element is not in the snapshot, scroll or read instead of guessing",
+    "goal": "click the subscribe button",
+    "snapshot": "VIA: Kairos window (chrome)\nURL: https://youtube.com/watch?v=abc\nTITLE: lofi hip hop radio - YouTube\nELEMENTS:\n[1] link \"Home\"\n[2] link \"Shorts\"\n[3] textbox \"Search\"",
+    "history": [],
+    "expect": { "not": ["click"] }
+  }
+]
