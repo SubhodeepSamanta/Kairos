@@ -324,6 +324,10 @@ The cloud pushes a `persona` message on connect and whenever it changes, so the 
 
 A reply written for a screen sounds like a machine when spoken — bulleted lists, markdown, raw urls read character by character. The client sends `{type:"voice_mode", on}` when voice starts and stops, and the cloud appends `VOICE_RULES` to the system prompt **only while it is on**, so typed sessions are never polluted: no lists, no markdown, short sentences, site names instead of urls, numbers spoken naturally, and delivery hints used sparingly.
 
+### Reading text out loud
+
+`spoken.js` rewrites a reply for the ear before it reaches the voice, because the model still sometimes writes for a screen and a symbol read literally is instantly robotic. `-60 °C` becomes "minus 60 degrees celsius", `12%` becomes "12 percent", a url becomes the site name ("I opened youtube for you"), markdown emphasis and bullets are flattened into sentences, and typographic quotes, dashes and non-breaking spaces are folded to plain ones. An ellipsis is deliberately kept — the voice reads it as a pause.
+
 ### Persona voices
 
 Each persona maps to a Kokoro voice plus rate and pitch. Two bugs hid this for a while:

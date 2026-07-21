@@ -1,5 +1,6 @@
 import { voiceConfig } from "../config.js";
 import { speakableSegments, stripMarkup } from "../markup.js";
+import { toSpokenText } from "../spoken.js";
 import { createPlayer } from "./playback.js";
 import { createKokoroEngine } from "./kokoro.js";
 import { createSapiEngine } from "./sapi.js";
@@ -13,7 +14,7 @@ export function genderOf(voiceId) {
 }
 
 function trimForSpeech(text) {
-  const clean = String(text || "").trim();
+  const clean = toSpokenText(text);
   if (clean.length <= MAX_SPEECH_CHARS) return clean;
   const cut = clean.slice(0, MAX_SPEECH_CHARS);
   const lastStop = Math.max(cut.lastIndexOf(". "), cut.lastIndexOf("! "), cut.lastIndexOf("? "));
