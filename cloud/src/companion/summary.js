@@ -1,5 +1,5 @@
 import { askLLM } from "../llm/provider.js";
-import { getSummary, setSummary, countTurns, loadTurnsBefore } from "./store.js";
+import { getSummary, setSummary, countTurns, loadTurnsBefore, archivedTurnCount } from "./store.js";
 
 const SUMMARIZE_EVERY = 10;
 const LIVE_WINDOW = 14;
@@ -23,7 +23,7 @@ export async function maybeSummarize(chatId, budget = null) {
   const older = await loadTurnsBefore(chatId, total);
   if (!older.length) return existing.text;
 
-  const covered = existing.coveredTurns + older.length;
+  const covered = Math.max(existing.coveredTurns, await archivedTurnCount(chatId)) + older.length;
 
   const transcript = older.map(t => `${t.role === "user" ? "them" : "you"}: ${t.text}`).join("\n");
   const userPrompt = existing.text

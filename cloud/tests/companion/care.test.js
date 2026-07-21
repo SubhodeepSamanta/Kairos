@@ -33,6 +33,21 @@ describe("detectCrisis", () => {
     expect(detectCrisis("write an essay about suicide prevention")).toBe(false);
   });
 
+  it("still fires when a study word appears alongside real intent", () => {
+    for (const text of [
+      "i can't do this essay anymore, i want to die",
+      "failed the assignment again, i want to kill myself",
+      "so much homework i don't want to be here"
+    ]) {
+      expect(detectCrisis(text), text).toBe(true);
+    }
+  });
+
+  it("needs a first-person subject before a topical word counts", () => {
+    expect(detectCrisis("im suicidal")).toBe(true);
+    expect(detectCrisis("the overdose statistics for the report")).toBe(false);
+  });
+
   it("ignores empty input", () => {
     expect(detectCrisis("")).toBe(false);
     expect(detectCrisis(null)).toBe(false);

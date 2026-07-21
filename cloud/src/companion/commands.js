@@ -1,4 +1,4 @@
-import { listPersonas, getPersona, PERSONAS } from "./personas.js";
+import { listPersonas, getPersona, personaLabel, PERSONAS } from "./personas.js";
 import { getPrefs, setPrefs, loadMoods, loadEvents, getSummary, forgetChat } from "./store.js";
 import { formatMood } from "./context.js";
 import { getAllFacts, forgetFact, memoryBackend } from "../memory/store.js";
@@ -15,10 +15,10 @@ export const COMMANDS = [
 ];
 
 export function commandSuggestions(input) {
-  const text = String(input || "");
+  const text = String(input || "").trimStart();
   if (!text.startsWith("/")) return null;
 
-  const [head, ...rest] = text.trimStart().split(/\s+/);
+  const [head, ...rest] = text.split(/\s+/);
   const typedArg = rest.join(" ");
 
   if (head === "/personality" && text.includes(" ")) {
@@ -26,7 +26,7 @@ export function commandSuggestions(input) {
       kind: "value",
       command: "/personality",
       items: listPersonas()
-        .filter(p => p.id.startsWith(typedArg.toLowerCase()))
+        .filter(p => p.id.startsWith(typedArg.toLowerCase()) || p.name.toLowerCase().startsWith(typedArg.toLowerCase()))
         .map(p => ({ value: p.id, label: p.label, help: p.blurb }))
     };
   }
@@ -68,16 +68,16 @@ export async function runCommand(chatId, text) {
     case "/personality": {
       const prefs = await getPrefs(chatId);
       if (!arg) {
-        const lines = listPersonas().map(p => `${p.id === prefs.persona ? "▸" : " "} ${p.id.padEnd(8)} ${p.blurb}`);
+        const lines = listPersonas().map(p => `${p.id === prefs.persona ? "▸" : " "} ${p.label.padEnd(24)} ${p.blurb}`);
         return `personalities:\n${lines.join("\n")}\n\nswitch with /personality <name>`;
       }
       const key = arg.toLowerCase();
-      if (!PERSONAS[key]) {
-        return `no personality called "${arg}". options: ${Object.keys(PERSONAS).join(", ")}`;
+      const match = Object.values(PERSONAS).find(p => p.id === key || p.name.toLowerCase() === key);
+      if (!match) {
+        return `no personality called "${arg}". options: ${listPersonas().map(p => p.label).join(", ")}`;
       }
-      await setPrefs(chatId, { persona: key });
-      const p = getPersona(key);
-      return `${p.label} it is — ${p.blurb}\n\n"${p.samples[0]}"`;
+      await setPrefs(chatId, { persona: match.id });
+      return `${personaLabel(match)} it is — ${match.blurb}\n\n"${match.samples[0]}"`;
     }
 
     case "/mood": {
@@ -124,7 +124,7 @@ export async function runCommand(chatId, text) {
       ]);
       const persona = getPersona(prefs.persona);
       const factCount = Object.keys(getAllFacts()).length;
-      const lines = [`you're talking to ${persona.label} — ${persona.blurb}.`];
+      const lines = [`you're talking to ${personaLabel(persona)} — ${persona.blurb}.`];
       lines.push(`i'm holding ${factCount} fact${factCount === 1 ? "" : "s"} about you.`);
       if (events.length) {
         const worked = events.filter(e => e.success).length;

@@ -4,6 +4,8 @@ import { DEFAULT_PERSONA } from "./personas.js";
 import { readJson, writeJsonAtomic } from "../utils/jsonFile.js";
 import { enqueueDbWrite, flushDbWrites } from "../memory/syncQueue.js";
 
+export const IDENTITY = "default";
+
 const KEEP_TURNS = 14;
 const ARCHIVE_TURNS = 300;
 const KEEP_EVENTS = 60;
@@ -127,15 +129,18 @@ export async function countTurns(chatId) {
   return entry.dropped + entry.list.length;
 }
 
+export async function archivedTurnCount(chatId) {
+  return turnsFor(chatId).dropped;
+}
+
 export async function loadTurnsBefore(chatId, total) {
   const summary = await getSummary(chatId);
-  const skip = summary.coveredTurns;
+  const entry = turnsFor(chatId);
+  const skip = Math.max(summary.coveredTurns, entry.dropped);
   const take = Math.max(0, total - skip - KEEP_TURNS);
   if (take <= 0) return [];
 
-  const entry = turnsFor(chatId);
-  const start = Math.max(0, skip - entry.dropped);
-  return entry.list.slice(start, start + take);
+  return entry.list.slice(skip - entry.dropped, skip - entry.dropped + take);
 }
 
 export async function getSummary(chatId) {
@@ -205,6 +210,75 @@ export async function forgetChat(chatId, what) {
     }
   }
   return targets;
+}
+
+export async function unifyIdentity() {
+  const allNames = ["turns", "events", "moods", "digests", "prefs"];
+  const strayIds = new Set(allNames.flatMap(name => Object.keys(loadFile(name, {}))));
+  strayIds.delete(IDENTITY);
+
+  if (strayIds.size) {
+    const turns = loadFile("turns", {});
+    const counts = {};
+    for (const id of [IDENTITY, ...strayIds]) {
+      counts[id] = turns[id] ? (await countTurns(id)) : 0;
+    }
+    const primary = [IDENTITY, ...strayIds].sort((a, b) => counts[b] - counts[a])[0];
+
+    const merged = { list: [], dropped: 0 };
+    for (const id of Object.keys(turns)) {
+      const entry = turnsFor(id);
+      merged.list.push(...entry.list);
+      merged.dropped += entry.dropped;
+    }
+    merged.list.sort((a, b) => new Date(a.at) - new Date(b.at));
+    merged.dropped += trimList(merged.list, ARCHIVE_TURNS);
+    cache.turns = { [IDENTITY]: merged };
+    saveFile("turns");
+
+    for (const [name, keep] of [["events", KEEP_EVENTS], ["moods", KEEP_MOODS]]) {
+      const store = loadFile(name, {});
+      const all = Object.values(store).flat().sort((a, b) => new Date(a.at) - new Date(b.at));
+      trimList(all, keep);
+      cache[name] = { [IDENTITY]: all };
+      saveFile(name);
+    }
+
+    const digests = loadFile("digests", {});
+    const mergedDays = {};
+    for (const id of Object.keys(digests)) {
+      if (id !== IDENTITY) Object.assign(mergedDays, digests[id]);
+    }
+    Object.assign(mergedDays, digests[IDENTITY] || {});
+    cache.digests = { [IDENTITY]: mergedDays };
+    saveFile("digests");
+
+    const prefs = loadFile("prefs", {});
+    cache.prefs = { [IDENTITY]: prefs[primary] || prefs[IDENTITY] || {} };
+    saveFile("prefs");
+
+    console.log(`[COMPANION] merged ${strayIds.size} chat identit${strayIds.size === 1 ? "y" : "ies"} into "${IDENTITY}"`);
+  }
+
+  const pool = db();
+  if (!pool) return;
+  try {
+    for (const table of ["kairos_turns", "kairos_events", "kairos_moods"]) {
+      await pool.query(`UPDATE ${table} SET chat_id = $1 WHERE chat_id <> $1`, [IDENTITY]);
+    }
+    await pool.query(
+      `INSERT INTO kairos_digests (chat_id, day, line)
+       SELECT $1, day, line FROM kairos_digests WHERE chat_id <> $1
+       ON CONFLICT (chat_id, day) DO NOTHING`,
+      [IDENTITY]
+    );
+    await pool.query(`DELETE FROM kairos_digests WHERE chat_id <> $1`, [IDENTITY]);
+    const current = loadFile("prefs", {})[IDENTITY];
+    if (current && Object.keys(current).length) await setPrefs(IDENTITY, current);
+    await pool.query(`DELETE FROM kairos_prefs WHERE chat_id <> $1`, [IDENTITY]);
+  } catch (err) {
+    console.log(`[COMPANION] identity merge in Postgres skipped: ${err.message.slice(0, 80)}`);
+  }
 }
 
 export function resetCompanionCacheForTests() {
