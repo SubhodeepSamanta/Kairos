@@ -155,6 +155,10 @@ export async function runCommand(chatId, text) {
       if (rt.connectors.length) lines.push(`talking to: ${rt.connectors.join(", ")}`);
       lines.push(`memory: ${memoryBackend() === "postgres" ? "postgres" : "local file"}${pending ? ` · ${pending} write${pending === 1 ? "" : "s"} waiting` : ""}`);
       lines.push(`ai: ${llm.primary.join(", ")}${llm.cooling.length ? ` · resting: ${llm.cooling.join(", ")}` : ""}`);
+      if (process.env.DRY_RUN === "true") lines.push("DRY RUN on — she will plan but never click, type or submit");
+      lines.push(process.env.CONFIRM_RISKY === "false"
+        ? "confirmation OFF — she can buy, delete and send without asking"
+        : "she asks before buying, deleting or sending");
       if (rt.queueDepth) lines.push(`${rt.queueDepth} goal${rt.queueDepth === 1 ? "" : "s"} waiting`);
       return lines.join("\n");
     }

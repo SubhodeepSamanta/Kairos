@@ -10,6 +10,7 @@ import { detectCrisis, shouldStayQuiet, CRISIS_REPLY } from "../../companion/car
 import { maybeSummarize } from "../../companion/summary.js";
 import { recordTrace } from "../trace.js";
 import { createCancellation } from "./cancellation.js";
+import { classifyConsequence, confirmationQuestion, readsAsYes } from "../consequence.js";
 
 const MAX_STEPS = 30;
 const MAX_LLM_CALLS = 45;
@@ -22,6 +23,7 @@ const MAX_OPENS_PER_HOST = 1;
 const MAX_FRESH_TABS = 2;
 const MAX_BLOCKED_BEFORE_ABORT = 4;
 const LLM_RETRY_WAITS_MS = [8000, 20000, 45000, 0];
+const MUTATING = new Set(["click", "type", "select_option", "press_key"]);
 
 const BROWSER_ACTIONS = {
   navigate: a => ({ type: "navigate", params: { url: a.url } }),
@@ -94,11 +96,17 @@ function trimHistory(history) {
   );
 }
 
-export async function runAgent({ goal, tone = null, goalId, chatId = "default", executeAction, askHuman, onStatus, voiceMode = false, isCancelled }) {
+export async function runAgent({
+  goal, tone = null, goalId, chatId = "default", executeAction, askHuman, onStatus,
+  voiceMode = false, isCancelled,
+  confirmRisky = process.env.CONFIRM_RISKY !== "false",
+  dryRun = process.env.DRY_RUN === "true"
+}) {
   const budget = createBudget(MAX_LLM_CALLS);
   const history = [];
   const repeatCounts = {};
   const succeededResults = {};
+  const approved = new Set();
   const openedHosts = new Map();
   let freshTabs = 0;
   let blockedSteps = 0;
@@ -347,6 +355,35 @@ export async function runAgent({ goal, tone = null, goalId, chatId = "default", 
     if (!toClientAction) {
       notice = `Unknown action type "${action.type}". Use only the documented actions.`;
       continue;
+    }
+
+    if (dryRun && MUTATING.has(action.type)) {
+      history.push(`#${step} ${describeAction(action)} → NOT RUN (dry run)`);
+      notice = "DRY RUN: you may not click, type, submit or select anything. Nothing above was actually done. Say what you WOULD do, in order, and finish with done.";
+      continue;
+    }
+
+    const consequence = confirmRisky ? classifyConsequence(action, lastPage) : null;
+    if (consequence && !approved.has(sig)) {
+      const question = confirmationQuestion(consequence, lastPage);
+      status("Waiting for you to confirm…");
+      let answer;
+      try {
+        answer = await raceCancel(askHuman(question, {}));
+      } catch (err) {
+        if (err.message === "cancelled_by_user") {
+          status("cancelled by the user");
+          return finish(false, "okay — stopped.", { cancelled: true });
+        }
+        return finish(false, `I stopped before I could ${consequence.kind} — I asked "${question}" and got no reply.`);
+      }
+      if (!readsAsYes(answer)) {
+        history.push(`#${step} did NOT ${describeAction(action)} — they said no`);
+        notice = `They said NO to ${consequence.what}. Do not try it again or find another route to it. Either continue the goal a different way, or finish with done explaining what you did not do.`;
+        continue;
+      }
+      approved.add(sig);
+      console.log(`[CONFIRM] approved: ${consequence.kind} — ${consequence.what}`);
     }
 
     const clientAction = toClientAction(action);

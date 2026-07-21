@@ -114,6 +114,14 @@ Profiles resolve by display name ("Kami"), account email, directory ("Profile 8"
 
 Clicks hover the element with a multi-step mouse move first; typing is per-character with 35–85ms jitter; scrolling is chunked wheel events; short randomized think-time between actions. Set `HUMANIZE=false` to disable.
 
+## Before something irreversible
+
+Kairos pauses and asks before it can **spend money, delete something, or send something to other people** — and before submitting a form containing a stored password. Anything short of a clear yes ("hmm", "not sure", silence) counts as no. Told no, the model is instructed not to retry or route around it.
+
+The gate is deterministic code, not model judgement, for the same reason as the crisis gate in `care.js`: it is a safety rail, not reasoning about a page. It keys off **action type plus element role** — a `click` whose accessible label matches a small, explicit, auditable verb list, or a `type` with `submit:true` carrying a `{{secret:…}}` placeholder. It never interprets page prose, so working agreement #1 stands. Navigating, reading, scrolling and searching are never interrupted.
+
+`CONFIRM_RISKY=false` disables it. `DRY_RUN=true` goes further — she plans and explores but every click, type, select and keypress is refused, so she narrates what she *would* do. `/status` shows both.
+
 ## Seeing what happened
 
 `/status` answers "is this actually working" in one screen: cloud uptime and the **git commit it is running**, whether the laptop client is connected (without it nothing browser-shaped can work), memory backend and any writes waiting to sync, which models are cooling, and queue depth. The console appends its own half — voice state, microphone, link. The running-commit line exists because a cloud process holding hours-old code is indistinguishable from a fresh one, which cost real debugging time.
