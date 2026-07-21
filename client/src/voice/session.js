@@ -1,7 +1,7 @@
 import { voiceConfig, vadConfig, msToFrames } from "./config.js";
 import { startMicrophone } from "./capture.js";
 import { createVad, frameEnergy } from "./vad.js";
-import { createProsodyReader } from "./prosody.js";
+import { createProsodyReader, analyseProsody } from "./prosody.js";
 import { createTranscriber } from "./stt.js";
 import { createWakeGate } from "./wake.js";
 import { createSpeaker, DEFAULT_VOICE } from "./tts/index.js";
@@ -57,6 +57,12 @@ export function createVoiceSession({
     if (busy) return;
     busy = true;
     try {
+      const voiced = analyseProsody(pcm);
+      if (!voiced || voiced.voicedRatio < vadConfig.minVoicedRatio) {
+        idle();
+        return;
+      }
+
       const heard = await stt.transcribe(pcm);
       if (!heard) {
         status("didn't catch that");

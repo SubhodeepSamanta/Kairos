@@ -258,6 +258,8 @@ No fixed listening window. A 30-second timer either cuts you off or leaves you w
 - **700ms hangover** — trailing silence ends the turn; long enough to think mid-sentence, short enough to feel instant
 - **300ms pre-roll** — a ring buffer of the frames *before* the trigger, so the first phoneme is never clipped
 - **min 280ms / max 20s** — discards clicks, caps runaway captures
+- **voiced-ratio gate** — before anything reaches the speech model, the clip must actually be *pitched*. Measured on this laptop: real speech scores 0.44–0.56, the laptop's own fan scores 0.203, white noise 0.00. The gate sits at 0.30. Energy thresholds alone could not separate fan noise from speech — the fan is loud enough to cross any floor low enough to hear you — but the fan has almost no periodicity, so pitch does separate them
+- **calibration is capped** — the trigger can never exceed `VOICE_MAX_FLOOR` (600). Ambient measured 142, 165, 227 and 894 across runs: model loading spins the fan up exactly when calibration runs, so an uncapped peak-based floor would occasionally leave her deaf
 
 ### Wake word
 

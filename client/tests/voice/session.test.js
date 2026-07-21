@@ -219,3 +219,24 @@ describe("voice session", () => {
     expect(events[0].message).toMatch(/no microphone found/);
   });
 });
+
+describe("noise rejection", () => {
+  function noisy(amp) {
+    const f = new Int16Array(FRAME_SAMPLES);
+    for (let i = 0; i < FRAME_SAMPLES; i++) f[i] = (Math.random() - 0.5) * amp;
+    return f;
+  }
+
+  it("never sends unpitched noise to the speech model", async () => {
+    const h = harness({ transcripts: ["Kairos, open my inbox"] });
+    await h.session.start();
+
+    for (let i = 0; i < 30; i++) h.push(noisy(40));
+    for (let i = 0; i < 60; i++) h.push(noisy(20000));
+    for (let i = 0; i < 45; i++) h.push(noisy(40));
+    await settle();
+
+    expect(h.events.transcripts).toHaveLength(0);
+    expect(h.events.statuses).not.toContain("didn't catch that");
+  });
+});

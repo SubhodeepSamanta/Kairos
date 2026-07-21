@@ -19,6 +19,34 @@ describe("wake word", () => {
     }
   });
 
+  it("catches the mishearings reported from real use", () => {
+    const heard = [
+      "Carlos, what's the weather?",
+      "Virus, open my inbox",
+      "Chiros, play some music",
+      "Kairo, what can you do",
+      "Karos, hello",
+      "Gyros, what time is it"
+    ];
+    for (const line of heard) {
+      expect(detectWake(line).matched, line).toBe(true);
+    }
+  });
+
+  it("still ignores ordinary speech after widening the variants", () => {
+    const stray = [
+      "can you pass me the salt",
+      "the chorus was stuck in my head",
+      "I was watching a show about Cairo yesterday",
+      "my car is in the shop",
+      "let's go",
+      "close the tab"
+    ];
+    for (const line of stray) {
+      expect(detectWake(line).matched, line).toBe(false);
+    }
+  });
+
   it("returns the command with the wake word removed", () => {
     expect(detectWake("Kairos, find me a cheap flight", WAKE).command).toBe("find me a cheap flight");
     expect(detectWake("Kai Rose what's on my calendar", WAKE).command).toBe("whats on my calendar");

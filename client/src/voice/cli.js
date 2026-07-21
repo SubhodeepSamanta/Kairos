@@ -135,9 +135,13 @@ export function createVoiceController({ write, sendGoal, sessionFactory = create
     },
 
     speak(text) {
-      if (!session?.isRunning()) return;
       const spoken = stripMarkup(text);
-      if (spoken) session.speak(text).catch(() => {});
+      if (!spoken) return spoken;
+      if (!session?.isRunning()) {
+        if (starting) line("  (voice is still starting — not spoken)");
+        return spoken;
+      }
+      session.speak(text).catch((err) => line(`  could not speak: ${err.message}`));
       return spoken;
     },
 

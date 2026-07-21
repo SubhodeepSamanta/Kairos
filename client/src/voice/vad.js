@@ -129,8 +129,9 @@ export function createVad(overrides = {}) {
 
     calibrate(ambientPeak) {
       if (!(ambientPeak > 0)) return floor;
-      floor = Math.max(cfg.absoluteFloor, Math.round(ambientPeak * cfg.calibrationHeadroom));
-      noiseFloor = Math.max(minFloor, ambientPeak);
+      const wanted = Math.round(ambientPeak * cfg.calibrationHeadroom);
+      floor = Math.min(cfg.maxFloor, Math.max(cfg.absoluteFloor, wanted));
+      noiseFloor = Math.max(minFloor, Math.min(ambientPeak, floor));
       seeded = true;
       return floor;
     },
