@@ -9,6 +9,7 @@ import { addTurn, addEvent, addMood } from "../../companion/store.js";
 import { detectCrisis, shouldStayQuiet, CRISIS_REPLY } from "../../companion/care.js";
 import { maybeSummarize } from "../../companion/summary.js";
 import { recordTrace } from "../trace.js";
+import { createCancellation } from "./cancellation.js";
 
 const MAX_STEPS = 30;
 const MAX_LLM_CALLS = 45;
@@ -154,34 +155,7 @@ export async function runAgent({ goal, tone = null, goalId, chatId = "default", 
     return { success, answer, steps: step, llmCalls: budget.used };
   };
 
-  const stopped = () => {
-    try { return Boolean(isCancelled?.()); } catch { return false; }
-  };
-
-  const raceCancel = async (promise) => {
-    let timer = null;
-    const watch = new Promise((_, reject) => {
-      const tick = () => {
-        if (stopped()) reject(new Error("cancelled_by_user"));
-        else timer = setTimeout(tick, 250);
-      };
-      tick();
-    });
-    try {
-      return await Promise.race([promise, watch]);
-    } finally {
-      if (timer) clearTimeout(timer);
-    }
-  };
-
-  const sleepUnlessStopped = async (ms) => {
-    const until = Date.now() + ms;
-    while (Date.now() < until) {
-      if (stopped()) return false;
-      await new Promise(r => setTimeout(r, Math.min(250, until - Date.now())));
-    }
-    return true;
-  };
+  const { stopped, raceCancel, sleepUnlessStopped } = createCancellation(isCancelled);
 
   while (step < MAX_STEPS) {
     if (stopped()) {
