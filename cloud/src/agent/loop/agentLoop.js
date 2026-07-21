@@ -26,6 +26,7 @@ const MAX_BLOCKED_BEFORE_ABORT = 4;
 const LLM_RETRY_WAITS_MS = [8000, 20000, 45000, 0];
 const MUTATING = new Set(["click", "type", "select_option", "press_key"]);
 const MAX_MALFORMED = 5;
+const MAX_PLAN_STEPS = 6;
 
 const BROWSER_ACTIONS = {
   navigate: a => ({ type: "navigate", params: { url: a.url } }),
@@ -121,6 +122,7 @@ export async function runAgent({
   let malformedSteps = 0;
   let lastPage = null;
   let notice = "";
+  let plan = null;
   let step = 0;
   let justRead = false;
   const startTime = Date.now();
@@ -193,6 +195,7 @@ export async function runAgent({
         ? formatSnapshot(lastPage, { fullText: justRead })
         : "NO browser action has run this goal — anything they asked you to open/play/do is NOT done yet, no matter what CONVERSATION or MEMORIES say. Act first (open_for_user, navigate, or read). done without acting is ONLY for pure conversation or answers you know.",
       notice,
+      plan,
       summary: companion.summary,
       conversation: companion.conversation,
       recentDays: companion.recentDays,
@@ -225,6 +228,14 @@ export async function runAgent({
       return finish(false, `AI error after retries: ${llmError?.message || "no answer from any model"}`);
     }
     notice = "";
+
+    if (Array.isArray(decision.plan) && decision.plan.length) {
+      const revised = decision.plan.map(s => String(s).slice(0, 120)).filter(Boolean).slice(0, MAX_PLAN_STEPS);
+      if (revised.length) {
+        plan = revised;
+        console.log(`[PLAN] ${plan.map((s, i) => `${i + 1}. ${s}`).join("  ")}`);
+      }
+    }
 
     const action = normalizeAction(decision.action || decision);
     const thought = String(decision.thought || "").slice(0, 200);
@@ -307,7 +318,7 @@ export async function runAgent({
       return finish(false, `I kept repeating the same step (${describeAction(action)}) without progress and stopped. History: ${history.slice(-3).join("; ")}`);
     }
     if (repeatCounts[sig] > MAX_REPEATS_BEFORE_WARNING) {
-      notice = `You already tried "${describeAction(action)}" ${repeatCounts[sig] - 1} times. It is not working. Choose a DIFFERENT approach — usually best: web_search the exact target and navigate directly to the URL from the results.`;
+      notice = `You already tried "${describeAction(action)}" ${repeatCounts[sig] - 1} times. It is not working. Stop and re-plan: reply with "plan":["…","…"] — a short list of the steps that WILL get there — alongside a genuinely different next action. Usually best: web_search the exact target and navigate directly to the URL from the results.`;
     }
 
     if (action.type === "remember") {

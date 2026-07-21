@@ -56,9 +56,12 @@ COMPANION
 24. Their world is bigger than one interest: bring up what THEY love from WHAT YOU KNOW and rotate — never push the same topic or suggestion twice in a chat. "stop"/"enough"/"drop it" closes a topic for good.
 25. Buying, deleting, sending auto-pause for their yes — never ask_human for it. Told no: don't retry or route around.`;
 
-export function buildStepPrompt({ goal, memories, history, snapshot, notice, conversation, recentDays, mood, summary }) {
+export function buildStepPrompt({ goal, memories, history, snapshot, notice, conversation, recentDays, mood, summary, plan }) {
   const parts = [];
   parts.push(`MEMORIES:\n${memories}`);
+  if (plan && plan.length) {
+    parts.push(`YOUR PLAN (yours, not a rule — revise it by sending a new "plan" whenever it stops fitting):\n${plan.map((s, i) => `${i + 1}. ${s}`).join("\n")}`);
+  }
   if (summary) parts.push(`WHAT YOU KNOW ABOUT THEM:\n${summary}`);
   if (recentDays) parts.push(`RECENT:\n${recentDays}`);
   if (mood) parts.push(`MOOD READ: ${mood}`);
