@@ -320,6 +320,17 @@ Persona → voice id + baseline rate/pitch, all five verified present in the mod
 
 The cloud pushes a `persona` message on connect and whenever it changes, so the voice follows `/personality` without a restart.
 
+### Writing for the ear
+
+A reply written for a screen sounds like a machine when spoken — bulleted lists, markdown, raw urls read character by character. The client sends `{type:"voice_mode", on}` when voice starts and stops, and the cloud appends `VOICE_RULES` to the system prompt **only while it is on**, so typed sessions are never polluted: no lists, no markdown, short sentences, site names instead of urls, numbers spoken naturally, and delivery hints used sparingly.
+
+### Persona voices
+
+Each persona maps to a Kokoro voice plus rate and pitch. Two bugs hid this for a while:
+
+- the cloud sends `persona` on register, *before* the models finish loading, and the client dropped it whenever the session did not exist yet — so the session always built with Aria's voice no matter who was active
+- **Kokoro ignores pitch entirely.** It accepts only `speed`. Every persona's pitch setting did nothing. Generating at `rate / pitch` and resampling by `pitch` gives real pitch control at constant tempo — Marcus lands at 129Hz against Aria's 141Hz.
+
 ### Emotion
 
 A dedicated speech-emotion model costs RAM the budget can't spare for what it returns. Instead `prosody.js` measures energy, autocorrelation pitch, speech rate and pause ratio, and compares them against a **rolling baseline of how you normally sound** — absolute pitch says nothing, deviation from your own norm says a lot. It emits hints like *"quieter than usual, slower than usual"* appended to the goal, which compose with the word-based mood inference the prompt already does. Near-zero RAM, no extra model.

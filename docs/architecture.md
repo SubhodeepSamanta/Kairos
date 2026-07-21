@@ -78,10 +78,13 @@ Every message authenticates with `CLIENT_SECRET`. Actions carry a `requestId`; t
 
 ```
 connector → cloud   {type:"goal", goal:"…"}
+connector → cloud   {type:"voice_mode", on}
 cloud → client      {type:"execute", requestId, action}
 client → cloud      {type:"result", requestId, observation}
 cloud → connector   {type:"goal_status"|"human_input_request"|"goal_result"|"persona"}
 ```
+
+`voice_mode` is per-connection and the cloud forgets it when the socket drops, so the CLI re-announces it on every reconnect. The console **reconnects with backoff instead of exiting** — it used to `process.exit(0)` on close, which took the error message with it and made crashes impossible to capture.
 
 ## Memory and secrets — deliberately split
 
