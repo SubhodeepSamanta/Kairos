@@ -4,8 +4,8 @@ const MIN_SAMPLES = SAMPLE_RATE * 0.2;
 const MAX_SAMPLES = SAMPLE_RATE * 30;
 
 const NOISE_TRANSCRIPTS = new Set([
-  "you", "thank you", "thanks for watching", "bye", "shh", "hmm", "uh", "um",
-  "so", "the", "and", "oh", "ah", "mm", "mhm", "yeah", "beep", "music",
+  "you", "thank you", "thanks for watching", "shh", "hmm", "uh", "um",
+  "ah", "mm", "mhm", "beep", "music",
   "silence", "blank audio", "inaudible", "no speech", "background noise"
 ]);
 

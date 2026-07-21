@@ -38,7 +38,8 @@ function harness({ transcripts = [], speaking = false } = {}) {
     microphoneFactory: async ({ onFrame }) => {
       feed = onFrame;
       return { device: "Fake Mic", stop: vi.fn() };
-    }
+    },
+    calibrationMs: 0
   });
 
   return {
@@ -85,6 +86,33 @@ describe("voice session", () => {
     expect(h.events.transcripts).toHaveLength(0);
   });
 
+  it("says what it heard when the wake word is missing, instead of going silent", async () => {
+    const h = harness({ transcripts: ["can you pass me the salt"] });
+    await h.session.start();
+
+    h.push(QUIET, 30);
+    h.push(LOUD, 40);
+    h.push(QUIET, 45);
+    await settle();
+
+    const last = h.events.statuses.join(" | ");
+    expect(last).toContain("pass me the salt");
+    expect(h.events.statuses.at(-1)).not.toBe("thinking…");
+  });
+
+  it("never leaves the status stuck on thinking when nothing was understood", async () => {
+    const h = harness({ transcripts: [] });
+    await h.session.start();
+
+    h.push(QUIET, 30);
+    h.push(LOUD, 40);
+    h.push(QUIET, 45);
+    await settle();
+
+    expect(h.events.statuses).toContain("didn't catch that");
+    expect(h.events.statuses.at(-1)).not.toBe("thinking…");
+  });
+
   it("opens a listening window when only the wake word was said", async () => {
     const h = harness({ transcripts: ["Kairos", "what's the weather"] });
     await h.session.start();
@@ -119,6 +147,7 @@ describe("voice session", () => {
     const h = harness({ speaking: true });
     await h.session.start();
 
+    h.push(QUIET, 20);
     await new Promise((r) => setTimeout(r, 450));
     h.push(LOUD, 40);
     await settle();

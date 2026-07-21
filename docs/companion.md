@@ -252,7 +252,8 @@ Flow: `voice` toggles listening → mic 16kHz PCM → VAD finds speech edges →
 
 No fixed listening window. A 30-second timer either cuts you off or leaves you waiting. Instead:
 
-- **adaptive noise floor** — EMA of quiet frames; threshold is `max(floor × 3.2, absoluteFloor)`, so a loud room raises the bar instead of triggering constantly
+- **calibrated on startup** — she samples ~1.2s of your actual room before listening and sets the trigger to `ambientPeak × 1.8`. A fixed floor is not survivable: this laptop's mic idles at RMS 142 with peaks near 196, so the original hardcoded 180 sat *below* the room noise and fired on hiss. Calibration waits for real frames, not wall-clock time — ffmpeg needs ~1s to spin up, and a timed window measures nothing but silence
+- **adaptive noise floor** — EMA of quiet frames; threshold is `max(floor × 3.2, calibrated)`, so a room that gets louder mid-session raises the bar too
 - **debounced start** — 120ms of loud frames before it counts as speech, so clicks and keystrokes don't arm it
 - **700ms hangover** — trailing silence ends the turn; long enough to think mid-sentence, short enough to feel instant
 - **300ms pre-roll** — a ring buffer of the frames *before* the trigger, so the first phoneme is never clipped

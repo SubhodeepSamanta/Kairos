@@ -5,10 +5,61 @@ import { listInputDevices } from "./capture.js";
 const VOICE_COMMAND = /^\/?(?:voice|stt|tts|talk|listen)$/i;
 const VOICE_OFF = /^\/?(?:voice|stt|tts)\s+(?:off|stop)$/i;
 const VOICE_DEVICES = /^\/?(?:voice|mic)\s+devices$/i;
+const VOICE_TEST = /^\/?(?:voice|mic)\s+test$/i;
 
 export function isVoiceCommand(text) {
   const line = String(text || "").trim();
-  return VOICE_COMMAND.test(line) || VOICE_OFF.test(line) || VOICE_DEVICES.test(line);
+  return VOICE_COMMAND.test(line) || VOICE_OFF.test(line)
+    || VOICE_DEVICES.test(line) || VOICE_TEST.test(line);
+}
+
+const TEST_SECONDS = 5;
+
+async function runMicTest(line) {
+  const { startMicrophone } = await import("./capture.js");
+  const { frameEnergy } = await import("./vad.js");
+  const { createTranscriber } = await import("./stt.js");
+  const { vadConfig } = await import("./config.js");
+
+  const stt = createTranscriber();
+  line("  loading her ears…");
+  await stt.ready();
+
+  const frames = [];
+  let peak = 0;
+  let sum = 0;
+
+  line(`  say something for ${TEST_SECONDS} seconds — go`);
+  const mic = await startMicrophone({
+    onFrame: (f) => {
+      frames.push(f);
+      const e = frameEnergy(f);
+      sum += e;
+      if (e > peak) peak = e;
+    },
+    onError: (err) => line(`  mic: ${err.message}`)
+  });
+
+  await new Promise((r) => setTimeout(r, TEST_SECONDS * 1000));
+  mic.stop();
+
+  const mean = frames.length ? sum / frames.length : 0;
+  const total = frames.reduce((n, f) => n + f.length, 0);
+  const pcm = new Int16Array(total);
+  let at = 0;
+  for (const f of frames) { pcm.set(f, at); at += f.length; }
+
+  line(`  device: ${mic.device}`);
+  line(`  loudest: ${peak.toFixed(0)}   average: ${mean.toFixed(0)}   trigger level: ${vadConfig.absoluteFloor}`);
+
+  if (peak < vadConfig.absoluteFloor) {
+    line(`  your voice never crossed the trigger level — she cannot hear you.`);
+    line(`  raise the mic volume in Windows, or lower it with VOICE_ABS_FLOOR=${Math.max(20, Math.round(peak / 2))}`);
+    return;
+  }
+
+  const heard = await stt.transcribe(pcm);
+  line(heard ? `  she heard: "${heard.text}"` : "  she could not make out any words");
 }
 
 export function createVoiceController({ write, sendGoal, sessionFactory = createVoiceSession }) {
@@ -44,6 +95,11 @@ export function createVoiceController({ write, sendGoal, sessionFactory = create
         } catch (err) {
           line(`  voice: ${err.message}`);
         }
+        return true;
+      }
+
+      if (VOICE_TEST.test(text)) {
+        await runMicTest(line);
         return true;
       }
 

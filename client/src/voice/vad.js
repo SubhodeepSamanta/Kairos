@@ -29,6 +29,7 @@ export function createVad(overrides = {}) {
   const minFloor = Math.max(1, cfg.absoluteFloor / 4);
 
   let noiseFloor = cfg.absoluteFloor;
+  let seeded = false;
   let speaking = false;
   let loudRun = 0;
   let quietRun = 0;
@@ -37,9 +38,10 @@ export function createVad(overrides = {}) {
   let preRoll = [];
   let bargeIn = false;
   let lastLevel = 0;
+  let floor = cfg.absoluteFloor;
 
   const threshold = () =>
-    Math.max(noiseFloor * (bargeIn ? cfg.bargeInRatio : cfg.noiseRatio), cfg.absoluteFloor);
+    Math.max(noiseFloor * (bargeIn ? cfg.bargeInRatio : cfg.noiseRatio), floor);
 
   function endUtterance(reason) {
     const frames = collected;
@@ -66,6 +68,10 @@ export function createVad(overrides = {}) {
     push(frame) {
       const level = frameEnergy(frame);
       lastLevel = level;
+      if (!seeded) {
+        seeded = true;
+        noiseFloor = Math.max(minFloor, level);
+      }
       const loud = level > threshold();
 
       if (!speaking) {
@@ -120,6 +126,16 @@ export function createVad(overrides = {}) {
       bargeIn = Boolean(on);
       if (bargeIn) this.reset();
     },
+
+    calibrate(ambientPeak) {
+      if (!(ambientPeak > 0)) return floor;
+      floor = Math.max(cfg.absoluteFloor, Math.round(ambientPeak * cfg.calibrationHeadroom));
+      noiseFloor = Math.max(minFloor, ambientPeak);
+      seeded = true;
+      return floor;
+    },
+
+    floor: () => floor,
 
     isSpeaking: () => speaking,
     noiseFloor: () => noiseFloor,

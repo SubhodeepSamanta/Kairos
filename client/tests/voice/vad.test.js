@@ -110,3 +110,22 @@ describe("createVad", () => {
     expect(vad.flush()).toBeNull();
   });
 });
+
+describe("calibration", () => {
+  it("lifts the trigger above a noisy room", () => {
+    const vad = createVad();
+    const floor = vad.calibrate(196);
+    expect(floor).toBeGreaterThan(196);
+    expect(vad.threshold()).toBeGreaterThan(196);
+  });
+
+  it("keeps the configured minimum in a very quiet room", () => {
+    const vad = createVad({ absoluteFloor: 120 });
+    expect(vad.calibrate(10)).toBe(120);
+  });
+
+  it("ignores a nonsense measurement", () => {
+    const vad = createVad({ absoluteFloor: 120 });
+    expect(vad.calibrate(0)).toBe(120);
+  });
+});

@@ -35,7 +35,9 @@ export const voiceConfig = {
 export const vadConfig = {
   frameMs: FRAME_MS,
   noiseRatio: num("VOICE_NOISE_RATIO", 3.2),
-  absoluteFloor: num("VOICE_ABS_FLOOR", 180),
+  absoluteFloor: num("VOICE_ABS_FLOOR", 120),
+  calibrationHeadroom: num("VOICE_CALIBRATION_HEADROOM", 1.8),
+  calibrationMs: num("VOICE_CALIBRATION_MS", 1200),
   startMs: num("VOICE_START_MS", 120),
   hangoverMs: num("VOICE_HANGOVER_MS", 700),
   preRollMs: num("VOICE_PREROLL_MS", 300),
