@@ -14,3 +14,6 @@ screenshots/
 eng.traineddata
 data/
 cloud/benchmark/results.json
+
+# scratch files from debugging sessions
+*/.[a-z]*.mjs
