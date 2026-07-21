@@ -26,6 +26,9 @@ Still open: per-step detail in the streaming Telegram status ("typed 'lofi' into
 
 Recall: current keyword+recency filter is fine to ~300 facts. Only add embeddings if that breaks.
 
+### Proactivity — ✅ shipped 2026-07-22
+`/remind <when> <what>`, `/scheduled`, `/unschedule`. Durable timer submits a real goal through the normal loop and safety gate; result is pushed marked `(scheduled)`. Was listed under Phase 4 as unbuilt; the gap analysis in `what-is-missing.md` promoted it because it changes the felt experience more than almost anything else and is cheap. Full detail in `architecture.md` §"Doing things later".
+
 ### Phase 4 — Companion mode
 Full spec in **`companion.md`** — personas, episodic memory ("yesterday you did X"), mood tracking, support/therapist mode with a hard crisis gate, proactivity. Build **before** voice.
 

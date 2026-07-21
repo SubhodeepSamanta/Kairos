@@ -7,8 +7,9 @@ import { memoryPool } from "./src/memory/db.js";
 import { flushDbWrites, pendingDbWrites } from "./src/memory/syncQueue.js";
 import { sweepStaleTemps } from "./src/utils/jsonFile.js";
 import path from "path";
-import { startWebSocketServer } from "./src/websocket/server.js";
+import { startWebSocketServer, runScheduledGoal } from "./src/websocket/server.js";
 import { startTelegramBot } from "./src/connectors/telegram/telegram.js";
+import { startScheduler } from "./src/schedule/scheduler.js";
 
 if (!reportPreflight(cloudPreflight())) {
   process.exit(1);
@@ -22,6 +23,7 @@ await hydrateCompanionFromDb();
 await unifyIdentity();
 startWebSocketServer();
 startTelegramBot(env.TELEGRAM_BOT_TOKEN);
+startScheduler(runScheduledGoal);
 
 process.on("SIGINT", async () => {
   if (pendingDbWrites()) {

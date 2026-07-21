@@ -114,6 +114,12 @@ Profiles resolve by display name ("Kami"), account email, directory ("Profile 8"
 
 Clicks hover the element with a multi-step mouse move first; typing is per-character with 35–85ms jitter; scrolling is chunked wheel events; short randomized think-time between actions. Set `HUMANIZE=false` to disable.
 
+## Doing things later
+
+`/remind <when> <what>` schedules a goal — `/remind 20m stand up`, `/remind 8:30am check the news`, `/remind daily 9am what's on today`, `/remind tomorrow 9am gym`. `/scheduled` lists them with ids; `/unschedule <id>` calls one off. The parser is deliberately strict: if it cannot pin down both a time and a task it says so and gives examples, rather than guessing and silently doing the wrong thing at the wrong time.
+
+Entries persist to `cloud/data/schedule.json`, so they survive a restart. A tick every 20s fires anything due; a one-off runs once and is forgotten, a daily one rolls to the next day. A one-off more than six hours late is skipped — if the laptop was asleep past the moment, acting on it now is worse than not. When a scheduled goal fires it runs through the same agent loop and safety gate as a typed one, and the result is pushed to the connected console or Telegram marked `(scheduled)` so it reads as Kairos doing something, not as a reply. If nobody is connected when it fires, it is skipped rather than queued to ambush you later.
+
 ## Before something irreversible
 
 Kairos pauses and asks before it can **spend money, delete something, or send something to other people** — and before submitting a form containing a stored password. Anything short of a clear yes ("hmm", "not sure", silence) counts as no. Told no, the model is instructed not to retry or route around it.

@@ -45,7 +45,7 @@ function open() {
       everConnected = true;
       handlers.onReady?.();
     }
-    else if (message.type === "goal_result") handlers.onResult?.(message.result, message.success, message.spoken);
+    else if (message.type === "goal_result") handlers.onResult?.(message.result, message.success, message.spoken, message.scheduled);
     else if (message.type === "persona") handlers.onPersona?.(message.persona);
     else if (message.type === "goal_status") handlers.onStatus?.(message.status);
     else if (message.type === "suggestions") handlers.onSuggestions?.(message.suggestions);

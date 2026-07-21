@@ -72,7 +72,14 @@ connectToCloud(env.CLOUD_URL || "ws://localhost:3000", {
   onLink(note) {
     ui.write(`${C.dim}  ${note}${C.reset}`);
   },
-  onResult(result, success, spoken) {
+  onResult(result, success, spoken, scheduled) {
+    if (scheduled) {
+      const heard = voice.speak(spoken || result);
+      ui.write("");
+      say(`${C.dim}(scheduled)${C.reset} ${heard || result}`, !success);
+      ui.prompt();
+      return;
+    }
     router.finish();
     if (localFooter) {
       const footer = localFooter();

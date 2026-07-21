@@ -11,6 +11,7 @@ const ACTION_TIMEOUT_MS = 60000;
 const HUMAN_TIMEOUT_MS = 300000;
 
 let automationClient = null;
+const liveSockets = new Set();
 const pendingRequests = new Map();
 const pendingHumanInputs = new Map();
 
@@ -111,6 +112,30 @@ async function sendPersona(ws) {
   } catch {}
 }
 
+export function runScheduledGoal(entry) {
+  const connectors = [...(liveSockets)].filter(ws => ws.role === "connector" && ws.readyState === 1);
+  if (!connectors.length) {
+    log(`[SCHEDULE] "${entry.goal}" is due but nobody is listening — skipping`);
+    return Promise.resolve(false);
+  }
+  const target = connectors[0];
+  const goalId = crypto.randomUUID();
+  return new Promise((resolve) => {
+    submitGoal({
+      goal: entry.goal,
+      chatId: entry.chatId || IDENTITY,
+      executeAction: executeActionRemotely,
+      askHuman: askHumanVia(target, goalId),
+      voiceMode: Boolean(target.voiceMode),
+      onStatus: (status) => send(target, { type: "goal_status", status }),
+      onResult: (success, result) => {
+        for (const ws of connectors) send(ws, { type: "goal_result", success, result, scheduled: true });
+        resolve(success);
+      }
+    });
+  });
+}
+
 export function startWebSocketServer(port = Number(env.PORT) || 3000) {
   const wss = new WebSocketServer({ port });
 
@@ -126,8 +151,10 @@ export function startWebSocketServer(port = Number(env.PORT) || 3000) {
   wss.on("connection", (ws) => {
     ws.isAuthed = false;
     ws.role = null;
+    liveSockets.add(ws);
 
     ws.on("close", () => {
+      liveSockets.delete(ws);
       if (automationClient === ws) {
         automationClient = null;
         markClientConnected(false);

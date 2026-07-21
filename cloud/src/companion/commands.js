@@ -6,6 +6,8 @@ import { pendingDbWrites } from "../memory/syncQueue.js";
 import { llmStatus } from "../llm/provider.js";
 import { runtimeStatus, formatDuration } from "../runtime.js";
 import { lastTrace, formatTrace } from "../agent/trace.js";
+import { scheduleGoal, cancelScheduled, formatSchedule } from "../schedule/scheduler.js";
+import { parseWhen, describeWhen } from "../schedule/when.js";
 
 export const COMMANDS = [
   { name: "/personality", args: "[name]", help: "switch how Kairos talks to you" },
@@ -14,6 +16,9 @@ export const COMMANDS = [
   { name: "/recent", args: "", help: "what you did recently" },
   { name: "/about", args: "", help: "who Kairos thinks you are" },
   { name: "/forget", args: "<key|chat|moods|all>", help: "make Kairos forget something" },
+  { name: "/remind", args: "<when> <what>", help: "have Kairos do something later" },
+  { name: "/scheduled", args: "", help: "what Kairos is going to do" },
+  { name: "/unschedule", args: "<id>", help: "call one of those off" },
   { name: "/status", args: "", help: "is everything actually working" },
   { name: "/last", args: "", help: "step by step, what she just did" },
   { name: "/help", args: "", help: "show commands" }
@@ -141,6 +146,27 @@ export async function runCommand(chatId, text) {
       }
       lines.push(summary.text ? `\nwhat i've picked up:\n${summary.text}` : `\nstill getting to know you.`);
       return lines.join("\n");
+    }
+
+    case "/remind": {
+      if (!arg) return "remind you when? try: /remind 20m take a break · /remind 8:30am check the news · /remind daily 9am what's on today";
+      const parsed = parseWhen(arg);
+      if (!parsed) return `i couldn't work out when "${arg}" means. try: 20m · 2h · 8:30am · tomorrow 9am · daily 7pm — then what you want.`;
+      try {
+        const entry = scheduleGoal({ goal: parsed.goal, at: parsed.at, repeatMs: parsed.repeatMs, chatId });
+        return `okay — ${describeWhen(entry.at, entry.repeatMs)}: ${entry.goal}\n(${entry.id} · /unschedule ${entry.id} to call it off)`;
+      } catch (err) {
+        return err.message;
+      }
+    }
+
+    case "/scheduled":
+      return formatSchedule();
+
+    case "/unschedule": {
+      if (!arg) return `cancel which one?\n${formatSchedule()}`;
+      const removed = cancelScheduled(arg);
+      return removed ? `called off: ${removed.goal}` : `nothing scheduled with id "${arg}".`;
     }
 
     case "/status": {

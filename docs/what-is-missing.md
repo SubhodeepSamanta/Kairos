@@ -113,7 +113,7 @@ Phases, sequenced by leverage and dependency rather than by appeal.
 
 **E — Make it resilient.** Model-held plans and revision on repeated failure. *Done when benchmark tasks that fail today recover instead of thrashing.*
 
-**F — Make it feel like an assistant.** Scheduling and proactivity. *Done when it does something useful you did not ask for at that moment.*
+**F — Make it feel like an assistant.** Scheduling and proactivity. *Done when it does something useful you did not ask for at that moment.* ✅ shipped 2026-07-22 — `/remind`, `/scheduled`, `/unschedule`; durable timer, fires through the normal loop and gate, result pushed marked `(scheduled)`.
 
 **G — Then desktop automation.** It inherits the safety gate from B, the file layer from D and the eval harness from A. Building it first would mean building all three again, worse, under a bigger blast radius. Desktop actions are irreversible in ways browser actions are not, and the confirmation gate is not optional there.
 
