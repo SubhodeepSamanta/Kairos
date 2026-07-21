@@ -1,17 +1,32 @@
 import { createVoiceSession } from "./session.js";
 import { stripMarkup } from "./markup.js";
 import { listInputDevices } from "./capture.js";
-import { isStopPhrase } from "./stopwords.js";
+import { isStopPhrase, isRepeatPhrase } from "./stopwords.js";
 
 const VOICE_COMMAND = /^\/?(?:voice|stt|tts|talk|listen)$/i;
 const VOICE_OFF = /^\/?(?:voice|stt|tts)\s+(?:off|stop)$/i;
 const VOICE_DEVICES = /^\/?(?:voice|mic)\s+devices$/i;
 const VOICE_TEST = /^\/?(?:voice|mic)\s+test$/i;
+const VOICE_AGAIN = /^\/?(?:again|repeat)$/i;
+
+export const LOCAL_COMMANDS = [
+  ["voice", "listen and talk out loud"],
+  ["voice off", "stop listening"],
+  ["voice test", "check she can hear you"],
+  ["voice devices", "list microphones"],
+  ["again", "say the last reply again"],
+  ["/stop", "stop whatever she is doing"]
+];
+
+export function localCommandHelp() {
+  const width = Math.max(...LOCAL_COMMANDS.map(([name]) => name.length));
+  return LOCAL_COMMANDS.map(([name, help]) => `  ${name.padEnd(width)}  ${help}`).join("\n");
+}
 
 export function isVoiceCommand(text) {
   const line = String(text || "").trim();
   return VOICE_COMMAND.test(line) || VOICE_OFF.test(line)
-    || VOICE_DEVICES.test(line) || VOICE_TEST.test(line);
+    || VOICE_DEVICES.test(line) || VOICE_TEST.test(line) || VOICE_AGAIN.test(line);
 }
 
 const TEST_SECONDS = 5;
@@ -20,8 +35,6 @@ async function runMicTest(line) {
   const { startMicrophone } = await import("./capture.js");
   const { frameEnergy } = await import("./vad.js");
   const { createTranscriber } = await import("./stt.js");
-  const { vadConfig } = await import("./config.js");
-
   const { createVad } = await import("./vad.js");
   const stt = createTranscriber();
   line("  loading her ears…");
@@ -80,7 +93,9 @@ async function runMicTest(line) {
 export function createVoiceController({ write, sendGoal, onModeChange, onCancel, isBusy, sessionFactory = createVoiceSession }) {
   let session = null;
   let starting = false;
+  let testing = false;
   let persona = null;
+  let lastSpoken = null;
 
   const line = (text) => { if (text) write(text); };
 
@@ -90,6 +105,12 @@ export function createVoiceController({ write, sendGoal, onModeChange, onCancel,
       onError: (err) => line(`  voice: ${err.message}`),
       onListening: () => {},
       onTranscript: ({ text, tone }) => {
+        if (isRepeatPhrase(text)) {
+          line(`  you: ${text}`);
+          if (lastSpoken) session?.speak(lastSpoken).catch(() => {});
+          else line("  nothing to repeat yet");
+          return;
+        }
         if (isStopPhrase(text)) {
           session?.stopSpeaking();
           line(`  you: ${text}`);
@@ -123,8 +144,30 @@ export function createVoiceController({ write, sendGoal, onModeChange, onCancel,
         return true;
       }
 
+      if (VOICE_AGAIN.test(text)) {
+        if (!lastSpoken) line("  nothing to repeat yet");
+        else if (!session?.isRunning()) line(`  ${lastSpoken}`);
+        else session.speak(lastSpoken).catch(() => {});
+        return true;
+      }
+
       if (VOICE_TEST.test(text)) {
-        await runMicTest(line);
+        if (session?.isRunning()) {
+          line("  she is already listening — run \"voice off\" first, then \"voice test\"");
+          return true;
+        }
+        if (testing) {
+          line("  a mic test is already running");
+          return true;
+        }
+        testing = true;
+        try {
+          await runMicTest(line);
+        } catch (err) {
+          line(`  mic test failed: ${err.message}`);
+        } finally {
+          testing = false;
+        }
         return true;
       }
 
@@ -171,6 +214,7 @@ export function createVoiceController({ write, sendGoal, onModeChange, onCancel,
         if (starting) line("  (voice is still starting — not spoken)");
         return spoken;
       }
+      lastSpoken = text;
       session.speak(text).catch((err) => line(`  could not speak: ${err.message}`));
       return spoken;
     },
@@ -180,8 +224,10 @@ export function createVoiceController({ write, sendGoal, onModeChange, onCancel,
     },
 
     stop() {
+      const wasRunning = Boolean(session?.isRunning());
       session?.stop();
       session = null;
+      if (wasRunning) onModeChange?.(false);
     }
   };
 }

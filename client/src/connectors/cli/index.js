@@ -2,7 +2,7 @@ import { env } from "../../config/env.js";
 import { createInput } from "./input.js";
 import { colors as C } from "./menu.js";
 import { connectToCloud, sendGoal, sendHumanReply, requestSuggestions, sendVoiceMode, sendCancel } from "./transport.js";
-import { createVoiceController, isVoiceCommand } from "../../voice/cli.js";
+import { createVoiceController, isVoiceCommand, localCommandHelp } from "../../voice/cli.js";
 import { voiceConfig } from "../../voice/config.js";
 
 console.clear();
@@ -14,6 +14,8 @@ let waitingForAnswer = false;
 let goalInFlight = false;
 
 const STOP_TYPED = /^\/?(?:stop|cancel|abort)$/i;
+const HELP_TYPED = /^\/?help$/i;
+let askedForHelp = false;
 
 const voice = createVoiceController({
   write: (text) => ui.write(`${C.dim}${text}${C.reset}`),
@@ -43,6 +45,7 @@ const ui = createInput({
       ui.prompt();
       return;
     }
+    askedForHelp = HELP_TYPED.test(text.trim());
     goalInFlight = true;
     sendGoal(text);
   },
@@ -70,6 +73,15 @@ connectToCloud(env.CLOUD_URL || "ws://localhost:3000", {
   },
   onResult(result, success, spoken) {
     goalInFlight = false;
+    if (askedForHelp) {
+      askedForHelp = false;
+      say(result, !success);
+      ui.write(`${C.dim}
+on this computer:
+${localCommandHelp()}${C.reset}`);
+      ui.prompt();
+      return;
+    }
     const heard = voice.speak(spoken || result);
     say(heard || result, !success);
     ui.prompt();

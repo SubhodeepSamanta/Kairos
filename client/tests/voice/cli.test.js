@@ -199,3 +199,70 @@ describe("saying stop out loud", () => {
     expect(h.sent[0]).toBe("stop the music on spotify");
   });
 });
+
+describe("saying it again", () => {
+  function repeatHarness() {
+    const written = [];
+    let handlers = {};
+    let running = true;
+    const session = {
+      isRunning: () => running,
+      start: async () => { running = true; return true; },
+      stop: () => { running = false; },
+      speak: vi.fn(async () => true),
+      stopSpeaking: vi.fn(),
+      setPersona: () => {}
+    };
+    const ctrl = createVoiceController({
+      write: t => written.push(t),
+      sendGoal: () => {},
+      sessionFactory: (opts) => { handlers = opts; return session; }
+    });
+    return { ctrl, session, written, fire: () => handlers };
+  }
+
+  it("repeats the last reply when asked out loud", async () => {
+    const h = repeatHarness();
+    await h.ctrl.handle("voice");
+    h.ctrl.speak("the meeting is at four");
+    h.session.speak.mockClear();
+
+    h.fire().onTranscript({ text: "say that again", tone: null });
+
+    expect(h.session.speak).toHaveBeenCalledWith("the meeting is at four");
+  });
+
+  it("says so when there is nothing to repeat", async () => {
+    const h = repeatHarness();
+    await h.ctrl.handle("voice");
+    await h.ctrl.handle("again");
+    expect(h.written.join(" ")).toMatch(/nothing to repeat/);
+  });
+
+  it("repeats on the typed command too", async () => {
+    const h = repeatHarness();
+    await h.ctrl.handle("voice");
+    h.ctrl.speak("lofi is playing");
+    h.session.speak.mockClear();
+
+    await h.ctrl.handle("again");
+    expect(h.session.speak).toHaveBeenCalledWith("lofi is playing");
+  });
+});
+
+describe("mic test safety", () => {
+  it("refuses to open a second microphone while she is listening", async () => {
+    const written = [];
+    const ctrl = createVoiceController({
+      write: t => written.push(t),
+      sendGoal: () => {},
+      sessionFactory: () => ({
+        isRunning: () => true, start: async () => true, stop: () => {},
+        speak: async () => true, stopSpeaking: () => {}, setPersona: () => {}
+      })
+    });
+    await ctrl.handle("voice");
+    await ctrl.handle("voice test");
+    expect(written.join(" ")).toMatch(/already listening/);
+  });
+});
