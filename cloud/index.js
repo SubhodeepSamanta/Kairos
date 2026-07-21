@@ -2,6 +2,7 @@ import { env } from "./src/config/env.js";
 import { cloudPreflight, reportPreflight } from "./src/config/preflight.js";
 import { initMemory } from "./src/memory/store.js";
 import { hydrateCompanionFromDb } from "./src/companion/hydrate.js";
+import { unifyIdentity } from "./src/companion/store.js";
 import { memoryPool } from "./src/memory/db.js";
 import { flushDbWrites, pendingDbWrites } from "./src/memory/syncQueue.js";
 import { startWebSocketServer } from "./src/websocket/server.js";
@@ -13,6 +14,7 @@ if (!reportPreflight(cloudPreflight())) {
 
 await initMemory();
 await hydrateCompanionFromDb();
+await unifyIdentity();
 startWebSocketServer();
 startTelegramBot(env.TELEGRAM_BOT_TOKEN);
 

@@ -8,7 +8,7 @@ export function pendingGoals() {
   return queue.length + (running ? 1 : 0);
 }
 
-export function submitGoal({ goal, chatId = "default", executeAction, askHuman, onStatus, onResult }) {
+export function submitGoal({ goal, chatId = "default", executeAction, askHuman, onStatus, onResult, voiceMode = false }) {
   if (isCommand(goal)) {
     runCommand(chatId, goal)
       .then(reply => onResult(true, reply))
@@ -16,7 +16,7 @@ export function submitGoal({ goal, chatId = "default", executeAction, askHuman, 
     return;
   }
 
-  queue.push({ goal, chatId, executeAction, askHuman, onStatus, onResult });
+  queue.push({ goal, chatId, executeAction, askHuman, onStatus, onResult, voiceMode });
   const ahead = queue.length - 1 + (running ? 1 : 0);
   if (ahead > 0) {
     try { onStatus(`queued (${ahead} ahead)`); } catch {}
@@ -40,7 +40,8 @@ async function processQueue() {
       chatId: item.chatId,
       executeAction: item.executeAction,
       askHuman: item.askHuman,
-      onStatus: item.onStatus
+      onStatus: item.onStatus,
+      voiceMode: item.voiceMode
     });
     try { item.onResult(result.success, result.answer); } catch {}
   } catch (err) {

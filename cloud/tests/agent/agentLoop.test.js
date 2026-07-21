@@ -201,6 +201,43 @@ describe("runAgent", () => {
     expect(result.success).toBe(true);
   });
 
+  it("opens a site in the user's browser once and never a second time", async () => {
+    llmQueue.push({ thought: "", action: { type: "open_for_user", url: "https://www.youtube.com/results?search_query=lofi" } });
+    llmQueue.push({ thought: "", action: { type: "open_for_user", url: "https://www.youtube.com/results?search_query=lofi+music" } });
+    llmQueue.push({ thought: "", action: { type: "open_for_user", url: "https://youtube.com/results?search_query=lofi+beats" } });
+    llmQueue.push((system, user) => {
+      expect(user).toContain("piles up tabs");
+      return { thought: "", action: { type: "done", success: true, answer: "opened" } };
+    });
+    const { executeAction, calls } = makeExecutor();
+    const result = await runAgent({ goal: "search youtube for lofi music", goalId: "g15", executeAction, askHuman: vi.fn() });
+    expect(result.success).toBe(true);
+    expect(calls.filter(c => c.type === "open_for_user")).toHaveLength(1);
+  });
+
+  it("aborts instead of opening tabs forever", async () => {
+    for (let i = 0; i < 12; i++) {
+      llmQueue.push({ thought: "", action: { type: "open_for_user", url: `https://youtube.com/watch?v=${i}` } });
+    }
+    const { executeAction, calls } = makeExecutor();
+    const result = await runAgent({ goal: "play lofi music", goalId: "g16", executeAction, askHuman: vi.fn() });
+    expect(result.success).toBe(false);
+    expect(result.answer).toContain("stopped myself");
+    expect(calls.filter(c => c.type === "open_for_user")).toHaveLength(1);
+  });
+
+  it("caps blank tab spam", async () => {
+    for (let i = 0; i < 3; i++) llmQueue.push({ thought: "", action: { type: "new_tab" } });
+    llmQueue.push((system, user) => {
+      expect(user).toContain("No more tabs");
+      return { thought: "", action: { type: "done", success: true, answer: "ok" } };
+    });
+    const { executeAction, calls } = makeExecutor();
+    const result = await runAgent({ goal: "open a few tabs", goalId: "g17", executeAction, askHuman: vi.fn() });
+    expect(result.success).toBe(true);
+    expect(calls.filter(c => c.type === "new_tab")).toHaveLength(2);
+  });
+
   it("trims detail from old history entries but keeps recent ones verbatim", async () => {
     vi.mocked(fetchPageText).mockResolvedValue("A".repeat(1000));
     for (let i = 0; i < 8; i++) {

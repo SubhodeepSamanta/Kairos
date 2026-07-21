@@ -1,5 +1,5 @@
 import { askLLMJson, createBudget } from "../../llm/provider.js";
-import { SYSTEM_PROMPT, buildStepPrompt } from "../prompt.js";
+import { SYSTEM_PROMPT, VOICE_RULES, buildStepPrompt } from "../prompt.js";
 import { formatSnapshot, describePageChange } from "../snapshot.js";
 import { rememberFact, relevantFacts, formatFactsForPrompt } from "../../memory/store.js";
 import { webSearch, formatSearchResults, fetchPageText } from "../webTools.js";
@@ -16,6 +16,9 @@ const FULL_HISTORY_TAIL = 6;
 const OLD_HISTORY_CHARS = 300;
 const MAX_REPEATS_BEFORE_WARNING = 2;
 const MAX_REPEATS_BEFORE_ABORT = 4;
+const MAX_OPENS_PER_HOST = 1;
+const MAX_FRESH_TABS = 2;
+const MAX_BLOCKED_BEFORE_ABORT = 4;
 const LLM_RETRY_WAITS_MS = [8000, 20000, 45000, 0];
 
 const BROWSER_ACTIONS = {
@@ -56,6 +59,14 @@ function actionSignature(action) {
   return JSON.stringify(action);
 }
 
+function hostOf(url) {
+  try {
+    return new URL(String(url)).host.replace(/^www\./, "");
+  } catch {
+    return null;
+  }
+}
+
 function normalizeAction(action) {
   if (!action || typeof action !== "object") return action;
   const { params, ...rest } = action;
@@ -81,11 +92,14 @@ function trimHistory(history) {
   );
 }
 
-export async function runAgent({ goal, goalId, chatId = "default", executeAction, askHuman, onStatus }) {
+export async function runAgent({ goal, goalId, chatId = "default", executeAction, askHuman, onStatus, voiceMode = false }) {
   const budget = createBudget(MAX_LLM_CALLS);
   const history = [];
   const repeatCounts = {};
   const succeededResults = {};
+  const openedHosts = new Map();
+  let freshTabs = 0;
+  let blockedSteps = 0;
   let lastPage = null;
   let notice = "";
   let step = 0;
@@ -106,7 +120,7 @@ export async function runAgent({ goal, goalId, chatId = "default", executeAction
 
   const companion = await buildCompanionContext(chatId);
   await addTurn(chatId, "user", goal);
-  const systemPrompt = `${personaBlock(companion.prefs.persona)}\n\n${SYSTEM_PROMPT}`;
+  const systemPrompt = `${personaBlock(companion.prefs.persona)}\n\n${SYSTEM_PROMPT}${voiceMode ? `\n\n${VOICE_RULES}` : ""}`;
 
   if (shouldStayQuiet(goal)) {
     notice = "They are telling you how they feel, not asking for a task. Do NOT touch the browser. Reply as yourself with done — react to what they said, in character. Ask what they need only if it fits.";
@@ -189,10 +203,48 @@ export async function runAgent({ goal, goalId, chatId = "default", executeAction
 
     const sig = actionSignature(action);
 
+    const blockStep = (why, logLine) => {
+      blockedSteps++;
+      console.log(`[STEP ${step}] ${logLine}`);
+      if (blockedSteps >= MAX_BLOCKED_BEFORE_ABORT) {
+        return finish(false, `I kept trying to redo things I had already done (${describeAction(action)}) and stopped myself before making a mess. Progress: ${history.slice(-3).join("; ") || "none"}`);
+      }
+      notice = why;
+      return null;
+    };
+
     if (succeededResults[sig] && action.type !== "read") {
-      notice = `You ALREADY ran "${describeAction(action)}" at step ${succeededResults[sig].step} and it succeeded — its result is in HISTORY and has not changed. Do not run it again. Use that result now: either answer with done, or take the NEXT step toward the goal.`;
-      console.log(`[STEP ${step}] blocked repeat of already-successful ${action.type}`);
+      const aborted = blockStep(
+        `You ALREADY ran "${describeAction(action)}" at step ${succeededResults[sig].step} and it succeeded — its result is in HISTORY and has not changed. Do not run it again. Use that result now: either answer with done, or take the NEXT step toward the goal.`,
+        `blocked repeat of already-successful ${action.type}`
+      );
+      if (aborted) return aborted;
       continue;
+    }
+
+    if (action.type === "open_for_user") {
+      const host = hostOf(action.url);
+      const opened = host ? openedHosts.get(host) : null;
+      if (opened && opened.count >= MAX_OPENS_PER_HOST) {
+        const aborted = blockStep(
+          `You ALREADY opened ${host} in their browser (last at step ${opened.step}) — opening it again only piles up tabs. If the goal was to open/show something there, it is DONE: reply done now with what you opened. Otherwise take a genuinely different step.`,
+          `blocked open_for_user — ${host} already opened ${opened.count}x`
+        );
+        if (aborted) return aborted;
+        continue;
+      }
+    }
+
+    if (action.type === "new_tab" || action.type === "new_window") {
+      if (freshTabs >= MAX_FRESH_TABS) {
+        const aborted = blockStep(
+          `You already opened ${freshTabs} fresh tabs this goal. No more tabs — work in the tab you have (navigate there directly), or reply done.`,
+          `blocked ${action.type} — ${freshTabs} fresh tabs already`
+        );
+        if (aborted) return aborted;
+        continue;
+      }
+      freshTabs++;
     }
 
     repeatCounts[sig] = (repeatCounts[sig] || 0) + 1;
@@ -288,6 +340,13 @@ export async function runAgent({ goal, goalId, chatId = "default", executeAction
       history.push(`#${step} ${describeAction(action)} → FAILED: ${String(observation.reason || "unknown").slice(0, 200)}`);
     } else {
       if (IDEMPOTENT_INFO.has(action.type)) succeededResults[sig] = { step };
+      if (action.type === "open_for_user") {
+        const host = hostOf(action.url);
+        if (host) {
+          const opened = openedHosts.get(host) || { count: 0, step };
+          openedHosts.set(host, { count: opened.count + 1, step });
+        }
+      }
       const summarize = DATA_SUMMARY[action.type];
       const extra = summarize && observation?.data ? summarize(observation.data) : "";
       const change = action.type === "list_browsers" ? "" : `; ${describePageChange(previousPage, lastPage)}`;

@@ -13,3 +13,4 @@ sessions/
 screenshots/
 eng.traineddata
 data/
+cloud/benchmark/results.json

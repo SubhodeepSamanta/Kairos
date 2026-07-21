@@ -113,3 +113,38 @@ describe("voice controller", () => {
     expect(session.setPersona).toHaveBeenCalledWith({ voice: "am_michael" });
   });
 });
+
+describe("persona voices", () => {
+  it("remembers a persona that arrives before voice has started", async () => {
+    const { ctrl, session } = controller();
+
+    ctrl.setPersona({ engine: "kokoro", voice: "am_michael", rate: 0.98, pitch: 0.95 });
+    await ctrl.handle("voice");
+
+    expect(session.setPersona).toHaveBeenCalledWith(
+      expect.objectContaining({ voice: "am_michael" })
+    );
+  });
+
+  it("tells the cloud when voice turns on and off", async () => {
+    const modes = [];
+    const session = {
+      isRunning: () => running,
+      start: async () => { running = true; return true; },
+      stop: () => { running = false; },
+      speak: async () => true, stopSpeaking: () => {}, setPersona: () => {}
+    };
+    let running = false;
+    const { createVoiceController } = await import("../../src/voice/cli.js");
+    const ctrl = createVoiceController({
+      write: () => {}, sendGoal: () => {},
+      onModeChange: (on) => modes.push(on),
+      sessionFactory: () => session
+    });
+
+    await ctrl.handle("voice");
+    await ctrl.handle("voice");
+
+    expect(modes).toEqual([true, false]);
+  });
+});

@@ -5,7 +5,7 @@ import os from "os";
 import {
   addTurn, loadTurns, addEvent, loadEvents, addMood, loadMoods,
   getPrefs, setPrefs, forgetChat, resetCompanionCacheForTests,
-  countTurns, loadTurnsBefore, setSummary
+  countTurns, loadTurnsBefore, setSummary, unifyIdentity, IDENTITY
 } from "../../src/companion/store.js";
 import { formatConversation, formatEvents, formatMood } from "../../src/companion/context.js";
 
@@ -158,6 +158,43 @@ describe("forgetting", () => {
     expect(await loadTurns("a")).toHaveLength(0);
     expect(await loadEvents("a")).toHaveLength(0);
     expect(await loadMoods("a")).toHaveLength(0);
+  });
+});
+
+describe("unifyIdentity", () => {
+  it("merges every surface's history into the one shared identity", async () => {
+    await addTurn("cli", "user", "from the terminal");
+    await addTurn("1308424481", "user", "from telegram");
+    await addTurn("1308424481", "assistant", "hey!");
+    await addEvent("cli", "opened youtube", true, 2);
+    await addMood("1308424481", "tired", 0.8, "late night");
+    await setPrefs("1308424481", { persona: "sassy" });
+
+    await unifyIdentity();
+
+    expect((await loadTurns(IDENTITY)).map(t => t.text)).toEqual(["from the terminal", "from telegram", "hey!"]);
+    expect(await loadEvents(IDENTITY)).toHaveLength(1);
+    expect(await loadMoods(IDENTITY)).toHaveLength(1);
+    expect((await getPrefs(IDENTITY)).persona).toBe("sassy");
+    expect(await loadTurns("cli")).toHaveLength(0);
+    expect(await loadTurns("1308424481")).toHaveLength(0);
+  });
+
+  it("keeps the prefs of the surface with the most history", async () => {
+    await addTurn("cli", "user", "one message");
+    for (let i = 0; i < 5; i++) await addTurn("tg", "user", `msg ${i}`);
+    await setPrefs("cli", { persona: "nova" });
+    await setPrefs("tg", { persona: "mentor" });
+
+    await unifyIdentity();
+
+    expect((await getPrefs(IDENTITY)).persona).toBe("mentor");
+  });
+
+  it("leaves an already-unified store untouched", async () => {
+    await addTurn(IDENTITY, "user", "hello");
+    await unifyIdentity();
+    expect((await loadTurns(IDENTITY)).map(t => t.text)).toEqual(["hello"]);
   });
 });
 

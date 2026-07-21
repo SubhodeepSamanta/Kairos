@@ -1,7 +1,7 @@
 import { askLLM } from "../llm/provider.js";
 import { loadEvents, getDigest, setDigest } from "./store.js";
 
-const SYSTEM = `Compress one day of an assistant's activity log into ONE line under 25 words, the way a friend would recall the day ("opened 3 LeetCode problems (2 solved), played lofi twice"). Keep counts and outcomes. No preamble.`;
+const SYSTEM = `Compress one day of an assistant's activity log into ONE line under 25 words, the way a friend would recall the day ("opened 3 practice problems (2 solved), queued music twice"). Keep counts and outcomes. No preamble.`;
 
 const MAX_DIGEST_CHARS = 200;
 const MIN_EVENTS_FOR_LLM = 3;

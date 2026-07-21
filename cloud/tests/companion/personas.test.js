@@ -46,6 +46,33 @@ describe("personas", () => {
     expect(list.length).toBe(Object.keys(PERSONAS).length);
     expect(list[0]).toHaveProperty("blurb");
   });
+
+  it("gives every character a human name with their type beside it", () => {
+    for (const p of Object.values(PERSONAS)) {
+      expect(p.name, p.id).toBeTruthy();
+      expect(p.type, p.id).toBeTruthy();
+    }
+    for (const p of listPersonas()) {
+      expect(p.label).toBe(`${p.name} (${p.type})`);
+    }
+  });
+
+  it("resolves personas by name as well as id", () => {
+    expect(getPersona("zara").id).toBe("sassy");
+    expect(getPersona("Marcus").id).toBe("mentor");
+    expect(getPersona("willow").id).toBe("calm");
+  });
+
+  it("keeps sample lines free of specific interests so they never leak into replies", () => {
+    for (const p of Object.values(PERSONAS)) {
+      const samples = p.samples.join(" ").toLowerCase();
+      expect(samples, p.id).not.toMatch(/lofi|leetcode|youtube|spotify/);
+    }
+  });
+
+  it("tells the model samples are cadence only", () => {
+    expect(personaBlock("aria")).toContain("never reuse these exact words");
+  });
 });
 
 describe("commandSuggestions", () => {

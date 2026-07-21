@@ -22,6 +22,7 @@ export async function connectMemoryDb() {
   pool.on("error", (err) => {
     console.log(`[MEMORY] Idle database connection dropped (${err.message.slice(0, 60)}) — will reconnect on next write`);
   });
+  await pool.query(`DROP TABLE IF EXISTS memories`);
   await pool.query(`
     CREATE TABLE IF NOT EXISTS kairos_facts (
       memory_key TEXT PRIMARY KEY,

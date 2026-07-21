@@ -62,9 +62,10 @@ async function runMicTest(line) {
   line(heard ? `  she heard: "${heard.text}"` : "  she could not make out any words");
 }
 
-export function createVoiceController({ write, sendGoal, sessionFactory = createVoiceSession }) {
+export function createVoiceController({ write, sendGoal, onModeChange, sessionFactory = createVoiceSession }) {
   let session = null;
   let starting = false;
+  let persona = null;
 
   const line = (text) => { if (text) write(text); };
 
@@ -105,7 +106,7 @@ export function createVoiceController({ write, sendGoal, sessionFactory = create
 
       if (VOICE_OFF.test(text)) {
         if (!session?.isRunning()) line("  voice is already off");
-        else session.stop();
+        else { session.stop(); onModeChange?.(false); }
         return true;
       }
 
@@ -113,6 +114,7 @@ export function createVoiceController({ write, sendGoal, sessionFactory = create
 
       if (session?.isRunning()) {
         session.stop();
+        onModeChange?.(false);
         return true;
       }
       if (starting) {
@@ -123,7 +125,9 @@ export function createVoiceController({ write, sendGoal, sessionFactory = create
       starting = true;
       try {
         session = session || build();
-        await session.start();
+        if (persona) session.setPersona(persona);
+        const ok = await session.start();
+        onModeChange?.(Boolean(ok));
       } finally {
         starting = false;
       }
@@ -131,6 +135,8 @@ export function createVoiceController({ write, sendGoal, sessionFactory = create
     },
 
     setPersona(voice) {
+      if (!voice) return;
+      persona = voice;
       session?.setPersona(voice);
     },
 

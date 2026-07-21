@@ -170,6 +170,12 @@ export function startWebSocketServer(port = Number(env.PORT) || 3000) {
         return;
       }
 
+      if (data.type === "voice_mode" && ws.role === "connector") {
+        ws.voiceMode = Boolean(data.on);
+        log(`Voice mode ${ws.voiceMode ? "on" : "off"} for ${ws.connectorName}`);
+        return;
+      }
+
       if (data.type === "suggest" && ws.role === "connector") {
         send(ws, { type: "suggestions", suggestions: commandSuggestions(data.text || "") });
         return;
@@ -183,6 +189,7 @@ export function startWebSocketServer(port = Number(env.PORT) || 3000) {
           chatId: IDENTITY,
           executeAction: executeActionRemotely,
           askHuman: askHumanVia(ws, goalId),
+          voiceMode: Boolean(ws.voiceMode),
           onStatus: (status) => send(ws, { type: "goal_status", status }),
           onResult: (success, result) => {
             send(ws, { type: "goal_result", success, result });

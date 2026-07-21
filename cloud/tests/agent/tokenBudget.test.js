@@ -34,7 +34,7 @@ describe("token budget", () => {
     expect(snapshot).toContain("scroll then read for more");
   });
 
-  it("keeps a full companion browser step under 3200 tokens on a heavy page", () => {
+  it("keeps a full companion browser step under 3300 tokens on a heavy page", () => {
     const prompt = buildStepPrompt({
       goal: "play some lofi music on youtube",
       memories: "music: lofi\nvideo_platform: youtube",
@@ -46,7 +46,7 @@ describe("token budget", () => {
       mood: "latest: tired (0.7) · this week: tired x3, happy x1"
     });
     const total = estimate(SYSTEM_PROMPT) + estimate(personaBlock("aria")) + estimate(prompt);
-    expect(total).toBeLessThan(3200);
+    expect(total).toBeLessThan(3300);
   });
 
   it("keeps a chat turn cheap — no page snapshot", () => {

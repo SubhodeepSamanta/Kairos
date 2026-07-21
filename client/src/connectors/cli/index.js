@@ -1,7 +1,7 @@
 import { env } from "../../config/env.js";
 import { createInput } from "./input.js";
 import { colors as C } from "./menu.js";
-import { connectToCloud, sendGoal, sendHumanReply, requestSuggestions } from "./transport.js";
+import { connectToCloud, sendGoal, sendHumanReply, requestSuggestions, sendVoiceMode } from "./transport.js";
 import { createVoiceController, isVoiceCommand } from "../../voice/cli.js";
 import { voiceConfig } from "../../voice/config.js";
 
@@ -14,7 +14,8 @@ let waitingForAnswer = false;
 
 const voice = createVoiceController({
   write: (text) => ui.write(`${C.dim}${text}${C.reset}`),
-  sendGoal: (text) => sendGoal(text)
+  sendGoal: (text) => sendGoal(text),
+  onModeChange: (on) => sendVoiceMode(on)
 });
 
 const ui = createInput({
@@ -46,7 +47,14 @@ function say(text, isError = false) {
 connectToCloud(env.CLOUD_URL || "ws://localhost:3000", {
   onReady() {
     ui.prompt();
+    if (voice.isActive()) {
+      sendVoiceMode(true);
+      return;
+    }
     if (voiceConfig.enabled) voice.handle("voice").finally(() => ui.prompt());
+  },
+  onLink(note) {
+    ui.write(`${C.dim}  ${note}${C.reset}`);
   },
   onResult(result, success, spoken) {
     const heard = voice.speak(spoken || result);
