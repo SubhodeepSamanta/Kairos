@@ -224,12 +224,14 @@ whisper.cpp was the original plan; it needs a compiler this laptop doesn't have.
 
 | model | WER | speed | RAM | on silence | on noise |
 |---|---|---|---|---|---|
-| **moonshine-tiny** | **7.1%** | **164ms** | **413MB** | `""` | `""` |
-| moonshine-base | 6.1% | 249ms | 604MB | `""` | `""` |
+| moonshine-tiny | 7.1% | 164ms | 413MB | `""` | `""` |
+| **moonshine-base** | **6.1%** | **249ms** | **604MB** | `""` | `""` |
 | whisper-tiny.en | 9.5% | 625ms | 764MB | `"you"` | `"you"` |
 | whisper-base.en | 7.2% | 889ms | 971MB | `"you"` | `"Shh."` |
 
-Moonshine-tiny beats whisper-base on accuracy at 5× the speed and half the RAM. The deciding column is the last two: **Whisper hallucinates words on silence and noise, Moonshine emits nothing.** Every stray cough through Whisper would inject `"you"` into the conversation. `VOICE_STT_MODEL` swaps to moonshine-base for a little more accuracy.
+Moonshine beats whisper-base on accuracy at 3-5x the speed and less RAM. **base** is the default: tiny was tried first, but the wake word decided it. On five synthesized voices saying "Kairos, open my inbox", tiny caught the wake word 3/5 and base 4/5 — tiny returned *Kai rolls*, and in real use *Titos*, *Carlos*, *Thai rolls*. 85ms is worth paying to be recognized when you call her.
+
+The last two columns still matter: on *synthetic* silence both Moonshine models emit nothing where Whisper invents `"you"` and `"Shh."`. But that result did not survive contact with a real room — on live microphone audio Moonshine cheerfully produced *"Good morning, Guy Raz"* out of fan noise. **No speech model can be trusted to stay quiet on non-speech; the audio has to be gated before it reaches the model.** See the noise gates below.
 
 > **Quantization is a trap here.** `q8` is 5–10× *slower* than `fp32` on this Ryzen — no VNNI, so it dequantizes in software. Benchmark before assuming smaller is faster. TTS uses `fp16`; STT uses `fp32`.
 

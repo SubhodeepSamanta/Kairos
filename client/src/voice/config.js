@@ -17,7 +17,7 @@ export const BYTES_PER_SAMPLE = 2;
 export const voiceConfig = {
   enabled: flag("VOICE", false),
   wakeWords: String(process.env.VOICE_WAKE_WORDS
-    || "kairos,kyros,cairos,khairos,kyrios,carlos,virus,chiros,kairo,cairo,keiros,kyra,tyrus,pyros,gyros,kairos,charos,karos")
+    || "kairos,kyros,cairos,khairos,kyrios,carlos,virus,chiros,kairo,cairo,keiros,kyra,tyrus,pyros,gyros,charos,karos,titos,kairolls,thairolls,kairose,kyrus,khyros,tairos")
     .split(",")
     .map(w => w.trim().toLowerCase())
     .filter(Boolean),
@@ -26,7 +26,7 @@ export const voiceConfig = {
   device: process.env.VOICE_INPUT_DEVICE || null,
   speak: flag("VOICE_SPEAK", true),
   ttsEngine: process.env.VOICE_TTS_ENGINE || "auto",
-  sttModel: process.env.VOICE_STT_MODEL || "onnx-community/moonshine-tiny-ONNX",
+  sttModel: process.env.VOICE_STT_MODEL || "onnx-community/moonshine-base-ONNX",
   sttQuantization: process.env.VOICE_STT_DTYPE || "fp32",
   ttsModel: process.env.VOICE_TTS_MODEL || "onnx-community/Kokoro-82M-v1.0-ONNX",
   ttsQuantization: process.env.VOICE_TTS_DTYPE || "fp16",
@@ -40,11 +40,12 @@ export const vadConfig = {
   calibrationHeadroom: num("VOICE_CALIBRATION_HEADROOM", 1.8),
   maxFloor: num("VOICE_MAX_FLOOR", 600),
   minVoicedRatio: num("VOICE_MIN_VOICED", 0.30),
+  speechSnr: num("VOICE_SPEECH_SNR", 1.2),
   calibrationMs: num("VOICE_CALIBRATION_MS", 1200),
   startMs: num("VOICE_START_MS", 120),
   hangoverMs: num("VOICE_HANGOVER_MS", 700),
   preRollMs: num("VOICE_PREROLL_MS", 300),
-  minSpeechMs: num("VOICE_MIN_SPEECH_MS", 280),
+  minSpeechMs: num("VOICE_MIN_SPEECH_MS", 400),
   maxUtteranceMs: num("VOICE_MAX_UTTERANCE_MS", 20000),
   bargeInRatio: num("VOICE_BARGE_RATIO", 6),
   bargeInMs: num("VOICE_BARGE_MS", 320),

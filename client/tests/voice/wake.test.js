@@ -172,3 +172,24 @@ describe("transcript filtering", () => {
     expect(out[2]).toBe(-1);
   });
 });
+
+describe("mishearings seen in the wild", () => {
+  it("catches the ways the speech model mangles her name", () => {
+    const heard = [
+      "Titos, open my inbox",
+      "Kai rolls, open my inbox",
+      "Thai rolls, open my inbox",
+      "Cairo's open my inbox",
+      "Kai rose, open my inbox"
+    ];
+    for (const line of heard) {
+      expect(detectWake(line).matched, line).toBe(true);
+    }
+  });
+
+  it("still does not wake on unrelated speech", () => {
+    for (const line of ["the potatoes are done", "roll the dice", "close the door", "my car broke down"]) {
+      expect(detectWake(line).matched, line).toBe(false);
+    }
+  });
+});

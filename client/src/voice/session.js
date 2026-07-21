@@ -63,6 +63,11 @@ export function createVoiceSession({
         return;
       }
 
+      if (frameEnergy(pcm) < vad.floor() * vadConfig.speechSnr) {
+        idle();
+        return;
+      }
+
       const heard = await stt.transcribe(pcm);
       if (!heard) {
         status("didn't catch that");
