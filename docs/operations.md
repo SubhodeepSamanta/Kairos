@@ -49,11 +49,16 @@ Browser tests use a **simulated page** (fake locators/ARIA tree) — no real Chr
 ## Benchmark
 
 ```bash
-cd cloud && node benchmark/run.js        # all 10 tasks
-cd cloud && node benchmark/run.js 8 9 10 # specific tasks
+cd cloud && npm run bench          # all 10 tasks, you adjudicate each
+cd cloud && npm run bench -- 8     # one task
+cd cloud && npm run bench:auto     # unattended, exits 1 below the gate
 ```
 
-Runs your real goals end to end and asks you to confirm each. Gate: **≥8/10**.
+Runs your real goals end to end. Gate: **≥8/10**.
+
+`bench:auto` needs no human: it takes the agent's own success flag as the verdict and auto-answers any `ask_human` from the optional `reply` field on the task. That verdict is weaker than yours — an agent can believe it succeeded when it did not — so treat auto as the regression tripwire and the attended run as the real score. Both print the delta against the previous run.
+
+The attended-only version is why this suite went unrun from 2026-07-18 through the whole voice effort. A harness that needs a person present runs approximately never; see `what-is-missing.md`.
 
 For a quick unattended smoke test (no confirmations — checks goals complete, not quality):
 

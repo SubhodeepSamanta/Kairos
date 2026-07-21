@@ -6,6 +6,8 @@
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
+    "bench": "node benchmark/run.js",
+    "bench:auto": "node benchmark/run.js --auto",
     "start": "node --watch index.js"
   },
   "keywords": [],

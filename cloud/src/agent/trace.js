@@ -1,9 +1,28 @@
-const MAX_STEPS_KEPT = 40;
+import path from "path";
+import { fileURLToPath } from "url";
+import { readJson, writeJsonAtomic } from "../utils/jsonFile.js";
 
-let last = null;
+const MAX_STEPS_KEPT = 40;
+const MAX_TRACES_KEPT = 50;
+
+const TRACE_FILE = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "..", "..", "data", "traces.json"
+);
+
+const persisting = process.env.NODE_ENV !== "test";
+
+let history = null;
+
+function load() {
+  if (history) return history;
+  history = persisting ? (readJson(TRACE_FILE, []) || []) : [];
+  if (!Array.isArray(history)) history = [];
+  return history;
+}
 
 export function recordTrace(trace) {
-  last = {
+  const entry = {
     goal: String(trace.goal || "").slice(0, 200),
     success: Boolean(trace.success),
     cancelled: Boolean(trace.cancelled),
@@ -14,15 +33,28 @@ export function recordTrace(trace) {
     tokens: Number(trace.tokens) || 0,
     at: Date.now()
   };
-  return last;
+
+  const all = load();
+  all.push(entry);
+  if (all.length > MAX_TRACES_KEPT) all.splice(0, all.length - MAX_TRACES_KEPT);
+
+  if (persisting) {
+    try { writeJsonAtomic(TRACE_FILE, all); } catch {}
+  }
+  return entry;
 }
 
 export function lastTrace() {
-  return last;
+  const all = load();
+  return all.length ? all[all.length - 1] : null;
+}
+
+export function recentTraces(limit = 10) {
+  return load().slice(-limit).reverse();
 }
 
 export function clearTrace() {
-  last = null;
+  history = [];
 }
 
 export function formatTrace(trace) {

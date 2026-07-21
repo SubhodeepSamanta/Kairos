@@ -94,3 +94,32 @@ describe("formatDuration", () => {
     expect(formatDuration(86400000 * 2 + 3600000 * 5)).toBe("2d 5h");
   });
 });
+
+describe("keeping a history of traces", () => {
+  it("hands back the most recent goals, newest first", async () => {
+    const { recentTraces } = await import("../../src/agent/trace.js");
+    clearTrace();
+    recordTrace({ goal: "first", success: true, steps: [], seconds: "1", llmCalls: 1 });
+    recordTrace({ goal: "second", success: true, steps: [], seconds: "1", llmCalls: 1 });
+    recordTrace({ goal: "third", success: true, steps: [], seconds: "1", llmCalls: 1 });
+
+    expect(recentTraces(2).map(t => t.goal)).toEqual(["third", "second"]);
+  });
+
+  it("stops the history growing without bound", async () => {
+    const { recentTraces } = await import("../../src/agent/trace.js");
+    clearTrace();
+    for (let i = 0; i < 70; i++) {
+      recordTrace({ goal: `goal ${i}`, success: true, steps: [], seconds: "1", llmCalls: 1 });
+    }
+    expect(recentTraces(100)).toHaveLength(50);
+    expect(recentTraces(1)[0].goal).toBe("goal 69");
+  });
+
+  it("keeps only the tail of a very long run", () => {
+    const steps = Array.from({ length: 60 }, (_, i) => `#${i + 1} click -> ok`);
+    const trace = recordTrace({ goal: "long one", success: true, steps, seconds: "9", llmCalls: 30 });
+    expect(trace.steps).toHaveLength(40);
+    expect(trace.steps[0]).toContain("#21");
+  });
+});

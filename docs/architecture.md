@@ -63,6 +63,8 @@ The old system did the opposite (heuristics decided, LLM rubber-stamped) and fai
 | `cloud/src/agent/snapshot.js` | page → compact text the model reads |
 | `cloud/src/agent/webTools.js` | DuckDuckGo → Bing fallback search, page fetch |
 | `cloud/src/agent/goalManager.js` | serial goal queue |
+| `cloud/src/agent/trace.js` | step-by-step record of recent goals, on disk |
+| `cloud/src/runtime.js` | uptime, running commit, what is connected |
 | `cloud/src/llm/provider.js` | fallback chain + rate pacing |
 | `cloud/src/memory/{store,db}.js` | facts, Postgres with JSON fallback |
 | `cloud/src/websocket/server.js` | protocol v2 |
@@ -111,6 +113,12 @@ Profiles resolve by display name ("Kami"), account email, directory ("Profile 8"
 ## Human behaviour
 
 Clicks hover the element with a multi-step mouse move first; typing is per-character with 35–85ms jitter; scrolling is chunked wheel events; short randomized think-time between actions. Set `HUMANIZE=false` to disable.
+
+## Seeing what happened
+
+`/status` answers "is this actually working" in one screen: cloud uptime and the **git commit it is running**, whether the laptop client is connected (without it nothing browser-shaped can work), memory backend and any writes waiting to sync, which models are cooling, and queue depth. The console appends its own half — voice state, microphone, link. The running-commit line exists because a cloud process holding hours-old code is indistinguishable from a fresh one, which cost real debugging time.
+
+`/last` replays the steps of the most recent goal. Traces persist to `cloud/data/traces.json` (last 50, 40 steps each) so a bad answer can be read back after a restart. Secrets never appear: the cloud only ever handles `{{secret:name}}` placeholders, and a secret `ask_human` records "saved on your machine" rather than the value.
 
 ## Vision
 
