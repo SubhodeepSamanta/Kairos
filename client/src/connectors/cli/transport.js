@@ -15,7 +15,9 @@ function scheduleRetry() {
   if (closing || retryTimer) return;
   const wait = RETRY_WAITS_MS[Math.min(attempt, RETRY_WAITS_MS.length - 1)];
   attempt++;
-  handlers.onLink?.(`lost the cloud — reconnecting in ${Math.round(wait / 1000)}s`);
+  handlers.onLink?.(everConnected
+    ? `lost the cloud — reconnecting in ${Math.round(wait / 1000)}s`
+    : `waiting for the cloud at ${cloudUrl} — retrying in ${Math.round(wait / 1000)}s`);
   retryTimer = setTimeout(() => {
     retryTimer = null;
     open();

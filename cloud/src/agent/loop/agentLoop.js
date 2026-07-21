@@ -152,6 +152,31 @@ export async function runAgent({ goal, tone = null, goalId, chatId = "default", 
     try { return Boolean(isCancelled?.()); } catch { return false; }
   };
 
+  const raceCancel = async (promise) => {
+    let timer = null;
+    const watch = new Promise((_, reject) => {
+      const tick = () => {
+        if (stopped()) reject(new Error("cancelled_by_user"));
+        else timer = setTimeout(tick, 250);
+      };
+      tick();
+    });
+    try {
+      return await Promise.race([promise, watch]);
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
+  };
+
+  const sleepUnlessStopped = async (ms) => {
+    const until = Date.now() + ms;
+    while (Date.now() < until) {
+      if (stopped()) return false;
+      await new Promise(r => setTimeout(r, Math.min(250, until - Date.now())));
+    }
+    return true;
+  };
+
   while (step < MAX_STEPS) {
     if (stopped()) {
       status("cancelled by the user");
@@ -187,12 +212,16 @@ export async function runAgent({ goal, tone = null, goalId, chatId = "default", 
         }
         if (waitMs > 0) {
           status(`AI providers busy, retrying in ${waitMs / 1000}s…`);
-          await new Promise(r => setTimeout(r, waitMs));
+          if (!await sleepUnlessStopped(waitMs)) break;
         }
       }
     }
+    if (stopped()) {
+      status("cancelled by the user");
+      return finish(false, step > 1 ? "okay — stopped." : "okay, never mind.", { cancelled: true });
+    }
     if (!decision) {
-      return finish(false, `AI error after retries: ${llmError.message}`);
+      return finish(false, `AI error after retries: ${llmError?.message || "no answer from any model"}`);
     }
     notice = "";
 
@@ -308,8 +337,12 @@ export async function runAgent({ goal, tone = null, goalId, chatId = "default", 
       status("Waiting for your reply…");
       let answer;
       try {
-        answer = await askHuman(question, { secretName: action.secret_name || null });
+        answer = await raceCancel(askHuman(question, { secretName: action.secret_name || null }));
       } catch (err) {
+        if (err.message === "cancelled_by_user") {
+          status("cancelled by the user");
+          return finish(false, "okay — stopped.", { cancelled: true });
+        }
         return finish(false, `I asked you: "${question}" but got no reply (${err.message}).`);
       }
       if (action.secret_name) {

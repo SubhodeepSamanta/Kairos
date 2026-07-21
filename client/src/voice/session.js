@@ -33,7 +33,6 @@ export function createVoiceSession({
   let persona = DEFAULT_VOICE;
   let speakingUntil = 0;
   let bargedIn = false;
-  let ready = "listening";
   let calibrating = false;
   let ambientPeak = 0;
   let ambientFrames = 0;
@@ -56,6 +55,7 @@ export function createVoiceSession({
   }
 
   function enqueue(pcm) {
+    if (!running) return;
     if (busy) {
       queued = pcm;
       return;
@@ -66,6 +66,7 @@ export function createVoiceSession({
   async function handleUtterance(pcm) {
     busy = true;
     try {
+      if (!running) return;
       const voiced = analyseProsody(pcm);
       if (!voiced || voiced.voicedRatio < vadConfig.minVoicedRatio) {
         idle();
@@ -78,6 +79,7 @@ export function createVoiceSession({
       }
 
       const heard = await stt.transcribe(pcm);
+      if (!running) return;
       if (!heard) {
         status("didn't catch that");
         idle();
@@ -214,7 +216,6 @@ export function createVoiceSession({
       }
 
       running = true;
-      ready = requireWake ? `listening — say "Kairos"` : "listening";
       status(requireWake
         ? `listening on ${mic.device} — say "Kairos" to start`
         : `listening on ${mic.device} — just talk`);
@@ -224,6 +225,7 @@ export function createVoiceSession({
     stop() {
       if (!running) return;
       running = false;
+      queued = null;
       speaker.stop();
       mic?.stop();
       mic = null;

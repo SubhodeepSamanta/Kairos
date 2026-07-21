@@ -61,7 +61,7 @@ function askHumanVia(ws, goalId) {
         pendingHumanInputs.delete(goalId);
         reject(new Error("no reply within 5 minutes"));
       }, HUMAN_TIMEOUT_MS);
-      pendingHumanInputs.set(goalId, { resolve, reject, timer });
+      pendingHumanInputs.set(goalId, { resolve, reject, timer, ws });
       send(ws, {
         type: "human_input_request",
         goalId,
@@ -78,6 +78,20 @@ export function resolveHumanInput(goalId, input) {
   pendingHumanInputs.delete(goalId);
   pending.resolve(String(input ?? ""));
   return true;
+}
+
+function dropConnector(ws) {
+  let orphaned = 0;
+  for (const [goalId, pending] of pendingHumanInputs) {
+    if (pending.ws !== ws) continue;
+    clearTimeout(pending.timer);
+    pendingHumanInputs.delete(goalId);
+    pending.reject(new Error("they closed the console before answering"));
+    orphaned++;
+  }
+  if (orphaned === 0) return;
+  const { wasRunning } = cancelGoals();
+  log(`Connector ${ws.connectorName || "?"} left with ${orphaned} question(s) unanswered — running:${wasRunning}`);
 }
 
 function send(ws, message) {
@@ -118,6 +132,7 @@ export function startWebSocketServer(port = Number(env.PORT) || 3000) {
         log("Automation client disconnected");
         rejectAllPending("client_disconnected");
       }
+      if (ws.role === "connector") dropConnector(ws);
     });
 
     ws.on("error", (error) => log("Socket error:", error.message));

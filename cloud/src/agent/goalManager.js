@@ -10,11 +10,13 @@ export function pendingGoals() {
 }
 
 export function cancelGoals() {
-  const dropped = queue.length;
+  const waiting = queue.splice(0, queue.length);
   const wasRunning = Boolean(active);
-  queue.length = 0;
   if (active) active.cancelled = true;
-  return { wasRunning, dropped };
+  for (const item of waiting) {
+    try { item.onResult(false, "okay — dropped that one before it started."); } catch {}
+  }
+  return { wasRunning, dropped: waiting.length };
 }
 
 export function submitGoal({ goal, tone = null, chatId = "default", executeAction, askHuman, onStatus, onResult, voiceMode = false }) {
