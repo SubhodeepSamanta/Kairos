@@ -100,3 +100,38 @@ describe("playback", () => {
     expect(player.isPlaying()).toBe(false);
   });
 });
+
+describe("overlapping replies", () => {
+  function stubEngine(order) {
+    return {
+      name: "kokoro",
+      ready: async () => true,
+      supportsVoice: () => true,
+      synthesize: async (segment) => {
+        order.push(`synth:${segment.text.slice(0, 12)}`);
+        await new Promise(r => setTimeout(r, 20));
+        return silenceWav(5);
+      }
+    };
+  }
+
+  it("a newer reply cancels the older one instead of talking over it", async () => {
+    const order = [];
+    const { createSpeaker } = await import("../../src/voice/tts/index.js");
+    const speaker = createSpeaker({ engineFactory: () => stubEngine(order) });
+
+    const first = speaker.speak("aaaa. bbbb. cccc. dddd.", { voice: "af_heart", rate: 1, pitch: 1 });
+    await new Promise(r => setTimeout(r, 5));
+    const second = await speaker.speak("zzzz.", { voice: "af_heart", rate: 1, pitch: 1 });
+
+    expect(await first).toBe(false);
+    expect(second).toBe(true);
+  });
+
+  it("finishes a reply when nothing interrupts it", async () => {
+    const order = [];
+    const { createSpeaker } = await import("../../src/voice/tts/index.js");
+    const speaker = createSpeaker({ engineFactory: () => stubEngine(order) });
+    expect(await speaker.speak("just one line.", { voice: "af_heart", rate: 1, pitch: 1 })).toBe(true);
+  });
+});

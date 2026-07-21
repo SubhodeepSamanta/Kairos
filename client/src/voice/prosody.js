@@ -108,8 +108,8 @@ export function createProsodyReader() {
   let seen = 0;
 
   return {
-    read(audio) {
-      const features = analyseProsody(audio);
+    read(audio, precomputed) {
+      const features = precomputed || analyseProsody(audio);
       if (!features || features.voicedRatio < 0.15) return null;
 
       seen++;

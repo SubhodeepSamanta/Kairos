@@ -97,7 +97,7 @@ export function createVoiceSession({
         return;
       }
 
-      const tone = prosody.read(pcm);
+      const tone = prosody.read(pcm, voiced);
       onTranscript?.({
         text: decision.command,
         heard: heard.text,

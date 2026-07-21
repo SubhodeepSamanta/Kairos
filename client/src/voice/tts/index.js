@@ -20,10 +20,11 @@ function trimForSpeech(text) {
   return lastStop > MAX_SPEECH_CHARS / 2 ? cut.slice(0, lastStop + 1) : `${cut.trimEnd()}…`;
 }
 
-export function createSpeaker({ onStatus, onError } = {}) {
+export function createSpeaker({ onStatus, onError, engineFactory } = {}) {
   const player = createPlayer();
   let engine = null;
   let enginePromise = null;
+  let generation = 0;
 
   async function tryEngine(candidate) {
     await candidate.ready(onStatus);
@@ -31,6 +32,7 @@ export function createSpeaker({ onStatus, onError } = {}) {
   }
 
   async function resolveEngine() {
+    if (engineFactory) return tryEngine(engineFactory());
     const preference = voiceConfig.ttsEngine;
     const order = preference === "sapi"
       ? [createSapiEngine()]
@@ -83,6 +85,9 @@ export function createSpeaker({ onStatus, onError } = {}) {
       const spoken = trimForSpeech(text);
       if (!spoken) return false;
 
+      const mine = ++generation;
+      const stale = () => mine !== generation || player.isCancelled();
+
       let active;
       try {
         active = await ensureEngine();
@@ -110,7 +115,7 @@ export function createSpeaker({ onStatus, onError } = {}) {
       let pending = render(segments[0]);
 
       for (let i = 0; i < segments.length; i++) {
-        if (player.isCancelled()) return false;
+        if (stale()) return false;
         const segment = segments[i];
 
         if (segment.type === "pause") {
@@ -122,17 +127,18 @@ export function createSpeaker({ onStatus, onError } = {}) {
         try {
           const wav = await pending;
           pending = render(segments[i + 1]);
-          if (player.isCancelled()) return false;
+          if (stale()) return false;
           await player.play(wav);
         } catch (err) {
           onError?.(new Error(`could not speak: ${err.message}`));
           return false;
         }
       }
-      return !player.isCancelled();
+      return !stale();
     },
 
     stop() {
+      generation++;
       player.stop();
     }
   };
