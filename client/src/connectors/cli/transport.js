@@ -110,6 +110,10 @@ export function requestSuggestions(text) {
   send({ type: "suggest", text });
 }
 
+export function sendCancel() {
+  return send({ type: "cancel" });
+}
+
 export function sendVoiceMode(on) {
   send({ type: "voice_mode", on: Boolean(on) });
 }

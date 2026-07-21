@@ -79,10 +79,13 @@ Every message authenticates with `CLIENT_SECRET`. Actions carry a `requestId`; t
 ```
 connector → cloud   {type:"goal", goal:"…"}
 connector → cloud   {type:"voice_mode", on}
+connector → cloud   {type:"cancel"}
 cloud → client      {type:"execute", requestId, action}
 client → cloud      {type:"result", requestId, observation}
 cloud → connector   {type:"goal_status"|"human_input_request"|"goal_result"|"persona"}
 ```
+
+`cancel` stops whatever is running and empties the queue. The loop checks between steps **and again after the model has chosen an action**, so a cancelled goal never executes the action it had already decided on. A browser action already in flight still finishes — cancelling mid-`navigate` cannot un-navigate — so the stop lands at the next decision point.
 
 `voice_mode` is per-connection and the cloud forgets it when the socket drops, so the CLI re-announces it on every reconnect. The console **reconnects with backoff instead of exiting** — it used to `process.exit(0)` on close, which took the error message with it and made crashes impossible to capture.
 

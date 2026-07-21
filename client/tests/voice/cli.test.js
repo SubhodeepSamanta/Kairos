@@ -148,3 +148,53 @@ describe("persona voices", () => {
     expect(modes).toEqual([true, false]);
   });
 });
+
+describe("saying stop out loud", () => {
+  function stopHarness(busy) {
+    const sent = [], written = [], cancels = [];
+    let handlers = {};
+    const session = {
+      isRunning: () => true, start: async () => true, stop: () => {},
+      speak: async () => true, stopSpeaking: vi.fn(), setPersona: () => {}
+    };
+    const ctrl = createVoiceController({
+      write: t => written.push(t),
+      sendGoal: t => sent.push(t),
+      onCancel: () => cancels.push(true),
+      isBusy: () => busy,
+      sessionFactory: (opts) => { handlers = opts; return session; }
+    });
+    return { ctrl, sent, written, cancels, session, fire: () => handlers };
+  }
+
+  it("cancels the running goal instead of sending stop as a new one", async () => {
+    const h = stopHarness(true);
+    await h.ctrl.handle("voice");
+
+    h.fire().onTranscript({ text: "stop", tone: null });
+
+    expect(h.cancels).toHaveLength(1);
+    expect(h.sent).toHaveLength(0);
+  });
+
+  it("shuts her up even when nothing is running", async () => {
+    const h = stopHarness(false);
+    await h.ctrl.handle("voice");
+
+    h.fire().onTranscript({ text: "never mind", tone: null });
+
+    expect(h.session.stopSpeaking).toHaveBeenCalled();
+    expect(h.cancels).toHaveLength(0);
+    expect(h.sent).toHaveLength(0);
+  });
+
+  it("still sends a real request that happens to contain the word stop", async () => {
+    const h = stopHarness(true);
+    await h.ctrl.handle("voice");
+
+    h.fire().onTranscript({ text: "stop the music on spotify", tone: null });
+
+    expect(h.cancels).toHaveLength(0);
+    expect(h.sent[0]).toBe("stop the music on spotify");
+  });
+});

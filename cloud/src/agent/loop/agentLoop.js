@@ -92,7 +92,7 @@ function trimHistory(history) {
   );
 }
 
-export async function runAgent({ goal, goalId, chatId = "default", executeAction, askHuman, onStatus, voiceMode = false }) {
+export async function runAgent({ goal, goalId, chatId = "default", executeAction, askHuman, onStatus, voiceMode = false, isCancelled }) {
   const budget = createBudget(MAX_LLM_CALLS);
   const history = [];
   const repeatCounts = {};
@@ -144,7 +144,15 @@ export async function runAgent({ goal, goalId, chatId = "default", executeAction
     return { success, answer, steps: step, llmCalls: budget.used };
   };
 
+  const stopped = () => {
+    try { return Boolean(isCancelled?.()); } catch { return false; }
+  };
+
   while (step < MAX_STEPS) {
+    if (stopped()) {
+      status("cancelled by the user");
+      return finish(false, step > 0 ? "okay — stopped." : "okay, never mind.", { cancelled: true });
+    }
     step++;
 
     const stepPrompt = buildStepPrompt({
@@ -191,6 +199,12 @@ export async function runAgent({ goal, goalId, chatId = "default", executeAction
       continue;
     }
     console.log(`[STEP ${step}] ${thought} -> ${describeAction(action)}`);
+
+    if (stopped() && action.type !== "done") {
+      status("cancelled by the user");
+      return finish(false, "okay — stopped.", { cancelled: true });
+    }
+
     justRead = action.type === "read";
 
     if (action.type === "done") {

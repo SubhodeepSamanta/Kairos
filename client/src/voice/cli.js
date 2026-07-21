@@ -1,6 +1,7 @@
 import { createVoiceSession } from "./session.js";
 import { stripMarkup } from "./markup.js";
 import { listInputDevices } from "./capture.js";
+import { isStopPhrase } from "./stopwords.js";
 
 const VOICE_COMMAND = /^\/?(?:voice|stt|tts|talk|listen)$/i;
 const VOICE_OFF = /^\/?(?:voice|stt|tts)\s+(?:off|stop)$/i;
@@ -76,7 +77,7 @@ async function runMicTest(line) {
   line(heard ? `  she heard: "${heard.text}"` : "  she could not make out any words");
 }
 
-export function createVoiceController({ write, sendGoal, onModeChange, sessionFactory = createVoiceSession }) {
+export function createVoiceController({ write, sendGoal, onModeChange, onCancel, isBusy, sessionFactory = createVoiceSession }) {
   let session = null;
   let starting = false;
   let persona = null;
@@ -89,6 +90,15 @@ export function createVoiceController({ write, sendGoal, onModeChange, sessionFa
       onError: (err) => line(`  voice: ${err.message}`),
       onListening: () => {},
       onTranscript: ({ text, tone }) => {
+        if (isStopPhrase(text)) {
+          session?.stopSpeaking();
+          line(`  you: ${text}`);
+          if (isBusy?.()) {
+            line("  stopping…");
+            onCancel?.();
+          }
+          return;
+        }
         line(`  you: ${text}${tone ? `  (${tone})` : ""}`);
         sendGoal(tone ? `${text}\n[voice tone: ${tone}]` : text);
       }

@@ -1,7 +1,7 @@
 import { env } from "../../config/env.js";
 import { createInput } from "./input.js";
 import { colors as C } from "./menu.js";
-import { connectToCloud, sendGoal, sendHumanReply, requestSuggestions, sendVoiceMode } from "./transport.js";
+import { connectToCloud, sendGoal, sendHumanReply, requestSuggestions, sendVoiceMode, sendCancel } from "./transport.js";
 import { createVoiceController, isVoiceCommand } from "../../voice/cli.js";
 import { voiceConfig } from "../../voice/config.js";
 
@@ -11,11 +11,16 @@ console.log(`${C.dim}  type / for commands · voice to talk out loud${C.reset}\n
 
 let pendingAskGoalId = null;
 let waitingForAnswer = false;
+let goalInFlight = false;
+
+const STOP_TYPED = /^\/?(?:stop|cancel|abort)$/i;
 
 const voice = createVoiceController({
   write: (text) => ui.write(`${C.dim}${text}${C.reset}`),
-  sendGoal: (text) => sendGoal(text),
-  onModeChange: (on) => sendVoiceMode(on)
+  sendGoal: (text) => { goalInFlight = true; sendGoal(text); },
+  onModeChange: (on) => sendVoiceMode(on),
+  onCancel: () => sendCancel(),
+  isBusy: () => goalInFlight
 });
 
 const ui = createInput({
@@ -32,6 +37,13 @@ const ui = createInput({
       return;
     }
     voice.interrupt();
+    if (STOP_TYPED.test(text.trim())) {
+      if (!goalInFlight) ui.write(`${C.dim}  nothing is running${C.reset}`);
+      else sendCancel();
+      ui.prompt();
+      return;
+    }
+    goalInFlight = true;
     sendGoal(text);
   },
   onSuggest(text) {
@@ -57,6 +69,7 @@ connectToCloud(env.CLOUD_URL || "ws://localhost:3000", {
     ui.write(`${C.dim}  ${note}${C.reset}`);
   },
   onResult(result, success, spoken) {
+    goalInFlight = false;
     const heard = voice.speak(spoken || result);
     say(heard || result, !success);
     ui.prompt();

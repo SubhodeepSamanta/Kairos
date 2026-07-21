@@ -1,7 +1,7 @@
 import { WebSocketServer } from "ws";
 import { env } from "../config/env.js";
 import { log } from "../utils/logger.js";
-import { submitGoal } from "../agent/goalManager.js";
+import { submitGoal, cancelGoals } from "../agent/goalManager.js";
 import { commandSuggestions } from "../companion/commands.js";
 import { IDENTITY, getPrefs } from "../companion/store.js";
 import { getPersona } from "../companion/personas.js";
@@ -167,6 +167,15 @@ export function startWebSocketServer(port = Number(env.PORT) || 3000) {
         clearTimeout(pending.timer);
         pendingRequests.delete(data.requestId);
         pending.resolve(data.observation || { success: false, reason: "empty observation" });
+        return;
+      }
+
+      if (data.type === "cancel" && ws.role === "connector") {
+        const { wasRunning, dropped } = cancelGoals();
+        log(`Cancel requested — running:${wasRunning} queued:${dropped}`);
+        if (!wasRunning) {
+          send(ws, { type: "goal_result", success: true, result: dropped ? "dropped what was waiting." : "nothing was running." });
+        }
         return;
       }
 
