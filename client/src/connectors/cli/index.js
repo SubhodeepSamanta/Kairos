@@ -1,7 +1,7 @@
 import { env } from "../../config/env.js";
 import { createInput } from "./input.js";
 import { colors as C } from "./menu.js";
-import { connectToCloud, sendGoal, sendHumanReply, requestSuggestions, sendVoiceMode, sendCancel } from "./transport.js";
+import { connectToCloud, sendGoal, sendHumanReply, requestSuggestions, sendVoiceMode, sendCancel, isLinked } from "./transport.js";
 import { createGoalRouter } from "./router.js";
 import { createVoiceController, isVoiceCommand, localCommandHelp } from "../../voice/cli.js";
 import { voiceConfig } from "../../voice/config.js";
@@ -12,7 +12,14 @@ console.log(`${C.dim}  type / for commands · voice to talk out loud${C.reset}\n
 
 const STOP_TYPED = /^\/?(?:stop|cancel|abort)$/i;
 const HELP_TYPED = /^\/?help$/i;
-let askedForHelp = false;
+const STATUS_TYPED = /^\/?status$/i;
+let localFooter = null;
+
+function footerFor(line) {
+  if (HELP_TYPED.test(line)) return () => `on this computer:\n${localCommandHelp()}`;
+  if (STATUS_TYPED.test(line)) return () => `on this computer:\n  ${voice.status()}\n  cloud: ${isLinked() ? "connected" : "not connected"}`;
+  return null;
+}
 
 const router = createGoalRouter({ sendGoal, sendHumanReply, sendCancel });
 
@@ -40,7 +47,7 @@ const ui = createInput({
       ui.prompt();
       return;
     }
-    askedForHelp = HELP_TYPED.test(text.trim());
+    localFooter = footerFor(text.trim());
     router.submit(text);
   },
   onSuggest(text) {
@@ -67,12 +74,11 @@ connectToCloud(env.CLOUD_URL || "ws://localhost:3000", {
   },
   onResult(result, success, spoken) {
     router.finish();
-    if (askedForHelp) {
-      askedForHelp = false;
+    if (localFooter) {
+      const footer = localFooter();
+      localFooter = null;
       say(result, !success);
-      ui.write(`${C.dim}
-on this computer:
-${localCommandHelp()}${C.reset}`);
+      ui.write(`${C.dim}\n${footer}${C.reset}`);
       ui.prompt();
       return;
     }

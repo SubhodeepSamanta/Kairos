@@ -5,6 +5,7 @@ import { submitGoal, cancelGoals } from "../agent/goalManager.js";
 import { commandSuggestions } from "../companion/commands.js";
 import { IDENTITY, getPrefs } from "../companion/store.js";
 import { getPersona } from "../companion/personas.js";
+import { markClientConnected, markConnector } from "../runtime.js";
 
 const ACTION_TIMEOUT_MS = 60000;
 const HUMAN_TIMEOUT_MS = 300000;
@@ -129,10 +130,14 @@ export function startWebSocketServer(port = Number(env.PORT) || 3000) {
     ws.on("close", () => {
       if (automationClient === ws) {
         automationClient = null;
+        markClientConnected(false);
         log("Automation client disconnected");
         rejectAllPending("client_disconnected");
       }
-      if (ws.role === "connector") dropConnector(ws);
+      if (ws.role === "connector") {
+        markConnector(ws.connectorName, false);
+        dropConnector(ws);
+      }
     });
 
     ws.on("error", (error) => log("Socket error:", error.message));
@@ -156,10 +161,12 @@ export function startWebSocketServer(port = Number(env.PORT) || 3000) {
         if (data.type === "register_client") {
           automationClient = ws;
           ws.role = "client";
+          markClientConnected(true);
           log("Automation client registered");
         } else {
           ws.role = "connector";
           ws.connectorName = data.name || "connector";
+          markConnector(ws.connectorName, true);
           log(`Connector registered: ${ws.connectorName}`);
         }
         send(ws, { type: "registered" });

@@ -8,6 +8,7 @@ import { buildCompanionContext } from "../../companion/context.js";
 import { addTurn, addEvent, addMood } from "../../companion/store.js";
 import { detectCrisis, shouldStayQuiet, CRISIS_REPLY } from "../../companion/care.js";
 import { maybeSummarize } from "../../companion/summary.js";
+import { recordTrace } from "../trace.js";
 
 const MAX_STEPS = 30;
 const MAX_LLM_CALLS = 45;
@@ -133,6 +134,11 @@ export async function runAgent({ goal, tone = null, goalId, chatId = "default", 
   const finish = async (success, answer, extra = {}) => {
     const secs = ((Date.now() - startTime) / 1000).toFixed(1);
     console.log(`[AGENT] ${success ? "DONE" : "FAILED"} in ${step} steps, ${budget.used} LLM calls, ~${budget.estimatedTokens} tokens, ${secs}s`);
+    recordTrace({
+      goal, success, answer, steps: history,
+      cancelled: extra.cancelled,
+      seconds: secs, llmCalls: budget.used, tokens: budget.estimatedTokens
+    });
     await addTurn(chatId, "assistant", answer);
     if (history.length > 0) {
       await addEvent(chatId, `${goal.slice(0, 120)}${success ? "" : " (didn't work)"}`, success, step);

@@ -1,5 +1,6 @@
 import { runAgent } from "./loop/agentLoop.js";
 import { isCommand, runCommand } from "../companion/commands.js";
+import { markQueueDepth } from "../runtime.js";
 
 const queue = [];
 let running = false;
@@ -43,6 +44,7 @@ async function processQueue() {
 
   const goalId = crypto.randomUUID();
   active = { goalId, cancelled: false };
+  markQueueDepth(queue.length);
   console.log(`\n[GOAL ${goalId.slice(0, 8)}] ${item.goal}`);
 
   try {
@@ -64,6 +66,7 @@ async function processQueue() {
   } finally {
     active = null;
     running = false;
+    markQueueDepth(queue.length);
     processQueue();
   }
 }

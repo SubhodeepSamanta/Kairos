@@ -266,3 +266,29 @@ describe("mic test safety", () => {
     expect(written.join(" ")).toMatch(/already listening/);
   });
 });
+
+describe("voice status line", () => {
+  it("tells you voice is off and how to turn it on", () => {
+    const { ctrl } = controller();
+    expect(ctrl.status()).toMatch(/voice: off/);
+    expect(ctrl.status()).toMatch(/type "voice"/);
+  });
+
+  it("names the engine and microphone once she is listening", async () => {
+    const { ctrl, session } = controller();
+    session.engineName = () => "kokoro";
+    session.device = () => "Microphone Array";
+
+    await ctrl.handle("voice");
+
+    expect(ctrl.status()).toContain("voice: on");
+    expect(ctrl.status()).toContain("kokoro");
+    expect(ctrl.status()).toContain("Microphone Array");
+  });
+
+  it("does not break on a session that cannot name its engine", async () => {
+    const { ctrl } = controller();
+    await ctrl.handle("voice");
+    expect(ctrl.status()).toBe("voice: on");
+  });
+});

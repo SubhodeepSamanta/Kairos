@@ -201,6 +201,13 @@ export function createVoiceController({ write, sendGoal, onModeChange, onCancel,
       return true;
     },
 
+    status() {
+      if (starting) return "voice: starting up";
+      if (!session?.isRunning()) return "voice: off — type \"voice\" to talk out loud";
+      const bits = [session.engineName?.(), session.device?.()].filter(Boolean);
+      return `voice: on${bits.length ? ` · ${bits.join(" · ")}` : ""}`;
+    },
+
     setPersona(voice) {
       if (!voice) return;
       persona = voice;

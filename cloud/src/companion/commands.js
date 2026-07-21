@@ -3,6 +3,9 @@ import { getPrefs, setPrefs, loadMoods, loadEvents, getSummary, forgetChat } fro
 import { formatMood } from "./context.js";
 import { getAllFacts, forgetFact, memoryBackend } from "../memory/store.js";
 import { pendingDbWrites } from "../memory/syncQueue.js";
+import { llmStatus } from "../llm/provider.js";
+import { runtimeStatus, formatDuration } from "../runtime.js";
+import { lastTrace, formatTrace } from "../agent/trace.js";
 
 export const COMMANDS = [
   { name: "/personality", args: "[name]", help: "switch how Kairos talks to you" },
@@ -11,6 +14,8 @@ export const COMMANDS = [
   { name: "/recent", args: "", help: "what you did recently" },
   { name: "/about", args: "", help: "who Kairos thinks you are" },
   { name: "/forget", args: "<key|chat|moods|all>", help: "make Kairos forget something" },
+  { name: "/status", args: "", help: "is everything actually working" },
+  { name: "/last", args: "", help: "step by step, what she just did" },
   { name: "/help", args: "", help: "show commands" }
 ];
 
@@ -137,6 +142,25 @@ export async function runCommand(chatId, text) {
       lines.push(summary.text ? `\nwhat i've picked up:\n${summary.text}` : `\nstill getting to know you.`);
       return lines.join("\n");
     }
+
+    case "/status": {
+      const rt = runtimeStatus();
+      const llm = llmStatus();
+      const pending = pendingDbWrites();
+      const lines = [];
+      lines.push(`cloud up ${formatDuration(rt.upMs)}${rt.revision ? ` · code ${rt.revision}` : ""}`);
+      lines.push(rt.clientConnected
+        ? `laptop connected ${formatDuration(rt.clientForMs)} — she can drive the browser`
+        : `laptop NOT connected — she cannot touch the browser until you start the client`);
+      if (rt.connectors.length) lines.push(`talking to: ${rt.connectors.join(", ")}`);
+      lines.push(`memory: ${memoryBackend() === "postgres" ? "postgres" : "local file"}${pending ? ` · ${pending} write${pending === 1 ? "" : "s"} waiting` : ""}`);
+      lines.push(`ai: ${llm.primary.join(", ")}${llm.cooling.length ? ` · resting: ${llm.cooling.join(", ")}` : ""}`);
+      if (rt.queueDepth) lines.push(`${rt.queueDepth} goal${rt.queueDepth === 1 ? "" : "s"} waiting`);
+      return lines.join("\n");
+    }
+
+    case "/last":
+      return formatTrace(lastTrace());
 
     case "/forget": {
       if (!arg) return "forget what? a memory key, or: chat, moods, all";
