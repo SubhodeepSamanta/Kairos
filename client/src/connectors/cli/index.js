@@ -17,9 +17,21 @@ const STOP_TYPED = /^\/?(?:stop|cancel|abort)$/i;
 const HELP_TYPED = /^\/?help$/i;
 let askedForHelp = false;
 
+function answerPending(text) {
+  if (!waitingForAnswer) return false;
+  const goalId = pendingAskGoalId;
+  waitingForAnswer = false;
+  pendingAskGoalId = null;
+  sendHumanReply(goalId, text);
+  return true;
+}
+
 const voice = createVoiceController({
   write: (text) => ui.write(`${C.dim}${text}${C.reset}`),
-  sendGoal: (text, tone) => { goalInFlight = true; sendGoal(text, tone); },
+  sendGoal: (text, tone) => {
+    if (answerPending(text)) return;
+    if (sendGoal(text, tone)) goalInFlight = true;
+  },
   onModeChange: (on) => sendVoiceMode(on),
   onCancel: () => sendCancel(),
   isBusy: () => goalInFlight
@@ -27,13 +39,7 @@ const voice = createVoiceController({
 
 const ui = createInput({
   onSubmit(text) {
-    if (waitingForAnswer) {
-      const goalId = pendingAskGoalId;
-      waitingForAnswer = false;
-      pendingAskGoalId = null;
-      sendHumanReply(goalId, text);
-      return;
-    }
+    if (answerPending(text)) return;
     if (isVoiceCommand(text)) {
       voice.handle(text).finally(() => ui.prompt());
       return;
@@ -46,8 +52,7 @@ const ui = createInput({
       return;
     }
     askedForHelp = HELP_TYPED.test(text.trim());
-    goalInFlight = true;
-    sendGoal(text);
+    if (sendGoal(text)) goalInFlight = true;
   },
   onSuggest(text) {
     requestSuggestions(text);
@@ -95,7 +100,8 @@ ${localCommandHelp()}${C.reset}`);
   onAsk(prompt, goalId, secret) {
     pendingAskGoalId = goalId;
     waitingForAnswer = true;
-    say(`${prompt}${secret ? `\n${C.dim}(stored only on this computer)${C.reset}` : ""}`);
+    const shown = voice.speak(prompt) || prompt;
+    say(`${shown}${secret ? `\n${C.dim}(stored only on this computer)${C.reset}` : ""}`);
     ui.prompt();
   },
   onSuggestions(suggestions) {

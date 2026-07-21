@@ -97,9 +97,9 @@ function send(payload) {
 }
 
 export function sendGoal(goal, tone) {
-  if (!send({ type: "goal", goal, tone: tone || undefined })) {
-    handlers.onLink?.("not connected to the cloud yet — try again in a moment");
-  }
+  if (send({ type: "goal", goal, tone: tone || undefined })) return true;
+  handlers.onLink?.("not connected to the cloud yet — try again in a moment");
+  return false;
 }
 
 export function sendHumanReply(goalId, input) {
