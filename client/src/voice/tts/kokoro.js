@@ -1,5 +1,6 @@
 import { voiceConfig } from "../config.js";
 import { encodeWav } from "./wav.js";
+import { waitForSttIfWanted } from "../runtimeOrder.js";
 
 const MIN_SPEED = 0.5;
 const MAX_SPEED = 2;
@@ -23,6 +24,7 @@ function resample(samples, ratio) {
 let modelPromise = null;
 
 async function loadModel(onProgress) {
+  await waitForSttIfWanted();
   const { KokoroTTS } = await import("kokoro-js");
   let announced = false;
   return KokoroTTS.from_pretrained(voiceConfig.ttsModel, {

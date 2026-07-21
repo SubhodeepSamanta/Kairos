@@ -1,4 +1,5 @@
 import { voiceConfig, SAMPLE_RATE } from "./config.js";
+import { sttWanted, sttSettled } from "./runtimeOrder.js";
 
 const MIN_SAMPLES = SAMPLE_RATE * 0.2;
 const MAX_SAMPLES = SAMPLE_RATE * 30;
@@ -49,13 +50,14 @@ async function loadModel(onProgress) {
 }
 
 export function createTranscriber() {
+  sttWanted();
   return {
     async ready(onProgress) {
       if (!asrPromise) {
-        asrPromise = loadModel(onProgress).catch((err) => {
-          asrPromise = null;
-          throw err;
-        });
+        asrPromise = loadModel(onProgress).then(
+          (model) => { sttSettled(); return model; },
+          (err) => { asrPromise = null; sttSettled(); throw err; }
+        );
       }
       await asrPromise;
       return true;

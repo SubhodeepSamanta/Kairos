@@ -11,6 +11,7 @@ import { maybeSummarize } from "../../companion/summary.js";
 import { recordTrace } from "../trace.js";
 import { createCancellation } from "./cancellation.js";
 import { classifyConsequence, confirmationQuestion, readsAsYes } from "../consequence.js";
+import { validateAction } from "../actionSchema.js";
 
 const MAX_STEPS = 30;
 const MAX_LLM_CALLS = 45;
@@ -24,6 +25,7 @@ const MAX_FRESH_TABS = 2;
 const MAX_BLOCKED_BEFORE_ABORT = 4;
 const LLM_RETRY_WAITS_MS = [8000, 20000, 45000, 0];
 const MUTATING = new Set(["click", "type", "select_option", "press_key"]);
+const MAX_MALFORMED = 5;
 
 const BROWSER_ACTIONS = {
   navigate: a => ({ type: "navigate", params: { url: a.url } }),
@@ -110,6 +112,7 @@ export async function runAgent({
   const openedHosts = new Map();
   let freshTabs = 0;
   let blockedSteps = 0;
+  let malformedSteps = 0;
   let lastPage = null;
   let notice = "";
   let step = 0;
@@ -219,8 +222,15 @@ export async function runAgent({
 
     const action = normalizeAction(decision.action || decision);
     const thought = String(decision.thought || "").slice(0, 200);
-    if (!action || typeof action.type !== "string") {
-      notice = "Your reply had no valid action object. Follow the response format exactly.";
+    const malformed = validateAction(action);
+    if (malformed) {
+      console.log(`[STEP ${step}] rejected before running: ${malformed}`);
+      notice = malformed;
+      step--;
+      malformedSteps++;
+      if (malformedSteps >= MAX_MALFORMED) {
+        return finish(false, `The AI kept replying with actions I could not run (${malformed}). Progress: ${history.slice(-3).join("; ") || "none"}`);
+      }
       continue;
     }
     console.log(`[STEP ${step}] ${thought} -> ${describeAction(action)}`);

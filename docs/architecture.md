@@ -128,6 +128,12 @@ The gate is deterministic code, not model judgement, for the same reason as the 
 
 `/last` replays the steps of the most recent goal. Traces persist to `cloud/data/traces.json` (last 50, 40 steps each) so a bad answer can be read back after a restart. Secrets never appear: the cloud only ever handles `{{secret:name}}` placeholders, and a secret `ask_human` records "saved on your machine" rather than the value.
 
+## Two onnx runtimes in one process
+
+`kokoro-js` bundles its own `@huggingface/transformers` and `onnxruntime`, older than the client's. Initialising Kokoro's runtime **before** Moonshine's hard-crashes the process (`requested API version [24] ... only [1, 21] supported`). npm `overrides` cannot fix it — kokoro-js pins `^3.5.1` and refuses to install against 4.x.
+
+This used to be held together only by the order of two statements in `session.start()`. `runtimeOrder.js` now makes it an enforced invariant: creating a transcriber marks the listening runtime as *wanted*, and Kokoro's loader waits for it to settle before importing `kokoro-js`. TTS-only use never waits, and a listening model that fails to load still releases the voice rather than hanging it.
+
 ## Vision
 
 OCR (`visionReader.js`, Tesseract) fires **only** when a page yields almost no accessible elements. ARIA + DOM is always the primary path. This is intentional and stays a last resort.
