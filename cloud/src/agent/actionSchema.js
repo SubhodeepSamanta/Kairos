@@ -22,7 +22,10 @@ const SCHEMA = {
   fetch_page: { url: "url" },
   remember: { key: "text", value: "text" },
   ask_human: { question: "text" },
-  done: {}
+  done: {},
+  list_files: {},
+  read_file: { path: "text" },
+  write_file: { path: "text", text: "text" }
 };
 
 function badValue(kind, value) {

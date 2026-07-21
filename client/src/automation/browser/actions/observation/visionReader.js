@@ -26,6 +26,22 @@ async function getWorker() {
   return worker;
 }
 
+export async function readTextFromImage(imagePath) {
+  const w = await getWorker();
+  const { data } = await w.recognize(imagePath, {}, { blocks: true });
+  const lines = [];
+  for (const block of data?.blocks || []) {
+    for (const paragraph of block?.paragraphs || []) {
+      for (const line of paragraph?.lines || []) {
+        const text = String(line?.text || "").replace(/\s+/g, " ").trim();
+        if (text) lines.push(text);
+      }
+    }
+  }
+  if (lines.length) return lines.join("\n");
+  return String(data?.text || "").trim();
+}
+
 export async function visionReadPage(page) {
   const viewport = page.viewportSize() || { width: 1280, height: 720 };
   const screenshotPath = path.join(process.cwd(), "screenshots", `vision-${Date.now()}.png`);

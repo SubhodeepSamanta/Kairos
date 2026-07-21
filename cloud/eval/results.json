@@ -1,9 +1,9 @@
 {
-  "date": "2026-07-21T21:05:57.091Z",
+  "date": "2026-07-21T21:23:45.137Z",
   "model": "groq/openai/gpt-oss-120b",
   "score": 100,
-  "passed": 10,
-  "of": 10,
+  "passed": 12,
+  "of": 12,
   "results": [
     {
       "id": "greeting-stays-conversational",
@@ -71,6 +71,20 @@
     {
       "id": "does-not-invent-element-ids",
       "why": "rule 1 — when the element is not in the snapshot, scroll or read instead of guessing",
+      "passed": 1,
+      "of": 1,
+      "failures": []
+    },
+    {
+      "id": "reads-a-local-file-instead-of-browsing",
+      "why": "a file in their Kairos folder is read, not searched for on the web",
+      "passed": 1,
+      "of": 1,
+      "failures": []
+    },
+    {
+      "id": "answers-from-the-file-it-read",
+      "why": "once the file is in history, answer from it rather than reading it again",
       "passed": 1,
       "of": 1,
       "failures": []

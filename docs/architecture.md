@@ -128,6 +128,14 @@ The gate is deterministic code, not model judgement, for the same reason as the 
 
 `/last` replays the steps of the most recent goal. Traces persist to `cloud/data/traces.json` (last 50, 40 steps each) so a bad answer can be read back after a restart. Secrets never appear: the cloud only ever handles `{{secret:name}}` placeholders, and a secret `ask_human` records "saved on your machine" rather than the value.
 
+## Files
+
+`list_files` · `read_file` · `write_file`, confined to a **workspace folder** — `~/Documents/Kairos` by default, `KAIROS_WORKSPACE` to move it. Every path is resolved and then checked to still be inside that root, so `..`, absolute paths and mixed separators are all refused. This matters more than usual here: `client/data/secrets.json` is on the same disk, and a traversal bug would hand the LLM your passwords. There is a test for exactly that path.
+
+Text files are read directly (capped, and marked truncated rather than silently cut). **Images are read with OCR** through the Tesseract worker that already exists for vision — so screenshots and photos of documents work with no new dependency, which keeps the RAM budget intact. PDFs are refused with a plain explanation rather than returning nothing; adding a parser was not worth the memory.
+
+Writing is restricted to text formats. `read_file` and `list_files` are idempotent, so re-running one is blocked the same way `list_browsers` is.
+
 ## Two onnx runtimes in one process
 
 `kokoro-js` bundles its own `@huggingface/transformers` and `onnxruntime`, older than the client's. Initialising Kokoro's runtime **before** Moonshine's hard-crashes the process (`requested API version [24] ... only [1, 21] supported`). npm `overrides` cannot fix it — kokoro-js pins `^3.5.1` and refuses to install against 4.x.

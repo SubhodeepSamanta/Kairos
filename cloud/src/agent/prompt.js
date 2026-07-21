@@ -17,6 +17,9 @@ open_for_user{url} → opens the url in the user's OWN everyday browser (their l
 KNOWLEDGE (no browser):
 web_search{query} → titles+urls only · fetch_page{url} → readable text of a page
 
+FILES (their Kairos folder only):
+list_files{path} · read_file{path} (text, or image via OCR) · write_file{path,text} (text only, no PDFs)
+
 OTHER:
 remember{key,value} → save a fact forever
 ask_human{question} → ONLY when a task is blocked and cannot continue without their input (captcha, 2FA, credentials). It freezes the task. NEVER use it to chat or ask a follow-up — for that, put your question in done.answer.

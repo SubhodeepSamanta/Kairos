@@ -2,6 +2,7 @@ import { executeDeviceAction } from "./deviceAdapter.js";
 import { readPage } from "../automation/browser/actions/observation/read.js";
 import { getCurrentPage } from "../automation/browser/browser.js";
 import { storeSecret } from "../secrets/vault.js";
+import { executeFileAction, FILE_ACTIONS } from "../files/fileActions.js";
 
 const STATE_CHANGING = new Set([
   "navigate", "click", "type", "press_key", "back", "forward", "refresh",
@@ -28,6 +29,15 @@ export async function executeAction(action) {
   if (action.type === "store_secret") {
     const ok = storeSecret(action.params?.name, action.params?.value);
     return { success: ok, reason: ok ? undefined : "invalid secret name or value" };
+  }
+
+  if (FILE_ACTIONS.has(action.type)) {
+    try {
+      const result = await executeFileAction(action);
+      return { success: result.success !== false, reason: result.reason, data: result };
+    } catch (err) {
+      return { success: false, reason: err.message };
+    }
   }
 
   let result;

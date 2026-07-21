@@ -46,7 +46,10 @@ const BROWSER_ACTIONS = {
   wait: a => ({ type: "wait", params: { seconds: Math.min(Number(a.seconds) || 2, 10) } }),
   screenshot: () => ({ type: "screenshot", params: {} }),
   list_browsers: () => ({ type: "list_browsers", params: {} }),
-  use_browser: a => ({ type: "use_browser", params: { browser: a.browser, profile: a.profile || null } })
+  use_browser: a => ({ type: "use_browser", params: { browser: a.browser, profile: a.profile || null } }),
+  list_files: a => ({ type: "list_files", params: { path: a.path || "" } }),
+  read_file: a => ({ type: "read_file", params: { path: a.path } }),
+  write_file: a => ({ type: "write_file", params: { path: a.path, text: a.text } })
 };
 
 const DATA_SUMMARY = {
@@ -56,10 +59,13 @@ const DATA_SUMMARY = {
   click: d => d?.newTabOpened ? " (it opened a new tab, which is now the active one)" : "",
   select_option: d => d?.selected ? ` (selected "${d.selected}")` : "",
   open_for_user: d => d?.opened ? ` (${d.opened} opened as a tab in the user's OWN browser — done, you cannot see that tab)` : "",
-  close_user_browser: d => d?.closed ? ` (their ${d.label || "browser"} is closed — retry the real profile with use_browser now)` : " (it was not running — the real profile is free)"
+  close_user_browser: d => d?.closed ? ` (their ${d.label || "browser"} is closed — retry the real profile with use_browser now)` : " (it was not running — the real profile is free)",
+  list_files: d => d?.listing ? `\n${d.listing}` : "",
+  read_file: d => d?.text ? `\n${d.text}${d.truncated ? "\n…(file continues)" : ""}` : "",
+  write_file: d => d?.written ? ` (saved as ${d.written})` : ""
 };
 
-const IDEMPOTENT_INFO = new Set(["list_browsers"]);
+const IDEMPOTENT_INFO = new Set(["list_browsers", "list_files", "read_file"]);
 
 function actionSignature(action) {
   return JSON.stringify(action);
