@@ -85,6 +85,16 @@ Groq also hosts `whisper-large-v3`/`-turbo` — a free STT option for the voice 
 
 Rerun anytime: the benchmark script pattern is in git history (`modelbench.tmp.js`), or just swap an entry in `provider.js` — it is model-agnostic.
 
+## Tokens, latency and cost
+
+Providers return a real `usage` block and it used to be thrown away. Every call now records `prompt_tokens`, `completion_tokens` and round-trip latency onto the goal's budget; `/last` reports them and marks the number `(estimated)` when a provider stayed silent.
+
+The old estimate was `characters / 4`, which is wrong in two directions that compound. It ignores chat-template overhead, and it counts **no output at all**. Measured on a trivial call: estimate 8 tokens, actual 170 — a 21x undercount. On a full step prompt the input estimate is close, but a reasoning model's output is still invisible to it.
+
+That matters beyond reporting, because **TPM pacing was built on that estimate**, so the rate limiter was systematically over-permissive — the likeliest cause of the 429s that appear mid-eval. Pacing now backfills each call's real total once the provider reports it.
+
+Set `LLM_COST_PER_MTOK` to have `/last` show money. It is deliberately never computed from estimated tokens — an invented cost is worse than none.
+
 ### How the two primaries are used
 
 **Rotation, not racing.** Calls alternate A → B → A → B. Groq rate-limits **per model** (`"rate limit reached for model X"`), so two different Groq models have separate daily pools — alternating roughly **doubles daily capacity**.

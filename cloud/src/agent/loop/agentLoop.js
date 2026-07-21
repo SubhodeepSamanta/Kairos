@@ -142,11 +142,15 @@ export async function runAgent({
 
   const finish = async (success, answer, extra = {}) => {
     const secs = ((Date.now() - startTime) / 1000).toFixed(1);
-    console.log(`[AGENT] ${success ? "DONE" : "FAILED"} in ${step} steps, ${budget.used} LLM calls, ~${budget.estimatedTokens} tokens, ${secs}s`);
+    const measured = budget.measured > 0;
+    const tokens = measured ? budget.tokensIn + budget.tokensOut : budget.estimatedTokens;
+    console.log(`[AGENT] ${success ? "DONE" : "FAILED"} in ${step} steps, ${budget.used} LLM calls, ${tokens} tokens${measured ? "" : " (estimated)"}, ${secs}s`);
     recordTrace({
       goal, success, answer, steps: history,
       cancelled: extra.cancelled,
-      seconds: secs, llmCalls: budget.used, tokens: budget.estimatedTokens
+      seconds: secs, llmCalls: budget.used,
+      tokens, tokensIn: budget.tokensIn, tokensOut: budget.tokensOut,
+      measured, llmMs: budget.llmMs
     });
     await addTurn(chatId, "assistant", answer);
     if (history.length > 0) {

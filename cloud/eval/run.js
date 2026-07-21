@@ -24,8 +24,8 @@ const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 async function decide(system, user) {
   for (let attempt = 0; attempt < 4; attempt++) {
     try {
-      const raw = await callModel(MODEL, system, user);
-      const parsed = parseJsonResponse(raw);
+      const { text } = await callModel(MODEL, system, user);
+      const parsed = parseJsonResponse(text);
       if (parsed) return parsed;
       if (attempt === 3) throw new Error("model never returned valid JSON");
     } catch (err) {

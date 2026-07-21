@@ -76,7 +76,7 @@ async function waitForAnyModel(candidates, tokens) {
 }
 
 export function createBudget(maxCalls = 45) {
-  return { used: 0, maxCalls, estimatedTokens: 0 };
+  return { used: 0, maxCalls, estimatedTokens: 0, tokensIn: 0, tokensOut: 0, measured: 0, llmMs: 0 };
 }
 
 export function llmStatus() {
@@ -112,11 +112,22 @@ export async function askLLM(systemPrompt, userPrompt, budget = null) {
   let lastError = null;
   for (const candidate of candidates) {
     try {
-      recentCalls.push({ at: Date.now(), tokens, name: candidate.name });
-      const result = await callModel(candidate, systemPrompt, userPrompt);
-      if (result && result.trim()) {
-        console.log(`[LLM] ${candidate.name} ok (call ${budget ? budget.used : "-"}, ~${tokens} tokens in)`);
-        return result;
+      const record = { at: Date.now(), tokens, name: candidate.name };
+      recentCalls.push(record);
+      const { text, usage, ms } = await callModel(candidate, systemPrompt, userPrompt);
+      if (usage) record.tokens = usage.totalTokens || tokens;
+      if (text && text.trim()) {
+        if (budget) {
+          budget.llmMs += ms || 0;
+          if (usage) {
+            budget.tokensIn += usage.promptTokens;
+            budget.tokensOut += usage.completionTokens;
+            budget.measured++;
+          }
+        }
+        const shown = usage ? `${usage.promptTokens} in / ${usage.completionTokens} out` : `~${tokens} in (estimated)`;
+        console.log(`[LLM] ${candidate.name} ok (call ${budget ? budget.used : "-"}, ${shown}, ${ms}ms)`);
+        return text;
       }
       lastError = new Error(`${candidate.name} returned empty`);
     } catch (err) {

@@ -16,6 +16,7 @@ export async function callModel({ provider, model }, systemPrompt, userPrompt) {
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), endpoint.timeout);
+  const startedAt = Date.now();
 
   try {
     const response = await fetch(endpoint.url, {
@@ -42,7 +43,16 @@ export async function callModel({ provider, model }, systemPrompt, userPrompt) {
     }
 
     const data = await response.json();
-    return data.choices?.[0]?.message?.content || "";
+    const usage = data.usage || null;
+    return {
+      text: data.choices?.[0]?.message?.content || "",
+      ms: Date.now() - startedAt,
+      usage: usage ? {
+        promptTokens: Number(usage.prompt_tokens) || 0,
+        completionTokens: Number(usage.completion_tokens) || 0,
+        totalTokens: Number(usage.total_tokens) || (Number(usage.prompt_tokens) || 0) + (Number(usage.completion_tokens) || 0)
+      } : null
+    };
   } finally {
     clearTimeout(timer);
   }
