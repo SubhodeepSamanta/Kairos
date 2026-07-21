@@ -27,8 +27,10 @@
 ### Phase 4 — Companion mode
 Full spec in **`companion.md`** — personas, episodic memory ("yesterday you did X"), mood tracking, support/therapist mode with a hard crisis gate, proactivity. Build **before** voice.
 
-### Phase 5 — Voice (STT/TTS)
-Covered in `companion.md` §6 — whisper.cpp for STT, Piper for TTS, `[pause:300]`/`[smile]` delivery markup so the voice carries the persona. Voice is a transport for companion mode, not a separate product.
+### Phase 5 — Voice (STT/TTS) — **shipped 2026-07-21**
+Covered in `companion.md` §6 — Moonshine-tiny for STT, Kokoro-82M `fp16` for TTS, `[pause:300]`/`[smile]` delivery markup so the voice carries the persona. Voice is a transport for companion mode, not a separate product.
+
+Both models were chosen by benchmark on the actual laptop, not from the docs: whisper.cpp and Piper both need a build toolchain this machine lacks, and Whisper hallucinates words on silence where Moonshine stays quiet. `voice` in the terminal turns it on. ~855MB with both models resident.
 
 ### Phase 6 — Desktop automation
 The stubs were deleted in Phase 0 (they were empty). Rebuild as real actions: `open_app`, `focus_window`, `type_into_app`, file ops. Same rule as the browser — LLM decides, code executes. Windows UIA via PowerShell or a native binding.

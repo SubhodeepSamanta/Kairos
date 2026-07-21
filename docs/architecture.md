@@ -80,7 +80,7 @@ Every message authenticates with `CLIENT_SECRET`. Actions carry a `requestId`; t
 connector → cloud   {type:"goal", goal:"…"}
 cloud → client      {type:"execute", requestId, action}
 client → cloud      {type:"result", requestId, observation}
-cloud → connector   {type:"goal_status"|"human_input_request"|"goal_result"}
+cloud → connector   {type:"goal_status"|"human_input_request"|"goal_result"|"persona"}
 ```
 
 ## Memory and secrets — deliberately split

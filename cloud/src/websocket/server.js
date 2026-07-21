@@ -3,6 +3,8 @@ import { env } from "../config/env.js";
 import { log } from "../utils/logger.js";
 import { submitGoal } from "../agent/goalManager.js";
 import { commandSuggestions } from "../companion/commands.js";
+import { IDENTITY, getPrefs } from "../companion/store.js";
+import { getPersona } from "../companion/personas.js";
 
 const ACTION_TIMEOUT_MS = 60000;
 const HUMAN_TIMEOUT_MS = 300000;
@@ -84,6 +86,16 @@ function send(ws, message) {
   }
 }
 
+async function sendPersona(ws) {
+  try {
+    const { persona } = await getPrefs(IDENTITY);
+    const p = getPersona(persona);
+    if (ws.personaId === p.id) return;
+    ws.personaId = p.id;
+    send(ws, { type: "persona", persona: { id: p.id, name: p.name, pronouns: p.pronouns, voice: p.voice } });
+  } catch {}
+}
+
 export function startWebSocketServer(port = Number(env.PORT) || 3000) {
   const wss = new WebSocketServer({ port });
 
@@ -136,6 +148,7 @@ export function startWebSocketServer(port = Number(env.PORT) || 3000) {
           log(`Connector registered: ${ws.connectorName}`);
         }
         send(ws, { type: "registered" });
+        if (ws.role === "connector") sendPersona(ws);
         return;
       }
 
@@ -167,11 +180,14 @@ export function startWebSocketServer(port = Number(env.PORT) || 3000) {
         ws.activeGoalId = goalId;
         submitGoal({
           goal: String(data.goal || ""),
-          chatId: ws.connectorName === "cli" ? "cli" : String(data.chatId || "default"),
+          chatId: IDENTITY,
           executeAction: executeActionRemotely,
           askHuman: askHumanVia(ws, goalId),
           onStatus: (status) => send(ws, { type: "goal_status", status }),
-          onResult: (success, result) => send(ws, { type: "goal_result", success, result })
+          onResult: (success, result) => {
+            send(ws, { type: "goal_result", success, result });
+            sendPersona(ws);
+          }
         });
         return;
       }

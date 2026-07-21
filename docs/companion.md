@@ -1,6 +1,6 @@
 # Companion Mode — Complete Guide
 
-**Status: BUILT (2026-07-16), except voice (§6) and proactivity (§7).**
+**Status: BUILT (2026-07-16). Voice (§6) shipped 2026-07-21. Proactivity (§7) still pending.**
 
 Shipped: personas + `/personality` switching, conversation memory, episodic recall ("that 2am session"), mood tracking with consent controls, support mode, crisis gate, live `/` menu in CLI, command + tappable persona picker in Telegram. Storage is Postgres with JSON fallback.
 
@@ -218,21 +218,53 @@ Each persona defines: `name`, `pronouns`, `tone`, `verbosity`, `humour`, `warmth
 
 ## 6. Voice
 
-### STT — whisper.cpp
+### STT — Moonshine (ONNX, via transformers.js)
 
-Single native binary, `ggml-base.en` ≈ 140MB RAM, CPU-only, no Python. Fits the client budget.
+whisper.cpp was the original plan; it needs a compiler this laptop doesn't have. Prebuilt ONNX runs everywhere, so the choice was made by benchmark instead — 10 clips, two voices, measured on the real machine:
+
+| model | WER | speed | RAM | on silence | on noise |
+|---|---|---|---|---|---|
+| **moonshine-tiny** | **7.1%** | **164ms** | **413MB** | `""` | `""` |
+| moonshine-base | 6.1% | 249ms | 604MB | `""` | `""` |
+| whisper-tiny.en | 9.5% | 625ms | 764MB | `"you"` | `"you"` |
+| whisper-base.en | 7.2% | 889ms | 971MB | `"you"` | `"Shh."` |
+
+Moonshine-tiny beats whisper-base on accuracy at 5× the speed and half the RAM. The deciding column is the last two: **Whisper hallucinates words on silence and noise, Moonshine emits nothing.** Every stray cough through Whisper would inject `"you"` into the conversation. `VOICE_STT_MODEL` swaps to moonshine-base for a little more accuracy.
+
+> **Quantization is a trap here.** `q8` is 5–10× *slower* than `fp32` on this Ryzen — no VNNI, so it dequantizes in software. Benchmark before assuming smaller is faster. TTS uses `fp16`; STT uses `fp32`.
 
 ```
 client/src/voice/
-  stt.js         whisper.cpp process, streaming
-  vad.js         voice activity detection
-  wake.js        "Kairos" wake word
-  animation.js   terminal waveform
+  config.js      tunables, all env-overridable
+  capture.js     ffmpeg-static + dshow → 16kHz mono PCM
+  vad.js         adaptive-threshold speech edges
+  prosody.js     energy/pitch/rate vs a personal baseline
+  stt.js         Moonshine ONNX, lazy-loaded
+  wake.js        fuzzy "Kairos" matching + follow-up window
+  session.js     the loop that ties it together
+  cli.js         terminal commands
+  tts/           kokoro + sapi engines, playback, wav
 ```
 
-Flow: `/voice` toggles listening → mic 16kHz PCM → VAD finds speech edges → wake word "Kairos" arms it → whisper.cpp → text → **the same `sendGoal()` path the keyboard uses**.
+Flow: `voice` toggles listening → mic 16kHz PCM → VAD finds speech edges → wake word arms it → Moonshine → text → **the same `sendGoal()` path the keyboard uses**.
 
-Because it's just another connector, everything (browser, memory, ask_human, personas) works spoken on day one. Live waveform while listening, spinner while thinking. **Barge-in**: speaking during playback cancels it.
+### Endpointing — how she knows you stopped
+
+No fixed listening window. A 30-second timer either cuts you off or leaves you waiting. Instead:
+
+- **adaptive noise floor** — EMA of quiet frames; threshold is `max(floor × 3.2, absoluteFloor)`, so a loud room raises the bar instead of triggering constantly
+- **debounced start** — 120ms of loud frames before it counts as speech, so clicks and keystrokes don't arm it
+- **700ms hangover** — trailing silence ends the turn; long enough to think mid-sentence, short enough to feel instant
+- **300ms pre-roll** — a ring buffer of the frames *before* the trigger, so the first phoneme is never clipped
+- **min 280ms / max 20s** — discards clicks, caps runaway captures
+
+### Wake word
+
+Reuses the STT model rather than adding porcupine — one model, ~0 CPU while silent. Matching is **fuzzy by necessity**: the benchmark showed "Kairos" transcribed as *Kai Rose, Cairos, Cairo's, Chiros, Kyros*. An exact word list would miss constantly, so `wake.js` matches on edit distance, folds possessives, and allows a leading filler ("hey Kairos").
+
+Say just "Kairos" → opens an 8s window and she waits. Say "Kairos, do X" → runs immediately. Either way the window stays open while the conversation continues, so follow-ups need no wake word.
+
+**Barge-in**: speaking during playback cancels it. During a 400ms grace period after she starts talking, mic frames are ignored entirely so she never hears herself; after that a *higher* threshold (6× noise floor) is required, so only deliberate interruption cuts her off — and the interrupting words are kept, not discarded.
 
 ### TTS — personality in the voice
 
@@ -250,18 +282,35 @@ Flat TTS kills the persona. So the persona emits **delivery hints** inline, stri
 | `[fast]` | rushed, excited |
 | `…` `—` | natural micro-pauses (kept, never stripped) |
 
-`voiceMarkup.js` parses → segments with per-segment rate/pitch → engine. If parsing fails, strip all tags and speak plainly — **a bad tag must never break speech**.
+`markup.js` parses → segments with per-segment rate/pitch/volume → engine. If parsing fails, strip all tags and speak plainly — **a bad tag must never break speech**.
 
-**Engine** (benchmark on the real laptop before committing):
+**Engine: Kokoro-82M (ONNX) `fp16`**, with Windows SAPI as fallback. Piper was the original pick but needs a build toolchain; `kokoro-js` is prebuilt and sounds better. Measured on this laptop:
 
-| Option | Quality | Cost | Notes |
-|---|---|---|---|
-| **Piper** (local ONNX) | good | free, ~100MB | offline, fast, per-segment control. **Recommended default** |
-| Edge-TTS | very good | free | needs network, real SSML |
-| ElevenLabs | best | paid | best emotion |
-| Windows SAPI | poor | free | last-resort fallback |
+| dtype | speed (RTF) | RAM |
+|---|---|---|
+| **fp16** | **0.42** | **479MB** |
+| q4f16 | 0.47 | 502MB |
+| q4 | 0.52 | 678MB |
+| fp32 | 0.60 | 727MB |
+| q8 | 2.84 | 403MB |
 
-Map each persona → voice id + baseline rate/pitch. `aria` = warm female, moderate pace.
+RTF < 1 means synthesis outruns playback. Segments are **rendered one ahead while the current one plays**, so there's no gap between sentences — but only one synthesis runs at a time, since two in parallel just contend for CPU and delay the first sound.
+
+Persona → voice id + baseline rate/pitch, all five verified present in the model:
+
+| persona | voice |
+|---|---|
+| aria | `af_heart` |
+| zara | `af_bella` |
+| marcus | `am_michael` |
+| willow | `af_nicole` |
+| nova | `am_adam` |
+
+The cloud pushes a `persona` message on connect and whenever it changes, so the voice follows `/personality` without a restart.
+
+### Emotion
+
+A dedicated speech-emotion model costs RAM the budget can't spare for what it returns. Instead `prosody.js` measures energy, autocorrelation pitch, speech rate and pause ratio, and compares them against a **rolling baseline of how you normally sound** — absolute pitch says nothing, deviation from your own norm says a lot. It emits hints like *"quieter than usual, slower than usual"* appended to the goal, which compose with the word-based mood inference the prompt already does. Near-zero RAM, no extra model.
 
 ---
 
@@ -324,13 +373,11 @@ Browser steps additionally carry the snapshot (~1100), so a companion browser tu
 
 | | RAM |
 |---|---|
-| whisper.cpp base.en | ~140MB |
-| Piper + voice | ~100MB |
+| Moonshine-tiny `fp32` + Kokoro `fp16` + onnxruntime + Node | ~855MB measured, both models resident |
 | Chromium | ~400–600MB |
-| Node | ~80MB |
-| **Total** | **~0.9–1.1GB** — inside the 1–1.5GB target |
+| **Total** | **~1.3–1.5GB** — inside the 1.5–2GB budget |
 
-Load STT/TTS lazily on `/voice` so text sessions stay light.
+Measured, not estimated: a live 10s session with both models loaded sat at 855MB RSS. Models load lazily on `voice`, so text-only sessions stay at ~80MB.
 
 ---
 
@@ -350,7 +397,7 @@ Load STT/TTS lazily on `/voice` so text sessions stay light.
 
 ## 11. Open decisions
 
-1. TTS engine — benchmark Piper vs Edge-TTS on the actual laptop before writing `tts.js`
-2. Wake word — whisper on a rolling buffer (simple, heavier) vs porcupine (accurate, another dep)
+1. ~~TTS engine — benchmark Piper vs Edge-TTS~~ **Resolved: Kokoro-82M `fp16`**, SAPI fallback (2026-07-21)
+2. ~~Wake word — rolling-buffer STT vs porcupine~~ **Resolved: fuzzy match on the STT transcript**, no extra model (2026-07-21)
 3. Whether `aria` should have a *name* the user picks
 4. ~~Do digests run at local midnight, or lazily?~~ **Resolved: lazy**, on the first message that needs the day (shipped 2026-07-19)

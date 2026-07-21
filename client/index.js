@@ -7,7 +7,7 @@ import readline from "readline";
 
 reportPreflight(clientPreflight());
 
-console.log("Commands:\n  startKairos\n  exit\n");
+console.log("Commands:\n  startKairos\n  voice\n  exit\n");
 
 connectToCloud(env.CLOUD_URL || "ws://localhost:3000");
 
@@ -24,10 +24,13 @@ function askCommand() {
     if (normalized === "startkairos" || normalized === "kairos" || normalized === "start") {
       console.log("Launching Kairos Console...");
       launchKairosConsole();
+    } else if (normalized === "voice" || normalized === "kairosvoice" || normalized === "stt" || normalized === "tts") {
+      console.log("Launching Kairos Console with voice…");
+      launchKairosConsole({ voice: true });
     } else if (normalized === "exit" || normalized === "close") {
       shutdown();
     } else {
-      console.log("Unknown command. Available: startKairos, exit");
+      console.log("Unknown command. Available: startKairos, voice, exit");
     }
     askCommand();
   });

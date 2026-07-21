@@ -1,0 +1,51 @@
+const num = (name, fallback) => {
+  const raw = Number(process.env[name]);
+  return Number.isFinite(raw) ? raw : fallback;
+};
+
+const flag = (name, fallback) => {
+  const raw = process.env[name];
+  if (raw === undefined) return fallback;
+  return !/^(0|false|off|no)$/i.test(String(raw).trim());
+};
+
+export const SAMPLE_RATE = 16000;
+export const FRAME_MS = 20;
+export const FRAME_SAMPLES = (SAMPLE_RATE * FRAME_MS) / 1000;
+export const BYTES_PER_SAMPLE = 2;
+
+export const voiceConfig = {
+  enabled: flag("VOICE", false),
+  wakeWords: String(process.env.VOICE_WAKE_WORDS || "kairos,kyros,cairos,khairos,kyrios")
+    .split(",")
+    .map(w => w.trim().toLowerCase())
+    .filter(Boolean),
+  requireWake: flag("VOICE_REQUIRE_WAKE", true),
+  followUpMs: num("VOICE_FOLLOW_UP_MS", 8000),
+  device: process.env.VOICE_INPUT_DEVICE || null,
+  speak: flag("VOICE_SPEAK", true),
+  ttsEngine: process.env.VOICE_TTS_ENGINE || "auto",
+  sttModel: process.env.VOICE_STT_MODEL || "onnx-community/moonshine-tiny-ONNX",
+  sttQuantization: process.env.VOICE_STT_DTYPE || "fp32",
+  ttsModel: process.env.VOICE_TTS_MODEL || "onnx-community/Kokoro-82M-v1.0-ONNX",
+  ttsQuantization: process.env.VOICE_TTS_DTYPE || "fp16",
+  modelCache: process.env.VOICE_MODEL_CACHE || null
+};
+
+export const vadConfig = {
+  frameMs: FRAME_MS,
+  noiseRatio: num("VOICE_NOISE_RATIO", 3.2),
+  absoluteFloor: num("VOICE_ABS_FLOOR", 180),
+  startMs: num("VOICE_START_MS", 120),
+  hangoverMs: num("VOICE_HANGOVER_MS", 700),
+  preRollMs: num("VOICE_PREROLL_MS", 300),
+  minSpeechMs: num("VOICE_MIN_SPEECH_MS", 280),
+  maxUtteranceMs: num("VOICE_MAX_UTTERANCE_MS", 20000),
+  bargeInRatio: num("VOICE_BARGE_RATIO", 6),
+  bargeInMs: num("VOICE_BARGE_MS", 320),
+  noiseAdapt: num("VOICE_NOISE_ADAPT", 0.05)
+};
+
+export function msToFrames(ms) {
+  return Math.max(1, Math.round(ms / FRAME_MS));
+}

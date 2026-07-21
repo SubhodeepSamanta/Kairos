@@ -2,13 +2,20 @@ import { env } from "../../config/env.js";
 import { createInput } from "./input.js";
 import { colors as C } from "./menu.js";
 import { connectToCloud, sendGoal, sendHumanReply, requestSuggestions } from "./transport.js";
+import { createVoiceController, isVoiceCommand } from "../../voice/cli.js";
+import { voiceConfig } from "../../voice/config.js";
 
 console.clear();
 console.log(`${C.bold}${C.cyan}  Kairos${C.reset}`);
-console.log(`${C.dim}  type / for commands · just talk otherwise${C.reset}\n`);
+console.log(`${C.dim}  type / for commands · voice to talk out loud${C.reset}\n`);
 
 let pendingAskGoalId = null;
 let waitingForAnswer = false;
+
+const voice = createVoiceController({
+  write: (text) => ui.write(`${C.dim}${text}${C.reset}`),
+  sendGoal: (text) => sendGoal(text)
+});
 
 const ui = createInput({
   onSubmit(text) {
@@ -19,6 +26,11 @@ const ui = createInput({
       sendHumanReply(goalId, text);
       return;
     }
+    if (isVoiceCommand(text)) {
+      voice.handle(text).finally(() => ui.prompt());
+      return;
+    }
+    voice.interrupt();
     sendGoal(text);
   },
   onSuggest(text) {
@@ -34,10 +46,15 @@ function say(text, isError = false) {
 connectToCloud(env.CLOUD_URL || "ws://localhost:3000", {
   onReady() {
     ui.prompt();
+    if (voiceConfig.enabled) voice.handle("voice").finally(() => ui.prompt());
   },
-  onResult(result, success) {
-    say(result, !success);
+  onResult(result, success, spoken) {
+    const heard = voice.speak(spoken || result);
+    say(heard || result, !success);
     ui.prompt();
+  },
+  onPersona(persona) {
+    if (persona?.voice) voice.setPersona(persona.voice);
   },
   onStatus(status) {
     ui.write(`${C.dim}  ${status}${C.reset}`);

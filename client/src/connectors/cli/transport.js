@@ -20,7 +20,8 @@ export function connectToCloud(url, newHandlers) {
       return;
     }
     if (message.type === "registered" && handlers.onReady) handlers.onReady();
-    else if (message.type === "goal_result" && handlers.onResult) handlers.onResult(message.result, message.success);
+    else if (message.type === "goal_result" && handlers.onResult) handlers.onResult(message.result, message.success, message.spoken);
+    else if (message.type === "persona" && handlers.onPersona) handlers.onPersona(message.persona);
     else if (message.type === "goal_status" && handlers.onStatus) handlers.onStatus(message.status);
     else if (message.type === "suggestions" && handlers.onSuggestions) handlers.onSuggestions(message.suggestions);
     else if (message.type === "human_input_request" && handlers.onAsk) handlers.onAsk(message.prompt, message.goalId, message.secret);

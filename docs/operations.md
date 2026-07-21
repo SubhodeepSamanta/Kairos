@@ -113,8 +113,4 @@ To go further: another free key (Gemini, Cerebras) as a third primary, or $5 of 
 
 ## Known cleanup
 
-The legacy `memories` table in Postgres is **untouched and unused** — Kairos now writes `kairos_facts`. It still contains junk from the old system including a plaintext `password: 123` row. Drop it by running (once, then delete the script):
-
-```bash
-cd cloud && node drop-legacy-table.cjs
-```
+The legacy `memories` table from the old system (which contained a plaintext `password: 123` row) is dropped automatically on cloud startup — `connectMemoryDb` runs `DROP TABLE IF EXISTS memories` before creating the `kairos_*` tables.
