@@ -1,5 +1,6 @@
 import { voiceConfig, SAMPLE_RATE } from "./config.js";
 import { sttWanted, sttSettled } from "./runtimeOrder.js";
+import { conditionForStt } from "./audio.js";
 
 const MIN_SAMPLES = SAMPLE_RATE * 0.2;
 const MAX_SAMPLES = SAMPLE_RATE * 30;
@@ -68,7 +69,8 @@ export function createTranscriber() {
       const asr = await asrPromise;
       if (!asr) throw new Error("the listening model is not loaded yet");
 
-      const samples = pcm.length > MAX_SAMPLES ? pcm.subarray(0, MAX_SAMPLES) : pcm;
+      const clipped = pcm.length > MAX_SAMPLES ? pcm.subarray(0, MAX_SAMPLES) : pcm;
+      const samples = conditionForStt(clipped);
       const result = await asr(pcmToFloat(samples));
       const text = String(result?.text || "").trim();
 

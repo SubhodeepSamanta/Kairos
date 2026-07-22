@@ -33,6 +33,13 @@ export const voiceConfig = {
   modelCache: process.env.VOICE_MODEL_CACHE || null
 };
 
+export const sttGainConfig = {
+  enabled: flag("VOICE_STT_GAIN", true),
+  targetPeak: Math.min(0.99, Math.max(0.1, num("VOICE_STT_TARGET_PEAK", 0.7))),
+  maxGain: Math.max(1, num("VOICE_STT_MAX_GAIN", 8)),
+  noiseFloor: Math.max(1, num("VOICE_STT_GAIN_FLOOR", 200))
+};
+
 export const vadConfig = {
   frameMs: FRAME_MS,
   noiseRatio: num("VOICE_NOISE_RATIO", 3.2),
