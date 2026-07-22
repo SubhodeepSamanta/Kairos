@@ -1,4 +1,5 @@
 import { env } from "./src/config/env.js";
+import { installCrashHandlers } from "./src/utils/crashLog.js";
 import { cloudPreflight, reportPreflight } from "./src/config/preflight.js";
 import { initMemory } from "./src/memory/store.js";
 import { hydrateCompanionFromDb } from "./src/companion/hydrate.js";
@@ -10,6 +11,8 @@ import path from "path";
 import { startWebSocketServer, runScheduledGoal } from "./src/websocket/server.js";
 import { startTelegramBot } from "./src/connectors/telegram/telegram.js";
 import { startScheduler } from "./src/schedule/scheduler.js";
+
+installCrashHandlers();
 
 if (!reportPreflight(cloudPreflight())) {
   process.exit(1);

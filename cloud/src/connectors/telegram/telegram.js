@@ -94,15 +94,28 @@ export function startTelegramBot(token) {
   ).catch(() => {});
 
   bot.on("callback_query", async (q) => {
-    const chatId = q.message?.chat?.id;
-    const data = q.data || "";
-    if (!chatId || !data.startsWith("persona:")) return;
-    const reply = await runCommand(IDENTITY, `/personality ${data.split(":")[1]}`);
-    try { await bot.answerCallbackQuery(q.id); } catch {}
-    await say(chatId, reply);
+    try {
+      const chatId = q.message?.chat?.id;
+      const data = q.data || "";
+      if (!chatId || !data.startsWith("persona:")) return;
+      const reply = await runCommand(IDENTITY, `/personality ${data.split(":")[1]}`);
+      try { await bot.answerCallbackQuery(q.id); } catch {}
+      await say(chatId, reply);
+    } catch (err) {
+      console.log(`[TELEGRAM] callback failed: ${err.message}`);
+    }
   });
 
   bot.on("message", async (msg) => {
+    try {
+      await handleMessage(msg);
+    } catch (err) {
+      console.log(`[TELEGRAM] message failed: ${err.message}`);
+      say(msg?.chat?.id, "something broke handling that — try again.");
+    }
+  });
+
+  async function handleMessage(msg) {
     const text = msg.text?.trim();
     const chatId = msg.chat.id;
     if (!text) return;
@@ -143,7 +156,7 @@ export function startTelegramBot(token) {
       onStatus: (s) => status.update(s),
       onResult: (success, result) => status.finish(success, result)
     });
-  });
+  }
 
   console.log("[TELEGRAM] Bot started");
   return bot;
