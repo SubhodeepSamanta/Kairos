@@ -142,6 +142,14 @@ Text files are read directly (capped, and marked truncated rather than silently 
 
 Writing is restricted to text formats. `read_file` and `list_files` are idempotent, so re-running one is blocked the same way `list_browsers` is.
 
+## Voice
+
+`voice` in the console turns on listening and speaking; `voice off` stops. Moonshine-base transcribes, Kokoro-82M (fp16) speaks — both picked by benchmark on this laptop, not from docs. The wake-word decision and model reasoning live in `companion.md`.
+
+Two things make what she hears land better. Captured audio is **conditioned before the model** — DC offset removed, then peak-normalised toward a target with a capped gain and a noise floor — so a quiet or distant mic transcribes instead of coming back empty. The VAD and noise-transcript filters still run on the **raw** audio, so only speech that already passed the gates is ever amplified. And a long reply is **split into sentences** before synthesis, so she starts speaking on the first sentence while the rest render — the wait is one sentence, not the whole paragraph.
+
+You can also tell her **how** to talk, out loud, mid-conversation: "slow down", "faster", "louder", "quieter", "back to normal". She applies it at once, confirms by saying the change at the new setting, and remembers it across restarts (`client/data/voice.json`, clamped on load). The phrases are short and exact, so "slow down the video" stays a goal, not a voice tweak. `again` repeats her last line; "stop" / "never mind" shuts her up and cancels a running goal.
+
 ## Two onnx runtimes in one process
 
 `kokoro-js` bundles its own `@huggingface/transformers` and `onnxruntime`, older than the client's. Initialising Kokoro's runtime **before** Moonshine's hard-crashes the process (`requested API version [24] ... only [1, 21] supported`). npm `overrides` cannot fix it — kokoro-js pins `^3.5.1` and refuses to install against 4.x.
