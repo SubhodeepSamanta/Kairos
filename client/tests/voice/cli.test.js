@@ -111,7 +111,67 @@ describe("voice controller", () => {
     const { ctrl, session } = controller();
     await ctrl.handle("voice");
     ctrl.setPersona({ voice: "am_michael" });
-    expect(session.setPersona).toHaveBeenCalledWith({ voice: "am_michael" });
+    expect(session.setPersona).toHaveBeenCalledWith(
+      expect.objectContaining({ voice: "am_michael" })
+    );
+  });
+});
+
+describe("spoken delivery controls", () => {
+  const said = (fire, text) => fire().onTranscript({ text, tone: null });
+
+  it("slows her down out loud instead of sending it as a goal", async () => {
+    const { ctrl, session, sent, fire } = controller();
+    await ctrl.handle("voice");
+    session.setPersona.mockClear();
+
+    said(fire, "slow down");
+
+    expect(sent).toHaveLength(0);
+    const voice = session.setPersona.mock.calls.at(-1)[0];
+    expect(voice.rate).toBeLessThan(1);
+    expect(session.speak).toHaveBeenCalledWith("okay, slower.");
+  });
+
+  it("faster then slower cancels back toward normal", async () => {
+    const { ctrl, session, fire } = controller();
+    await ctrl.handle("voice");
+
+    said(fire, "faster");
+    const fast = session.setPersona.mock.calls.at(-1)[0].rate;
+    said(fire, "slow down");
+    const back = session.setPersona.mock.calls.at(-1)[0].rate;
+
+    expect(fast).toBeGreaterThan(1);
+    expect(back).toBeCloseTo(1, 5);
+  });
+
+  it("quieter lowers the volume it hands to the session", async () => {
+    const { ctrl, session, fire } = controller();
+    await ctrl.handle("voice");
+
+    said(fire, "quieter");
+    expect(session.setPersona.mock.calls.at(-1)[0].volume).toBeLessThan(1);
+  });
+
+  it("back to normal resets both", async () => {
+    const { ctrl, session, fire } = controller();
+    await ctrl.handle("voice");
+    said(fire, "faster");
+    said(fire, "quieter");
+
+    said(fire, "back to normal");
+    const voice = session.setPersona.mock.calls.at(-1)[0];
+    expect(voice.rate).toBe(1);
+    expect(voice.volume).toBe(1);
+  });
+
+  it("keeps a real request that merely mentions speed as a goal", async () => {
+    const { ctrl, sent, fire } = controller();
+    await ctrl.handle("voice");
+
+    said(fire, "slow down the youtube video");
+    expect(sent[0].text).toBe("slow down the youtube video");
   });
 });
 

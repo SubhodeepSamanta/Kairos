@@ -2,6 +2,9 @@ import { createVoiceSession } from "./session.js";
 import { stripMarkup } from "./markup.js";
 import { listInputDevices } from "./capture.js";
 import { isStopPhrase, isRepeatPhrase } from "./stopwords.js";
+import { deliveryCommand, applyDelivery } from "./controls.js";
+import { loadDelivery, saveDelivery } from "./preferences.js";
+import { DEFAULT_VOICE } from "./tts/index.js";
 
 const VOICE_COMMAND = /^\/?(?:voice|stt|tts|talk|listen)$/i;
 const VOICE_OFF = /^\/?(?:voice|stt|tts)\s+(?:off|stop)$/i;
@@ -15,6 +18,8 @@ export const LOCAL_COMMANDS = [
   ["voice test", "check she can hear you"],
   ["voice devices", "list microphones"],
   ["again", "say the last reply again"],
+  ["slower / faster", "say it out loud — change how fast she talks"],
+  ["louder / quieter", "say it out loud — change how loud she is"],
   ["/stop", "stop whatever she is doing"]
 ];
 
@@ -96,8 +101,32 @@ export function createVoiceController({ write, sendGoal, onModeChange, onCancel,
   let testing = false;
   let persona = null;
   let lastSpoken = null;
+  let delivery = loadDelivery();
 
   const line = (text) => { if (text) write(text); };
+
+  function effectiveVoice() {
+    const base = persona || DEFAULT_VOICE;
+    return {
+      ...base,
+      rate: (base.rate ?? 1) * delivery.rate,
+      volume: (base.volume ?? 1) * delivery.volume
+    };
+  }
+
+  function handleDelivery(kind, text) {
+    const result = applyDelivery(delivery, kind);
+    if (!result) return;
+    delivery = result.delivery;
+    saveDelivery(delivery);
+    line(`  you: ${text}`);
+    if (session?.isRunning()) {
+      session.setPersona(effectiveVoice());
+      session.speak(result.confirm).catch(() => {});
+    } else {
+      line(`  ${result.confirm}`);
+    }
+  }
 
   function build() {
     return sessionFactory({
@@ -105,6 +134,11 @@ export function createVoiceController({ write, sendGoal, onModeChange, onCancel,
       onError: (err) => line(`  voice: ${err.message}`),
       onListening: () => {},
       onTranscript: ({ text, tone }) => {
+        const deliver = deliveryCommand(text);
+        if (deliver) {
+          handleDelivery(deliver, text);
+          return;
+        }
         if (isRepeatPhrase(text)) {
           line(`  you: ${text}`);
           if (lastSpoken) session?.speak(lastSpoken).catch(() => {});
@@ -192,7 +226,7 @@ export function createVoiceController({ write, sendGoal, onModeChange, onCancel,
       starting = true;
       try {
         session = session || build();
-        if (persona) session.setPersona(persona);
+        session.setPersona(effectiveVoice());
         const ok = await session.start();
         onModeChange?.(Boolean(ok));
       } finally {
@@ -211,7 +245,7 @@ export function createVoiceController({ write, sendGoal, onModeChange, onCancel,
     setPersona(voice) {
       if (!voice) return;
       persona = voice;
-      session?.setPersona(voice);
+      session?.setPersona(effectiveVoice());
     },
 
     speak(text) {

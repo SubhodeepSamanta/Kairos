@@ -99,7 +99,8 @@ export function createSpeaker({ onStatus, onError, engineFactory } = {}) {
 
       const segments = speakableSegments(spoken, {
         rate: personaVoice.rate ?? 1,
-        pitch: personaVoice.pitch ?? 1
+        pitch: personaVoice.pitch ?? 1,
+        volume: personaVoice.volume ?? 1
       });
       if (!segments.length) return false;
 
