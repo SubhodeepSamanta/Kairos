@@ -74,7 +74,7 @@ export async function typeText(rawText, element, submit = false) {
         await humanType(page, null, text).catch(() => {});
         const afterActive = await getActiveElementInfo();
         value = afterActive?.value || "";
-        success = value.includes(text) || value !== active.value;
+        success = Boolean(text) && value.includes(text);
       } else {
         success = false;
       }
