@@ -1,10 +1,11 @@
 import { env } from "./src/config/env.js";
+import { installCrashHandlers } from "./src/utils/crashLog.js";
 import { clientPreflight, reportPreflight } from "./src/config/preflight.js";
 import { connectToCloud } from "./src/websocket/client.js";
-import { launchKairosConsole } from "./src/connectors/cli/launcher.js";
 import { closeBrowser } from "./src/automation/browser/browser.js";
 import readline from "readline";
 
+installCrashHandlers();
 reportPreflight(clientPreflight());
 
 console.log("Commands:\n  startKairos\n  voice\n  exit\n");
@@ -16,22 +17,33 @@ const rl = readline.createInterface({
   output: process.stdout
 });
 
+function startConsole({ voice = false } = {}) {
+  rl.close();
+  if (voice) process.env.VOICE = "1";
+  import("./src/connectors/cli/index.js").catch((err) => {
+    console.error(`Could not start the console: ${err.message}`);
+    process.exit(1);
+  });
+}
+
 function askCommand() {
   rl.question("", (input) => {
     const cmd = input.trim();
     const normalized = cmd.toLowerCase().replace(/\s+/g, "");
-    
+
     if (normalized === "startkairos" || normalized === "kairos" || normalized === "start") {
-      console.log("Launching Kairos Console...");
-      launchKairosConsole();
-    } else if (normalized === "voice" || normalized === "kairosvoice" || normalized === "stt" || normalized === "tts") {
-      console.log("Launching Kairos Console with voice…");
-      launchKairosConsole({ voice: true });
-    } else if (normalized === "exit" || normalized === "close") {
-      shutdown();
-    } else {
-      console.log("Unknown command. Available: startKairos, voice, exit");
+      startConsole();
+      return;
     }
+    if (["voice", "kairosvoice", "stt", "tts", "enablevoice", "voiceon"].includes(normalized)) {
+      startConsole({ voice: true });
+      return;
+    }
+    if (normalized === "exit" || normalized === "close") {
+      shutdown();
+      return;
+    }
+    console.log("Unknown command. Available: startKairos, voice, exit");
     askCommand();
   });
 }

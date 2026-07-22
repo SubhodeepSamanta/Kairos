@@ -1,9 +1,10 @@
 import readline from "readline";
 import { renderMenu, clearMenu, colors as C } from "./menu.js";
+import { createHistory } from "./history.js";
 
 const PROMPT = `${C.bold}${C.cyan}kairos${C.reset} ${C.dim}›${C.reset} `;
 
-export function createInput({ onSubmit, onSuggest }) {
+export function createInput({ onSubmit, onSuggest, onExit, history = createHistory() }) {
   const out = process.stdout;
   const input = process.stdin;
 
@@ -82,7 +83,9 @@ export function createInput({ onSubmit, onSuggest }) {
 
     if (key.ctrl && key.name === "c") {
       out.write("\n");
-      process.exit(0);
+      if (onExit) onExit();
+      else process.exit(0);
+      return;
     }
 
     if (locked) return;
@@ -107,8 +110,29 @@ export function createInput({ onSubmit, onSuggest }) {
       buffer = "";
       cursor = 0;
       if (!text) { redrawLine(); return; }
+      history.add(text);
       locked = true;
       onSubmit(text);
+      return;
+    }
+
+    if (key.name === "up" && !menu.open) {
+      const previous = history.up(buffer);
+      if (previous !== null) {
+        buffer = previous;
+        cursor = buffer.length;
+        redrawLine();
+      }
+      return;
+    }
+
+    if (key.name === "down" && !menu.open) {
+      const next = history.down();
+      if (next !== null) {
+        buffer = next;
+        cursor = buffer.length;
+        redrawLine();
+      }
       return;
     }
 
@@ -116,6 +140,7 @@ export function createInput({ onSubmit, onSuggest }) {
       if (cursor > 0) {
         buffer = buffer.slice(0, cursor - 1) + buffer.slice(cursor);
         cursor--;
+        history.resetCursor();
         redrawLine();
         maybeSuggest();
       }
@@ -128,6 +153,7 @@ export function createInput({ onSubmit, onSuggest }) {
     if (str && !key.ctrl && !key.meta && str >= " ") {
       buffer = buffer.slice(0, cursor) + str + buffer.slice(cursor);
       cursor += str.length;
+      history.resetCursor();
       redrawLine();
       maybeSuggest();
     }

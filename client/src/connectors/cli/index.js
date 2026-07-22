@@ -5,6 +5,8 @@ import { connectToCloud, sendGoal, sendHumanReply, requestSuggestions, sendVoice
 import { createGoalRouter } from "./router.js";
 import { createVoiceController, isVoiceCommand, localCommandHelp } from "../../voice/cli.js";
 import { voiceConfig } from "../../voice/config.js";
+import { voiceWanted } from "../../voice/preferences.js";
+import { closeBrowser } from "../../automation/browser/browser.js";
 
 console.clear();
 console.log(`${C.bold}${C.cyan}  Kairos${C.reset}`);
@@ -52,6 +54,14 @@ const ui = createInput({
   },
   onSuggest(text) {
     requestSuggestions(text);
+  },
+  onExit() {
+    voice.stop();
+    const bail = setTimeout(() => process.exit(0), 5000);
+    closeBrowser().finally(() => {
+      clearTimeout(bail);
+      process.exit(0);
+    });
   }
 });
 
@@ -62,12 +72,16 @@ function say(text, isError = false) {
 
 connectToCloud(env.CLOUD_URL || "ws://localhost:3000", {
   onReady() {
+    if (router.isBusy() || router.isAwaitingAnswer()) {
+      router.finish();
+      ui.write(`${C.dim}  the cloud restarted — whatever was running is gone, ask again${C.reset}`);
+    }
     ui.prompt();
     if (voice.isActive()) {
       sendVoiceMode(true);
       return;
     }
-    if (voiceConfig.enabled) voice.handle("voice").finally(() => ui.prompt());
+    if (voiceConfig.enabled || voiceWanted()) voice.handle("voice").finally(() => ui.prompt());
   },
   onLink(note) {
     ui.write(`${C.dim}  ${note}${C.reset}`);
