@@ -42,7 +42,7 @@ Both models were chosen by benchmark on the actual laptop, not from the docs: wh
 An honest gap analysis against the assistants Kairos is measured against, with phases A–G. The short version: an eval that runs unattended, an approval gate on consequential actions, real cost accounting, and file handling all matter more than desktop automation — and desktop automation inherits its safety rails from them, so building it first means building them twice.
 
 ### Phase 6 — Desktop automation
-The stubs were deleted in Phase 0 (they were empty). Rebuild as real actions: `open_app`, `focus_window`, `type_into_app`, file ops. Same rule as the browser — LLM decides, code executes. Windows UIA via PowerShell or a native binding.
+**Full plan in `desktop-automation.md`** — cross-platform research, architecture, and phases D1–D8 with tests and done-criteria. The short version: pre-rebuild stubs still exist (`automation/desktop/windows/apps.js` launches; `focusApp` is a no-op) but the cloud never emits desktop actions. The chosen path is an **OS-native CLI bridge** (Windows UIA via PowerShell first, then macOS AX via osascript, then Linux AT-SPI2) — not a native Node binding, because those need the build toolchain this laptop lacks. Accessibility tree is the primary "inner" path; screenshot+OCR is the backup. Same rule as the browser — LLM decides, code executes — and it reuses the approval gate, file sandbox, and eval that already exist.
 
 ### Phase 7 — Hosting
 Cloud → Render. Needs: `DATABASE_URL` (already Postgres), `PORT` from env (done), keep-alive ping, and a public WS URL for the client's `CLOUD_URL`. Client stays on the laptop — it must, since it owns the browser and secrets.
