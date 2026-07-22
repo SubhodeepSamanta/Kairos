@@ -86,6 +86,7 @@ export async function clickText(
 
   if (element) {
     const locator = getElement(element);
+    const info = getElementInfo(element);
 
     if (!locator) {
       return {
@@ -101,7 +102,6 @@ export async function clickText(
       await locator.click({ timeout: 5000 });
     } catch (err) {
       console.log(`[CLICK] Direct stable ID click failed: "${err.message}". Attempting fallback...`);
-      const info = getElementInfo(element);
       if (info && info.text) {
         const fallbacks = [];
         if (info.role === "button") {
@@ -174,6 +174,7 @@ export async function clickText(
     return {
       success,
       clicked: `element ${element}`,
+      label: info?.text || null,
       newTabOpened: tabOpened,
       reason: success ? undefined : "Click registered but caused no state changes (URL/DOM/Title/Tab/Focus/Media/Attributes/Overlay/ActiveElement)"
     };

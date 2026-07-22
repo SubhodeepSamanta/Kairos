@@ -86,7 +86,9 @@ function extractData(action, result) {
     case "type":
       return { typed: result.text, submitted: result.submitted };
     case "click":
-      return result.newTabOpened ? { newTabOpened: true } : undefined;
+      return result.newTabOpened || result.label
+        ? { newTabOpened: result.newTabOpened || undefined, label: result.label || undefined }
+        : undefined;
     case "select_option":
       return { selected: result.selected };
     case "open_for_user":
