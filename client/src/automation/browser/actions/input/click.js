@@ -6,7 +6,7 @@ import {
 } from "../../elements/registry.js";
 import { moveToElement, thinkBeforeAction } from "../../humanize.js";
 
-function detectChanges(before, after, tabOpened) {
+export function detectChanges(before, after, tabOpened) {
   return (
     before.url !== after.url ||
     before.title !== after.title ||
@@ -50,7 +50,6 @@ export async function clickText(
       const media = await page.evaluate(() => {
         return Array.from(document.querySelectorAll("video, audio")).map(el => ({
           paused: el.paused,
-          currentTime: el.currentTime,
           volume: el.volume,
           muted: el.muted
         }));
