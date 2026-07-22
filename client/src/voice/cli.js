@@ -3,11 +3,12 @@ import { stripMarkup } from "./markup.js";
 import { listInputDevices } from "./capture.js";
 import { isStopPhrase, isRepeatPhrase } from "./stopwords.js";
 import { deliveryCommand, applyDelivery } from "./controls.js";
-import { loadDelivery, saveDelivery } from "./preferences.js";
+import { loadDelivery, saveDelivery, saveVoiceWanted } from "./preferences.js";
 import { DEFAULT_VOICE } from "./tts/index.js";
 
 const VOICE_COMMAND = /^\/?(?:voice|stt|tts|talk|listen)$/i;
-const VOICE_OFF = /^\/?(?:voice|stt|tts)\s+(?:off|stop)$/i;
+const VOICE_ON = /^\/?(?:enable|start|activate|turn on)\s+voice$|^\/?voice\s+(?:on|enable|start)$/i;
+const VOICE_OFF = /^\/?(?:voice|stt|tts)\s+(?:off|stop|disable)$|^\/?(?:disable|stop|turn off)\s+voice$/i;
 const VOICE_DEVICES = /^\/?(?:voice|mic)\s+devices$/i;
 const VOICE_TEST = /^\/?(?:voice|mic)\s+test$/i;
 const VOICE_AGAIN = /^\/?(?:again|repeat)$/i;
@@ -30,7 +31,7 @@ export function localCommandHelp() {
 
 export function isVoiceCommand(text) {
   const line = String(text || "").trim();
-  return VOICE_COMMAND.test(line) || VOICE_OFF.test(line)
+  return VOICE_COMMAND.test(line) || VOICE_ON.test(line) || VOICE_OFF.test(line)
     || VOICE_DEVICES.test(line) || VOICE_TEST.test(line) || VOICE_AGAIN.test(line);
 }
 
@@ -206,14 +207,21 @@ export function createVoiceController({ write, sendGoal, onModeChange, onCancel,
       }
 
       if (VOICE_OFF.test(text)) {
+        saveVoiceWanted(false);
         if (!session?.isRunning()) line("  voice is already off");
         else { session.stop(); onModeChange?.(false); }
         return true;
       }
 
-      if (!VOICE_COMMAND.test(text)) return false;
+      const explicitOn = VOICE_ON.test(text);
+      if (!VOICE_COMMAND.test(text) && !explicitOn) return false;
 
       if (session?.isRunning()) {
+        if (explicitOn) {
+          line("  voice is already on");
+          return true;
+        }
+        saveVoiceWanted(false);
         session.stop();
         onModeChange?.(false);
         return true;
@@ -228,6 +236,7 @@ export function createVoiceController({ write, sendGoal, onModeChange, onCancel,
         session = session || build();
         session.setPersona(effectiveVoice());
         const ok = await session.start();
+        if (ok) saveVoiceWanted(true);
         onModeChange?.(Boolean(ok));
       } finally {
         starting = false;

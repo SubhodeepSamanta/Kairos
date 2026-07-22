@@ -8,6 +8,8 @@ import { createSpeaker, DEFAULT_VOICE } from "./tts/index.js";
 
 const BARGE_IN_GRACE_MS = 400;
 const CALIBRATION_TIMEOUT_MS = 6000;
+const ECHO_LEARN_MS = 700;
+const ECHO_HEADROOM = 1.5;
 
 export function createVoiceSession({
   onTranscript,
@@ -33,6 +35,10 @@ export function createVoiceSession({
   let persona = DEFAULT_VOICE;
   let speakingUntil = 0;
   let bargedIn = false;
+  let replying = false;
+  let replyStartedAt = 0;
+  let echoPeak = 0;
+  let bargeRun = 0;
   let calibrating = false;
   let ambientPeak = 0;
   let ambientFrames = 0;
@@ -120,22 +126,33 @@ export function createVoiceSession({
   }
 
   function onFrame(frame) {
+    const level = frameEnergy(frame);
     if (calibrating) {
-      const level = frameEnergy(frame);
       if (level > ambientPeak) ambientPeak = level;
       ambientFrames++;
       return;
     }
-    onLevel?.(frameEnergy(frame));
+    onLevel?.(level);
 
-    if (speaker.isSpeaking()) {
+    if (replying || speaker.isSpeaking()) {
+      const sinceReply = Date.now() - replyStartedAt;
+      if (sinceReply <= ECHO_LEARN_MS) {
+        if (level > echoPeak) echoPeak = level;
+        return;
+      }
       if (Date.now() < speakingUntil) return;
-      const interrupt = vad.push(frame);
-      if (interrupt?.type === "speech_start") {
-        bargedIn = true;
-        speaker.stop();
-        vad.setBargeIn(false);
-        status("okay, go ahead");
+
+      const gate = Math.max(vad.floor() * vadConfig.bargeInRatio, echoPeak * ECHO_HEADROOM);
+      if (level > gate) {
+        bargeRun++;
+        if (bargeRun >= msToFrames(vadConfig.bargeInMs)) {
+          bargedIn = true;
+          bargeRun = 0;
+          speaker.stop();
+          status("okay, go ahead");
+        }
+      } else {
+        bargeRun = 0;
       }
       return;
     }
@@ -162,11 +179,14 @@ export function createVoiceSession({
       if (!voiceConfig.speak || !text) return false;
       speakingUntil = Date.now() + BARGE_IN_GRACE_MS;
       bargedIn = false;
-      vad.setBargeIn(true);
+      replying = true;
+      replyStartedAt = Date.now();
+      echoPeak = 0;
+      bargeRun = 0;
       try {
         return await speaker.speak(text, persona);
       } finally {
-        vad.setBargeIn(false);
+        replying = false;
         if (!bargedIn) vad.reset();
         bargedIn = false;
       }
@@ -186,8 +206,6 @@ export function createVoiceSession({
         fail(new Error(`Could not load the listening model: ${err.message}`));
         return false;
       }
-
-      speaker.prepare(status).catch(() => {});
 
       try {
         mic = await microphoneFactory({
@@ -210,12 +228,16 @@ export function createVoiceSession({
         if (ambientFrames > 0) {
           const floor = vad.calibrate(ambientPeak);
           status(`room noise ${ambientPeak.toFixed(0)} · speak above ${floor}`);
+          if (floor >= vadConfig.maxFloor) {
+            status(`the room sounded loud while I calibrated — if she cannot hear you, run "voice test"`);
+          }
         } else {
           status("could not sample the room — using the default trigger level");
         }
       }
 
       running = true;
+      speaker.prepare(status).catch(() => {});
       status(requireWake
         ? `listening on ${mic.device} — say "Kairos" to start`
         : `listening on ${mic.device} — just talk`);

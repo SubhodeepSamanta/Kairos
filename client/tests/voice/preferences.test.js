@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { sanitizeDelivery, loadDelivery, saveDelivery } from "../../src/voice/preferences.js";
+import { sanitizeDelivery, loadDelivery, saveDelivery, voiceWanted, saveVoiceWanted } from "../../src/voice/preferences.js";
 import { DELIVERY_DEFAULT } from "../../src/voice/controls.js";
 
 describe("sanitizeDelivery", () => {
@@ -23,5 +23,10 @@ describe("delivery persistence under test", () => {
   it("loads the default and never touches disk", () => {
     expect(loadDelivery()).toEqual(DELIVERY_DEFAULT);
     expect(() => saveDelivery({ rate: 0.85, volume: 1 })).not.toThrow();
+  });
+
+  it("voice stickiness is off by default and safe to write", () => {
+    expect(voiceWanted()).toBe(false);
+    expect(() => saveVoiceWanted(true)).not.toThrow();
   });
 });

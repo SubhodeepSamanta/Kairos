@@ -226,6 +226,50 @@ describe("voice session", () => {
   });
 });
 
+describe("start order", () => {
+  it("warms the speaking voice only after the microphone is already listening", async () => {
+    const order = [];
+    const session = createVoiceSession({
+      speakerFactory: () => ({
+        isSpeaking: () => false, speak: async () => true, stop: () => {},
+        prepare: async () => { order.push("prepare"); return true; },
+        engineName: () => "fake"
+      }),
+      transcriberFactory: () => ({
+        ready: async () => { order.push("ears"); return true; },
+        transcribe: async () => null
+      }),
+      microphoneFactory: async () => { order.push("mic"); return { device: "Fake", stop: () => {} }; },
+      calibrationMs: 0
+    });
+
+    expect(await session.start()).toBe(true);
+    expect(order.indexOf("ears")).toBeLessThan(order.indexOf("mic"));
+    expect(order.indexOf("mic")).toBeLessThan(order.indexOf("prepare"));
+  });
+});
+
+describe("echo protection", () => {
+  it("does not interrupt herself when the mic hears her own reply", async () => {
+    const h = harness({ speaking: true });
+    await h.session.start();
+
+    h.session.speak("a long reply she is saying out loud");
+    h.push(frame(3000), 30);
+    await new Promise((r) => setTimeout(r, 750));
+
+    h.push(frame(3000), 40);
+    await settle();
+    expect(h.speaker.stop).not.toHaveBeenCalled();
+    expect(h.events.transcripts).toHaveLength(0);
+
+    h.push(frame(8000), 40);
+    await settle();
+    expect(h.speaker.stop).toHaveBeenCalled();
+    expect(h.events.statuses).toContain("okay, go ahead");
+  });
+});
+
 describe("noise rejection", () => {
   function noisy(amp) {
     const f = new Int16Array(FRAME_SAMPLES);

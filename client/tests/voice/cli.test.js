@@ -27,15 +27,38 @@ function controller() {
 
 describe("voice commands", () => {
   it("recognises the ways someone asks for voice", () => {
-    for (const cmd of ["voice", "/voice", "tts", "stt", "TTS", "/talk", "listen", "voice off", "/voice stop", "voice devices"]) {
+    for (const cmd of ["voice", "/voice", "tts", "stt", "TTS", "/talk", "listen", "voice off", "/voice stop", "voice devices",
+      "enable voice", "voice on", "turn on voice", "start voice", "disable voice", "turn off voice", "voice disable"]) {
       expect(isVoiceCommand(cmd), cmd).toBe(true);
     }
   });
 
   it("leaves ordinary sentences alone", () => {
-    for (const line of ["what's my voice like", "turn on the tv", "hello", "voice of reason"]) {
+    for (const line of ["what's my voice like", "turn on the tv", "hello", "voice of reason", "enable voice mode for spotify"]) {
       expect(isVoiceCommand(line), line).toBe(false);
     }
+  });
+
+  it("enable voice starts listening in this terminal", async () => {
+    const { ctrl, session } = controller();
+    expect(await ctrl.handle("enable voice")).toBe(true);
+    expect(session.start).toHaveBeenCalled();
+    expect(ctrl.isActive()).toBe(true);
+  });
+
+  it("enable voice while already on does not toggle it off", async () => {
+    const { ctrl, session, written } = controller();
+    await ctrl.handle("voice");
+    await ctrl.handle("enable voice");
+    expect(session.stop).not.toHaveBeenCalled();
+    expect(written.join(" ")).toMatch(/already on/);
+  });
+
+  it("disable voice stops it", async () => {
+    const { ctrl, session } = controller();
+    await ctrl.handle("voice");
+    await ctrl.handle("disable voice");
+    expect(session.stop).toHaveBeenCalled();
   });
 });
 
