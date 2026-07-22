@@ -78,11 +78,54 @@ function sameStyle(a, b) {
   return a.rate === b.rate && a.pitch === b.pitch && a.volume === b.volume;
 }
 
+const CHUNK_CHARS = 160;
+
+export function splitSentences(text, limit = CHUNK_CHARS) {
+  const clean = String(text || "").trim();
+  if (clean.length <= limit) return clean ? [clean] : [];
+
+  const pieces = clean.match(/[^.!?…]+[.!?…]+["')\]]*\s*|[^.!?…]+$/g) || [clean];
+  const chunks = [];
+  let buffer = "";
+
+  const flush = () => { if (buffer.trim()) chunks.push(buffer.trim()); buffer = ""; };
+
+  for (const piece of pieces) {
+    if (piece.length > limit) {
+      flush();
+      for (const part of piece.match(new RegExp(`[\\s\\S]{1,${limit}}(\\s|$)`, "g")) || [piece]) {
+        chunks.push(part.trim());
+      }
+      continue;
+    }
+    if (buffer.length + piece.length > limit) flush();
+    buffer += piece;
+  }
+  flush();
+  return chunks.filter(Boolean);
+}
+
+function chunkSpeech(segments) {
+  const out = [];
+  for (const segment of segments) {
+    if (segment.type !== "speech" || segment.text.length <= CHUNK_CHARS) {
+      out.push(segment);
+      continue;
+    }
+    for (const text of splitSentences(segment.text)) {
+      out.push({ ...segment, text });
+    }
+  }
+  return out;
+}
+
 export function speakableSegments(text, base = {}) {
   try {
     const segments = parseDelivery(text, base);
-    if (segments.some(s => s.type === "speech")) return segments;
+    if (segments.some(s => s.type === "speech")) return chunkSpeech(segments);
   } catch {}
   const plain = stripMarkup(text);
-  return plain ? [{ type: "speech", text: plain, rate: base.rate ?? 1, pitch: base.pitch ?? 1, volume: base.volume ?? 1 }] : [];
+  if (!plain) return [];
+  const style = { rate: base.rate ?? 1, pitch: base.pitch ?? 1, volume: base.volume ?? 1 };
+  return chunkSpeech([{ type: "speech", text: plain, ...style }]);
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { stripMarkup, parseDelivery, speakableSegments, hasMarkup } from "../../src/voice/markup.js";
+import { stripMarkup, parseDelivery, speakableSegments, hasMarkup, splitSentences } from "../../src/voice/markup.js";
 
 describe("stripMarkup", () => {
   it("removes tags so text connectors never see them", () => {
@@ -77,5 +77,45 @@ describe("speakableSegments", () => {
   it("falls back to plain speech rather than breaking on a bad tag", () => {
     const segments = speakableSegments("[pause:abc] still speaks");
     expect(segments.some(s => s.type === "speech" && s.text.includes("still speaks"))).toBe(true);
+  });
+
+  it("splits a long reply into sentence chunks so the first plays sooner", () => {
+    const long = "The first sentence is here and it runs a little long on purpose. "
+      + "The second one follows right after it and also carries some weight. "
+      + "And a third one closes the whole thought out completely and properly.";
+    const segments = speakableSegments(long);
+    expect(segments.length).toBeGreaterThan(1);
+    expect(segments[0].text.startsWith("The first sentence is here")).toBe(true);
+    expect(segments.every(s => s.type === "speech" && s.text.length <= 160)).toBe(true);
+  });
+
+  it("keeps a short reply as a single chunk", () => {
+    expect(speakableSegments("just talking")).toHaveLength(1);
+  });
+
+  it("carries persona style onto every chunk", () => {
+    const long = "One sentence that is reasonably long here and keeps going for a while. "
+      + "Another sentence that is also reasonably long and keeps going here too. "
+      + "A third to be sure it splits into more than a single spoken chunk now.";
+    const segments = speakableSegments(long, { rate: 0.9, pitch: 1.1 });
+    expect(segments.length).toBeGreaterThan(1);
+    expect(segments.every(s => s.rate === 0.9 && s.pitch === 1.1)).toBe(true);
+  });
+});
+
+describe("splitSentences", () => {
+  it("returns a short string whole", () => {
+    expect(splitSentences("hello there")).toEqual(["hello there"]);
+  });
+
+  it("breaks on sentence boundaries within the limit", () => {
+    const parts = splitSentences("Alpha here. Beta there. Gamma everywhere.", 20);
+    expect(parts).toEqual(["Alpha here.", "Beta there.", "Gamma everywhere."]);
+  });
+
+  it("hard-splits a run-on with no punctuation", () => {
+    const parts = splitSentences("word ".repeat(80).trim(), 100);
+    expect(parts.length).toBeGreaterThan(1);
+    expect(parts.every(p => p.length <= 100)).toBe(true);
   });
 });
