@@ -8,6 +8,10 @@ const vaultFile = () => path.join(dataDir(), "secrets.json");
 
 let cache = null;
 
+function keyFor(name) {
+  return String(name).toLowerCase().replace(/\s+/g, "_");
+}
+
 function load() {
   if (cache) return cache;
   try {
@@ -21,7 +25,7 @@ function load() {
 export function storeSecret(name, value) {
   if (!name || !value) return false;
   const vault = load();
-  vault[String(name).toLowerCase().replace(/\s+/g, "_")] = String(value);
+  vault[keyFor(name)] = String(value);
   fs.mkdirSync(dataDir(), { recursive: true });
   const tmp = `${vaultFile()}.${process.pid}.tmp`;
   fs.writeFileSync(tmp, JSON.stringify(vault, null, 2), "utf8");
@@ -31,7 +35,7 @@ export function storeSecret(name, value) {
 }
 
 export function hasSecret(name) {
-  return Boolean(load()[String(name).toLowerCase()]);
+  return Boolean(load()[keyFor(name)]);
 }
 
 export function resolveSecrets(text) {

@@ -32,6 +32,12 @@ describe("secrets vault", () => {
     expect(hasSecret("github_password")).toBe(true);
   });
 
+  it("finds a multi-word secret by the same spelling it was stored with", () => {
+    storeSecret("My Email", "a@b.com");
+    expect(hasSecret("My Email")).toBe(true);
+    expect(hasSecret("my email")).toBe(true);
+  });
+
   it("reports missing secrets without substituting", () => {
     const { resolved, missing } = resolveSecrets("{{secret:unknown_token}}");
     expect(missing).toEqual(["unknown_token"]);
