@@ -126,7 +126,7 @@ export function createVoiceSession({
       ambientFrames++;
       return;
     }
-    onLevel?.(vad.level());
+    onLevel?.(frameEnergy(frame));
 
     if (speaker.isSpeaking()) {
       if (Date.now() < speakingUntil) return;
