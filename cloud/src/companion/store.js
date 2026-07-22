@@ -14,6 +14,13 @@ const KEEP_MOODS = 80;
 const dataDir = () => path.join(process.cwd(), "data");
 const fileFor = (name) => path.join(dataDir(), `${name}.json`);
 
+let lastStamp = 0;
+function stampNow() {
+  const now = Date.now();
+  lastStamp = now > lastStamp ? now : lastStamp + 1;
+  return new Date(lastStamp).toISOString();
+}
+
 const cache = { turns: null, events: null, moods: null, prefs: null, digests: null };
 
 function loadFile(name, fallback) {
@@ -79,7 +86,7 @@ export async function addTurn(chatId, role, text) {
   if (!clean) return;
 
   const entry = turnsFor(chatId);
-  entry.list.push({ role, text: clean, at: new Date().toISOString() });
+  entry.list.push({ role, text: clean, at: stampNow() });
   entry.dropped += trimList(entry.list, ARCHIVE_TURNS);
   saveFile("turns");
 
@@ -93,7 +100,7 @@ export async function loadTurns(chatId) {
 export async function addEvent(chatId, summary, success, steps) {
   const events = loadFile("events", {});
   if (!events[chatId]) events[chatId] = [];
-  events[chatId].push({ summary: String(summary).slice(0, 300), success, steps, at: new Date().toISOString() });
+  events[chatId].push({ summary: String(summary).slice(0, 300), success, steps, at: stampNow() });
   trimList(events[chatId], KEEP_EVENTS);
   saveFile("events");
 
@@ -110,7 +117,7 @@ export async function loadEvents(chatId, sinceDays = 4) {
 export async function addMood(chatId, label, confidence, why) {
   const moods = loadFile("moods", {});
   if (!moods[chatId]) moods[chatId] = [];
-  moods[chatId].push({ label, confidence, why: String(why || "").slice(0, 160), at: new Date().toISOString() });
+  moods[chatId].push({ label, confidence, why: String(why || "").slice(0, 160), at: stampNow() });
   trimList(moods[chatId], KEEP_MOODS);
   saveFile("moods");
 
