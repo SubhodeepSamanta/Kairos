@@ -28,6 +28,13 @@ async function waitForExit(exe, totalMs) {
   return false;
 }
 
+export async function isUserBrowserRunning(browserName) {
+  if (process.platform !== "win32") return false;
+  const exe = EXE_NAMES[browserName];
+  if (!exe) return false;
+  return isRunning(exe);
+}
+
 export async function closeUserBrowser(browserName) {
   if (process.platform !== "win32") return { success: false, reason: "only supported on Windows" };
   const exe = EXE_NAMES[browserName];

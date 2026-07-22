@@ -10,6 +10,7 @@ import {
   defaultProfile
 } from "./profiles.js";
 import { releaseKairosLock } from "./kairosLock.js";
+import { isUserBrowserRunning } from "./closeUserBrowser.js";
 
 const DEFAULT_BROWSER = process.env.DEFAULT_BROWSER || "chrome";
 
@@ -141,13 +142,18 @@ async function launchRealProfile(browserName, profileWanted) {
     );
   }
 
+  const lockedMessage = () =>
+    `${spec.label} is already running, so the real "${profile.name}" profile is locked — one ${spec.label} process owns ALL its profiles, so every other real profile is locked too. Either use the private Kairos ${spec.label}, or ask the user if they want their ${spec.label} closed and taken over — on yes, close_user_browser{browser:"${browserName}"} then retry this profile.`;
+
+  if (await isUserBrowserRunning(browserName)) {
+    throw new Error(lockedMessage());
+  }
+
   try {
     await openContext(browserName, spec.userDataDir, profile.directory);
   } catch (err) {
     if (isSingletonError(err)) {
-      throw new Error(
-        `${spec.label} is already running, so the real "${profile.name}" profile is locked — one ${spec.label} process owns ALL its profiles, so every other real profile is locked too. Either use the private Kairos ${spec.label}, or ask the user if they want their ${spec.label} closed and taken over — on yes, close_user_browser{browser:"${browserName}"} then retry this profile.`
-      );
+      throw new Error(lockedMessage());
     }
     throw err;
   }
