@@ -1,3 +1,5 @@
+import { voiceConfig } from "./config.js";
+
 const STOP_PHRASES = [
   /^stop$/,
   /^stop it$/,
@@ -43,6 +45,12 @@ function bare(text) {
     .trim();
 }
 
+function stripWake(text) {
+  const words = text.split(" ");
+  while (words.length > 1 && voiceConfig.wakeWords.includes(words[0])) words.shift();
+  return words.join(" ");
+}
+
 export function isRepeatPhrase(text) {
   const clean = bare(text);
   if (!clean || clean.split(" ").length > 4) return false;
@@ -50,7 +58,7 @@ export function isRepeatPhrase(text) {
 }
 
 export function isStopPhrase(text) {
-  const clean = bare(text);
+  const clean = stripWake(bare(text));
   if (!clean || clean.split(" ").length > 3) return false;
   return STOP_PHRASES.some(p => p.test(clean));
 }

@@ -11,6 +11,12 @@ describe("telling her to stop", () => {
     }
   });
 
+  it("hears a wake-prefixed stop while she is talking", () => {
+    for (const phrase of ["kairos stop", "kairos, stop", "kairo stop it", "Kairos stop please"]) {
+      expect(isStopPhrase(phrase), phrase).toBe(true);
+    }
+  });
+
   it("does not treat a real request containing stop as a cancel", () => {
     for (const phrase of [
       "stop the music on spotify",

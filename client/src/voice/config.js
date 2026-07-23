@@ -53,8 +53,8 @@ export const vadConfig = {
   preRollMs: num("VOICE_PREROLL_MS", 300),
   minSpeechMs: num("VOICE_MIN_SPEECH_MS", 240),
   maxUtteranceMs: num("VOICE_MAX_UTTERANCE_MS", 20000),
-  bargeInRatio: num("VOICE_BARGE_RATIO", 6),
-  bargeInMs: num("VOICE_BARGE_MS", 320),
+  bargeInRatio: num("VOICE_BARGE_RATIO", 3.5),
+  bargeInMs: num("VOICE_BARGE_MS", 240),
   noiseAdapt: num("VOICE_NOISE_ADAPT", 0.05)
 };
 
