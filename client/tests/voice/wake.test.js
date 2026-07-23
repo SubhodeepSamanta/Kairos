@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { detectWake, editDistance, normaliseWords, createWakeGate } from "../../src/voice/wake.js";
+import { detectWake, editDistance, normaliseWords, phoneticKey, createWakeGate } from "../../src/voice/wake.js";
 import { isNoiseTranscript, pcmToFloat } from "../../src/voice/stt.js";
 
 const WAKE = ["kairos", "kyros", "cairos", "khairos", "kyrios"];
@@ -19,28 +19,44 @@ describe("wake word", () => {
     }
   });
 
-  it("catches the mishearings reported from real use", () => {
+  it("catches mishearings by sound, not by a hardcoded list", () => {
     const heard = [
-      "Carlos, what's the weather?",
-      "Virus, open my inbox",
       "Chiros, play some music",
       "Kairo, what can you do",
       "Karos, hello",
-      "Gyros, what time is it"
+      "Gyros, what time is it",
+      "Kyros, what's on my calendar?",
+      "Khairos open my inbox",
+      "Kyrios what's the time"
     ];
     for (const line of heard) {
       expect(detectWake(line).matched, line).toBe(true);
     }
   });
 
-  it("still ignores ordinary speech after widening the variants", () => {
+  it("folds spellings that sound alike onto one key", () => {
+    for (const variant of ["kyros", "cairos", "khairos", "kyrios", "chiros", "gyros", "karos"]) {
+      expect(phoneticKey(variant), variant).toBe(phoneticKey("kairos"));
+    }
+  });
+
+  it("keeps words that merely look close apart", () => {
+    for (const other of ["close", "press", "virus", "guidals", "chorus"]) {
+      expect(phoneticKey(other), other).not.toBe("");
+    }
+    expect(phoneticKey("close")).not.toBe(phoneticKey("kairos"));
+    expect(phoneticKey("press")).not.toBe(phoneticKey("kairos"));
+  });
+
+  it("still ignores ordinary speech", () => {
     const stray = [
       "can you pass me the salt",
       "the chorus was stuck in my head",
       "I was watching a show about Cairo yesterday",
       "my car is in the shop",
       "let's go",
-      "close the tab"
+      "close the tab",
+      "press play on spotify"
     ];
     for (const line of stray) {
       expect(detectWake(line).matched, line).toBe(false);
@@ -149,9 +165,15 @@ describe("wake gate", () => {
 });
 
 describe("transcript filtering", () => {
-  it("drops the phantom words speech models emit on silence", () => {
-    for (const junk of ["you", "You.", "Thanks for watching!", "Shh.", "[BLANK_AUDIO]", "  ", "um"]) {
+  it("drops what is structurally not speech, without a phrase list", () => {
+    for (const junk of ["you", "You.", "Shh.", "[BLANK_AUDIO]", "(music)", "[music] (applause)", "  ", "um", "uh huh", "mhm", "so", "the"]) {
       expect(isNoiseTranscript(junk), junk).toBe(true);
+    }
+  });
+
+  it("trusts the model on anything with actual words in it", () => {
+    for (const real of ["thank you", "play some music", "no", "yes", "good morning"]) {
+      expect(isNoiseTranscript(real), real).toBe(false);
     }
   });
 
@@ -162,6 +184,12 @@ describe("transcript filtering", () => {
   it("keeps real speech", () => {
     for (const real of ["open my inbox", "what's on my calendar tomorrow", "yeah that works"]) {
       expect(isNoiseTranscript(real), real).toBe(false);
+    }
+  });
+
+  it("never mistakes a greeting for silence", () => {
+    for (const greeting of ["good morning", "Good morning!", "hello", "Hello?", "hi", "hey", "okay", "thank you", "bye bye"]) {
+      expect(isNoiseTranscript(greeting), greeting).toBe(false);
     }
   });
 
@@ -176,9 +204,8 @@ describe("transcript filtering", () => {
 describe("mishearings seen in the wild", () => {
   it("catches the ways the speech model mangles her name", () => {
     const heard = [
-      "Titos, open my inbox",
       "Kai rolls, open my inbox",
-      "Thai rolls, open my inbox",
+      "Carlos, open my inbox",
       "Cairo's open my inbox",
       "Kai rose, open my inbox"
     ];

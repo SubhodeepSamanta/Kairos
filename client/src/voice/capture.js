@@ -79,6 +79,7 @@ export async function startMicrophone({ device, onFrame, onError } = {}) {
     "-i", `audio=${name}`,
     "-ar", String(SAMPLE_RATE),
     "-ac", "1",
+    "-af", "highpass=f=70",
     "-f", "s16le",
     "-"
   ]);

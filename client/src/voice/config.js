@@ -16,8 +16,7 @@ export const BYTES_PER_SAMPLE = 2;
 
 export const voiceConfig = {
   enabled: flag("VOICE", false),
-  wakeWords: String(process.env.VOICE_WAKE_WORDS
-    || "kairos,kyros,cairos,khairos,kyrios,carlos,virus,chiros,kairo,cairo,keiros,kyra,tyrus,pyros,gyros,charos,karos,titos,kairolls,thairolls,kairose,kyrus,khyros,tairos")
+  wakeWords: String(process.env.VOICE_WAKE_WORDS || "kairos,kairo")
     .split(",")
     .map(w => w.trim().toLowerCase())
     .filter(Boolean),
@@ -43,7 +42,7 @@ export const sttGainConfig = {
 export const vadConfig = {
   frameMs: FRAME_MS,
   noiseRatio: num("VOICE_NOISE_RATIO", 3.2),
-  absoluteFloor: num("VOICE_ABS_FLOOR", 120),
+  absoluteFloor: num("VOICE_ABS_FLOOR", 50),
   calibrationHeadroom: num("VOICE_CALIBRATION_HEADROOM", 1.8),
   maxFloor: num("VOICE_MAX_FLOOR", 600),
   minVoicedRatio: num("VOICE_MIN_VOICED", 0.30),

@@ -37,11 +37,32 @@ function tolerance(word) {
   return 2;
 }
 
+export function phoneticKey(word) {
+  return String(word || "")
+    .toLowerCase()
+    .replace(/[^a-z]/g, "")
+    .replace(/ph/g, "f")
+    .replace(/[hyw]/g, "")
+    .replace(/[cqgj]/g, "k")
+    .replace(/x/g, "ks")
+    .replace(/z/g, "s")
+    .replace(/v/g, "f")
+    .replace(/b/g, "p")
+    .replace(/d/g, "t")
+    .replace(/[aeiou]/g, "")
+    .replace(/(.)\1+/g, "$1");
+}
+
 function matchesWake(candidate, wakeWords) {
   if (!candidate) return false;
   for (const wake of wakeWords) {
     const allowed = Math.min(tolerance(wake), tolerance(candidate));
     if (editDistance(candidate, wake) <= allowed) return true;
+    const key = phoneticKey(wake);
+    const candidateKey = phoneticKey(candidate);
+    if (key.length >= 3 && candidateKey === key) return true;
+    if (key.length >= 3 && candidateKey.length >= 4 && candidateKey[0] === key[0]
+      && editDistance(candidateKey, key) <= 1) return true;
   }
   return false;
 }

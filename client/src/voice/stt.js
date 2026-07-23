@@ -5,13 +5,8 @@ import { conditionForStt } from "./audio.js";
 const MIN_SAMPLES = SAMPLE_RATE * 0.2;
 const MAX_SAMPLES = SAMPLE_RATE * 30;
 
-const NOISE_TRANSCRIPTS = new Set([
-  "you", "thank you", "thanks for watching", "thank you for watching",
-  "shh", "hmm", "uh", "um", "ah", "mm", "mhm", "beep", "music",
-  "silence", "blank audio", "inaudible", "no speech", "background noise",
-  "good morning", "good morning guy raz", "guy raz", "hello", "hi",
-  "bye bye", "subscribe", "please subscribe", "okay", "ok", "so"
-]);
+const NON_LEXICAL = /^(?:m+h*m*|h+m+|u+h+|u+m+|a+h+|o+h+|e+h+|sh+|ts+k*|ug+h*|ps+t*|hu+h*|pf+t*)$/;
+const FUNCTION_WORDS = new Set(["you", "the", "a", "an", "and", "so", "but", "or", "to", "of", "it", "is", "i"]);
 
 let asrPromise = null;
 
@@ -22,15 +17,16 @@ export function pcmToFloat(pcm) {
 }
 
 export function isNoiseTranscript(text) {
-  const bare = String(text || "")
+  const spoken = String(text || "").replace(/[\[\(][^\]\)]*[\]\)]/g, " ");
+  const bare = spoken
     .toLowerCase()
-    .replace(/[\[\](){}<>]/g, " ")
     .replace(/[^a-z0-9' ]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
   if (!bare) return true;
-  if (NOISE_TRANSCRIPTS.has(bare)) return true;
   const words = bare.split(" ");
+  if (words.every(w => NON_LEXICAL.test(w))) return true;
+  if (words.length === 1 && FUNCTION_WORDS.has(words[0])) return true;
   const unique = new Set(words);
   return words.length >= 4 && unique.size === 1;
 }
