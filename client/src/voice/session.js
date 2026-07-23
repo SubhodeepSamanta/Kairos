@@ -6,9 +6,8 @@ import { createTranscriber } from "./stt.js";
 import { createWakeGate } from "./wake.js";
 import { createSpeaker, DEFAULT_VOICE } from "./tts/index.js";
 
-const BARGE_IN_GRACE_MS = 400;
 const CALIBRATION_TIMEOUT_MS = 6000;
-const ECHO_LEARN_MS = 700;
+const ECHO_LEARN_MS = 400;
 const ECHO_HEADROOM = 1.5;
 
 export function createVoiceSession({
@@ -33,10 +32,9 @@ export function createVoiceSession({
   let running = false;
   let busy = false;
   let persona = DEFAULT_VOICE;
-  let speakingUntil = 0;
   let bargedIn = false;
   let replying = false;
-  let replyStartedAt = 0;
+  let echoLearnStart = 0;
   let echoPeak = 0;
   let bargeRun = 0;
   let calibrating = false;
@@ -134,13 +132,15 @@ export function createVoiceSession({
     }
     onLevel?.(level);
 
-    if (replying || speaker.isSpeaking()) {
-      const sinceReply = Date.now() - replyStartedAt;
-      if (sinceReply <= ECHO_LEARN_MS) {
+    if ((replying || speaker.isSpeaking()) && !bargedIn) {
+      if (!echoLearnStart) {
+        if (!speaker.isSpeaking()) return;
+        echoLearnStart = Date.now();
+      }
+      if (Date.now() - echoLearnStart <= ECHO_LEARN_MS) {
         if (level > echoPeak) echoPeak = level;
         return;
       }
-      if (Date.now() < speakingUntil) return;
 
       const gate = Math.max(vad.floor() * vadConfig.bargeInRatio, echoPeak * ECHO_HEADROOM);
       if (level > gate) {
@@ -153,6 +153,7 @@ export function createVoiceSession({
         }
       } else {
         bargeRun = 0;
+        if (level > echoPeak) echoPeak = level;
       }
       return;
     }
@@ -177,10 +178,9 @@ export function createVoiceSession({
 
     async speak(text) {
       if (!voiceConfig.speak || !text) return false;
-      speakingUntil = Date.now() + BARGE_IN_GRACE_MS;
       bargedIn = false;
       replying = true;
-      replyStartedAt = Date.now();
+      echoLearnStart = 0;
       echoPeak = 0;
       bargeRun = 0;
       try {

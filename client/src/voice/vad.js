@@ -21,7 +21,6 @@ function concatFrames(frames) {
 export function createVad(overrides = {}) {
   const cfg = { ...vadConfig, ...overrides };
   const startFrames = msToFrames(cfg.startMs);
-  const bargeStartFrames = msToFrames(cfg.bargeInMs);
   const hangoverFrames = msToFrames(cfg.hangoverMs);
   const preRollFrames = msToFrames(cfg.preRollMs);
   const minSpeechFrames = msToFrames(cfg.minSpeechMs);
@@ -36,12 +35,10 @@ export function createVad(overrides = {}) {
   let speechFrames = 0;
   let collected = [];
   let preRoll = [];
-  let bargeIn = false;
   let lastLevel = 0;
   let floor = cfg.absoluteFloor;
 
-  const threshold = () =>
-    Math.max(noiseFloor * (bargeIn ? cfg.bargeInRatio : cfg.noiseRatio), floor);
+  const threshold = () => Math.max(noiseFloor * cfg.noiseRatio, floor);
 
   function endUtterance(reason) {
     const frames = collected;
@@ -85,7 +82,7 @@ export function createVad(overrides = {}) {
         }
 
         loudRun++;
-        if (loudRun < (bargeIn ? bargeStartFrames : startFrames)) return null;
+        if (loudRun < startFrames) return null;
 
         speaking = true;
         collected = preRoll.slice();
@@ -120,11 +117,6 @@ export function createVad(overrides = {}) {
       speechFrames = 0;
       collected = [];
       preRoll = [];
-    },
-
-    setBargeIn(on) {
-      bargeIn = Boolean(on);
-      if (bargeIn) this.reset();
     },
 
     calibrate(ambientPeak) {

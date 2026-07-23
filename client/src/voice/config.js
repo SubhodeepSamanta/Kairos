@@ -36,7 +36,7 @@ export const sttGainConfig = {
   enabled: flag("VOICE_STT_GAIN", true),
   targetPeak: Math.min(0.99, Math.max(0.1, num("VOICE_STT_TARGET_PEAK", 0.7))),
   maxGain: Math.max(1, num("VOICE_STT_MAX_GAIN", 8)),
-  noiseFloor: Math.max(1, num("VOICE_STT_GAIN_FLOOR", 200))
+  noiseFloor: Math.max(1, num("VOICE_STT_GAIN_FLOOR", 50))
 };
 
 export const vadConfig = {
@@ -51,7 +51,7 @@ export const vadConfig = {
   startMs: num("VOICE_START_MS", 120),
   hangoverMs: num("VOICE_HANGOVER_MS", 700),
   preRollMs: num("VOICE_PREROLL_MS", 300),
-  minSpeechMs: num("VOICE_MIN_SPEECH_MS", 400),
+  minSpeechMs: num("VOICE_MIN_SPEECH_MS", 240),
   maxUtteranceMs: num("VOICE_MAX_UTTERANCE_MS", 20000),
   bargeInRatio: num("VOICE_BARGE_RATIO", 6),
   bargeInMs: num("VOICE_BARGE_MS", 320),

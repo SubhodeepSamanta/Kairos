@@ -55,6 +55,9 @@ describe("console lock", () => {
 });
 
 describe("console launcher", () => {
+  let clock = 0;
+  const tick = () => { clock += 60000; return clock; };
+
   function spawner(calls) {
     return (cmd, args, opts) => {
       calls.push({ cmd, args, opts });
@@ -65,7 +68,7 @@ describe("console launcher", () => {
   it("opens one new window running the console", () => {
     const root = fresh();
     const calls = [];
-    const result = launchConsole({ spawner: spawner(calls), root, platform: "win32" });
+    const result = launchConsole({ spawner: spawner(calls), root, platform: "win32", now: tick });
 
     expect(result.opened).toBe(true);
     expect(calls).toHaveLength(1);
@@ -79,7 +82,7 @@ describe("console launcher", () => {
   it("passes the voice flag into the new window", () => {
     const root = fresh();
     const calls = [];
-    launchConsole({ voice: true, spawner: spawner(calls), root, platform: "win32" });
+    launchConsole({ voice: true, spawner: spawner(calls), root, platform: "win32", now: tick });
     expect(calls[0].opts.env.VOICE).toBe("1");
   });
 
@@ -88,7 +91,7 @@ describe("console launcher", () => {
     const calls = [];
     const hadVoice = process.env.VOICE;
     delete process.env.VOICE;
-    launchConsole({ spawner: spawner(calls), root, platform: "win32" });
+    launchConsole({ spawner: spawner(calls), root, platform: "win32", now: tick });
     if (hadVoice !== undefined) process.env.VOICE = hadVoice;
     expect(calls[0].opts.env.VOICE).toBeUndefined();
   });
@@ -99,15 +102,28 @@ describe("console launcher", () => {
     fs.writeFileSync(path.join(root, "data", "console.lock"), String(process.ppid), "utf8");
 
     const calls = [];
-    const result = launchConsole({ spawner: spawner(calls), root, platform: "win32" });
+    const result = launchConsole({ spawner: spawner(calls), root, platform: "win32", now: tick });
     expect(result).toEqual({ opened: false, reason: "already-open" });
     expect(calls).toHaveLength(0);
+  });
+
+  it("refuses a rapid second launch before the first window has claimed the lock", () => {
+    const root = fresh();
+    const calls = [];
+    let t = clock + 60000;
+    const first = launchConsole({ spawner: spawner(calls), root, platform: "win32", now: () => t });
+    expect(first.opened).toBe(true);
+    t += 1000;
+    const second = launchConsole({ spawner: spawner(calls), root, platform: "win32", now: () => t });
+    expect(second).toEqual({ opened: false, reason: "already-open" });
+    expect(calls).toHaveLength(1);
+    clock = t + 60000;
   });
 
   it("falls back to the same terminal off windows", () => {
     const root = fresh();
     const calls = [];
-    const result = launchConsole({ spawner: spawner(calls), root, platform: "linux" });
+    const result = launchConsole({ spawner: spawner(calls), root, platform: "linux", now: tick });
     expect(result).toEqual({ opened: false, reason: "no-window" });
     expect(calls).toHaveLength(0);
   });

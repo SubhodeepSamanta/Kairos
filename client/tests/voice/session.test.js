@@ -249,6 +249,60 @@ describe("start order", () => {
   });
 });
 
+describe("short answers", () => {
+  it("does not throw away a clipped yes or no", async () => {
+    const h = harness({ transcripts: ["yes"], requireWake: false });
+    await h.session.start();
+
+    h.push(QUIET, 30);
+    h.push(LOUD, 15);
+    h.push(QUIET, 45);
+    await settle();
+
+    expect(h.events.transcripts.map(t => t.text)).toEqual(["yes"]);
+  });
+});
+
+describe("echo learning starts at playback, not at the speak call", () => {
+  it("survives slow synthesis without burning the learning window", async () => {
+    let playing = false;
+    let releaseSpeak;
+    const events = { statuses: [] };
+    let feed = null;
+    const speaker = {
+      isSpeaking: () => playing,
+      speak: vi.fn(() => new Promise((r) => { releaseSpeak = r; })),
+      stop: vi.fn(() => { playing = false; }),
+      prepare: vi.fn(async () => true),
+      engineName: () => "fake"
+    };
+    const session = createVoiceSession({
+      onStatus: (s) => events.statuses.push(s),
+      speakerFactory: () => speaker,
+      transcriberFactory: () => ({ ready: async () => true, transcribe: async () => null }),
+      microphoneFactory: async ({ onFrame }) => { feed = onFrame; return { device: "Fake", stop: () => {} }; },
+      calibrationMs: 0
+    });
+    await session.start();
+
+    session.speak("a reply that synthesizes slowly");
+    for (let i = 0; i < 40; i++) feed(frame(3000));
+    await new Promise((r) => setTimeout(r, 450));
+    expect(speaker.stop).not.toHaveBeenCalled();
+
+    playing = true;
+    for (let i = 0; i < 30; i++) feed(frame(3000));
+    await new Promise((r) => setTimeout(r, 450));
+    for (let i = 0; i < 40; i++) feed(frame(3000));
+    expect(speaker.stop).not.toHaveBeenCalled();
+
+    for (let i = 0; i < 40; i++) feed(frame(8000));
+    expect(speaker.stop).toHaveBeenCalled();
+    expect(events.statuses).toContain("okay, go ahead");
+    releaseSpeak(true);
+  });
+});
+
 describe("echo protection", () => {
   it("does not interrupt herself when the mic hears her own reply", async () => {
     const h = harness({ speaking: true });

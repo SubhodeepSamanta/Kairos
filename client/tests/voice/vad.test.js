@@ -91,15 +91,6 @@ describe("createVad", () => {
     expect(end.reason).toBe("max_length");
   });
 
-  it("needs louder, longer speech to barge in during playback", () => {
-    const vad = createVad();
-    feed(vad, QUIET, 50);
-    vad.setBargeIn(true);
-    const quietTalk = Math.round(vad.threshold() / 2);
-    expect(feed(vad, quietTalk, 40)).toHaveLength(0);
-    expect(feed(vad, SPEECH, 30).map(e => e.type)).toContain("speech_start");
-  });
-
   it("flush closes an utterance that never got its trailing silence", () => {
     const vad = createVad();
     feed(vad, QUIET, 50);
