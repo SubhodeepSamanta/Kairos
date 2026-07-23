@@ -61,7 +61,12 @@ export function createPlayer({ spawnFn = spawn } = {}) {
     async pause(ms) {
       if (cancelled || !(ms > 0)) return;
       await new Promise((resolve) => {
-        pending = { resolve, timer: setTimeout(() => { pending = null; resolve(); }, ms) };
+        const record = { resolve };
+        record.timer = setTimeout(() => {
+          if (pending === record) pending = null;
+          resolve();
+        }, ms);
+        pending = record;
       });
     },
 
@@ -82,6 +87,7 @@ export function createPlayer({ spawnFn = spawn } = {}) {
 
     resume() {
       cancelled = false;
+      lastError = null;
     }
   };
 }

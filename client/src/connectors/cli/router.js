@@ -14,10 +14,9 @@ export function createGoalRouter({ sendGoal, sendHumanReply, sendCancel }) {
 
     submit(text, tone) {
       if (waitingForAnswer) {
-        const goalId = pendingAskGoalId;
+        if (sendHumanReply(pendingAskGoalId, text) === false) return "offline";
         waitingForAnswer = false;
         pendingAskGoalId = null;
-        sendHumanReply(goalId, text);
         return "answered";
       }
       if (!sendGoal(text, tone)) return "offline";

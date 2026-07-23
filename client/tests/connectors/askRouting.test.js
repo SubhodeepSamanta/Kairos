@@ -8,7 +8,7 @@ function makeRouter({ online = true } = {}) {
 
   const router = createGoalRouter({
     sendGoal: vi.fn((text, tone) => { if (!online) return false; sentGoals.push({ text, tone }); return true; }),
-    sendHumanReply: vi.fn((goalId, input) => humanReplies.push({ goalId, input })),
+    sendHumanReply: vi.fn((goalId, input) => { if (!online) return false; humanReplies.push({ goalId, input }); return true; }),
     sendCancel: vi.fn(() => cancels.push(true))
   });
 
@@ -47,6 +47,20 @@ describe("answering a question she asked", () => {
     const c = makeRouter();
     c.router.submit("open my inbox", "tired");
     expect(c.sentGoals[0]).toEqual({ text: "open my inbox", tone: "tired" });
+  });
+});
+
+describe("answering while the cloud is unreachable", () => {
+  it("keeps waiting instead of silently losing the answer", () => {
+    const c = makeRouter({ online: false });
+    c.router.ask("goal-9");
+
+    expect(c.router.submit("the blue one")).toBe("offline");
+    expect(c.router.isAwaitingAnswer()).toBe(true);
+    expect(c.humanReplies).toHaveLength(0);
+
+    expect(c.router.submit("the blue one")).toBe("offline");
+    expect(c.router.isAwaitingAnswer()).toBe(true);
   });
 });
 

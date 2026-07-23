@@ -105,7 +105,9 @@ export function sendGoal(goal, tone) {
 }
 
 export function sendHumanReply(goalId, input) {
-  send({ type: "human_input_response", goalId, input });
+  if (send({ type: "human_input_response", goalId, input })) return true;
+  handlers.onLink?.("not connected to the cloud yet — say that again in a moment");
+  return false;
 }
 
 export function requestSuggestions(text) {

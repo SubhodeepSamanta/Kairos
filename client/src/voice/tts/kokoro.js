@@ -63,6 +63,7 @@ export function createKokoroEngine() {
 
     async synthesize(segment, voice) {
       const model = await modelPromise;
+      if (!model) throw new Error("the speaking model is not loaded yet");
       const pitch = Math.min(MAX_PITCH, Math.max(MIN_PITCH, segment.pitch ?? 1));
       const wanted = Math.min(MAX_SPEED, Math.max(MIN_SPEED, segment.rate ?? 1));
       const speed = Math.min(MAX_SPEED, Math.max(MIN_SPEED, wanted / pitch));
