@@ -136,6 +136,25 @@ describe("overlapping replies", () => {
   });
 });
 
+describe("warmup", () => {
+  it("prepare renders a throwaway line so the first real reply is not slow", async () => {
+    let synths = 0;
+    const { createSpeaker } = await import("../../src/voice/tts/index.js");
+    const speaker = createSpeaker({
+      engineFactory: () => ({
+        name: "kokoro",
+        ready: async () => true,
+        supportsVoice: () => true,
+        synthesize: async () => { synths++; return silenceWav(5); }
+      })
+    });
+
+    expect(await speaker.prepare()).toBe(true);
+    expect(synths).toBe(1);
+    expect(speaker.isSpeaking()).toBe(false);
+  });
+});
+
 describe("silent playback failures", () => {
   it("says so instead of pretending it spoke when no chunk ever played", async () => {
     const errors = [];

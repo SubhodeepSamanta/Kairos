@@ -105,6 +105,7 @@ export function createVoiceController({ write, sendGoal, onModeChange, onCancel,
   let delivery = loadDelivery();
   let speakChain = Promise.resolve();
   let speakEpoch = 0;
+  let startPromise = null;
 
   const line = (text) => { if (text) write(text); };
 
@@ -242,7 +243,8 @@ export function createVoiceController({ write, sendGoal, onModeChange, onCancel,
       try {
         session = session || build();
         session.setPersona(effectiveVoice());
-        const ok = await session.start();
+        startPromise = session.start();
+        const ok = await startPromise;
         if (ok) saveVoiceWanted(true);
         onModeChange?.(Boolean(ok));
       } finally {
@@ -267,14 +269,14 @@ export function createVoiceController({ write, sendGoal, onModeChange, onCancel,
     speak(text) {
       const spoken = stripMarkup(text);
       if (!spoken) return spoken;
-      if (!session?.isRunning()) {
-        if (starting) line("  (voice is still starting — not spoken)");
-        return spoken;
-      }
+      if (!session?.isRunning() && !starting) return spoken;
       lastSpoken = text;
       const epoch = speakEpoch;
       speakChain = speakChain
-        .then(() => epoch === speakEpoch && session?.isRunning() && session.speak(text))
+        .then(async () => {
+          if (startPromise) await startPromise.catch(() => {});
+          if (epoch === speakEpoch && session?.isRunning()) await session.speak(text);
+        })
         .catch((err) => line(`  could not speak: ${err.message}`));
       return spoken;
     },

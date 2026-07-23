@@ -77,7 +77,13 @@ export function createSpeaker({ onStatus, onError, engineFactory, playerFactory 
 
     prepare(onProgress) {
       return ensureEngine().then(
-        (active) => { onProgress?.(`voice ready (${active.name})`); return true; },
+        async (active) => {
+          if (active.name === "kokoro") {
+            await active.synthesize({ text: "hey.", rate: 1, pitch: 1, volume: 1 }, DEFAULT_VOICE.voice).catch(() => {});
+          }
+          onProgress?.(`voice ready (${active.name})`);
+          return true;
+        },
         (err) => { onError?.(err); return false; }
       );
     },

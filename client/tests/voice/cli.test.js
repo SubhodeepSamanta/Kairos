@@ -162,7 +162,36 @@ describe("voice controller", () => {
   it("stays silent when voice is off", async () => {
     const { ctrl, session } = controller();
     ctrl.speak("hello");
+    await new Promise((r) => setTimeout(r, 0));
     expect(session.speak).not.toHaveBeenCalled();
+  });
+
+  it("speaks a reply that arrived while voice was still starting", async () => {
+    let releaseStart;
+    let running = false;
+    const session = {
+      isRunning: () => running,
+      start: vi.fn(() => new Promise((r) => { releaseStart = () => { running = true; r(true); }; })),
+      stop: vi.fn(),
+      speak: vi.fn(async () => true),
+      stopSpeaking: vi.fn(),
+      setPersona: vi.fn()
+    };
+    const ctrl = createVoiceController({
+      write: () => {},
+      sendGoal: () => {},
+      sessionFactory: () => session
+    });
+
+    const starting = ctrl.handle("voice");
+    ctrl.speak("your inbox is open");
+    await new Promise((r) => setTimeout(r, 0));
+    expect(session.speak).not.toHaveBeenCalled();
+
+    releaseStart();
+    await starting;
+    await new Promise((r) => setTimeout(r, 0));
+    expect(session.speak).toHaveBeenCalledWith("your inbox is open");
   });
 
   it("hands the persona voice to the session", async () => {
