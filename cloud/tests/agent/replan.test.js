@@ -6,6 +6,11 @@ vi.mock("../../src/llm/provider.js", () => ({
   askLLMJson: (...args) => askLLMJson(...args),
   createBudget: (maxCalls) => ({ used: 0, maxCalls, estimatedTokens: 0, tokensIn: 0, tokensOut: 0, measured: 0, llmMs: 0 })
 }));
+vi.mock("../../src/agent/webTools.js", () => ({
+  webSearch: vi.fn(async () => [{ title: "Result", url: "https://example.com", snippet: "found" }]),
+  formatSearchResults: vi.fn(r => r.map(x => `${x.title} ${x.url}`).join("\n")),
+  fetchPageText: vi.fn(async () => "TITLE: Page\nsome text")
+}));
 const { runAgent } = await import("../../src/agent/loop/agentLoop.js");
 
 beforeEach(() => askLLMJson.mockReset());

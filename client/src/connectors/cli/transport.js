@@ -1,7 +1,7 @@
 import WebSocket from "ws";
 import { env } from "../../config/env.js";
 
-const RETRY_WAITS_MS = [1000, 2000, 4000, 8000, 15000, 30000];
+const RETRY_WAITS_MS = [1000, 2000, 3000, 5000];
 
 let socket = null;
 let handlers = {};

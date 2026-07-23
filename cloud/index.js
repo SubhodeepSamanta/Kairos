@@ -21,12 +21,15 @@ if (!reportPreflight(cloudPreflight())) {
 const swept = sweepStaleTemps(path.join(process.cwd(), "data"));
 if (swept) console.log(`[STORE] cleaned ${swept} stale temp file${swept === 1 ? "" : "s"}`);
 
-await initMemory();
-await hydrateCompanionFromDb();
-await unifyIdentity();
 startWebSocketServer();
 startTelegramBot(env.TELEGRAM_BOT_TOKEN);
 startScheduler(runScheduledGoal);
+
+initMemory()
+  .then(() => hydrateCompanionFromDb())
+  .then(() => unifyIdentity())
+  .then(() => console.log("[BOOT] memory sync finished"))
+  .catch((err) => console.log(`[BOOT] memory sync failed (${err.message.slice(0, 80)}) — running on local files`));
 
 process.on("SIGINT", async () => {
   if (pendingDbWrites()) {
