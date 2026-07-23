@@ -3,6 +3,7 @@ import { installCrashHandlers } from "./src/utils/crashLog.js";
 import { clientPreflight, reportPreflight } from "./src/config/preflight.js";
 import { connectToCloud } from "./src/websocket/client.js";
 import { closeBrowser } from "./src/automation/browser/browser.js";
+import { launchConsole } from "./src/connectors/cli/launcher.js";
 import readline from "readline";
 
 installCrashHandlers();
@@ -18,6 +19,21 @@ const rl = readline.createInterface({
 });
 
 function startConsole({ voice = false } = {}) {
+  const result = launchConsole({ voice });
+  if (result.opened) {
+    console.log(voice
+      ? "Kairos opened in its own window with voice on — this terminal stays for logs."
+      : "Kairos opened in its own window — this terminal stays for logs.");
+    askCommand();
+    return;
+  }
+  if (result.reason === "already-open") {
+    console.log(voice
+      ? 'The Kairos window is already open — type "voice" there.'
+      : "The Kairos window is already open — use that one.");
+    askCommand();
+    return;
+  }
   rl.close();
   if (voice) process.env.VOICE = "1";
   import("./src/connectors/cli/index.js").catch((err) => {

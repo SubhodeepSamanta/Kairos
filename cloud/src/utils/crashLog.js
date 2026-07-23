@@ -22,7 +22,11 @@ export function appendCrash(kind, reason, file = path.join(process.cwd(), "data"
   }
 }
 
+let installed = false;
+
 export function installCrashHandlers({ file, exit = process.exit } = {}) {
+  if (installed) return;
+  installed = true;
   process.on("uncaughtException", (err) => {
     console.error(`[CRASH] uncaught exception — details saved to data/crash.log\n${err?.stack || err}`);
     appendCrash("uncaughtException", err, file);

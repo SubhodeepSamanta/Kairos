@@ -1,4 +1,6 @@
 import { env } from "../../config/env.js";
+import { installCrashHandlers } from "../../utils/crashLog.js";
+import { claimConsole, releaseConsole } from "./lock.js";
 import { createInput } from "./input.js";
 import { colors as C } from "./menu.js";
 import { connectToCloud, sendGoal, sendHumanReply, requestSuggestions, sendVoiceMode, sendCancel, isLinked } from "./transport.js";
@@ -7,6 +9,13 @@ import { createVoiceController, isVoiceCommand, localCommandHelp } from "../../v
 import { voiceConfig } from "../../voice/config.js";
 import { voiceWanted } from "../../voice/preferences.js";
 import { closeBrowser } from "../../automation/browser/browser.js";
+
+installCrashHandlers();
+if (!claimConsole()) {
+  console.log("another Kairos window is already open — use that one");
+  process.exit(0);
+}
+process.on("exit", () => releaseConsole());
 
 console.clear();
 console.log(`${C.bold}${C.cyan}  Kairos${C.reset}`);
@@ -24,6 +33,7 @@ function footerFor(line) {
 }
 
 const router = createGoalRouter({ sendGoal, sendHumanReply, sendCancel });
+let voiceAutoStarted = false;
 
 const voice = createVoiceController({
   write: (text) => ui.write(`${C.dim}${text}${C.reset}`),
@@ -81,7 +91,10 @@ connectToCloud(env.CLOUD_URL || "ws://localhost:3000", {
       sendVoiceMode(true);
       return;
     }
-    if (voiceConfig.enabled || voiceWanted()) voice.handle("voice").finally(() => ui.prompt());
+    if (!voiceAutoStarted && (voiceConfig.enabled || voiceWanted())) {
+      voiceAutoStarted = true;
+      voice.handle("voice").finally(() => ui.prompt());
+    }
   },
   onLink(note) {
     ui.write(`${C.dim}  ${note}${C.reset}`);
