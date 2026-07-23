@@ -97,9 +97,11 @@ export function createInput({ onSubmit, onSuggest, onExit, history = createHisto
       if (key.name === "escape") { closeMenu(); return; }
       if (key.name === "return") {
         const item = menu.items[menu.selected];
-        const typedExact = menu.items.length === 1 || buffer.trim() === item?.value || buffer.trim().endsWith(item?.value);
-        if (!typedExact && menu.kind === "value") { applySelection(); return; }
-        if (!typedExact && menu.kind === "command" && buffer.trim() !== item?.value) { applySelection(); return; }
+        const typed = buffer.trim();
+        const typedExact = menu.kind === "value"
+          ? typed.endsWith(item?.value ?? "")
+          : typed === item?.value || typed.startsWith(`${item?.value} `);
+        if (!typedExact && item) { applySelection(); return; }
         closeMenu();
       }
     }

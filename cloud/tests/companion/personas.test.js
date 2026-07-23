@@ -21,6 +21,18 @@ describe("personas", () => {
     }
   });
 
+  it("every persona can introduce itself in character", () => {
+    for (const p of Object.values(PERSONAS)) {
+      expect(p.intro, p.id).toBeTruthy();
+      expect(p.intro.toLowerCase(), p.id).toContain(p.name.toLowerCase());
+    }
+  });
+
+  it("no two personas sound the same", () => {
+    const signatures = Object.values(PERSONAS).map(p => `${p.voice.voice}@${p.voice.rate}/${p.voice.pitch}`);
+    expect(new Set(signatures).size).toBe(signatures.length);
+  });
+
   it("angry mentor is demanding but never contemptuous", () => {
     const tone = PERSONAS.mentor.tone.join(" ").toLowerCase();
     expect(tone).toContain("never cruel");

@@ -118,10 +118,45 @@ describe("voice controller", () => {
     await ctrl.handle("voice");
 
     const shown = ctrl.speak("Hey. [pause:300] [smile] Good to see you.");
+    await new Promise((r) => setTimeout(r, 0));
 
     expect(shown).not.toContain("[pause:300]");
     expect(shown).not.toContain("[smile]");
     expect(session.speak).toHaveBeenCalledWith("Hey. [pause:300] [smile] Good to see you.");
+  });
+
+  it("finishes one reply before starting the next", async () => {
+    const { ctrl, session } = controller();
+    await ctrl.handle("voice");
+    let releaseFirst;
+    session.speak.mockImplementationOnce(() => new Promise((r) => { releaseFirst = r; }));
+
+    ctrl.speak("first reply");
+    ctrl.speak("second reply");
+    await new Promise((r) => setTimeout(r, 0));
+    expect(session.speak).toHaveBeenCalledTimes(1);
+
+    releaseFirst(true);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(session.speak).toHaveBeenCalledTimes(2);
+    expect(session.speak).toHaveBeenLastCalledWith("second reply");
+  });
+
+  it("stop clears whatever was queued to be spoken, not just the current line", async () => {
+    const { ctrl, session } = controller();
+    await ctrl.handle("voice");
+    let releaseFirst;
+    session.speak.mockImplementationOnce(() => new Promise((r) => { releaseFirst = r; }));
+
+    ctrl.speak("first reply");
+    ctrl.speak("second reply");
+    await new Promise((r) => setTimeout(r, 0));
+    ctrl.interrupt();
+
+    releaseFirst(true);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(session.stopSpeaking).toHaveBeenCalled();
+    expect(session.speak).toHaveBeenCalledTimes(1);
   });
 
   it("stays silent when voice is off", async () => {

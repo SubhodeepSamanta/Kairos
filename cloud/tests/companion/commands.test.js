@@ -49,3 +49,31 @@ describe("/about", () => {
     expect(reply).toMatch(/getting to know you/i);
   });
 });
+
+describe("partial commands", () => {
+  it("runs a unique prefix as the full command", async () => {
+    const reply = await runCommand("u3", "/pers sassy");
+    expect(reply).toMatch(/switching to Zara/);
+    expect(reply).toMatch(/she is/);
+  });
+
+  it("suggests when the prefix is ambiguous", async () => {
+    const reply = await runCommand("u3", "/m");
+    expect(reply).toMatch(/did you mean/);
+    expect(reply).toContain("/mood");
+    expect(reply).toContain("/memory");
+  });
+
+  it("still rejects garbage", async () => {
+    const reply = await runCommand("u3", "/zzz");
+    expect(reply).toMatch(/unknown command/);
+  });
+});
+
+describe("/personality switch", () => {
+  it("announces the switch with the persona's pronoun", async () => {
+    const reply = await runCommand("u4", "/personality mentor");
+    expect(reply).toMatch(/switching to Marcus/);
+    expect(reply).toMatch(/he is/);
+  });
+});

@@ -156,6 +156,35 @@ describe("cli input", () => {
     restore();
   });
 
+  it("enter with a partial command prefills instead of submitting the typo", () => {
+    const onSubmit = vi.fn();
+    const onSuggest = vi.fn();
+    const ui = createInput({ onSubmit, onSuggest });
+    ui.prompt();
+    type(tty.stdin, "/pers");
+    ui.showSuggestions({ kind: "command", items: [{ value: "/personality", label: "/personality [name]", help: "" }] });
+
+    press(tty.stdin, "return");
+    expect(onSubmit).not.toHaveBeenCalled();
+    expect(onSuggest).toHaveBeenLastCalledWith("/personality ");
+
+    press(tty.stdin, "return");
+    expect(onSubmit).toHaveBeenCalledWith("/personality");
+    restore();
+  });
+
+  it("enter on the exact command submits it even with the menu open", () => {
+    const onSubmit = vi.fn();
+    const ui = createInput({ onSubmit, onSuggest: vi.fn() });
+    ui.prompt();
+    type(tty.stdin, "/personality sassy");
+    ui.showSuggestions({ kind: "value", command: "/personality", items: [{ value: "sassy", label: "Sassy", help: "" }] });
+
+    press(tty.stdin, "return");
+    expect(onSubmit).toHaveBeenCalledWith("/personality sassy");
+    restore();
+  });
+
   it("escape closes the menu and keeps typing", () => {
     const onSubmit = vi.fn();
     const ui = createInput({ onSubmit, onSuggest: vi.fn() });

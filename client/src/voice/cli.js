@@ -103,8 +103,15 @@ export function createVoiceController({ write, sendGoal, onModeChange, onCancel,
   let persona = null;
   let lastSpoken = null;
   let delivery = loadDelivery();
+  let speakChain = Promise.resolve();
+  let speakEpoch = 0;
 
   const line = (text) => { if (text) write(text); };
+
+  const hush = () => {
+    speakEpoch++;
+    session?.stopSpeaking();
+  };
 
   function effectiveVoice() {
     const base = persona || DEFAULT_VOICE;
@@ -147,7 +154,7 @@ export function createVoiceController({ write, sendGoal, onModeChange, onCancel,
           return;
         }
         if (isStopPhrase(text)) {
-          session?.stopSpeaking();
+          hush();
           line(`  you: ${text}`);
           if (isBusy?.()) {
             line("  stopping…");
@@ -265,16 +272,20 @@ export function createVoiceController({ write, sendGoal, onModeChange, onCancel,
         return spoken;
       }
       lastSpoken = text;
-      session.speak(text).catch((err) => line(`  could not speak: ${err.message}`));
+      const epoch = speakEpoch;
+      speakChain = speakChain
+        .then(() => epoch === speakEpoch && session?.isRunning() && session.speak(text))
+        .catch((err) => line(`  could not speak: ${err.message}`));
       return spoken;
     },
 
     interrupt() {
-      session?.stopSpeaking();
+      hush();
     },
 
     stop() {
       const wasRunning = Boolean(session?.isRunning());
+      speakEpoch++;
       session?.stop();
       session = null;
       if (wasRunning) onModeChange?.(false);

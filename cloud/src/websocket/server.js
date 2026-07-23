@@ -108,7 +108,7 @@ async function sendPersona(ws) {
     const p = getPersona(persona);
     if (ws.personaId === p.id) return;
     ws.personaId = p.id;
-    send(ws, { type: "persona", persona: { id: p.id, name: p.name, pronouns: p.pronouns, voice: p.voice } });
+    send(ws, { type: "persona", persona: { id: p.id, name: p.name, pronouns: p.pronouns, voice: p.voice, intro: p.intro } });
   } catch {}
 }
 

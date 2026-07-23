@@ -34,6 +34,7 @@ function footerFor(line) {
 
 const router = createGoalRouter({ sendGoal, sendHumanReply, sendCancel });
 let voiceAutoStarted = false;
+let personaId = null;
 
 const voice = createVoiceController({
   write: (text) => ui.write(`${C.dim}${text}${C.reset}`),
@@ -121,7 +122,14 @@ connectToCloud(env.CLOUD_URL || "ws://localhost:3000", {
     ui.prompt();
   },
   onPersona(persona) {
-    if (persona?.voice) voice.setPersona(persona.voice);
+    if (!persona?.voice) return;
+    const previous = personaId;
+    personaId = persona.id;
+    voice.setPersona(persona.voice);
+    if (previous && persona.id !== previous && persona.intro) {
+      const heard = voice.speak(persona.intro);
+      say(heard || persona.intro);
+    }
   },
   onStatus(status) {
     ui.write(`${C.dim}  ${status}${C.reset}`);

@@ -67,9 +67,16 @@ export function isCommand(text) {
   return String(text || "").trimStart().startsWith("/");
 }
 
+function resolveCommand(typed) {
+  if (COMMANDS.some(c => c.name === typed)) return typed;
+  const matches = COMMANDS.filter(c => c.name.startsWith(typed));
+  return matches.length === 1 ? matches[0].name : typed;
+}
+
 export async function runCommand(chatId, text) {
-  const [head, ...rest] = String(text).trim().split(/\s+/);
+  const [typedHead, ...rest] = String(text).trim().split(/\s+/);
   const arg = rest.join(" ").trim();
+  const head = resolveCommand(typedHead);
 
   switch (head) {
     case "/help":
@@ -87,7 +94,8 @@ export async function runCommand(chatId, text) {
         return `no personality called "${arg}". options: ${listPersonas().map(p => p.label).join(", ")}`;
       }
       await setPrefs(chatId, { persona: match.id });
-      return `${personaLabel(match)} it is — ${match.blurb}\n\n"${match.samples[0]}"`;
+      const subject = match.pronouns.split("/")[0];
+      return `switching to ${match.name} — ${subject} is ${match.blurb}.`;
     }
 
     case "/mood": {
@@ -200,7 +208,10 @@ export async function runCommand(chatId, text) {
       return forgetFact(arg) ? `forgot "${arg}".` : `i wasn't remembering "${arg}".`;
     }
 
-    default:
-      return `unknown command ${head}. /help for the list.`;
+    default: {
+      const near = COMMANDS.filter(c => c.name.startsWith(typedHead)).map(c => c.name);
+      if (near.length) return `did you mean ${near.join(" or ")}?`;
+      return `unknown command ${typedHead}. /help for the list.`;
+    }
   }
 }
