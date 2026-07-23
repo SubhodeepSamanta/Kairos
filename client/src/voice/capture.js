@@ -88,6 +88,7 @@ export async function startMicrophone({ device, onFrame, onError } = {}) {
   let stopped = false;
 
   proc.stdout.on("data", (chunk) => {
+    if (stopped) return;
     carry = carry.length ? Buffer.concat([carry, chunk]) : chunk;
     let offset = 0;
     while (carry.length - offset >= FRAME_BYTES) {

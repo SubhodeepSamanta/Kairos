@@ -42,12 +42,13 @@ async function runMicTest(line) {
   const { frameEnergy } = await import("./vad.js");
   const { createTranscriber } = await import("./stt.js");
   const { createVad } = await import("./vad.js");
+  const { voiceConfig } = await import("./config.js");
   const stt = createTranscriber();
   line("  loading her ears…");
   await stt.ready();
 
   const ambient = [];
-  const quietMic = await startMicrophone({ onFrame: f => ambient.push(frameEnergy(f)), onError: () => {} });
+  const quietMic = await startMicrophone({ device: voiceConfig.device, onFrame: f => ambient.push(frameEnergy(f)), onError: () => {} });
   line("  sampling the room — stay quiet…");
   await new Promise(r => setTimeout(r, 1500));
   quietMic.stop();
@@ -61,6 +62,7 @@ async function runMicTest(line) {
 
   line(`  say something for ${TEST_SECONDS} seconds — go`);
   const mic = await startMicrophone({
+    device: voiceConfig.device,
     onFrame: (f) => {
       frames.push(f);
       const e = frameEnergy(f);

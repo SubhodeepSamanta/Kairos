@@ -307,6 +307,32 @@ describe("microphone drops mid-session", () => {
     expect(statuses).toContain("voice off");
   });
 
+  it("fails the start cleanly when the microphone dies during calibration", async () => {
+    let errCb = null;
+    let opens = 0;
+    const session = createVoiceSession({
+      onError: () => {},
+      speakerFactory: quietSpeaker,
+      transcriberFactory: quietStt,
+      microphoneFactory: async ({ onError }) => {
+        opens++;
+        if (opens > 1) throw new Error("still broken");
+        errCb = onError;
+        return { device: "Fake", stop: () => {} };
+      },
+      calibrationMs: 400,
+      micRetryDelayMs: 1
+    });
+
+    const startPromise = session.start();
+    await new Promise((r) => setTimeout(r, 20));
+    errCb(new Error("mic died mid-calibration"));
+    const ok = await startPromise;
+
+    expect(ok).toBe(false);
+    expect(session.isRunning()).toBe(false);
+  });
+
   it("does not fight a deliberate stop", async () => {
     let errCb = null;
     let opens = 0;

@@ -70,6 +70,7 @@ export function createVoiceSession({
       return;
     }
     micRetries++;
+    vad.reset();
     status("the microphone dropped — reopening…");
     setTimeout(() => {
       if (!micWanted) return;
@@ -96,7 +97,7 @@ export function createVoiceSession({
     const deadline = Date.now() + CALIBRATION_TIMEOUT_MS;
     return new Promise((resolve) => {
       const tick = () => {
-        if (ambientFrames >= targetFrames || Date.now() > deadline) resolve();
+        if (!micWanted || ambientFrames >= targetFrames || Date.now() > deadline) resolve();
         else setTimeout(tick, 40);
       };
       tick();
@@ -272,6 +273,7 @@ export function createVoiceSession({
         status("listening to the room for a moment — stay quiet…");
         await waitForAmbient(msToFrames(calibrationMs));
         calibrating = false;
+        if (!micWanted) return false;
         if (ambientFrames > 0) {
           const floor = vad.calibrate(ambientPeak);
           status(`room noise ${ambientPeak.toFixed(0)} · speak above ${floor}`);
@@ -281,6 +283,13 @@ export function createVoiceSession({
         } else {
           status("could not sample the room — using the default trigger level");
         }
+      }
+
+      if (!micWanted) return false;
+      if (!mic) {
+        micWanted = false;
+        fail(new Error(`the microphone dropped while I was getting ready — say "voice" to try again`));
+        return false;
       }
 
       running = true;
