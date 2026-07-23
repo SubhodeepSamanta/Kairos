@@ -22,7 +22,8 @@ export function connectToCloud(url) {
     });
 
     socket.on("error", (error) => {
-      log("Socket error:", error.message);
+      const why = error.message || error.code || "the cloud is not reachable yet";
+      log(`Socket error: ${why}`);
     });
 
     socket.on("message", async (raw) => {

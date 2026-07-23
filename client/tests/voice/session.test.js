@@ -227,7 +227,7 @@ describe("voice session", () => {
 });
 
 describe("start order", () => {
-  it("warms the speaking voice only after the microphone is already listening", async () => {
+  it("loads everything heavy before the microphone opens so nothing chokes the frames", async () => {
     const order = [];
     const session = createVoiceSession({
       speakerFactory: () => ({
@@ -244,8 +244,88 @@ describe("start order", () => {
     });
 
     expect(await session.start()).toBe(true);
-    expect(order.indexOf("ears")).toBeLessThan(order.indexOf("mic"));
-    expect(order.indexOf("mic")).toBeLessThan(order.indexOf("prepare"));
+    expect(order.indexOf("ears")).toBeLessThan(order.indexOf("prepare"));
+    expect(order.indexOf("prepare")).toBeLessThan(order.indexOf("mic"));
+  });
+});
+
+describe("microphone drops mid-session", () => {
+  const quietSpeaker = () => ({
+    isSpeaking: () => false, speak: async () => true, stop: () => {},
+    prepare: async () => true, engineName: () => "fake"
+  });
+  const quietStt = () => ({ ready: async () => true, transcribe: async () => null });
+
+  it("reopens the microphone and keeps listening", async () => {
+    const statuses = [];
+    let opens = 0;
+    let errCb = null;
+    const session = createVoiceSession({
+      onStatus: (s) => statuses.push(s),
+      onError: () => {},
+      speakerFactory: quietSpeaker,
+      transcriberFactory: quietStt,
+      microphoneFactory: async ({ onError }) => { opens++; errCb = onError; return { device: "Fake", stop: () => {} }; },
+      calibrationMs: 0,
+      micRetryDelayMs: 1
+    });
+
+    await session.start();
+    errCb(new Error("mic died"));
+    await new Promise((r) => setTimeout(r, 30));
+
+    expect(opens).toBe(2);
+    expect(session.isRunning()).toBe(true);
+    expect(statuses).toContain("microphone is back — just talk");
+  });
+
+  it("gives up after repeated failures instead of staying silently deaf", async () => {
+    const statuses = [];
+    let opens = 0;
+    let errCb = null;
+    const session = createVoiceSession({
+      onStatus: (s) => statuses.push(s),
+      onError: () => {},
+      speakerFactory: quietSpeaker,
+      transcriberFactory: quietStt,
+      microphoneFactory: async ({ onError }) => {
+        opens++;
+        if (opens > 1) throw new Error("still broken");
+        errCb = onError;
+        return { device: "Fake", stop: () => {} };
+      },
+      calibrationMs: 0,
+      micRetryDelayMs: 1
+    });
+
+    await session.start();
+    errCb(new Error("mic died"));
+    await new Promise((r) => setTimeout(r, 80));
+
+    expect(session.isRunning()).toBe(false);
+    expect(statuses.join(" | ")).toMatch(/kept failing/);
+    expect(statuses).toContain("voice off");
+  });
+
+  it("does not fight a deliberate stop", async () => {
+    let errCb = null;
+    let opens = 0;
+    const session = createVoiceSession({
+      onError: () => {},
+      speakerFactory: quietSpeaker,
+      transcriberFactory: quietStt,
+      microphoneFactory: async ({ onError }) => { opens++; errCb = onError; return { device: "Fake", stop: () => {} }; },
+      calibrationMs: 0,
+      micRetryDelayMs: 1
+    });
+
+    await session.start();
+    session.stop();
+    errCb(new Error("late error after stop"));
+    await new Promise((r) => setTimeout(r, 30));
+
+    expect(opens).toBe(1);
+    expect(session.isRunning()).toBe(false);
   });
 });
 

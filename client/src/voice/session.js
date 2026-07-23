@@ -9,6 +9,7 @@ import { createSpeaker, DEFAULT_VOICE } from "./tts/index.js";
 const CALIBRATION_TIMEOUT_MS = 6000;
 const ECHO_LEARN_MS = 400;
 const ECHO_HEADROOM = 1.5;
+const MIC_RETRIES = 3;
 
 export function createVoiceSession({
   onTranscript,
@@ -20,7 +21,8 @@ export function createVoiceSession({
   transcriberFactory = createTranscriber,
   microphoneFactory = startMicrophone,
   calibrationMs = vadConfig.calibrationMs,
-  requireWake = voiceConfig.requireWake
+  requireWake = voiceConfig.requireWake,
+  micRetryDelayMs = 1500
 } = {}) {
   const vad = createVad();
   const prosody = createProsodyReader();
@@ -29,6 +31,8 @@ export function createVoiceSession({
   const speaker = speakerFactory({ onStatus, onError });
 
   let mic = null;
+  let micWanted = false;
+  let micRetries = 0;
   let running = false;
   let busy = false;
   let persona = DEFAULT_VOICE;
@@ -46,6 +50,47 @@ export function createVoiceSession({
   const fail = (err) => onError?.(err instanceof Error ? err : new Error(String(err)));
 
   const idle = () => status("");
+
+  async function openMic() {
+    mic = await microphoneFactory({
+      device: voiceConfig.device,
+      onFrame,
+      onError: onMicError
+    });
+  }
+
+  function onMicError(err) {
+    if (!micWanted) return;
+    fail(err);
+    mic?.stop();
+    mic = null;
+    if (micRetries >= MIC_RETRIES) {
+      shutdown();
+      status(`the microphone kept failing — voice is off. check it, then say "voice" to try again`);
+      return;
+    }
+    micRetries++;
+    status("the microphone dropped — reopening…");
+    setTimeout(() => {
+      if (!micWanted) return;
+      openMic()
+        .then(() => status("microphone is back — just talk"))
+        .catch((e) => onMicError(e));
+    }, micRetryDelayMs);
+  }
+
+  function shutdown() {
+    if (!running && !micWanted) return;
+    running = false;
+    micWanted = false;
+    queued = null;
+    speaker.stop();
+    mic?.stop();
+    mic = null;
+    vad.reset();
+    gate.close();
+    status("voice off");
+  }
 
   function waitForAmbient(targetFrames) {
     const deadline = Date.now() + CALIBRATION_TIMEOUT_MS;
@@ -124,6 +169,7 @@ export function createVoiceSession({
   }
 
   function onFrame(frame) {
+    micRetries = 0;
     const level = frameEnergy(frame);
     if (calibrating) {
       if (level > ambientPeak) ambientPeak = level;
@@ -207,13 +253,14 @@ export function createVoiceSession({
         return false;
       }
 
+      await speaker.prepare(status).catch(() => {});
+
+      micWanted = true;
+      micRetries = 0;
       try {
-        mic = await microphoneFactory({
-          device: voiceConfig.device,
-          onFrame,
-          onError: fail
-        });
+        await openMic();
       } catch (err) {
+        micWanted = false;
         fail(err);
         return false;
       }
@@ -237,7 +284,6 @@ export function createVoiceSession({
       }
 
       running = true;
-      speaker.prepare(status).catch(() => {});
       status(requireWake
         ? `listening on ${mic.device} — say "Kairos" to start`
         : `listening on ${mic.device} — just talk`);
@@ -245,15 +291,7 @@ export function createVoiceSession({
     },
 
     stop() {
-      if (!running) return;
-      running = false;
-      queued = null;
-      speaker.stop();
-      mic?.stop();
-      mic = null;
-      vad.reset();
-      gate.close();
-      status("voice off");
+      shutdown();
     }
   };
 }
