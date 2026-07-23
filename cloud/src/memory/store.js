@@ -26,6 +26,43 @@ function persistFile() {
   writeJsonAtomic(memoryFile(), cache);
 }
 
+const DB_RETRY_MS = 60000;
+let retryTimer = null;
+
+async function connectAndLoad() {
+  await connectMemoryDb();
+  const fromDb = await loadAllFromDb();
+  const fromFile = loadFile();
+
+  for (const [key, entry] of Object.entries(fromFile)) {
+    const existing = fromDb[key];
+    if (!existing || new Date(entry.updatedAt) > new Date(existing.updatedAt)) {
+      fromDb[key] = entry;
+      await upsertFact(key, entry.value).catch(() => {});
+    }
+  }
+
+  cache = fromDb;
+  useDb = true;
+  persistFile();
+}
+
+function scheduleDbRetry() {
+  if (retryTimer) return;
+  retryTimer = setTimeout(async () => {
+    retryTimer = null;
+    try {
+      await connectAndLoad();
+      console.log(`[MEMORY] Postgres came back — ${Object.keys(cache).length} facts, syncing queued writes`);
+      await flushDbWrites(memoryPool()).catch(() => {});
+    } catch (err) {
+      console.log(`[MEMORY] Postgres still unreachable (${err.message.slice(0, 60)}) — retrying in ${DB_RETRY_MS / 1000}s`);
+      scheduleDbRetry();
+    }
+  }, DB_RETRY_MS);
+  retryTimer.unref?.();
+}
+
 export async function initMemory() {
   if (!hasDatabase()) {
     cache = loadFile();
@@ -34,27 +71,14 @@ export async function initMemory() {
   }
 
   try {
-    await connectMemoryDb();
-    const fromDb = await loadAllFromDb();
-    const fromFile = loadFile();
-
-    for (const [key, entry] of Object.entries(fromFile)) {
-      const existing = fromDb[key];
-      if (!existing || new Date(entry.updatedAt) > new Date(existing.updatedAt)) {
-        fromDb[key] = entry;
-        await upsertFact(key, entry.value).catch(() => {});
-      }
-    }
-
-    cache = fromDb;
-    useDb = true;
-    persistFile();
+    await connectAndLoad();
     console.log(`[MEMORY] Using Postgres, ${Object.keys(cache).length} facts loaded`);
     return { backend: "postgres", facts: Object.keys(cache).length };
   } catch (err) {
     cache = loadFile();
     useDb = false;
-    console.log(`[MEMORY] Postgres unavailable (${err.message.slice(0, 80)}), falling back to local file`);
+    console.log(`[MEMORY] Postgres unavailable (${err.message.slice(0, 80)}) — using the local file and retrying every ${DB_RETRY_MS / 1000}s`);
+    scheduleDbRetry();
     return { backend: "file", facts: Object.keys(cache).length };
   }
 }
@@ -166,4 +190,8 @@ export function formatFactsForPrompt(facts) {
 export function resetMemoryCacheForTests() {
   cache = null;
   useDb = false;
+  if (retryTimer) {
+    clearTimeout(retryTimer);
+    retryTimer = null;
+  }
 }

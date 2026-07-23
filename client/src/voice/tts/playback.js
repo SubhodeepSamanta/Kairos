@@ -20,10 +20,12 @@ export function createPlayer({ spawnFn = spawn } = {}) {
   let active = null;
   let pending = null;
   let cancelled = false;
+  let lastError = null;
 
   return {
     isPlaying: () => active !== null || pending !== null,
     isCancelled: () => cancelled,
+    lastError: () => lastError,
 
     async play(wavBuffer) {
       if (cancelled) return false;
@@ -38,18 +40,21 @@ export function createPlayer({ spawnFn = spawn } = {}) {
         const proc = spawnFn("powershell.exe", [
           ...PS_ARGS,
           `$player = New-Object System.Media.SoundPlayer ${psQuote(file)}; $player.PlaySync(); $player.Dispose()`
-        ], { stdio: "ignore", windowsHide: true });
+        ], { stdio: ["ignore", "ignore", "pipe"], windowsHide: true });
 
         active = proc;
+        let stderr = "";
+        proc.stderr?.on("data", (chunk) => { stderr = (stderr + chunk.toString()).slice(-400); });
 
-        const finish = (completed) => {
+        const finish = (completed, why) => {
           if (active === proc) active = null;
+          if (!completed && !cancelled) lastError = why || "playback failed";
           fs.promises.unlink(file).catch(() => {});
           resolve(completed);
         };
 
-        proc.on("error", () => finish(false));
-        proc.on("close", (code) => finish(code === 0));
+        proc.on("error", (err) => finish(false, err.message));
+        proc.on("close", (code) => finish(code === 0, code === 0 ? null : (stderr.trim().split(/\r?\n/).pop() || `player exited ${code}`)));
       });
     },
 

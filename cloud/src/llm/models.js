@@ -1,8 +1,8 @@
 import { env } from "../config/env.js";
 
 const ENDPOINTS = {
-  groq: { url: "https://api.groq.com/openai/v1/chat/completions", key: () => env.GROQ_API_KEY, timeout: 45000 },
-  openrouter: { url: "https://openrouter.ai/api/v1/chat/completions", key: () => env.OPENROUTER_API_KEY, timeout: 60000 },
+  groq: { url: "https://api.groq.com/openai/v1/chat/completions", key: () => env.GROQ_API_KEY, timeout: 15000 },
+  openrouter: { url: "https://openrouter.ai/api/v1/chat/completions", key: () => env.OPENROUTER_API_KEY, timeout: 30000 },
   nvidia: { url: "https://integrate.api.nvidia.com/v1/chat/completions", key: () => env.NVIDIA_API_KEY, timeout: 20000 }
 };
 

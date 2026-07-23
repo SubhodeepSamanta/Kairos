@@ -9,7 +9,11 @@ export function hasDatabase() {
 
 export async function connectMemoryDb() {
   if (!hasDatabase()) return null;
-  pool = new pg.Pool({
+  if (pool) {
+    await pool.end().catch(() => {});
+    pool = null;
+  }
+  const candidate = new pg.Pool({
     connectionString: env.DATABASE_URL,
     max: 3,
     connectionTimeoutMillis: 25000,
@@ -19,9 +23,20 @@ export async function connectMemoryDb() {
     keepAlive: true
   });
 
-  pool.on("error", (err) => {
+  candidate.on("error", (err) => {
     console.log(`[MEMORY] Idle database connection dropped (${err.message.slice(0, 60)}) — will reconnect on next write`);
   });
+  try {
+    await prepareSchema(candidate);
+  } catch (err) {
+    await candidate.end().catch(() => {});
+    throw err;
+  }
+  pool = candidate;
+  return pool;
+}
+
+async function prepareSchema(pool) {
   await pool.query(`DROP TABLE IF EXISTS memories`);
   await pool.query(`
     CREATE TABLE IF NOT EXISTS kairos_facts (

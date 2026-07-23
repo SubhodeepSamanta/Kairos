@@ -135,3 +135,44 @@ describe("overlapping replies", () => {
     expect(await speaker.speak("just one line.", { voice: "af_heart", rate: 1, pitch: 1 })).toBe(true);
   });
 });
+
+describe("silent playback failures", () => {
+  it("says so instead of pretending it spoke when no chunk ever played", async () => {
+    const errors = [];
+    const { createSpeaker } = await import("../../src/voice/tts/index.js");
+    const speaker = createSpeaker({
+      onError: (e) => errors.push(e.message),
+      engineFactory: () => ({
+        name: "kokoro",
+        ready: async () => true,
+        supportsVoice: () => true,
+        synthesize: async () => silenceWav(5)
+      }),
+      playerFactory: () => ({
+        isPlaying: () => false,
+        isCancelled: () => false,
+        lastError: () => "player exited 1",
+        play: async () => false,
+        pause: async () => {},
+        stop: () => {},
+        resume: () => {}
+      })
+    });
+
+    expect(await speaker.speak("hello there.", { voice: "af_heart", rate: 1, pitch: 1 })).toBe(false);
+    expect(errors.join(" ")).toMatch(/no audio came out/);
+    expect(errors.join(" ")).toContain("player exited 1");
+  });
+
+  it("keeps the stderr tail from a failed player", async () => {
+    const handlers = {};
+    const proc = {
+      stderr: { on: (ev, fn) => { if (ev === "data") handlers.data = fn; } },
+      on: (event, fn) => { handlers[event] = fn; return proc; },
+      kill: () => {}
+    };
+    const player = createPlayer({ spawnFn: () => { setTimeout(() => { handlers.data?.(Buffer.from("Exception calling PlaySync")); handlers.close?.(1); }, 5); return proc; } });
+    expect(await player.play(silenceWav(10))).toBe(false);
+    expect(player.lastError()).toContain("PlaySync");
+  });
+});

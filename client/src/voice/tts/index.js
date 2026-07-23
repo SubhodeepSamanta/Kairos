@@ -21,8 +21,8 @@ function trimForSpeech(text) {
   return lastStop > MAX_SPEECH_CHARS / 2 ? cut.slice(0, lastStop + 1) : `${cut.trimEnd()}…`;
 }
 
-export function createSpeaker({ onStatus, onError, engineFactory } = {}) {
-  const player = createPlayer();
+export function createSpeaker({ onStatus, onError, engineFactory, playerFactory = createPlayer } = {}) {
+  const player = playerFactory();
   let engine = null;
   let enginePromise = null;
   let generation = 0;
@@ -115,6 +115,7 @@ export function createSpeaker({ onStatus, onError, engineFactory } = {}) {
       };
 
       let pending = render(segments[0]);
+      let playedAny = false;
 
       for (let i = 0; i < segments.length; i++) {
         if (stale()) return false;
@@ -130,11 +131,15 @@ export function createSpeaker({ onStatus, onError, engineFactory } = {}) {
           const wav = await pending;
           pending = render(segments[i + 1]);
           if (stale()) return false;
-          await player.play(wav);
+          if (await player.play(wav)) playedAny = true;
         } catch (err) {
           onError?.(new Error(`could not speak: ${err.message}`));
           return false;
         }
+      }
+      if (!playedAny && !stale()) {
+        onError?.(new Error(`no audio came out${player.lastError() ? ` (${player.lastError()})` : ""} — is the sound device busy?`));
+        return false;
       }
       return !stale();
     },

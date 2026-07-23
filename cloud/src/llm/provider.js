@@ -110,7 +110,9 @@ export async function askLLM(systemPrompt, userPrompt, budget = null) {
   }
 
   let lastError = null;
+  const downedProviders = new Set();
   for (const candidate of candidates) {
+    if (downedProviders.has(candidate.provider)) continue;
     try {
       const record = { at: Date.now(), tokens, name: candidate.name };
       recentCalls.push(record);
@@ -138,6 +140,12 @@ export async function askLLM(systemPrompt, userPrompt, budget = null) {
       } else if (err.status === 404) {
         cool(candidate.name, 6 * 3600 * 1000);
         console.log(`[LLM] ${candidate.name} returned 404 — likely decommissioned, cooling 6h`);
+      } else if (/fetch failed|aborted|network|ENOTFOUND|ECONNRESET|ETIMEDOUT/i.test(err.message)) {
+        downedProviders.add(candidate.provider);
+        for (const c of [...PRIMARY, ...BACKUP]) {
+          if (c.provider === candidate.provider) cool(c.name, 15000);
+        }
+        console.log(`[LLM] ${candidate.name} unreachable (${err.message.slice(0, 60)}) — skipping ${candidate.provider} for 15s`);
       } else {
         cool(candidate.name, 15000);
         console.log(`[LLM] ${candidate.name} failed: ${err.message.slice(0, 120)}`);
