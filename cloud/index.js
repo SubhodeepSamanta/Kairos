@@ -11,6 +11,7 @@ import path from "path";
 import { startWebSocketServer, runScheduledGoal } from "./src/websocket/server.js";
 import { startTelegramBot } from "./src/connectors/telegram/telegram.js";
 import { startScheduler } from "./src/schedule/scheduler.js";
+import { detectLocation, describeLocation } from "./src/agent/location.js";
 
 installCrashHandlers();
 
@@ -30,6 +31,10 @@ initMemory()
   .then(() => unifyIdentity())
   .then(() => console.log("[BOOT] memory sync finished"))
   .catch((err) => console.log(`[BOOT] memory sync failed (${err.message.slice(0, 80)}) — running on local files`));
+
+detectLocation()
+  .then((loc) => { const p = describeLocation(loc); if (p) console.log(`[BOOT] location: ${p}`); })
+  .catch(() => {});
 
 process.on("SIGINT", async () => {
   if (pendingDbWrites()) {

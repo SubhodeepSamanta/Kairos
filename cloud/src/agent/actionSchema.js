@@ -20,6 +20,7 @@ const SCHEMA = {
   close_user_browser: {},
   web_search: { query: "text" },
   fetch_page: { url: "url" },
+  weather: {},
   remember: { key: "text", value: "text" },
   ask_human: { question: "text" },
   done: {},

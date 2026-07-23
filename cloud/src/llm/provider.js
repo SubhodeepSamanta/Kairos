@@ -6,15 +6,17 @@ const PRIMARY = [
 ];
 
 const BACKUP = [
-  { name: "groq/qwen3.6-27b", provider: "groq", model: "qwen/qwen3.6-27b" },
-  { name: "groq/llama-3.1-8b", provider: "groq", model: "llama-3.1-8b-instant" },
-  { name: "openrouter/nemotron-120b", provider: "openrouter", model: "nvidia/nemotron-3-super-120b-a12b:free" },
   { name: "groq/llama-3.3-70b", provider: "groq", model: "llama-3.3-70b-versatile" },
-  { name: "nvidia/nemotron-super-49b", provider: "nvidia", model: "nvidia/llama-3.3-nemotron-super-49b-v1.5" }
+  { name: "openrouter/nemotron-120b", provider: "openrouter", model: "nvidia/nemotron-3-super-120b-a12b:free" },
+  { name: "nvidia/nemotron-super-49b", provider: "nvidia", model: "nvidia/llama-3.3-nemotron-super-49b-v1.5" },
+  { name: "groq/llama-3.1-8b", provider: "groq", model: "llama-3.1-8b-instant" },
+  { name: "openrouter/gpt-oss-20b", provider: "openrouter", model: "openai/gpt-oss-20b:free" }
 ];
 
 const TPM_LIMIT = Number(process.env.LLM_TPM_LIMIT) || 10000;
 const COOLDOWN_MS = 60000;
+const NETWORK_COOLDOWN_MS = 5000;
+const UNREACHABLE = /fetch failed|aborted|network|ENOTFOUND|ECONNRESET|ECONNREFUSED|ETIMEDOUT|EAI_AGAIN|dns/i;
 
 const recentCalls = [];
 const cooldowns = new Map();
@@ -79,6 +81,12 @@ export function createBudget(maxCalls = 45) {
   return { used: 0, maxCalls, estimatedTokens: 0, tokensIn: 0, tokensOut: 0, measured: 0, llmMs: 0 };
 }
 
+export function resetProviderStateForTests() {
+  cooldowns.clear();
+  recentCalls.length = 0;
+  rotation = 0;
+}
+
 export function llmStatus() {
   return {
     primary: PRIMARY.map(p => p.name),
@@ -110,6 +118,7 @@ export async function askLLM(systemPrompt, userPrompt, budget = null) {
   }
 
   let lastError = null;
+  let sawReachable = false;
   const downedProviders = new Set();
   for (const candidate of candidates) {
     if (downedProviders.has(candidate.provider)) continue;
@@ -131,28 +140,39 @@ export async function askLLM(systemPrompt, userPrompt, budget = null) {
         console.log(`[LLM] ${candidate.name} ok (call ${budget ? budget.used : "-"}, ${shown}, ${ms}ms)`);
         return text;
       }
+      sawReachable = true;
       lastError = new Error(`${candidate.name} returned empty`);
     } catch (err) {
       lastError = err;
-      if (err.rateLimited) {
+      if (UNREACHABLE.test(err.message) && err.status === undefined) {
+        downedProviders.add(candidate.provider);
+        for (const c of [...PRIMARY, ...BACKUP]) {
+          if (c.provider === candidate.provider) cool(c.name, NETWORK_COOLDOWN_MS);
+        }
+        console.log(`[LLM] ${candidate.name} unreachable (${err.message.slice(0, 60)}) — skipping ${candidate.provider} for ${NETWORK_COOLDOWN_MS / 1000}s`);
+      } else if (err.rateLimited) {
+        sawReachable = true;
         cool(candidate.name);
         console.log(`[LLM] ${candidate.name} rate limited — cooling 60s, trying next`);
       } else if (err.status === 404) {
+        sawReachable = true;
         cool(candidate.name, 6 * 3600 * 1000);
         console.log(`[LLM] ${candidate.name} returned 404 — likely decommissioned, cooling 6h`);
-      } else if (/fetch failed|aborted|network|ENOTFOUND|ECONNRESET|ETIMEDOUT/i.test(err.message)) {
-        downedProviders.add(candidate.provider);
-        for (const c of [...PRIMARY, ...BACKUP]) {
-          if (c.provider === candidate.provider) cool(c.name, 15000);
-        }
-        console.log(`[LLM] ${candidate.name} unreachable (${err.message.slice(0, 60)}) — skipping ${candidate.provider} for 15s`);
       } else {
+        sawReachable = true;
         cool(candidate.name, 15000);
         console.log(`[LLM] ${candidate.name} failed: ${err.message.slice(0, 120)}`);
       }
     }
   }
-  throw lastError || new Error("no_llm_provider_available");
+
+  const failure = new Error(
+    sawReachable
+      ? `no_llm_provider_available: ${lastError?.message || "all providers failed"}`
+      : `llm_unreachable: ${lastError?.message || "no network"}`
+  );
+  failure.code = sawReachable ? "busy" : "unreachable";
+  throw failure;
 }
 
 export function parseJsonResponse(text) {

@@ -3,6 +3,7 @@ import { SYSTEM_PROMPT, VOICE_RULES, buildStepPrompt } from "../prompt.js";
 import { formatSnapshot, describePageChange } from "../snapshot.js";
 import { rememberFact, relevantFacts, formatFactsForPrompt } from "../../memory/store.js";
 import { webSearch, formatSearchResults, fetchPageText } from "../webTools.js";
+import { cachedLocation, describeLocation, getWeather } from "../location.js";
 import { personaBlock } from "../../companion/personas.js";
 import { buildCompanionContext } from "../../companion/context.js";
 import { addTurn, addEvent, addMood } from "../../companion/store.js";
@@ -140,6 +141,7 @@ export async function runAgent({
   }
 
   const companion = await buildCompanionContext(chatId);
+  const place = describeLocation(cachedLocation());
   await addTurn(chatId, "user", goal);
   const systemPrompt = `${personaBlock(companion.prefs.persona)}\n\n${SYSTEM_PROMPT}${voiceMode ? `\n\n${VOICE_RULES}` : ""}`;
 
@@ -199,7 +201,8 @@ export async function runAgent({
       summary: companion.summary,
       conversation: companion.conversation,
       recentDays: companion.recentDays,
-      mood: companion.mood
+      mood: companion.mood,
+      place
     });
 
     let decision = null;
@@ -215,7 +218,9 @@ export async function runAgent({
           return finish(false, "I ran out of AI budget for this one. Progress: " + (history.slice(-3).join("; ") || "none"));
         }
         if (waitMs > 0) {
-          status(`AI providers busy, retrying in ${waitMs / 1000}s…`);
+          status(err.code === "unreachable"
+            ? `can't reach the internet — trying again in ${waitMs / 1000}s…`
+            : `AI providers are busy — trying again in ${waitMs / 1000}s…`);
           if (!await sleepUnlessStopped(waitMs)) break;
         }
       }
@@ -225,7 +230,9 @@ export async function runAgent({
       return finish(false, step > 1 ? "okay — stopped." : "okay, never mind.", { cancelled: true });
     }
     if (!decision) {
-      return finish(false, `AI error after retries: ${llmError?.message || "no answer from any model"}`);
+      return finish(false, llmError?.code === "unreachable"
+        ? "I couldn't reach the internet just now — check the connection and ask me again."
+        : `AI error after retries: ${llmError?.message || "no answer from any model"}`);
     }
     notice = "";
 
@@ -335,6 +342,17 @@ export async function runAgent({
         history.push(`#${step} web_search "${String(action.query).slice(0, 60)}" →\n${formatSearchResults(results).slice(0, 500)}`);
       } catch (err) {
         history.push(`#${step} web_search FAILED: ${err.message}`);
+      }
+      continue;
+    }
+
+    if (action.type === "weather") {
+      status(`Checking the weather${action.place ? ` in ${action.place}` : ""}`);
+      try {
+        const report = await getWeather(action.place || action.location || "");
+        history.push(`#${step} weather → ${report}`);
+      } catch (err) {
+        history.push(`#${step} weather FAILED: ${err.message}`);
       }
       continue;
     }
