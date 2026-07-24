@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseFeed, formatSearchResults } from "../../src/agent/webTools.js";
+import { parseFeed, formatSearchResults, parseDuckDuckGoHtml } from "../../src/agent/webTools.js";
 
 const RSS = `<?xml version="1.0"?>
 <rss version="2.0"><channel>
@@ -45,6 +45,40 @@ describe("parseFeed", () => {
   it("returns nothing for non-feed xml or junk", () => {
     expect(parseFeed("<html><body>not a feed</body></html>")).toEqual([]);
     expect(parseFeed("")).toEqual([]);
+  });
+});
+
+const DDG_HTML = `
+<div class="result results_links results_links_deep result--ad result--ad-v2">
+  <a class="result__a" href="//duckduckgo.com/y.js?ad_domain=amazon.com&amp;ad_provider=bingv7aa&amp;ad_type=txad&amp;u3=https%3A%2F%2Famazon.com">Shop sunscreen - Amazon Official Site</a>
+  <div class="result__snippet">Buy now.</div>
+</div>
+<div class="result results_links results_links_deep">
+  <a class="result__a" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fwww.refinery29.com%2Fbest-sunscreen&amp;rut=abc">The Very Best Sunscreens 2026</a>
+  <div class="result__snippet">Tried and tested picks.</div>
+</div>
+<div class="result results_links results_links_deep">
+  <a class="result__a" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fwww.everydayhealth.com%2Fbest-sunscreens&amp;rut=def">16 Best Sunscreens</a>
+  <div class="result__snippet">Budget guide.</div>
+</div>`;
+
+describe("parseDuckDuckGoHtml", () => {
+  it("drops sponsored ad results and keeps organic ones", () => {
+    const results = parseDuckDuckGoHtml(DDG_HTML);
+    expect(results).toHaveLength(2);
+    expect(results.some(r => /amazon/i.test(r.url))).toBe(false);
+    expect(results.some(r => /y\.js/.test(r.url))).toBe(false);
+  });
+
+  it("unwraps the real destination url out of the ddg redirect", () => {
+    const results = parseDuckDuckGoHtml(DDG_HTML);
+    expect(results[0].url).toBe("https://www.refinery29.com/best-sunscreen");
+    expect(results[0].title).toContain("Very Best Sunscreens");
+    expect(results[0].url).not.toContain("duckduckgo.com");
+  });
+
+  it("respects the result cap", () => {
+    expect(parseDuckDuckGoHtml(DDG_HTML, 1)).toHaveLength(1);
   });
 });
 

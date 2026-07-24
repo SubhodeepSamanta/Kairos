@@ -17,25 +17,30 @@ async function fetchWithTimeout(url, options = {}) {
   }
 }
 
-async function searchDuckDuckGo(query, maxResults) {
-  const url = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
-  const response = await fetchWithTimeout(url, { method: "POST" });
-  if (!response.ok) return [];
-  const html = await response.text();
-
+export function parseDuckDuckGoHtml(html, maxResults = 8) {
   const $ = cheerio.load(html);
   const results = [];
   $(".result").each((_, el) => {
     if (results.length >= maxResults) return false;
+    if ($(el).is(".result--ad, .result--ad-v2")) return;
     const a = $(el).find("a.result__a").first();
     let href = a.attr("href") || "";
+    if (!href || href.includes("/y.js") || /[?&]ad_(provider|domain|type)=/.test(href)) return;
     const m = href.match(/uddg=([^&]+)/);
     if (m) href = decodeURIComponent(m[1]);
+    if (/^(https?:)?\/\/(duckduckgo\.com|duck\.co)\//i.test(href)) return;
     const title = a.text().trim();
     const snippet = $(el).find(".result__snippet").text().trim().slice(0, 200);
     if (title && href) results.push({ title, url: href, snippet });
   });
   return results;
+}
+
+async function searchDuckDuckGo(query, maxResults) {
+  const url = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
+  const response = await fetchWithTimeout(url, { method: "POST" });
+  if (!response.ok) return [];
+  return parseDuckDuckGoHtml(await response.text(), maxResults);
 }
 
 function unwrapBingUrl(href) {
