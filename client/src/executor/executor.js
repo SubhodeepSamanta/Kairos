@@ -1,5 +1,6 @@
 import { executeDeviceAction } from "./deviceAdapter.js";
 import { readPage } from "../automation/browser/actions/observation/read.js";
+import { readDesktop } from "../automation/desktop/driver.js";
 import { getCurrentPage } from "../automation/browser/browser.js";
 import { storeSecret } from "../secrets/vault.js";
 import { executeFileAction, FILE_ACTIONS } from "../files/fileActions.js";
@@ -9,8 +10,13 @@ const STATE_CHANGING = new Set([
   "switch_tab", "new_tab", "new_window", "close_tab", "scroll", "wait", "use_browser", "select_option"
 ]);
 
+const DESKTOP_STATE_CHANGING = new Set([
+  "click_element", "type_into", "set_toggle", "select_menu", "press_keys"
+]);
+
 const SETTLE_TIMEOUT_MS = 4000;
 const SETTLE_PAUSE_MS = 700;
+const DESKTOP_SETTLE_MS = 450;
 
 async function settle() {
   const page = getCurrentPage();
@@ -73,6 +79,16 @@ export async function executeAction(action) {
       observation.page = await readPage();
     } catch (err) {
       console.log(`[EXECUTE] post-action read failed: ${err.message}`);
+    }
+  }
+
+  if (DESKTOP_STATE_CHANGING.has(action.type)) {
+    await new Promise(r => setTimeout(r, DESKTOP_SETTLE_MS));
+    try {
+      const d = await readDesktop();
+      if (d?.success) observation.desktop = { text: d.text, window: d.window, count: d.count };
+    } catch (err) {
+      console.log(`[EXECUTE] post-action desktop read failed: ${err.message}`);
     }
   }
 

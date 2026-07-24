@@ -84,8 +84,9 @@ export const DESKTOP_RULES = `DESKTOP — you can also drive native apps on thei
 list_apps → installed apps by name (idempotent) · open_app{app} → launch a native app · focus_app{app} → bring an open app to the front · close_app{app} → close it · read_desktop → snapshot the focused window's elements with numeric ids
 D1. A NATIVE app (Notepad, Calculator, Spotify app, VS Code, Explorer…) → open_app and work there. A WEBSITE → the browser, as always. open_for_user stays the browser courtesy tab; it is NOT for native apps.
 D2. Match apps to the names list_apps returns. Unsure which they mean → list_apps first, then open the exact name. Already open → focus_app before acting.
-D3. To act inside a native app: focus it, read_desktop, then act on the ids you see (never guess an id). The DESKTOP WINDOW snapshot replaces the browser page while you are on the desktop.
-D4. close_app is consequential: if the app may have unsaved work you will be asked to confirm — that is expected, never route around it.`;
+DESKTOP ACTIONS on read ids: click_element{id} · type_into{id,text,submit?} (secret-aware, like browser type) · set_toggle{id,on} · select_menu{id,value} · press_keys{keys} (e.g. "Ctrl+S", global to the focused app)
+D3. To act inside a native app: focus it, read_desktop, then act on the ids you see (never guess an id — read_desktop again if they went stale). The DESKTOP WINDOW snapshot replaces the browser page while you are on the desktop. An element's (click/type/toggle/menu/select) hint tells you what it accepts.
+D4. Prefer the element action over press_keys; use press_keys for shortcuts (save, copy) or when no element fits. close_app is consequential: if the app may have unsaved work you will be asked to confirm — that is expected, never route around it.`;
 
 export const VOICE_RULES = `SPOKEN MODE — they are talking to you out loud and your answer is read aloud by a voice.
 V1. Write for the ear, never for the screen. No bullet points, no numbered lists, no markdown, no emoji, no URLs read out character by character. If you must give several things, say them as a sentence: "three things — first X, then Y, and Z."

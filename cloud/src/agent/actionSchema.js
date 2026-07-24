@@ -31,7 +31,12 @@ const SCHEMA = {
   open_app: { app: "text" },
   focus_app: { app: "text" },
   close_app: { app: "text" },
-  read_desktop: {}
+  read_desktop: {},
+  click_element: { id: "id" },
+  type_into: { id: "id", text: "text" },
+  set_toggle: { id: "id" },
+  select_menu: { id: "id", value: "text" },
+  press_keys: { keys: "text" }
 };
 
 function badValue(kind, value) {

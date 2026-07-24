@@ -60,7 +60,12 @@ const BROWSER_ACTIONS = {
   open_app: a => ({ type: "open_app", params: { app: a.app } }),
   focus_app: a => ({ type: "focus_app", params: { app: a.app } }),
   close_app: a => ({ type: "close_app", params: { app: a.app } }),
-  read_desktop: () => ({ type: "read_desktop", params: {} })
+  read_desktop: () => ({ type: "read_desktop", params: {} }),
+  click_element: a => ({ type: "click_element", params: { element: a.id } }),
+  type_into: a => ({ type: "type_into", params: { element: a.id, text: a.text, submit: a.submit === true } }),
+  set_toggle: a => ({ type: "set_toggle", params: { element: a.id, on: a.on !== false } }),
+  select_menu: a => ({ type: "select_menu", params: { element: a.id, value: a.value } }),
+  press_keys: a => ({ type: "press_keys", params: { keys: a.keys } })
 };
 
 const DATA_SUMMARY = {
