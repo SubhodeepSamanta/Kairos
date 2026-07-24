@@ -80,6 +80,12 @@ export function buildStepPrompt({ goal, memories, history, snapshot, notice, con
   return parts.join("\n\n");
 }
 
+export const DESKTOP_RULES = `DESKTOP — you can also drive native apps on their computer, not just the browser:
+list_apps → installed apps by name (idempotent) · open_app{app} → launch a native app · focus_app{app} → bring an open app to the front · close_app{app} → close it
+D1. A NATIVE app (Notepad, Calculator, Spotify app, VS Code, Explorer…) → open_app and work there. A WEBSITE → the browser, as always. open_for_user stays the browser courtesy tab; it is NOT for native apps.
+D2. Match apps to the names list_apps returns. Unsure which they mean → list_apps first, then open the exact name. Already open → focus_app before acting.
+D3. close_app is consequential: if the app may have unsaved work you will be asked to confirm — that is expected, never route around it.`;
+
 export const VOICE_RULES = `SPOKEN MODE — they are talking to you out loud and your answer is read aloud by a voice.
 V1. Write for the ear, never for the screen. No bullet points, no numbered lists, no markdown, no emoji, no URLs read out character by character. If you must give several things, say them as a sentence: "three things — first X, then Y, and Z."
 V2. Short sentences. Contractions. The way a person actually speaks. Two or three sentences is usually the whole answer; stop when you have answered.

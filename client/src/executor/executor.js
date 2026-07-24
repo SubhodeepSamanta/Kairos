@@ -99,6 +99,14 @@ function extractData(action, result) {
       return { browsers: result.browsers, installed: result.installed, active: result.active };
     case "use_browser":
       return { browser: result.browser, profile: result.profile, profileLabel: result.profileLabel };
+    case "list_apps":
+      return { apps: result.apps };
+    case "open_app":
+      return { launched: result.launched, note: result.note };
+    case "focus_app":
+      return { focused: result.focused };
+    case "close_app":
+      return { closed: result.closed };
     default:
       return undefined;
   }

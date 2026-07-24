@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { formatSnapshot } from "../../src/agent/snapshot.js";
-import { SYSTEM_PROMPT, buildStepPrompt } from "../../src/agent/prompt.js";
+import { SYSTEM_PROMPT, DESKTOP_RULES, buildStepPrompt } from "../../src/agent/prompt.js";
 import { personaBlock } from "../../src/companion/personas.js";
 
 const estimate = (text) => Math.ceil(text.length / 4);
@@ -47,6 +47,18 @@ describe("token budget", () => {
     });
     const total = estimate(SYSTEM_PROMPT) + estimate(personaBlock("aria")) + estimate(prompt);
     expect(total).toBeLessThan(3350);
+  });
+
+  it("keeps a desktop-enabled browser step under 3900 tokens", () => {
+    const prompt = buildStepPrompt({
+      goal: "open notepad and write a note",
+      memories: "music: lofi",
+      history: Array.from({ length: 16 }, (_, i) => `#${i} click id=${i} → ok`),
+      snapshot: formatSnapshot(heavyPage()),
+      notice: "", conversation: "", recentDays: "", mood: ""
+    });
+    const total = estimate(SYSTEM_PROMPT) + estimate(DESKTOP_RULES) + estimate(personaBlock("aria")) + estimate(prompt);
+    expect(total).toBeLessThan(3900);
   });
 
   it("keeps a chat turn cheap — no page snapshot", () => {

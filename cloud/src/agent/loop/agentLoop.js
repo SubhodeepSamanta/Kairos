@@ -1,5 +1,5 @@
 import { askLLMJson, createBudget } from "../../llm/provider.js";
-import { SYSTEM_PROMPT, VOICE_RULES, buildStepPrompt } from "../prompt.js";
+import { SYSTEM_PROMPT, VOICE_RULES, DESKTOP_RULES, buildStepPrompt } from "../prompt.js";
 import { formatSnapshot, describePageChange } from "../snapshot.js";
 import { rememberFact, relevantFacts, formatFactsForPrompt } from "../../memory/store.js";
 import { webSearch, formatSearchResults, fetchPageText } from "../webTools.js";
@@ -55,7 +55,11 @@ const BROWSER_ACTIONS = {
   use_browser: a => ({ type: "use_browser", params: { browser: a.browser, profile: a.profile || null } }),
   list_files: a => ({ type: "list_files", params: { path: a.path || "" } }),
   read_file: a => ({ type: "read_file", params: { path: a.path } }),
-  write_file: a => ({ type: "write_file", params: { path: a.path, text: a.text } })
+  write_file: a => ({ type: "write_file", params: { path: a.path, text: a.text } }),
+  list_apps: () => ({ type: "list_apps", params: {} }),
+  open_app: a => ({ type: "open_app", params: { app: a.app } }),
+  focus_app: a => ({ type: "focus_app", params: { app: a.app } }),
+  close_app: a => ({ type: "close_app", params: { app: a.app } })
 };
 
 const DATA_SUMMARY = {
@@ -68,10 +72,14 @@ const DATA_SUMMARY = {
   close_user_browser: d => d?.closed ? ` (their ${d.label || "browser"} is closed — retry the real profile with use_browser now)` : " (it was not running — the real profile is free)",
   list_files: d => d?.listing ? `\n${d.listing}` : "",
   read_file: d => d?.text ? `\n${d.text}${d.truncated ? "\n…(file continues)" : ""}` : "",
-  write_file: d => d?.written ? ` (saved as ${d.written})` : ""
+  write_file: d => d?.written ? ` (saved as ${d.written})` : "",
+  list_apps: d => d?.apps?.length ? `\n${d.apps.join("\n")}` : " (none found)",
+  open_app: d => d?.note ? ` (${d.note})` : "",
+  focus_app: d => d?.focused ? ` (now in front: "${String(d.focused).slice(0, 60)}")` : "",
+  close_app: d => d?.closed ? " (closed)" : ""
 };
 
-const IDEMPOTENT_INFO = new Set(["list_browsers", "list_files", "read_file"]);
+const IDEMPOTENT_INFO = new Set(["list_browsers", "list_files", "read_file", "list_apps"]);
 
 function actionSignature(action) {
   return JSON.stringify(action);
@@ -113,6 +121,7 @@ function trimHistory(history) {
 export async function runAgent({
   goal, tone = null, goalId, chatId = "default", executeAction, askHuman, onStatus,
   voiceMode = false, isCancelled,
+  desktopMode = process.env.DESKTOP !== "false",
   confirmRisky = process.env.CONFIRM_RISKY !== "false",
   dryRun = process.env.DRY_RUN === "true"
 }) {
@@ -150,7 +159,7 @@ export async function runAgent({
   const companion = await buildCompanionContext(chatId);
   const place = describeLocation(cachedLocation());
   await addTurn(chatId, "user", goal);
-  const systemPrompt = `${personaBlock(companion.prefs.persona)}\n\n${SYSTEM_PROMPT}${voiceMode ? `\n\n${VOICE_RULES}` : ""}`;
+  const systemPrompt = `${personaBlock(companion.prefs.persona)}\n\n${SYSTEM_PROMPT}${voiceMode ? `\n\n${VOICE_RULES}` : ""}${desktopMode ? `\n\n${DESKTOP_RULES}` : ""}`;
 
   if (shouldStayQuiet(goal)) {
     notice = "They are telling you how they feel, not asking for a task. Do NOT touch the browser. Reply as yourself with done — react to what they said, in character. Ask what they need only if it fits.";

@@ -25,6 +25,10 @@ describe("actions that must be allowed through", () => {
       { type: "fetch_page", url: "https://weather.com" },
       { type: "weather", place: "Kolkata" },
       { type: "weather" },
+      { type: "list_apps" },
+      { type: "open_app", app: "Notepad" },
+      { type: "focus_app", app: "Calculator" },
+      { type: "close_app", app: "Notepad" },
       { type: "remember", key: "site:twitch", value: "https://twitch.tv" },
       { type: "ask_human", question: "which account?" },
       { type: "done", success: true, answer: "done" },
@@ -131,9 +135,10 @@ describe("in the loop", () => {
 
 describe("the schema and the loop agree", () => {
   it("knows every type the system prompt documents", async () => {
-    const { SYSTEM_PROMPT } = await import("../../src/agent/prompt.js");
+    const { SYSTEM_PROMPT, DESKTOP_RULES } = await import("../../src/agent/prompt.js");
+    const documented = `${SYSTEM_PROMPT}\n${DESKTOP_RULES}`;
     for (const type of knownActionTypes()) {
-      expect(SYSTEM_PROMPT, `${type} is validated but never documented`).toContain(type);
+      expect(documented, `${type} is validated but never documented`).toContain(type);
     }
   });
 });

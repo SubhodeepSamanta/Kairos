@@ -26,7 +26,11 @@ const SCHEMA = {
   done: {},
   list_files: {},
   read_file: { path: "text" },
-  write_file: { path: "text", text: "text" }
+  write_file: { path: "text", text: "text" },
+  list_apps: {},
+  open_app: { app: "text" },
+  focus_app: { app: "text" },
+  close_app: { app: "text" }
 };
 
 function badValue(kind, value) {
