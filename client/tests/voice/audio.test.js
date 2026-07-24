@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { conditionForStt, measure } from "../../src/voice/audio.js";
+import { conditionForStt, measure, trimSilence } from "../../src/voice/audio.js";
 
 const config = { enabled: true, targetPeak: 0.7, maxGain: 8, noiseFloor: 200 };
 
@@ -50,5 +50,40 @@ describe("conditionForStt", () => {
 
   it("survives empty input", () => {
     expect(conditionForStt(new Int16Array(0), config).length).toBe(0);
+  });
+});
+
+describe("trimSilence", () => {
+  function withSilence(leadMs, speechMs, trailMs) {
+    const rate = 16000;
+    const lead = Math.round((leadMs / 1000) * rate);
+    const speech = Math.round((speechMs / 1000) * rate);
+    const trail = Math.round((trailMs / 1000) * rate);
+    const out = new Int16Array(lead + speech + trail);
+    for (let i = 0; i < speech; i++) out[lead + i] = Math.round(Math.sin(i / 4) * 8000);
+    return { pcm: out, lead, speech, trail };
+  }
+
+  it("drops long leading and trailing silence but keeps the speech", () => {
+    const { pcm, speech } = withSilence(700, 500, 900);
+    const out = trimSilence(pcm);
+    expect(out.length).toBeLessThan(pcm.length);
+    expect(out.length).toBeGreaterThanOrEqual(speech);
+    expect(measure(out).peak).toBe(measure(pcm).peak);
+  });
+
+  it("keeps a margin of context rather than cutting to the exact edge", () => {
+    const { pcm, speech } = withSilence(700, 500, 900);
+    const margin = Math.round((90 / 1000) * 16000);
+    expect(trimSilence(pcm).length).toBeGreaterThan(speech + margin);
+  });
+
+  it("is a no-op when there is no silence to trim", () => {
+    const { pcm } = withSilence(0, 500, 0);
+    expect(trimSilence(pcm)).toBe(pcm);
+  });
+
+  it("survives empty input", () => {
+    expect(trimSilence(new Int16Array(0)).length).toBe(0);
   });
 });
