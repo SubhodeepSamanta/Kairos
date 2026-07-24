@@ -1,5 +1,6 @@
 import { ACTIONS } from "../shared/schemas/action.js";
 import { openApp, closeApp, focusApp, listApps } from "../automation/desktop/windows/apps.js";
+import { readDesktop } from "../automation/desktop/driver.js";
 
 export async function executeDesktopAction(action) {
   switch (action.type) {
@@ -13,6 +14,8 @@ export async function executeDesktopAction(action) {
       const apps = await listApps();
       return { success: true, apps };
     }
+    case ACTIONS.READ_DESKTOP:
+      return await readDesktop();
     default:
       throw new Error(`Unsupported desktop action: ${action.type}`);
   }

@@ -59,7 +59,8 @@ const BROWSER_ACTIONS = {
   list_apps: () => ({ type: "list_apps", params: {} }),
   open_app: a => ({ type: "open_app", params: { app: a.app } }),
   focus_app: a => ({ type: "focus_app", params: { app: a.app } }),
-  close_app: a => ({ type: "close_app", params: { app: a.app } })
+  close_app: a => ({ type: "close_app", params: { app: a.app } }),
+  read_desktop: () => ({ type: "read_desktop", params: {} })
 };
 
 const DATA_SUMMARY = {
@@ -138,6 +139,8 @@ export async function runAgent({
   let blockedSteps = 0;
   let malformedSteps = 0;
   let lastPage = null;
+  let lastDesktop = null;
+  let activeSurface = "browser";
   let notice = "";
   let plan = null;
   let step = 0;
@@ -209,9 +212,11 @@ export async function runAgent({
       goal,
       memories: formatFactsForPrompt(relevantFacts(goal)),
       history: trimHistory(history),
-      snapshot: lastPage
-        ? formatSnapshot(lastPage, { fullText: justRead })
-        : "NO browser action has run this goal — anything they asked you to open/play/do is NOT done yet, no matter what CONVERSATION or MEMORIES say. Act first (open_for_user, navigate, or read). done without acting is ONLY for pure conversation or answers you know.",
+      snapshot: activeSurface === "desktop" && lastDesktop
+        ? lastDesktop.text
+        : lastPage
+          ? formatSnapshot(lastPage, { fullText: justRead })
+          : "NO browser action has run this goal — anything they asked you to open/play/do is NOT done yet, no matter what CONVERSATION or MEMORIES say. Act first (open_for_user, navigate, or read). done without acting is ONLY for pure conversation or answers you know.",
       notice,
       plan,
       readings,
@@ -470,6 +475,11 @@ export async function runAgent({
     const previousPage = lastPage;
     if (observation?.page && observation.page.url !== undefined) {
       lastPage = observation.page;
+      activeSurface = "browser";
+    }
+    if (observation?.desktop) {
+      lastDesktop = observation.desktop;
+      activeSurface = "desktop";
     }
 
     if (observation?.success === false) {
@@ -485,7 +495,9 @@ export async function runAgent({
       }
       const summarize = DATA_SUMMARY[action.type];
       const extra = summarize && observation?.data ? summarize(observation.data) : "";
-      const change = action.type === "list_browsers" ? "" : `; ${describePageChange(previousPage, lastPage)}`;
+      const change = observation?.desktop
+        ? ` (${observation.desktop.count} elements on "${observation.desktop.window?.title || "the window"}")`
+        : action.type === "list_browsers" ? "" : `; ${describePageChange(previousPage, lastPage)}`;
       history.push(`#${step} ${describeAction(action)} → ok${change}${extra}`);
 
       if (lastPage?.url && previousPage?.url !== lastPage.url) {

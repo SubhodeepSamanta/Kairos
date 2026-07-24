@@ -30,7 +30,8 @@ const SCHEMA = {
   list_apps: {},
   open_app: { app: "text" },
   focus_app: { app: "text" },
-  close_app: { app: "text" }
+  close_app: { app: "text" },
+  read_desktop: {}
 };
 
 function badValue(kind, value) {

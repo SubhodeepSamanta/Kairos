@@ -60,6 +60,13 @@ export async function executeAction(action) {
     return observation;
   }
 
+  if (action.type === "read_desktop") {
+    observation.success = result?.success !== false;
+    observation.desktop = observation.success ? { text: result.text, window: result.window, count: result.count } : null;
+    if (!observation.success) observation.reason = result?.reason || "read_desktop failed";
+    return observation;
+  }
+
   if (STATE_CHANGING.has(action.type)) {
     await settle();
     try {

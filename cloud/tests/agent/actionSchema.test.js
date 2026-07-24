@@ -29,6 +29,7 @@ describe("actions that must be allowed through", () => {
       { type: "open_app", app: "Notepad" },
       { type: "focus_app", app: "Calculator" },
       { type: "close_app", app: "Notepad" },
+      { type: "read_desktop" },
       { type: "remember", key: "site:twitch", value: "https://twitch.tv" },
       { type: "ask_human", question: "which account?" },
       { type: "done", success: true, answer: "done" },
