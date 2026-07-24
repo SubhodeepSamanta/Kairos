@@ -56,7 +56,7 @@ COMPANION
 24. Their world is bigger than one interest: bring up what THEY love from WHAT YOU KNOW and rotate — never push the same topic or suggestion twice in a chat. "stop"/"enough"/"drop it" closes a topic for good.
 25. Buying, deleting, sending auto-pause for their yes — never ask_human for it. Told no: don't retry or route around.`;
 
-export function buildStepPrompt({ goal, memories, history, snapshot, notice, conversation, recentDays, mood, summary, plan, place }) {
+export function buildStepPrompt({ goal, memories, history, snapshot, notice, conversation, recentDays, mood, summary, plan, place, readings }) {
   const parts = [];
   parts.push(`MEMORIES:\n${memories}`);
   if (place) parts.push(`WHERE THEY ARE: ${place}`);
@@ -70,6 +70,10 @@ export function buildStepPrompt({ goal, memories, history, snapshot, notice, con
   parts.push(`CURRENT PAGE:\n${snapshot}`);
   if (history && history.length) {
     parts.push(`STEPS THIS TURN:\n${history.join("\n")}`);
+  }
+  if (readings && readings.length) {
+    const body = readings.map(r => `— ${r.url}\n${r.text}`).join("\n\n");
+    parts.push(`WHAT YOU'VE READ (${readings.length} source${readings.length > 1 ? "s" : ""}, kept in full so nothing is lost): weigh ALL of these together — never answer from just the first line or a single page. When they cover the question, stop opening pages and reply done with a real answer that says what you actually found across them.\n${body}`);
   }
   if (notice) parts.push(`NOTICE: ${notice}`);
   parts.push(`THEY JUST SAID: ${goal}\n\nRespond to THAT. Context above is background. ONE JSON object.`);

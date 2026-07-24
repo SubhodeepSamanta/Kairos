@@ -238,6 +238,41 @@ describe("runAgent", () => {
     expect(calls.filter(c => c.type === "new_tab")).toHaveLength(2);
   });
 
+  it("keeps earlier sources readable for synthesis instead of trimming them away", async () => {
+    vi.mocked(fetchPageText).mockImplementation(async (url) =>
+      "x".repeat(350) + (url.includes("a.com") ? " MARKER_A " : " filler ") + "y".repeat(400)
+    );
+    llmQueue.push({ thought: "", action: { type: "fetch_page", url: "https://a.com" } });
+    for (const host of ["b", "c", "d", "e"]) {
+      llmQueue.push({ thought: "", action: { type: "fetch_page", url: `https://${host}.com` } });
+    }
+    llmQueue.push({ thought: "", action: { type: "scroll", direction: "down" } });
+    llmQueue.push({ thought: "", action: { type: "scroll", direction: "up" } });
+    llmQueue.push((system, user) => {
+      expect(user).toContain("(older detail trimmed)");
+      expect(user).toContain("WHAT YOU'VE READ");
+      expect(user).toContain("MARKER_A");
+      return { thought: "", action: { type: "done", success: true, answer: "ok" } };
+    });
+    const { executeAction } = makeExecutor();
+    const result = await runAgent({ goal: "best sunscreen", goalId: "g18", executeAction, askHuman: vi.fn() });
+    expect(result.success).toBe(true);
+  });
+
+  it("stops itself when it keeps looping back to the same page", async () => {
+    for (let id = 1; id <= 12; id++) {
+      llmQueue.push({ thought: "", action: { type: "click", id } });
+    }
+    const executeAction = vi.fn(async (action) => {
+      const id = action.params.element;
+      const url = id % 2 === 0 ? "https://yt.com/results" : `https://yt.com/watch${id}`;
+      return { success: true, page: { url, title: "t", inputs: [], buttons: [], links: [], text: "" } };
+    });
+    const result = await runAgent({ goal: "play a song", goalId: "g19", executeAction, askHuman: vi.fn() });
+    expect(result.success).toBe(false);
+    expect(result.answer).toContain("looping back to the same page");
+  });
+
   it("trims detail from old history entries but keeps recent ones verbatim", async () => {
     vi.mocked(fetchPageText).mockResolvedValue("A".repeat(1000));
     for (let i = 0; i < 8; i++) {

@@ -28,6 +28,10 @@ const LLM_RETRY_WAITS_MS = [8000, 20000, 45000, 0];
 const MUTATING = new Set(["click", "type", "select_option", "press_key"]);
 const MAX_MALFORMED = 5;
 const MAX_PLAN_STEPS = 6;
+const MAX_READINGS = 5;
+const READING_CHARS = 700;
+const MAX_REVISITS = 4;
+const WANDER_NUDGE = 8;
 
 const BROWSER_ACTIONS = {
   navigate: a => ({ type: "navigate", params: { url: a.url } }),
@@ -118,6 +122,9 @@ export async function runAgent({
   const succeededResults = {};
   const approved = new Set();
   const openedHosts = new Map();
+  const readings = [];
+  const visitCounts = {};
+  let navigations = 0;
   let freshTabs = 0;
   let blockedSteps = 0;
   let malformedSteps = 0;
@@ -198,6 +205,7 @@ export async function runAgent({
         : "NO browser action has run this goal — anything they asked you to open/play/do is NOT done yet, no matter what CONVERSATION or MEMORIES say. Act first (open_for_user, navigate, or read). done without acting is ONLY for pure conversation or answers you know.",
       notice,
       plan,
+      readings,
       summary: companion.summary,
       conversation: companion.conversation,
       recentDays: companion.recentDays,
@@ -362,6 +370,8 @@ export async function runAgent({
       try {
         const text = await fetchPageText(String(action.url || ""));
         succeededResults[sig] = { step };
+        readings.push({ url: String(action.url).slice(0, 120), text: text.slice(0, READING_CHARS) });
+        if (readings.length > MAX_READINGS) readings.shift();
         history.push(`#${step} fetch_page ${String(action.url).slice(0, 80)} →\n${text.slice(0, 1200)}`);
       } catch (err) {
         history.push(`#${step} fetch_page FAILED: ${err.message}`);
@@ -468,6 +478,20 @@ export async function runAgent({
       const extra = summarize && observation?.data ? summarize(observation.data) : "";
       const change = action.type === "list_browsers" ? "" : `; ${describePageChange(previousPage, lastPage)}`;
       history.push(`#${step} ${describeAction(action)} → ok${change}${extra}`);
+
+      if (lastPage?.url && previousPage?.url !== lastPage.url) {
+        navigations++;
+        const url = lastPage.url;
+        visitCounts[url] = (visitCounts[url] || 0) + 1;
+        if (visitCounts[url] >= MAX_REVISITS + 2) {
+          return finish(false, `I kept looping back to the same page (${url}) without finishing — clicking around in circles. Progress: ${history.slice(-3).join("; ") || "none"}`);
+        }
+        if (visitCounts[url] >= MAX_REVISITS) {
+          notice = `You have landed on ${url} ${visitCounts[url]} times, going in and out without finishing — this is the loop that wastes the whole turn. If what the goal asked for is already open or playing on the page you reached, reply done NOW. Otherwise stop clicking results: pick ONE and commit, or web_search the exact thing and navigate straight to its URL.`;
+        } else if (navigations === WANDER_NUDGE) {
+          notice = `You've moved through ${navigations} pages this turn without finishing. If what they asked you to open or play is on the page you're on now, that IS done — reply done with what you found. Only keep going if you clearly have not reached it yet.`;
+        }
+      }
     }
   }
 
