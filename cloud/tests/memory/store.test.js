@@ -57,6 +57,16 @@ describe("memory store", () => {
     expect(relevant.github_username).toBe("torvalds");
   });
 
+  it("caps stored facts and drops the oldest, surviving a reload", () => {
+    for (let i = 0; i < 305; i++) rememberFact(`fact_${i}`, `v${i}`);
+    const kept = getAllFacts();
+    expect(Object.keys(kept).length).toBe(300);
+    expect(kept.fact_0).toBeUndefined();
+    expect(kept.fact_304).toBe("v304");
+    resetMemoryCacheForTests();
+    expect(Object.keys(getAllFacts()).length).toBe(300);
+  });
+
   it("formats facts for prompt", () => {
     expect(formatFactsForPrompt({})).toBe("none yet");
     expect(formatFactsForPrompt({ a: "1", b: "2" })).toBe("a: 1\nb: 2");

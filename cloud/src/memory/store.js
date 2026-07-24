@@ -107,10 +107,13 @@ export function rememberFact(key, value) {
 
   const keys = Object.keys(store);
   if (keys.length > MAX_ENTRIES) {
-    keys
+    const dropped = keys
       .sort((a, b) => new Date(store[a].updatedAt) - new Date(store[b].updatedAt))
-      .slice(0, keys.length - MAX_ENTRIES)
-      .forEach(k => delete store[k]);
+      .slice(0, keys.length - MAX_ENTRIES);
+    dropped.forEach(k => delete store[k]);
+    if (useDb && isDbActive()) {
+      for (const k of dropped) deleteFact(k).catch(() => {});
+    }
   }
   persist(normalKey);
   console.log(`[MEMORY] Saved: ${normalKey} = ${store[normalKey].value.slice(0, 60)}`);
