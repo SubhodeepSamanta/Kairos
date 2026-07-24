@@ -25,7 +25,10 @@ const MAX_OPENS_PER_HOST = 1;
 const MAX_FRESH_TABS = 2;
 const MAX_BLOCKED_BEFORE_ABORT = 4;
 const LLM_RETRY_WAITS_MS = [8000, 20000, 45000, 0];
-const MUTATING = new Set(["click", "type", "select_option", "press_key"]);
+const MUTATING = new Set([
+  "click", "type", "select_option", "press_key",
+  "click_element", "type_into", "set_toggle", "select_menu", "press_keys", "close_app"
+]);
 const MAX_MALFORMED = 5;
 const MAX_PLAN_STEPS = 6;
 const MAX_READINGS = 5;
@@ -441,7 +444,7 @@ export async function runAgent({
       continue;
     }
 
-    const consequence = confirmRisky ? classifyConsequence(action, lastPage) : null;
+    const consequence = confirmRisky ? classifyConsequence(action, lastPage, lastDesktop) : null;
     if (consequence && !approved.has(sig)) {
       const question = confirmationQuestion(consequence, lastPage);
       status("Waiting for you to confirm…");

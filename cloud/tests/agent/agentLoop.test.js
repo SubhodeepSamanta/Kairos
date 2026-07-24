@@ -259,6 +259,18 @@ describe("runAgent", () => {
     expect(result.success).toBe(true);
   });
 
+  it("refuses to run a desktop mutation under dry run", async () => {
+    llmQueue.push({ thought: "", action: { type: "click_element", id: 1 } });
+    llmQueue.push((system, user) => {
+      expect(user).toContain("DRY RUN");
+      return { thought: "", action: { type: "done", success: true, answer: "would click it" } };
+    });
+    const { executeAction, calls } = makeExecutor();
+    const result = await runAgent({ goal: "click save in notepad", goalId: "gdry", executeAction, askHuman: vi.fn(), dryRun: true });
+    expect(calls.filter(c => c.type === "click_element")).toHaveLength(0);
+    expect(result.success).toBe(true);
+  });
+
   it("stops itself when it keeps looping back to the same page", async () => {
     for (let id = 1; id <= 12; id++) {
       llmQueue.push({ thought: "", action: { type: "click", id } });

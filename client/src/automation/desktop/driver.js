@@ -19,6 +19,7 @@ export async function readDesktop() {
     success: true,
     window,
     count: elements.length,
+    elements,
     text: formatDesktopSnapshot({ window, elements })
   };
 }

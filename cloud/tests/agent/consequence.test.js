@@ -41,6 +41,58 @@ describe("what counts as consequential", () => {
   });
 });
 
+const desktop = {
+  window: { title: "Untitled - Notepad", app: "notepad" },
+  elements: [
+    { id: 1, name: "Delete", control: "Button" },
+    { id: 2, name: "Send", control: "Button" },
+    { id: 3, name: "Bold", control: "Button" },
+    { id: 4, name: "", control: "Edit" }
+  ]
+};
+
+describe("the gate on the desktop", () => {
+  it("stops before an irreversible click on a native control", () => {
+    expect(classifyConsequence({ type: "click_element", id: 1 }, null, desktop).kind).toBe("delete something");
+    expect(classifyConsequence({ type: "click_element", id: 2 }, null, desktop).kind).toMatch(/send/);
+  });
+
+  it("lets a harmless native click through", () => {
+    expect(classifyConsequence({ type: "click_element", id: 3 }, null, desktop)).toBeNull();
+    expect(classifyConsequence({ type: "click_element", id: 99 }, null, desktop)).toBeNull();
+  });
+
+  it("stops before submitting a saved password into a native field", () => {
+    const c = classifyConsequence({ type: "type_into", id: 4, text: "{{secret:pw}}", submit: true }, null, desktop);
+    expect(c.kind).toMatch(/password/);
+  });
+
+  it("does not stop native typing that is not a submitted secret", () => {
+    expect(classifyConsequence({ type: "type_into", id: 4, text: "hello", submit: true }, null, desktop)).toBeNull();
+    expect(classifyConsequence({ type: "type_into", id: 4, text: "{{secret:pw}}", submit: false }, null, desktop)).toBeNull();
+  });
+
+  it("confirms closing an app only when the title shows unsaved work", () => {
+    const dirty = { window: { title: "*Untitled - Notepad", app: "notepad" } };
+    expect(classifyConsequence({ type: "close_app", app: "notepad" }, null, dirty).kind).toMatch(/unsaved/);
+    expect(classifyConsequence({ type: "close_app", app: "notepad" }, null, desktop)).toBeNull();
+  });
+
+  it("confirms a delete keystroke only in a file manager", () => {
+    const explorer = { window: { title: "Downloads - File Explorer", app: "explorer" } };
+    expect(classifyConsequence({ type: "press_keys", keys: "Delete" }, null, explorer).kind).toBe("delete files");
+    expect(classifyConsequence({ type: "press_keys", keys: "Ctrl+Shift+Delete" }, null, explorer).kind).toBe("delete files");
+    expect(classifyConsequence({ type: "press_keys", keys: "Delete" }, null, desktop)).toBeNull();
+    expect(classifyConsequence({ type: "press_keys", keys: "Ctrl+S" }, null, explorer)).toBeNull();
+  });
+
+  it("leaves benign desktop actions alone", () => {
+    for (const type of ["list_apps", "open_app", "focus_app", "read_desktop", "set_toggle", "select_menu"]) {
+      expect(classifyConsequence({ type, id: 1, app: "notepad" }, null, desktop), type).toBeNull();
+    }
+  });
+});
+
 describe("what must not be interrupted", () => {
   it("lets ordinary browsing through", () => {
     for (const id of [2, 5, 6, 30]) {

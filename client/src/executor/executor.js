@@ -68,7 +68,7 @@ export async function executeAction(action) {
 
   if (action.type === "read_desktop") {
     observation.success = result?.success !== false;
-    observation.desktop = observation.success ? { text: result.text, window: result.window, count: result.count } : null;
+    observation.desktop = observation.success ? desktopObs(result) : null;
     if (!observation.success) observation.reason = result?.reason || "read_desktop failed";
     return observation;
   }
@@ -86,13 +86,22 @@ export async function executeAction(action) {
     await new Promise(r => setTimeout(r, DESKTOP_SETTLE_MS));
     try {
       const d = await readDesktop();
-      if (d?.success) observation.desktop = { text: d.text, window: d.window, count: d.count };
+      if (d?.success) observation.desktop = desktopObs(d);
     } catch (err) {
       console.log(`[EXECUTE] post-action desktop read failed: ${err.message}`);
     }
   }
 
   return observation;
+}
+
+function desktopObs(d) {
+  return {
+    text: d.text,
+    window: d.window,
+    count: d.count,
+    elements: Array.isArray(d.elements) ? d.elements.map(e => ({ id: e.id, name: e.name, control: e.control })) : []
+  };
 }
 
 function extractData(action, result) {

@@ -44,11 +44,49 @@ export function labelFor(id, page) {
   return null;
 }
 
-export function classifyConsequence(action, page) {
+export function desktopLabelFor(id, desktop) {
+  if (!desktop || !Array.isArray(desktop.elements) || id === undefined || id === null) return null;
+  for (const el of desktop.elements) {
+    if (String(el.id) !== String(id)) continue;
+    return String(el.name || "").trim() || null;
+  }
+  return null;
+}
+
+export function classifyConsequence(action, page, desktop = null) {
   if (!action || typeof action !== "object") return null;
 
   if (action.type === "type" && action.submit === true && /\{\{secret:/.test(String(action.text || ""))) {
     return { kind: "sign in with a saved password", what: labelFor(action.id, page) || "that form" };
+  }
+
+  if (action.type === "type_into" && action.submit === true && /\{\{secret:/.test(String(action.text || ""))) {
+    return { kind: "sign in with a saved password", what: desktopLabelFor(action.id, desktop) || "that field" };
+  }
+
+  if (action.type === "click_element") {
+    const label = desktopLabelFor(action.id, desktop);
+    if (!label) return null;
+    const group = matchVerb(label);
+    return group ? { kind: group.kind, what: `"${label}"` } : null;
+  }
+
+  if (action.type === "close_app") {
+    const title = String(desktop?.window?.title || "");
+    if (/[*]|\bunsaved\b|save changes/i.test(title)) {
+      return { kind: "close an app with unsaved changes", what: `"${title.slice(0, 60)}"` };
+    }
+    return null;
+  }
+
+  if (action.type === "press_keys") {
+    const keys = String(action.keys || "").toLowerCase();
+    const app = normalize(desktop?.window?.app);
+    const title = normalize(desktop?.window?.title);
+    const destructive = /(^|\+|\s)del(ete)?(\+|\s|$)/.test(keys);
+    const fileManager = app.includes("explorer") || title.includes("file explorer");
+    if (destructive && fileManager) return { kind: "delete files", what: "the selected items in File Explorer" };
+    return null;
   }
 
   if (action.type !== "click") return null;
