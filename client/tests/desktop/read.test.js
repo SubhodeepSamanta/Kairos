@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { normalizeControl, normalizeElements, assignIds } from "../../src/automation/desktop/windows/uia.js";
 import { formatDesktopSnapshot } from "../../src/automation/desktop/snapshot.js";
+import { SERVER_SCRIPT } from "../../src/automation/desktop/windows/uiaServer.js";
 import {
   resetDesktop,
   registerDesktopElement,
@@ -73,6 +74,19 @@ describe("formatDesktopSnapshot", () => {
 
   it("guides back to open_app when nothing is focused", () => {
     expect(formatDesktopSnapshot({})).toMatch(/open_app or focus_app/);
+  });
+});
+
+describe("the embedded UIA host script", () => {
+  it("stays free of characters that would break the JS template literal", () => {
+    expect(SERVER_SCRIPT.includes("`")).toBe(false);
+    expect(SERVER_SCRIPT.includes("${")).toBe(false);
+  });
+
+  it("escapes SendKeys metacharacters when typing literal text so a + is not eaten as Shift", () => {
+    expect(SERVER_SCRIPT).toMatch(/Esc-Keys/);
+    expect(SERVER_SCRIPT).toContain("'+^%~(){}[]'");
+    expect(SERVER_SCRIPT).toMatch(/SendWait\(\(Esc-Keys \$value\)\)/);
   });
 });
 

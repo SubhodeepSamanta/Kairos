@@ -29,6 +29,15 @@ function Clean($s) {
   return ([string]$s).Replace([char]10, ' ').Replace([char]13, ' ').Replace([char]9, ' ')
 }
 
+function Esc-Keys($s) {
+  $sb = New-Object System.Text.StringBuilder
+  foreach ($ch in [char[]][string]$s) {
+    if ('+^%~(){}[]'.IndexOf($ch) -ge 0) { [void]$sb.Append('{').Append($ch).Append('}') }
+    else { [void]$sb.Append($ch) }
+  }
+  return $sb.ToString()
+}
+
 function Get-Patterns($el) {
   $out = @()
   $map = [ordered]@{ invoke = $PInvoke; value = $PValue; toggle = $PToggle; expandcollapse = $PExpand; selectionitem = $PSelItem }
@@ -103,7 +112,7 @@ function Do-SetValue($el, $value) {
     $p.SetValue([string]$value)
     return $true
   }
-  try { $el.SetFocus(); [System.Windows.Forms.SendKeys]::SendWait([string]$value); return $true } catch {}
+  try { $el.SetFocus(); [System.Windows.Forms.SendKeys]::SendWait((Esc-Keys $value)); return $true } catch {}
   return $false
 }
 
