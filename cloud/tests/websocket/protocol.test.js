@@ -1,10 +1,19 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import WebSocket from "ws";
 import { env } from "../../src/config/env.js";
-import { startWebSocketServer, executeActionRemotely, isClientConnected } from "../../src/websocket/server.js";
+import { startWebSocketServer, executeActionRemotely, isClientConnected, setReconnectWaitForTests } from "../../src/websocket/server.js";
 
 const PORT = 18099;
 let wss;
+
+function answerExecute(ws, observation) {
+  ws.on("message", (raw) => {
+    const msg = JSON.parse(raw.toString());
+    if (msg.type === "execute") {
+      ws.send(JSON.stringify({ type: "result", requestId: msg.requestId, observation }));
+    }
+  });
+}
 
 function connect(registerMessage) {
   return new Promise((resolve, reject) => {
@@ -65,15 +74,44 @@ describe("websocket protocol", () => {
     ws.close();
   });
 
-  it("rejects pending requests when the client disconnects", async () => {
+  it("rejects a pending request when the client disconnects and does not come back", async () => {
+    setReconnectWaitForTests(150);
     const { ws } = await connect({ type: "register_client", secret: env.CLIENT_SECRET });
     const pending = executeActionRemotely({ type: "read_ui", params: {} });
     setTimeout(() => ws.terminate(), 50);
     await expect(pending).rejects.toThrow("client_disconnected");
+    setReconnectWaitForTests(null);
   });
 
-  it("throws immediately when no client is connected", async () => {
+  it("gives up with no_client_connected when nobody reconnects in time", async () => {
+    setReconnectWaitForTests(150);
     await new Promise(r => setTimeout(r, 100));
     await expect(executeActionRemotely({ type: "read_ui", params: {} })).rejects.toThrow("no_client_connected");
+    setReconnectWaitForTests(null);
+  });
+
+  it("survives a brief client restart: waits for reconnect and retries the step once", async () => {
+    setReconnectWaitForTests(3000);
+    const first = await connect({ type: "register_client", secret: env.CLIENT_SECRET });
+    const pending = executeActionRemotely({ type: "read_ui", params: {} });
+    setTimeout(() => first.ws.terminate(), 40);
+
+    const second = new WebSocket(`ws://localhost:${PORT}`);
+    second.on("message", (raw) => {
+      const msg = JSON.parse(raw.toString());
+      if (msg.type === "execute") {
+        second.send(JSON.stringify({ type: "result", requestId: msg.requestId, observation: { success: true, page: { url: "https://back.example", title: "back" } } }));
+      }
+    });
+    setTimeout(() => {
+      second.on("open", () => second.send(JSON.stringify({ type: "register_client", secret: env.CLIENT_SECRET })));
+      if (second.readyState === WebSocket.OPEN) second.send(JSON.stringify({ type: "register_client", secret: env.CLIENT_SECRET }));
+    }, 250);
+
+    const observation = await pending;
+    expect(observation.success).toBe(true);
+    expect(observation.page.url).toBe("https://back.example");
+    second.close();
+    setReconnectWaitForTests(null);
   });
 });

@@ -4,6 +4,16 @@ import { getInstalledApps } from "../../../registry/apps.js";
 const LAUNCH_TIMEOUT_MS = 15000;
 
 let runPowerShell = defaultRunner;
+let lastApp = "";
+
+export function getLastApp() {
+  return lastApp;
+}
+
+export function setLastApp(app) {
+  const name = String(app || "").trim();
+  if (name) lastApp = name;
+}
 
 function defaultRunner(script) {
   return new Promise((resolve) => {
@@ -73,11 +83,13 @@ export async function openApp(app) {
   const found = await findInstalledApp(app);
   if (found?.AppID) {
     spawn("explorer.exe", [`shell:AppsFolder\\${found.AppID}`], { detached: true, stdio: "ignore" }).unref();
+    setLastApp(found.Name || app);
     return { success: true, app: found.Name || app, launched: found.Name || app };
   }
   const target = String(app || "").trim();
   if (!target) return { success: false, app, reason: "no app name given" };
   spawn("cmd.exe", ["/c", "start", "", target], { detached: true, stdio: "ignore", windowsHide: true }).unref();
+  setLastApp(target);
   return { success: true, app: target, launched: target, note: "started by name — if nothing opened, list_apps and use the exact name" };
 }
 
@@ -86,6 +98,7 @@ export async function focusApp(app) {
   const out = stdout.trim();
   if (err) return { success: false, app, reason: `could not focus: ${err.message.slice(0, 80)}` };
   if (!out || out === "notfound") return { success: false, app, reason: `no open window matched "${app}" — open it first` };
+  setLastApp(app);
   return { success: true, app, focused: out };
 }
 

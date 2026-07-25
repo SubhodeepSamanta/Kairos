@@ -271,6 +271,30 @@ describe("runAgent", () => {
     expect(result.success).toBe(true);
   });
 
+  it("retargets a browser click to click_element once the desktop is the active surface", async () => {
+    llmQueue.push({ thought: "open it", action: { type: "open_app", app: "Calculator" } });
+    llmQueue.push({ thought: "read", action: { type: "read_desktop" } });
+    llmQueue.push({ thought: "press seven", action: { type: "click", id: 5 } });
+    llmQueue.push({ thought: "done", action: { type: "done", success: true, answer: "ok" } });
+    const calls = [];
+    const executeAction = vi.fn(async (action) => {
+      calls.push(action);
+      if (action.type === "read_desktop") {
+        return {
+          success: true,
+          desktop: { text: "DESKTOP WINDOW: Calculator", window: { title: "Calculator", app: "calc" }, count: 1, elements: [{ id: 5, name: "Seven", control: "Button" }] }
+        };
+      }
+      return { success: true };
+    });
+    const result = await runAgent({ goal: "press seven on the calculator", goalId: "gsurf", executeAction, askHuman: vi.fn() });
+    expect(result.success).toBe(true);
+    expect(calls.some(c => c.type === "click")).toBe(false);
+    const remapped = calls.find(c => c.type === "click_element");
+    expect(remapped).toBeTruthy();
+    expect(remapped.params.element).toBe(5);
+  });
+
   it("stops itself when it keeps looping back to the same page", async () => {
     for (let id = 1; id <= 12; id++) {
       llmQueue.push({ thought: "", action: { type: "click", id } });

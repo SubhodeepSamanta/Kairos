@@ -88,6 +88,12 @@ describe("the embedded UIA host script", () => {
     expect(SERVER_SCRIPT).toContain("'+^%~(){}[]'");
     expect(SERVER_SCRIPT).toMatch(/SendWait\(\(Esc-Keys \$value\)\)/);
   });
+
+  it("forces the target window to the foreground before sending keys so focus can't drift", () => {
+    expect(SERVER_SCRIPT).toMatch(/AttachThreadInput/);
+    expect(SERVER_SCRIPT).toMatch(/function Focus-Window/);
+    expect(SERVER_SCRIPT).toMatch(/Focus-App-ByName \$appHint/);
+  });
 });
 
 describe("desktop registry", () => {

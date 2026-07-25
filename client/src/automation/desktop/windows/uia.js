@@ -50,8 +50,8 @@ export function assignIds(elements) {
   return elements.map((el, i) => ({ id: i + 1, ...el }));
 }
 
-export async function bridgeRead(timeoutMs) {
-  const resp = await sendToBridge({ cmd: "read" }, timeoutMs);
+export async function bridgeRead(app, timeoutMs) {
+  const resp = await sendToBridge({ cmd: "read", app: app || undefined }, timeoutMs);
   const window = resp?.window && typeof resp.window === "object"
     ? { title: String(resp.window.title || "").slice(0, 120), app: String(resp.window.app || "").slice(0, 80) }
     : null;

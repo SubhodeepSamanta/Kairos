@@ -1,4 +1,5 @@
 import { bridgeRead } from "./windows/uia.js";
+import { getLastApp } from "./windows/apps.js";
 import { resetDesktop, registerDesktopElement } from "./registry.js";
 import { formatDesktopSnapshot } from "./snapshot.js";
 
@@ -9,7 +10,7 @@ export async function readDesktop() {
   let window;
   let elements;
   try {
-    ({ window, elements } = await bridgeRead());
+    ({ window, elements } = await bridgeRead(getLastApp()));
   } catch (err) {
     return { success: false, reason: `could not read the desktop: ${err.message.slice(0, 120)}` };
   }

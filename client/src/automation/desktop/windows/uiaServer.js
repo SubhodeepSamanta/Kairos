@@ -5,8 +5,9 @@ try {
   Add-Type -AssemblyName System.Windows.Forms
 } catch {}
 
-$fgSig = '[DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();'
+$fgSig = '[DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow(); [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr h); [DllImport("user32.dll")] public static extern int ShowWindow(IntPtr h, int n); [DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(IntPtr h, IntPtr p); [DllImport("kernel32.dll")] public static extern uint GetCurrentThreadId(); [DllImport("user32.dll")] public static extern bool AttachThreadInput(uint a, uint b, bool f);'
 $Fg = Add-Type -MemberDefinition $fgSig -Name Fg -Namespace KairosNative -PassThru
+$script:winHandle = [IntPtr]::Zero
 $AE = [System.Windows.Automation.AutomationElement]
 $TW = [System.Windows.Automation.TreeWalker]::ControlViewWalker
 $PInvoke = [System.Windows.Automation.InvokePattern]::Pattern
@@ -48,8 +49,31 @@ function Get-Patterns($el) {
   return $out
 }
 
-function Read-Window {
+function Focus-Window {
+  if ($script:winHandle -eq [IntPtr]::Zero) { return }
+  try {
+    $tgt = $Fg::GetWindowThreadProcessId($script:winHandle, [IntPtr]::Zero)
+    $cur = $Fg::GetCurrentThreadId()
+    $Fg::AttachThreadInput($cur, $tgt, $true) | Out-Null
+    $Fg::ShowWindow($script:winHandle, 9) | Out-Null
+    $Fg::SetForegroundWindow($script:winHandle) | Out-Null
+    $Fg::AttachThreadInput($cur, $tgt, $false) | Out-Null
+    Start-Sleep -Milliseconds 50
+  } catch {}
+}
+
+function Focus-App-ByName($name) {
+  if (-not $name) { return }
+  $p = Get-Process | Where-Object { $_.MainWindowHandle -ne 0 -and ($_.ProcessName -like ('*' + $name + '*') -or $_.MainWindowTitle -like ('*' + $name + '*')) } | Sort-Object { $_.MainWindowTitle.Length } | Select-Object -First 1
+  if ($null -eq $p) { return }
+  $script:winHandle = $p.MainWindowHandle
+  Focus-Window
+}
+
+function Read-Window($appHint) {
+  Focus-App-ByName $appHint
   $hwnd = $Fg::GetForegroundWindow()
+  $script:winHandle = $hwnd
   $win = $null
   try { $win = $AE::FromHandle($hwnd) } catch {}
   if ($null -eq $win) { return @{ window = $null; elements = @() } }
@@ -112,7 +136,7 @@ function Do-SetValue($el, $value) {
     $p.SetValue([string]$value)
     return $true
   }
-  try { $el.SetFocus(); [System.Windows.Forms.SendKeys]::SendWait((Esc-Keys $value)); return $true } catch {}
+  try { Focus-Window; try { $el.SetFocus() } catch {} ; [System.Windows.Forms.SendKeys]::SendWait((Esc-Keys $value)); return $true } catch {}
   return $false
 }
 
@@ -138,9 +162,9 @@ function Do-Select($el, $value) {
 function Dispatch($req) {
   switch ($req.cmd) {
     'ping' { return @{ id = $req.id; ok = $true; data = @{ pong = $true } } }
-    'read' { return @{ id = $req.id; ok = $true; data = (Read-Window) } }
+    'read' { return @{ id = $req.id; ok = $true; data = (Read-Window $req.app) } }
     'keys' {
-      try { [System.Windows.Forms.SendKeys]::SendWait([string]$req.keys); return @{ id = $req.id; ok = $true; data = @{ sent = $true } } }
+      try { Focus-Window; [System.Windows.Forms.SendKeys]::SendWait([string]$req.keys); return @{ id = $req.id; ok = $true; data = @{ sent = $true } } }
       catch { return @{ id = $req.id; ok = $false; error = $_.Exception.Message } }
     }
   }

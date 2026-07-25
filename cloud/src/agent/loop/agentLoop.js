@@ -90,6 +90,17 @@ const DATA_SUMMARY = {
 
 const IDEMPOTENT_INFO = new Set(["list_browsers", "list_files", "read_file", "list_apps"]);
 
+const SURFACE_REMAP = {
+  desktop: { click: "click_element", type: "type_into", press_key: "press_keys" }
+};
+
+function retargetForSurface(action, surface) {
+  const to = SURFACE_REMAP[surface]?.[action.type];
+  if (!to) return action;
+  if (to === "press_keys") return { ...action, type: to, keys: action.keys ?? action.key };
+  return { ...action, type: to };
+}
+
 function actionSignature(action) {
   return JSON.stringify(action);
 }
@@ -274,7 +285,7 @@ export async function runAgent({
       }
     }
 
-    const action = normalizeAction(decision.action || decision);
+    const action = retargetForSurface(normalizeAction(decision.action || decision), activeSurface);
     const thought = String(decision.thought || "").slice(0, 200);
     const malformed = validateAction(action);
     if (malformed) {

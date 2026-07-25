@@ -9,20 +9,46 @@ import { markClientConnected, markConnector } from "../runtime.js";
 
 const ACTION_TIMEOUT_MS = 60000;
 const HUMAN_TIMEOUT_MS = 300000;
+const RECONNECT_WAIT_MS = 8000;
 
 let automationClient = null;
 const liveSockets = new Set();
 const pendingRequests = new Map();
 const pendingHumanInputs = new Map();
+const clientWaiters = new Set();
+let reconnectWaitMs = RECONNECT_WAIT_MS;
+
+export function setReconnectWaitForTests(ms) {
+  reconnectWaitMs = Number.isFinite(ms) ? ms : RECONNECT_WAIT_MS;
+}
 
 export function isClientConnected() {
   return automationClient !== null && automationClient.readyState === 1;
 }
 
-export async function executeActionRemotely(action) {
-  if (!isClientConnected()) {
-    throw new Error("no_client_connected");
-  }
+function waitForClient(timeoutMs) {
+  if (isClientConnected()) return Promise.resolve(true);
+  return new Promise((resolve) => {
+    const entry = { resolve: null, timer: null };
+    entry.timer = setTimeout(() => {
+      clientWaiters.delete(entry);
+      resolve(false);
+    }, timeoutMs);
+    entry.resolve = () => {
+      clearTimeout(entry.timer);
+      clientWaiters.delete(entry);
+      resolve(true);
+    };
+    clientWaiters.add(entry);
+  });
+}
+
+function wakeClientWaiters() {
+  for (const entry of [...clientWaiters]) entry.resolve();
+}
+
+function sendOnce(action) {
+  if (!isClientConnected()) return Promise.reject(new Error("no_client_connected"));
 
   const requestId = crypto.randomUUID();
   const timeoutMs = action.type === "store_secret" ? 10000 : ACTION_TIMEOUT_MS;
@@ -46,6 +72,18 @@ export async function executeActionRemotely(action) {
       }
     });
   });
+}
+
+export async function executeActionRemotely(action) {
+  try {
+    return await sendOnce(action);
+  } catch (err) {
+    if (err.message !== "no_client_connected" && err.message !== "client_disconnected") throw err;
+    log(`[WS] client went away mid-step — waiting up to ${reconnectWaitMs / 1000}s for it to come back`);
+    if (!await waitForClient(reconnectWaitMs)) throw err;
+    log("[WS] client is back — retrying the step once");
+    return await sendOnce(action);
+  }
 }
 
 function rejectAllPending(reason) {
@@ -190,6 +228,7 @@ export function startWebSocketServer(port = Number(env.PORT) || 3000) {
           ws.role = "client";
           markClientConnected(true);
           log("Automation client registered");
+          wakeClientWaiters();
         } else {
           ws.role = "connector";
           ws.connectorName = data.name || "connector";
