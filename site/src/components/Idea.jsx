@@ -22,7 +22,7 @@ export default function Idea() {
         the fix is the prompt or the snapshot — <span className="font-medium text-ink">never a special-case rule</span>.
       </Reveal>
 
-      <Reveal delay={220} className="mx-auto mt-10 max-w-lg rounded-xl border border-ink/12 bg-paper-2/60 p-5 text-left font-mono text-[13px] leading-relaxed text-ink-soft">
+      <Reveal delay={220} className="mx-auto mt-10 max-w-lg overflow-x-auto rounded-xl border border-ink/12 bg-paper-2/60 p-3 text-left font-mono text-[12px] leading-relaxed text-ink-soft sm:p-5 sm:text-[13px]">
         <span className="text-ink-faint">// one reply, every turn</span>
         <br />
         {"{ "}

@@ -6,7 +6,7 @@ function Stat({ value, label, sub, active }) {
   const ref = useCountUp(value, active);
   return (
     <div className="text-center">
-      <div className="font-display text-4xl font-semibold text-ink sm:text-5xl">
+      <div className="font-display text-3xl font-semibold text-ink sm:text-5xl">
         <span ref={ref}>0</span>
       </div>
       <div className="mt-2 text-sm font-medium text-ink">{label}</div>

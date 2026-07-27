@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 const SCRIPT = [
   { role: "you", text: "note down my 3pm interview, then play some lofi" },
@@ -24,6 +24,7 @@ const LABEL = { you: "goal", thought: "thought", action: "action", obs: "observa
 
 export default function AgentCard() {
   const [count, setCount] = useState(0);
+  const scrollRef = useRef(null);
 
   useEffect(() => {
     if (count >= SCRIPT.length) {
@@ -33,6 +34,15 @@ export default function AgentCard() {
     const speed = SCRIPT[count].role === "done" ? 900 : 620;
     const id = setTimeout(() => setCount((c) => c + 1), speed);
     return () => clearTimeout(id);
+  }, [count]);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTo({
+        top: scrollRef.current.scrollHeight,
+        behavior: "smooth"
+      });
+    }
   }, [count]);
 
   return (
@@ -48,19 +58,22 @@ export default function AgentCard() {
         </span>
       </div>
 
-      <div className="flex min-h-[19rem] flex-col gap-2.5 p-4 sm:min-h-[21rem]">
+      <div
+        ref={scrollRef}
+        className="flex h-[20rem] flex-col gap-2.5 overflow-y-auto p-3 sm:h-[24rem] sm:p-4 scroll-smooth"
+      >
         {SCRIPT.slice(0, count).map((line, idx) => (
-          <div key={idx} className="rise flex items-start gap-2.5">
-            <span className="mt-1 w-[4.7rem] shrink-0 text-right font-mono text-[10px] uppercase tracking-wider text-ink-faint">
+          <div key={idx} className="rise flex items-start gap-1.5 sm:gap-2.5">
+            <span className="mt-1 w-[3.5rem] shrink-0 text-right font-mono text-[9px] uppercase tracking-wider text-ink-faint sm:w-[4.7rem] sm:text-[10px]">
               {LABEL[line.role]}
             </span>
-            <span className={`rounded-lg px-3 py-1.5 text-[13px] leading-snug ${STYLES[line.role]}`}>
+            <span className={`min-w-0 break-words rounded-lg px-2 py-1 text-[12px] leading-snug sm:px-3 sm:py-1.5 sm:text-[13px] ${STYLES[line.role]}`}>
               {line.text}
             </span>
           </div>
         ))}
         {count < SCRIPT.length && (
-          <div className="flex items-center gap-2 pl-[5.4rem] pt-1 text-ink-faint">
+          <div className="flex items-center gap-2 pl-[4rem] pt-1 text-ink-faint sm:pl-[5.4rem]">
             <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-ink-faint" style={{ animationDelay: "0ms" }} />
             <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-ink-faint" style={{ animationDelay: "140ms" }} />
             <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-ink-faint" style={{ animationDelay: "280ms" }} />

@@ -19,8 +19,8 @@ export default function HowItWorks() {
           </Reveal>
         </div>
 
-        <div className="relative mt-16 grid gap-4 md:grid-cols-4">
-          <div className="absolute left-0 right-0 top-8 -z-10 hidden h-px bg-gradient-to-r from-transparent via-gold-300 to-transparent md:block" />
+        <div className="relative mt-16 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="absolute left-0 right-0 top-8 -z-10 hidden h-px bg-gradient-to-r from-transparent via-gold-300 to-transparent lg:block" />
           {LOOP_STEPS.map((step, i) => (
             <Reveal
               key={step.k}
@@ -36,7 +36,7 @@ export default function HowItWorks() {
           ))}
         </div>
 
-        <Reveal delay={200} className="mx-auto mt-14 max-w-3xl rounded-xl border border-ink/10 bg-ink px-6 py-5 text-center">
+        <Reveal delay={200} className="mx-auto mt-14 max-w-3xl rounded-xl border border-ink/10 bg-ink px-4 py-4 text-center sm:px-6 sm:py-5">
           <p className="text-sm leading-relaxed text-paper/85">
             The brain runs in the cloud; the hands stay on your laptop. They speak over a
             single authenticated WebSocket — goals and answers one way, actions and

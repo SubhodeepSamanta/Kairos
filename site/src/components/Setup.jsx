@@ -45,9 +45,9 @@ export default function Setup() {
               <span className="h-2.5 w-2.5 rounded-full bg-dusk-300" />
               <span className="ml-2 font-mono text-[11px] text-paper/40">terminal</span>
             </div>
-            <pre className="overflow-x-auto p-5 font-mono text-[12.5px] leading-relaxed">
+            <pre className="overflow-x-auto p-3 font-mono text-[11px] leading-relaxed sm:p-5 sm:text-[12.5px]">
               {CODE.map((line, i) => (
-                <div key={i} className="whitespace-pre">
+                <div key={i} className="whitespace-pre-wrap break-all sm:whitespace-pre sm:break-normal">
                   <span className="text-gold-300/70">{line.p}</span>
                   <span className={line.dim ? "text-paper/40" : line.accent ? "text-gold-300" : "text-paper/90"}>
                     {line.c}

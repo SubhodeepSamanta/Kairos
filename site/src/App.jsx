@@ -15,7 +15,7 @@ export default function App() {
   return (
     <>
       <Nav />
-      <main>
+      <main className="max-w-full overflow-x-hidden">
         <Hero />
         <Marquee />
         <Idea />

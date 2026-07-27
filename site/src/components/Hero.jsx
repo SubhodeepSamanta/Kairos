@@ -19,7 +19,7 @@ export default function Hero() {
       <div className="absolute -left-24 top-24 -z-10 h-72 w-72 rounded-full bg-gold-200/40 blur-3xl animate-drift" />
       <div className="absolute -right-16 top-48 -z-10 h-80 w-80 rounded-full bg-dusk-300/30 blur-3xl animate-drift" style={{ animationDelay: "-6s" }} />
 
-      <div className="mx-auto grid max-w-6xl items-center gap-14 px-5 pb-20 pt-32 lg:grid-cols-[1.05fr_0.95fr] lg:pt-40">
+      <div className="mx-auto grid max-w-6xl items-center gap-14 px-5 pb-20 pt-28 sm:pt-32 lg:grid-cols-[1.05fr_0.95fr] lg:pt-40">
         <div className="rise">
           <a
             href={REPO}
@@ -31,7 +31,7 @@ export default function Hero() {
             Open-source · runs on your own machine
           </a>
 
-          <h1 className="mt-6 font-display text-[2.7rem] font-semibold leading-[1.04] tracking-tight sm:text-6xl">
+          <h1 className="mt-6 font-display text-[2rem] font-semibold leading-[1.08] tracking-tight sm:text-[2.7rem] sm:leading-[1.04] md:text-6xl">
             The assistant that
             <br className="hidden sm:block" /> drives your{" "}
             <span className="text-gradient">real computer</span>.
@@ -79,7 +79,7 @@ export default function Hero() {
           </dl>
         </div>
 
-        <div className="relative">
+        <div className="relative min-w-0">
           <div className="absolute -inset-4 -z-10 rounded-[2rem] bg-gradient-to-br from-gold-100/60 to-dusk-300/40 blur-2xl" />
           <AgentCard />
         </div>

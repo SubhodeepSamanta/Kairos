@@ -5,7 +5,7 @@ import { GithubIcon, ArrowIcon } from "./icons.jsx";
 export default function CTA() {
   return (
     <section className="mx-auto max-w-6xl px-5 py-20">
-      <Reveal className="relative overflow-hidden rounded-3xl border border-ink/10 bg-ink px-6 py-16 text-center">
+      <Reveal className="relative overflow-hidden rounded-3xl border border-ink/10 bg-ink px-5 py-12 text-center sm:px-6 sm:py-16">
         <div className="absolute -left-20 -top-20 h-64 w-64 rounded-full bg-gold-500/20 blur-3xl" />
         <div className="absolute -bottom-24 -right-16 h-72 w-72 rounded-full bg-dusk-500/25 blur-3xl" />
         <img src="/screenshots/logo.png" alt="Kairos" className="mx-auto h-16 w-16 rounded-full ring-2 ring-white/15" />

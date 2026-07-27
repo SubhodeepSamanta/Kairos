@@ -2,10 +2,10 @@ import Reveal from "./Reveal.jsx";
 import Shot from "./Shot.jsx";
 
 const SHOTS = [
-  { src: "/screenshots/03-browser.png", alt: "Driving a real browser", span: "sm:col-span-2" },
+  { src: "/screenshots/03-browser.png", alt: "Driving a real browser", span: "md:col-span-2" },
   { src: "/screenshots/04-desktop.png", alt: "Inside a native app", span: "" },
   { src: "/screenshots/02-cli-console.png", alt: "The CLI console", span: "" },
-  { src: "/screenshots/01-telegram.png", alt: "On Telegram", span: "sm:col-span-2" }
+  { src: "/screenshots/01-telegram.png", alt: "On Telegram", span: "md:col-span-2" }
 ];
 
 export default function Gallery() {
@@ -20,7 +20,7 @@ export default function Gallery() {
         </Reveal>
       </div>
 
-      <div className="mt-12 grid gap-4 sm:grid-cols-3">
+      <div className="mt-12 grid gap-4 md:grid-cols-3">
         {SHOTS.map((s, i) => (
           <Reveal
             key={s.alt}
