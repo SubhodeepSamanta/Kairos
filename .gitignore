@@ -10,10 +10,18 @@ node_modules/
 graphify-out/
 get-shit-done/
 sessions/
-screenshots/
 eng.traineddata
 data/
 cloud/benchmark/results.json
 
 # scratch files from debugging sessions
 */.[a-z]*.mjs
+
+# README screenshots are tracked, everything else stays ignored above
+!screenshots/
+!screenshots/*.png
+!screenshots/*.md
+
+# the landing site ships its own copy of the images
+!site/public/screenshots/
+!site/public/screenshots/*.png
